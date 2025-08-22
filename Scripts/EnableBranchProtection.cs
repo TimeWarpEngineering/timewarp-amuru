@@ -1,20 +1,17 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
+#:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:property LangVersion=preview
+#:property EnablePreviewFeatures=true
+
 // EnableBranchProtection.cs - Enable branch protection on the default branch
 
+using TimeWarp.Amuru;
 
-// Get script directory using CallerFilePath
-static string GetScriptDirectory([CallerFilePath] string scriptPath = "")
-{
-  return Path.GetDirectoryName(scriptPath) ?? "";
-}
-
-// Push current directory, change to script directory for relative paths
-string originalDirectory = Directory.GetCurrentDirectory();
-string scriptDir = GetScriptDirectory();
-Directory.SetCurrentDirectory(scriptDir);
+// Use ScriptContext to manage directory changes
+using var context = ScriptContext.FromEntryPoint();
 
 Console.WriteLine("🔒 Enabling branch protection on master branch...");
-Console.WriteLine($"Script directory: {scriptDir}");
+Console.WriteLine($"Script directory: {context.ScriptDirectory}");
 Console.WriteLine($"Working from: {Directory.GetCurrentDirectory()}");
 
 try
@@ -99,8 +96,5 @@ catch (Exception ex)
   Console.WriteLine($"❌ An error occurred: {ex.Message}");
   Environment.Exit(1);
 }
-finally
-{
-  // Pop - restore original working directory
-  Directory.SetCurrentDirectory(originalDirectory);
-}
+
+// ScriptContext automatically restores directory on disposal

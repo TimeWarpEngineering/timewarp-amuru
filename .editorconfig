@@ -99,6 +99,9 @@ dotnet_style_allow_statement_immediately_after_block_experimental = false:warnin
 
 #### C# Coding Conventions ####
 
+# ConfigureAwait - Not needed for console apps and libraries that might be used in console apps
+dotnet_diagnostic.CA2007.severity = none
+
 # var preferences
 csharp_style_var_elsewhere = false:warning
 csharp_style_var_for_built_in_types = false:warning
@@ -301,34 +304,25 @@ dotnet_diagnostic.globalusingsanalyzer0003.severity = warning
 [Scripts/*.cs]
 # CA1303: Do not pass literals as localized parameters - Not needed for build scripts
 dotnet_diagnostic.CA1303.severity = none
-# CA2007: Consider calling ConfigureAwait on the awaited task - Not needed for console apps
-dotnet_diagnostic.CA2007.severity = none
 # CA1031: Do not catch general exception types - Acceptable for build scripts
 dotnet_diagnostic.CA1031.severity = none
 # CA2000: Dispose objects before losing scope - Process is disposed properly
 dotnet_diagnostic.CA2000.severity = none
 
 #### Test Scripts Analyzer Settings ####
-[Tests/**/*.cs]
+[Tests/**.cs]
 # CA1303: Do not pass literals as localized parameters - Not needed for tests
 dotnet_diagnostic.CA1303.severity = none
-# CA2007: Consider calling ConfigureAwait on the awaited task - Not needed for test scripts
-dotnet_diagnostic.CA2007.severity = none
 # CA1031: Do not catch general exception types - Acceptable for test scripts
 dotnet_diagnostic.CA1031.severity = none
 
-[Tests/*.cs]
-# CA1303: Do not pass literals as localized parameters - Not needed for tests
+#### Samples Analyzer Settings ####
+[Samples/**.cs]
+# CA1303: Do not pass literals as localized parameters - Not needed for sample code
 dotnet_diagnostic.CA1303.severity = none
-# CA2007: Consider calling ConfigureAwait on the awaited task - Not needed for test scripts
-dotnet_diagnostic.CA2007.severity = none
-# CA1031: Do not catch general exception types - Acceptable for test scripts
-dotnet_diagnostic.CA1031.severity = none
 
 #### Library Analyzer Settings ####
-[Source/**/*.cs]
-# CA2007: ConfigureAwait - Not needed for a library that might be used in console apps
-dotnet_diagnostic.CA2007.severity = none
+[Source/**.cs]
 # CA1031: Do not catch general exception types - We want graceful error handling
 dotnet_diagnostic.CA1031.severity = none
 # CA1062: Validate arguments of public methods - Extension methods often don't need null checks
