@@ -143,6 +143,7 @@ Check out the latest NuGet package: [TimeWarp.Cli](https://www.nuget.org/package
 - **C# Script Support**: Seamless execution of C# scripts with proper argument handling
 - **Command Builders**: Fluent builders for complex commands (DotNet, Fzf, Ghq, Gwq)
 - **Interactive Commands**: Support for interactive tools like FZF with `GetStringInteractiveAsync()` and `ExecuteInteractiveAsync()`
+- **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
 
 ## Error Handling
 
@@ -212,6 +213,16 @@ For commands like `fzf` that are normally interactive, you can either:
 - `CliConfiguration.Reset()` - Clear all custom paths
 - `CliConfiguration.HasCustomPath(command)` - Check if command has custom path
 - `CliConfiguration.AllCommandPaths` - Get all configured paths
+
+## .NET 10 File-Based App Support
+
+TimeWarp.Amuru provides specialized support for .NET 10's new file-based apps (single-file C# scripts) with AppContext extensions and ScriptContext for directory management.
+
+- **AppContext Extensions** - Clean access to script metadata without magic strings
+- **ScriptContext** - Automatic working directory management with cleanup guarantees
+- **ProcessExit Handling** - Cleanup runs even with `Environment.Exit()`
+
+📖 **[See the documentation](Documentation/Developer/HowToGuides/)** for detailed usage guides and examples.
 
 ## Architecture
 
