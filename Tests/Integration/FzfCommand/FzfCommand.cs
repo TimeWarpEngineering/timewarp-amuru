@@ -6,11 +6,11 @@ internal sealed class FzfCommandTests
 {
   public static async Task TestBasicFzfBuilderCreation()
   {
-    FzfBuilder fzfBuilder = Fzf.Run();
+    FzfBuilder fzfBuilder = Fzf.Builder();
     
     AssertTrue(
       fzfBuilder != null,
-      "Fzf.Run() should create builder successfully"
+      "Fzf.Builder() should create builder successfully"
     );
     
     await Task.CompletedTask;
@@ -18,7 +18,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithInputItems()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .FromInput("apple", "banana", "cherry")
       .Build()
       .ToCommandString();
@@ -33,7 +33,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithMultiSelect()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithMulti()
       .FromInput("item1", "item2", "item3")
       .Build()
@@ -49,7 +49,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithPreview()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithPreview("echo {}")
       .FromInput("file1.txt", "file2.txt", "file3.txt")
       .Build()
@@ -65,7 +65,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithHeightAndLayoutOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithHeightPercent(50)
       .WithLayout("reverse")
       .WithBorder("rounded")
@@ -83,7 +83,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithSearchOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithExact()
       .WithCaseInsensitive()
       .WithScheme("path")
@@ -101,7 +101,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithInterfaceOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithCycle()
       .WithNoMouse()
       .WithScrollOff(3)
@@ -120,7 +120,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithDisplayOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithAnsi()
       .WithColor("dark")
       .WithTabstop(4)
@@ -139,7 +139,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithHistoryOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithHistory("/tmp/fzf_history")
       .WithHistorySize(100)
       .FromInput("history1", "history2", "history3")
@@ -156,7 +156,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithScriptingOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithQuery("initial")
       .WithSelect1()
       .WithExit0()
@@ -175,7 +175,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithComprehensiveOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithMulti(5)
       .WithPreview("echo 'Preview: {}'")
       .WithPreviewWindow("right:50%")
@@ -199,7 +199,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithFileInput()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .FromFiles("*.cs")
       .WithPreview("head -20 {}")
       .Build()
@@ -215,7 +215,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithCommandInput()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .FromCommand("echo hello world")
       .WithPrompt("Select output: ")
       .Build()
@@ -232,7 +232,7 @@ internal sealed class FzfCommandTests
   public static async Task TestFzfWithWorkingDirectoryAndEnvironment()
   {
     // Note: Working directory and environment variables don't appear in ToCommandString()
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithWorkingDirectory("/tmp")
       .WithEnvironmentVariable("FZF_DEFAULT_OPTS", "--height 40%")
       .FromInput("env1", "env2", "env3")
@@ -249,7 +249,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithAdvancedLayoutOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithLayout("reverse-list")
       .WithBorderLabel("Selection")
       .WithBorderLabelPos("10")
@@ -271,7 +271,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithFieldProcessing()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithNth("1,2")
       .WithWithNth("2..")
       .WithDelimiter(":")
@@ -289,7 +289,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithSortingAndTrackingOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithNoSort()
       .WithTac()
       .WithTrack()
@@ -308,7 +308,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithScrollbarAndEllipsis()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithScrollbar("█░")
       .WithEllipsis("...")
       .WithHeaderLines(2)
@@ -327,7 +327,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithPreviewLabelOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithPreview("cat {}")
       .WithPreviewLabel("File Contents")
       .WithPreviewLabelPos(5)
@@ -347,7 +347,7 @@ internal sealed class FzfCommandTests
   public static async Task TestFzfWithInputCollection()
   {
     var items = new List<string> { "collection1", "collection2", "collection3" };
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .FromInput(items)
       .WithPrompt("From collection: ")
       .Build()
@@ -364,7 +364,7 @@ internal sealed class FzfCommandTests
   public static async Task TestFzfFilterMode()
   {
     // This tests that the command builds correctly even if fzf might not be installed
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithFilter("test")  // Use filter mode to avoid interactive requirement
       .FromInput("test1", "test2", "test3")
       .Build()
@@ -380,7 +380,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithListenAndSyncOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithListen(8080)
       .WithSync()
       .FromInput("server1", "server2", "server3")
@@ -397,7 +397,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithNullHandlingOptions()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithRead0()
       .WithPrint0()
       .FromInput("null1", "null2", "null3")
@@ -414,7 +414,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithExpectAndPrintQuery()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithExpect("ctrl-a,ctrl-b")
       .WithPrintQuery()
       .FromInput("expect1", "expect2", "expect3")
@@ -431,7 +431,7 @@ internal sealed class FzfCommandTests
 
   public static async Task TestFzfWithBindAndJumpLabels()
   {
-    string command = Fzf.Run()
+    string command = Fzf.Builder()
       .WithBind("ctrl-a:select-all")
       .WithJumpLabels("abcdefghij")
       .WithFilepathWord()

@@ -21,7 +21,7 @@ internal sealed class ConfigurationTests
       );
       
       // Create and build a command - it should use the custom path
-      CommandResult command = Fzf.Run()
+      CommandResult command = Fzf.Builder()
         .FromInput("test1", "test2")
         .Build();
       

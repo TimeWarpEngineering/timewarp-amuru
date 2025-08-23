@@ -9,7 +9,7 @@ Console.WriteLine("===============================================\n");
 Console.WriteLine("Test 1: Basic FZF selection");
 Console.WriteLine("---------------------------");
 
-string selectedFruit = await Fzf.Run()
+string selectedFruit = await Fzf.Builder()
   .FromInput("Apple", "Banana", "Cherry", "Date", "Elderberry")
   .WithPrompt("Select a fruit: ")
   .WithHeightPercent(40)
@@ -59,7 +59,7 @@ Console.WriteLine($"Result: '{emptyResult}' (should be empty)\n");
 Console.WriteLine("Test 5: FZF with --print-query (always returns something)");
 Console.WriteLine("---------------------------------------------------------");
 
-string queryResult = await Fzf.Run()
+string queryResult = await Fzf.Builder()
   .FromInput("TypeScript", "JavaScript", "CoffeeScript")
   .WithPrompt("Type to search: ")
   .WithPrintQuery()  // This makes FZF print what you typed even if nothing selected

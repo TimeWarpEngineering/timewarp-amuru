@@ -92,7 +92,7 @@ var packages = await DotNet.ListPackages()
 
 // Interactive file selection with Fzf (NEW in v0.6.0)
 // Use GetStringInteractiveAsync() to show FZF UI and capture selection
-var selectedFile = await Fzf.Run()
+var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
     .GetStringInteractiveAsync();
@@ -104,7 +104,7 @@ var chosenFile = await Shell.Run("find")
     .GetStringInteractiveAsync();
 
 // Multi-select with interactive FZF
-var selectedItems = await Fzf.Run()
+var selectedItems = await Fzf.Builder()
     .FromInput("Red", "Green", "Blue", "Yellow")
     .WithMulti()
     .GetStringInteractiveAsync();
@@ -127,6 +127,23 @@ Or reference in your C# script:
 ```
 
 Check out the latest NuGet package: [TimeWarp.Cli](https://www.nuget.org/packages/TimeWarp.Cli/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Cli?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Cli/)
+
+### DotNet Commands
+
+```csharp
+// Global dotnet options
+var sdks = await DotNet.WithListSdks().GetLinesAsync();
+var runtimes = await DotNet.WithListRuntimes().GetLinesAsync();
+var version = await DotNet.WithVersion().GetStringAsync();
+var info = await DotNet.WithInfo().GetStringAsync();
+
+// Base builder for custom arguments
+await DotNet.Builder().WithArguments("--list-sdks").GetLinesAsync();
+
+// Subcommands (existing API)
+await DotNet.Build().WithConfiguration("Release").ExecuteAsync();
+await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
+```
 
 ## Key Features
 
@@ -184,7 +201,7 @@ CliConfiguration.SetCommandPath("fzf", "/path/to/mock/fzf");
 CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 
 // Your code using these commands will now use the mocks
-var selected = await Fzf.Run()
+var selected = await Fzf.Builder()
     .FromInput("option1", "option2", "option3")
     .GetStringAsync(); // Uses mock fzf
 

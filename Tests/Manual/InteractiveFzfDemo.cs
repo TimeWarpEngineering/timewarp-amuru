@@ -10,7 +10,7 @@ Console.WriteLine("=====================================\n");
 Console.WriteLine("Test 1: Select a fruit using GetStringInteractiveAsync()");
 Console.WriteLine("---------------------------------------------------------");
 
-string selectedFruit = await Fzf.Run()
+string selectedFruit = await Fzf.Builder()
   .FromInput("Apple", "Banana", "Cherry", "Date", "Elderberry")
   .WithPrompt("Select a fruit: ")
   .WithHeightPercent(40)
@@ -35,7 +35,7 @@ Console.WriteLine($"\nYou selected: '{selectedFile}'");
 Console.WriteLine("\n\nTest 3: Multi-select colors (use Tab to select multiple)");
 Console.WriteLine("--------------------------------------------------------");
 
-string selectedColors = await Fzf.Run()
+string selectedColors = await Fzf.Builder()
   .FromInput("Red", "Green", "Blue", "Yellow", "Purple", "Orange", "Pink", "Brown")
   .WithMulti()
   .WithPrompt("Select colors (Tab to multi-select): ")

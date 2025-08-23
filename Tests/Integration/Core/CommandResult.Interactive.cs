@@ -19,7 +19,7 @@ internal sealed class CommandResultInteractiveTests
       CliConfiguration.SetCommandPath("fzf", mockFzfPath);
       
       // Test simple selection
-      string result = await Fzf.Run()
+      string result = await Fzf.Builder()
         .FromInput("option1", "option2", "option3")
         .WithPrompt("Select: ")
         .GetStringInteractiveAsync();

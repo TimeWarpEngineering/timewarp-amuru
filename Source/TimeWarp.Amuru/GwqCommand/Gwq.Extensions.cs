@@ -25,7 +25,7 @@ public static class GwqExtensions
   /// <returns>A CommandResult with the selected worktree</returns>
   public static CommandResult SelectWithFzf(this GwqBuilder builder, Action<FzfBuilder>? configureFzf = null)
   {
-    FzfBuilder fzfBuilder = Fzf.Run();
+    FzfBuilder fzfBuilder = Fzf.Builder();
     configureFzf?.Invoke(fzfBuilder);
     
     return builder.Build().Pipe("fzf", ExtractFzfArguments(fzfBuilder));

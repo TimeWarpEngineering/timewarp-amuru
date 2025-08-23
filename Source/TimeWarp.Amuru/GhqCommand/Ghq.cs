@@ -9,7 +9,7 @@ public static class Ghq
   /// Creates a fluent builder for the 'ghq' command.
   /// </summary>
   /// <returns>A GhqBuilder for configuring the ghq command</returns>
-  public static GhqBuilder Run()
+  public static GhqBuilder Builder()
   {
     return new GhqBuilder();
   }

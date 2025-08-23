@@ -167,7 +167,7 @@ var sortedTop3 = await Shell.Run("sort")
 
 // Interactive command execution (NEW in v0.6.0)
 // Select a file with FZF and capture the selection
-var selectedFile = await Fzf.Run()
+var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
     .GetStringInteractiveAsync();
@@ -212,7 +212,7 @@ CliConfiguration.SetCommandPath("fzf", "/path/to/mock/fzf");
 CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 
 // Commands now use the mocks
-var result = await Fzf.Run()
+var result = await Fzf.Builder()
     .FromInput("option1", "option2")
     .GetStringAsync(); // Uses mock fzf
 
