@@ -62,13 +62,13 @@ jobs:
       - name: Check if version already published (Releases only)
         if: github.event_name == 'release'
         run: |
-          VERSION=$(grep '<Version>' Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
           echo "Checking if TimeWarp.Amuru $VERSION is already published on NuGet.org..."
           
           # Check TimeWarp.Amuru using package search - only check NuGet.org source
           if dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
             echo "⚠️ WARNING: TimeWarp.Amuru $VERSION is already published to NuGet.org"
-            echo "❌ This version cannot be republished. Please increment the version in TimeWarp.Amuru.csproj"
+            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
             exit 1
           else
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
