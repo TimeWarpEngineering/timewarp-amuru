@@ -21,10 +21,10 @@ public static class Ghq
 public partial class GhqBuilder
 {
   private CommandOptions Options = new();
-  private List<string> Arguments = new();
+  private readonly List<string> Arguments = [];
   private string? SubCommand;
   private string? Repository;
-  private List<string> SubCommandArguments = new();
+  private readonly List<string> SubCommandArguments = [];
 
   /// <summary>
   /// Specifies the working directory for the command.
