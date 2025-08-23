@@ -9,12 +9,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageOutputPath>../../LocalNuGetFeed</PackageOutputPath>
     <PackageId>TimeWarp.Amuru</PackageId>
-    <Version>1.0.0-beta.2</Version>
-    <Authors>Steven T. Cramer</Authors>
     <Description>Fluent API for elegant C# scripting with pipeline support</Description>
     <PackageTags>cli;scripting;fluent;shell;pipeline;amuru</PackageTags>
-    <RepositoryUrl>https://github.com/TimeWarpEngineering/timewarp-amuru</RepositoryUrl>
-    <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
     <PackageIcon>Logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

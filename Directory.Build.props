@@ -21,5 +21,11 @@
     
     <!-- Use local packages directory instead of global cache -->
     <RestorePackagesPath>$(MSBuildThisFileDirectory)LocalNuGetCache</RestorePackagesPath>
+    
+    <!-- Shared Package Metadata -->
+    <Version>1.0.0-beta.3</Version>
+    <Authors>Steven T. Cramer</Authors>
+    <RepositoryUrl>https://github.com/TimeWarpEngineering/timewarp-amuru</RepositoryUrl>
+    <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
   </PropertyGroup>
 </Project>
