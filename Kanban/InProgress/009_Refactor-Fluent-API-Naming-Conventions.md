@@ -14,28 +14,28 @@ Refactor the fluent API naming conventions to fix semantic inconsistencies and e
 ## Checklist
 
 ### Design
-- [ ] Rename static factory methods from `Run()` to `Builder()` for base commands
-- [ ] Establish `WithXxx()` pattern for pre-configured global options
-- [ ] Maintain verb-only pattern for subcommands
-- [ ] Consider Shell class special case (keep `Run()` or change to `Builder()`)
-- [ ] Update return types to distinguish subcommand builders from base builders
+- [x] Rename static factory methods from `Run()` to `Builder()` for base commands
+- [x] Establish `WithXxx()` pattern for pre-configured global options
+- [x] Maintain verb-only pattern for subcommands
+- [x] Consider Shell class special case (keep `Run()` or change to `Builder()`)
+- [x] Update return types to distinguish subcommand builders from base builders
 
 ### Implementation
-- [ ] Refactor Fzf.Run() → Fzf.Builder()
-- [ ] Refactor Ghq.Run() → Ghq.Builder()
-- [ ] Refactor Gwq.Run() → Gwq.Builder()
-- [ ] Add DotNet.Builder() for base dotnet commands
-- [ ] Add DotNet.WithListSdks(), WithListRuntimes(), WithVersion(), WithInfo()
-- [ ] Keep DotNet.Build(), Test(), Run() etc. for subcommands
-- [ ] Decide on Shell.Builder() vs Shell.Builder()
-- [ ] Update all existing usages in tests and examples
-- [ ] Update all existing usages in Scripts/
+- [x] Refactor Fzf.Run() → Fzf.Builder()
+- [x] Refactor Ghq.Run() → Ghq.Builder()
+- [x] Refactor Gwq.Run() → Gwq.Builder()
+- [x] Add DotNet.Builder() for base dotnet commands
+- [x] Add DotNet.WithListSdks(), WithListRuntimes(), WithVersion(), WithInfo()
+- [x] Keep DotNet.Build(), Test(), Run() etc. for subcommands
+- [x] Decide on Shell.Run() vs Shell.Builder() - Changed to Shell.Builder()
+- [x] Update all existing usages in tests and examples
+- [x] Update all existing usages in Scripts/
 
 ### Documentation
-- [ ] Update README.md with new API examples
-- [ ] Update CLAUDE.md with new patterns
-- [ ] Document the naming convention rationale
-- [ ] Update all code examples in documentation
+- [x] Update README.md with new API examples
+- [x] Update CLAUDE.md with new patterns
+- [x] Document the naming convention rationale
+- [x] Update all code examples in documentation
 - [ ] Create migration guide for beta users (if any)
 
 ## Notes
@@ -72,6 +72,15 @@ DotNet.Run()         // Returns DotNetRunBuilder (for dotnet run subcommand)
 
 ### Special Considerations
 
-- **Shell Class**: Consider keeping `Shell.Builder()` since it's more generic, or change to `Shell.Builder()` for consistency
+- **Shell Class**: Changed to `Shell.Builder()` for consistency across all command builders
 - **Backwards Compatibility**: This is a breaking change, but justified during beta phase
 - **Discovery**: IntelliSense will clearly show the distinction between `Builder()`, `WithXxx()`, and subcommand methods
+
+## Implementation Status
+
+**Completed**: All major refactoring tasks have been implemented. The fluent API now consistently uses:
+- `Builder()` for creating command builders
+- `WithXxx()` for pre-configured options (DotNet global options)
+- Verb-only methods for subcommands
+
+**Remaining**: Only the migration guide for beta users remains, though we currently have no external users.
