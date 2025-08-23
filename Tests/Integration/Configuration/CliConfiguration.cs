@@ -137,14 +137,14 @@ internal sealed class ConfigurationTests
       // Make it executable (Unix-like systems)
       if (!OperatingSystem.IsWindows())
       {
-        await Shell.Run("chmod").WithArguments("+x", mockEcho).ExecuteAsync();
+        await Shell.Builder("chmod").WithArguments("+x", mockEcho).ExecuteAsync();
       }
       
       // Configure the mock path
       CliConfiguration.SetCommandPath("echo", mockEcho);
       
       // Test that Run uses the mock
-      string result = await Shell.Run("echo").WithArguments("test").GetStringAsync();
+      string result = await Shell.Builder("echo").WithArguments("test").GetStringAsync();
       
       AssertTrue(
         result.Trim() == "MOCK OUTPUT",

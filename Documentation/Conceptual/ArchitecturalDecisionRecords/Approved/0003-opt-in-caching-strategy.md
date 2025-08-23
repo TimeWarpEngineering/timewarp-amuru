@@ -86,12 +86,12 @@ Chosen option: "Opt-in caching via `.Cached()` method", because it provides expl
 
 ```csharp
 // Basic caching usage
-var cachedCmd = Run("expensive-command").Cached();
+var cachedCmd = Shell.Builder("expensive-command").Cached();
 var result1 = await cachedCmd.GetStringAsync(); // Executes command
 var result2 = await cachedCmd.GetStringAsync(); // Returns cached result
 
 // Pipeline caching scenarios
-var files = Run("find", "/large/dir", "-name", "*.log").Cached();
+var files = Shell.Builder("find", "/large/dir", "-name", "*.log").Cached();
 var errorLogs = await files.Pipe("grep", "ERROR").GetLinesAsync();
 var warningLogs = await files.Pipe("grep", "WARN").GetLinesAsync();
 // Only one expensive find operation executed

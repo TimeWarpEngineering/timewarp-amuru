@@ -27,7 +27,7 @@ using (var context = ScriptContext.FromEntryPoint())
     
     // Your script operations here
     // Working directory is the script's directory
-    var files = await Shell.Run("ls").GetLinesAsync();
+    var files = await Shell.Builder("ls").GetLinesAsync();
 }
 // Original directory automatically restored
 ```
@@ -42,7 +42,7 @@ When your script needs to work from a different directory relative to the script
 using (var context = ScriptContext.FromRelativePath(".."))
 {
     // Now working from parent directory
-    await Shell.Run("dotnet", "build").ExecuteAsync();
+    await Shell.Builder("dotnet", "build").ExecuteAsync();
 }
 // Original directory restored
 ```
@@ -110,13 +110,13 @@ using (var context = ScriptContext.FromRelativePath(".."))
 ```csharp
 using (var context = ScriptContext.FromEntryPoint())
 {
-    var testFiles = await Shell.Run("find")
+    var testFiles = await Shell.Builder("find")
         .WithArguments(".", "-name", "*.Test.cs")
         .GetLinesAsync();
         
     foreach (var test in testFiles)
     {
-        await Shell.Run(test).ExecuteAsync();
+        await Shell.Builder(test).ExecuteAsync();
     }
 }
 ```

@@ -30,17 +30,17 @@ Executes the command and returns the complete standard output as a single string
 **Example Usage:**
 ```csharp
 // Get current date as formatted string
-var dateOutput = await Run("date").GetStringAsync();
+var dateOutput = await Shell.Builder("date").GetStringAsync();
 Console.WriteLine($"Current date: {dateOutput}");
 
 // Get git status with full formatting
-var gitStatus = await Run("git", "status").GetStringAsync();
+var gitStatus = await Shell.Builder("git", "status").GetStringAsync();
 Console.WriteLine(gitStatus);
 
 // With cancellation token and timeout
 using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(30)); // 30 second timeout
-var output = await Run("long-running-command").GetStringAsync(cts.Token);
+var output = await Shell.Builder("long-running-command").GetStringAsync(cts.Token);
 ```
 
 ### `GetLinesAsync(CancellationToken cancellationToken = default)`
@@ -119,23 +119,23 @@ public CommandResult Pipe(string executable, params string[] arguments)
 **Example Usage:**
 ```csharp
 // Basic pipeline - find and filter
-var filteredFiles = await Run("find", ".", "-name", "*.cs")
+var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .GetLinesAsync();
 
 // Multi-stage pipeline - find, filter, and count
-var count = await Run("echo", "line1\nline2\nline3\nline4")
+var count = await Shell.Builder("echo", "line1\nline2\nline3\nline4")
     .Pipe("grep", "line")
     .Pipe("wc", "-l")
     .GetStringAsync();
 
 // Real-world example - git log with formatting
-var recentCommits = await Run("git", "log", "--oneline", "-n", "10")
+var recentCommits = await Shell.Builder("git", "log", "--oneline", "-n", "10")
     .Pipe("head", "-5")
     .GetLinesAsync();
 
 // Text processing pipeline
-var words = await Run("echo", "The quick brown fox jumps over the lazy dog")
+var words = await Shell.Builder("echo", "The quick brown fox jumps over the lazy dog")
     .Pipe("tr", " ", "\n")
     .Pipe("grep", "o")
     .GetLinesAsync();
@@ -144,14 +144,14 @@ var words = await Run("echo", "The quick brown fox jumps over the lazy dog")
 **Additional Examples:**
 ```csharp
 // Process each file from ls command
-var files = await Run("ls", "-la").GetLinesAsync();
+var files = await Shell.Builder("ls", "-la").GetLinesAsync();
 foreach (var file in files)
 {
   Console.WriteLine($"File: {file}");
 }
 
 // Find all C# files and process them
-var csharpFiles = await Run("find", ".", "-name", "*.cs").GetLinesAsync();
+var csharpFiles = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
 var fileCount = csharpFiles.Length;
 Console.WriteLine($"Found {fileCount} C# files");
 ```
@@ -194,17 +194,17 @@ catch
 **Example Usage:**
 ```csharp
 // Execute git commands without capturing output
-await Run("git", "add", ".").ExecuteAsync();
-await Run("git", "commit", "-m", "Update files").ExecuteAsync();
+await Shell.Builder("git", "add", ".").ExecuteAsync();
+await Shell.Builder("git", "commit", "-m", "Update files").ExecuteAsync();
 
 // Create directories or copy files
-await Run("mkdir", "-p", "build/output").ExecuteAsync();
-await Run("cp", "file1.txt", "backup/").ExecuteAsync();
+await Shell.Builder("mkdir", "-p", "build/output").ExecuteAsync();
+await Shell.Builder("cp", "file1.txt", "backup/").ExecuteAsync();
 
 // With cancellation for long operations
 using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromMinutes(5)); // 5 minute timeout
-await Run("large-file-copy", "source", "destination").ExecuteAsync(cts.Token);
+await Shell.Builder("large-file-copy", "source", "destination").ExecuteAsync(cts.Token);
 ```
 
 ## Caching Support
@@ -229,18 +229,18 @@ Creates a new `CommandResult` instance with caching enabled. Subsequent calls to
 
 ```csharp
 // Without caching - executes fresh each time
-var dateCmd = Run("date");
+var dateCmd = Shell.Builder("date");
 var time1 = await dateCmd.GetStringAsync(); // 14:30:15
 var time2 = await dateCmd.GetStringAsync(); // 14:30:16 (different)
 
 // With caching - executes once, returns cached result
-var cachedCmd = Run("echo", "hello world").Cached();
+var cachedCmd = Shell.Builder("echo", "hello world").Cached();
 var result1 = await cachedCmd.GetStringAsync(); // Executes command
 var result2 = await cachedCmd.GetStringAsync(); // Returns cached result
 var lines = await cachedCmd.GetLinesAsync();    // Also uses cache
 
 // Mixed usage on same base command
-var gitLog = Run("git", "log", "--oneline", "-n", "10");
+var gitLog = Shell.Builder("git", "log", "--oneline", "-n", "10");
 var cached = await gitLog.Cached().GetLinesAsync(); // Cached result
 var fresh = await gitLog.GetStringAsync();          // Fresh execution
 ```
@@ -250,7 +250,7 @@ var fresh = await gitLog.GetStringAsync();          // Fresh execution
 #### Cache Final Pipeline Result
 ```csharp
 // Cache the entire pipeline result
-var pipeline = Run("find", ".", "-name", "*.cs")
+var pipeline = Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .Pipe("head", "-10")
     .Cached();
@@ -262,7 +262,7 @@ var files2 = await pipeline.GetLinesAsync(); // Returns cached result
 #### Cache Intermediate Steps
 ```csharp
 // Cache expensive first operation
-var findResult = Run("find", "/large/codebase", "-name", "*.cs").Cached();
+var findResult = Shell.Builder("find", "/large/codebase", "-name", "*.cs").Cached();
 
 // Multiple filters on same cached base
 var asyncFiles = await findResult.Pipe("grep", "async").GetLinesAsync();
@@ -275,7 +275,7 @@ var allFiles = await findResult.GetLinesAsync();
 #### Complex Pipeline Analysis
 ```csharp
 // Cache git log data for multiple analyses
-var logData = Run("git", "log", "--since=1.week.ago", "--oneline").Cached();
+var logData = Shell.Builder("git", "log", "--since=1.week.ago", "--oneline").Cached();
 
 // Different analyses of the same cached data
 var bugFixes = await logData.Pipe("grep", "fix").GetLinesAsync();
@@ -304,20 +304,20 @@ var authors = await logData
 #### Performance Considerations
 ```csharp
 // Efficient: Cache expensive operation, vary cheap filters
-var files = Run("find", "/", "-name", "*.log").Cached();
+var files = Shell.Builder("find", "/", "-name", "*.log").Cached();
 var errorLogs = await files.Pipe("grep", "ERROR").GetLinesAsync();
 var warningLogs = await files.Pipe("grep", "WARN").GetLinesAsync();
 
 // Inefficient: Caching cheap operations
-var echo = Run("echo", "test").Cached(); // Unnecessary for simple commands
+var echo = Shell.Builder("echo", "test").Cached(); // Unnecessary for simple commands
 ```
 
 ### Cache Scope and Lifetime
 
 ```csharp
 // Each instance has independent cache
-var cmd1 = Run("date").Cached();
-var cmd2 = Run("date").Cached();
+var cmd1 = Shell.Builder("date").Cached();
+var cmd2 = Shell.Builder("date").Cached();
 
 var time1 = await cmd1.GetStringAsync(); // 14:30:15
 var time2 = await cmd2.GetStringAsync(); // 14:30:16 (different cache)
@@ -348,7 +348,7 @@ cts.CancelAfter(TimeSpan.FromSeconds(30));
 
 try 
 {
-    var result = await Run("long-running-process").GetStringAsync(cts.Token);
+    var result = await Shell.Builder("long-running-process").GetStringAsync(cts.Token);
     Console.WriteLine($"Command completed: {result}");
 }
 catch (OperationCanceledException)
@@ -366,13 +366,13 @@ Task.Run(async () =>
     manualCts.Cancel();
 });
 
-var output = await Run("interactive-command").GetStringAsync(manualCts.Token);
+var output = await Shell.Builder("interactive-command").GetStringAsync(manualCts.Token);
 
 // Pipeline with cancellation
 using var pipelineCts = new CancellationTokenSource();
 pipelineCts.CancelAfter(TimeSpan.FromMinutes(1));
 
-var result = await Run("find", ".", "-name", "*.log")
+var result = await Shell.Builder("find", ".", "-name", "*.log")
     .Pipe("grep", "ERROR")
     .Pipe("head", "-100")
     .GetLinesAsync(pipelineCts.Token);
@@ -403,14 +403,14 @@ The `CommandResult` class implements a **graceful failure** approach across all 
 ### Command Failure Scenarios
 ```csharp
 // Non-existent command - returns empty string/array
-var result = await Run("nonexistentcommand").GetStringAsync(); // Returns string.Empty
-var lines = await Run("nonexistentcommand").GetLinesAsync();   // Returns Array.Empty<string>()
+var result = await Shell.Builder("nonexistentcommand").GetStringAsync(); // Returns string.Empty
+var lines = await Shell.Builder("nonexistentcommand").GetLinesAsync();   // Returns Array.Empty<string>()
 
 // Command with non-zero exit code - returns captured output
-var output = await Run("ls", "/nonexistent/path").GetStringAsync(); // Returns error message
+var output = await Shell.Builder("ls", "/nonexistent/path").GetStringAsync(); // Returns error message
 
 // Permission denied - returns empty results
-var restricted = await Run("cat", "/etc/shadow").GetStringAsync(); // Returns string.Empty
+var restricted = await Shell.Builder("cat", "/etc/shadow").GetStringAsync(); // Returns string.Empty
 ```
 
 ## Implementation Details
@@ -549,7 +549,7 @@ The `CommandResult` class is fully thread-safe and designed for concurrent use:
 ### Concurrent Usage Patterns
 ```csharp
 // Safe: Multiple threads can use the same CommandResult instance
-CommandResult cmd = Run("echo", "test");
+CommandResult cmd = Shell.Builder("echo", "test");
 
 // Thread 1
 Task<string> stringTask = cmd.GetStringAsync();
@@ -566,7 +566,7 @@ await Task.WhenAll(stringTask, linesTask, executeTask);
 // Safe: Multiple threads creating CommandResults
 Parallel.For(0, 100, i => 
 {
-    var result = Run("echo", $"Thread {i}");
+    var result = Shell.Builder("echo", $"Thread {i}");
     // Each thread gets its own CommandResult instance
 });
 ```
@@ -594,7 +594,7 @@ Parallel.For(0, 100, i =>
 ### Command Chaining
 ```csharp
 // Multiple operations on same command setup
-CommandResult cmd = Run("git", "log", "--oneline", "-10");
+CommandResult cmd = Shell.Builder("git", "log", "--oneline", "-10");
 string fullOutput = await cmd.GetStringAsync();
 string[] lines = await cmd.GetLinesAsync();
 ```
@@ -602,7 +602,7 @@ string[] lines = await cmd.GetLinesAsync();
 ### Error Resilience
 ```csharp
 // Graceful handling of potentially failing commands
-var backupFiles = await Run("find", "/backup", "-name", "*.bak").GetLinesAsync();
+var backupFiles = await Shell.Builder("find", "/backup", "-name", "*.bak").GetLinesAsync();
 if (backupFiles.Length > 0)
 {
   Console.WriteLine($"Found {backupFiles.Length} backup files");
@@ -616,9 +616,9 @@ else
 ### Mixed Output Styles
 ```csharp
 // Choose appropriate method based on use case
-await Run("git", "add", ".").ExecuteAsync();                    // Action command
-var status = await Run("git", "status", "--short").GetStringAsync(); // Formatted output
-var files = await Run("git", "ls-files").GetLinesAsync();       // List processing
+await Shell.Builder("git", "add", ".").ExecuteAsync();                    // Action command
+var status = await Shell.Builder("git", "status", "--short").GetStringAsync(); // Formatted output
+var files = await Shell.Builder("git", "ls-files").GetLinesAsync();       // List processing
 ```
 
 ## Related Classes

@@ -127,7 +127,7 @@ The immutable design provides several thread safety guarantees:
 
 ```csharp
 // Safe: Multiple threads can use the same CommandResult instance
-CommandResult cmd = Run("echo", "test");
+CommandResult cmd = Shell.Builder("echo", "test");
 
 // Thread 1
 Task<string> stringTask = cmd.GetStringAsync();
@@ -148,7 +148,7 @@ The immutable design creates new instances for variations:
 
 ```csharp
 // Each operation creates a new instance
-var original = Run("echo", "test");
+var original = Shell.Builder("echo", "test");
 var cached = original.Cached();        // New instance
 var piped = cached.Pipe("grep", "x");  // New instance
 

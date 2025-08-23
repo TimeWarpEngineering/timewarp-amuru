@@ -23,7 +23,7 @@ Console.WriteLine($"\nYou selected: '{selectedFruit}'");
 Console.WriteLine("\n\nTest 2: Select a .cs file from current directory (limited to 10)");
 Console.WriteLine("-----------------------------------------------------------------");
 
-string selectedFile = await Shell.Run("find")
+string selectedFile = await Shell.Builder("find")
   .WithArguments(".", "-name", "*.cs", "-type", "f")
   .Pipe("head", "-10")  // Limit to first 10 files
   .Pipe("fzf", "--prompt", "Select a C# file: ", "--height", "50%")
@@ -56,7 +56,7 @@ Console.WriteLine("\n\nTest 4: ExecuteInteractiveAsync (full console output)");
 Console.WriteLine("----------------------------------------------------");
 Console.WriteLine("The following will show FZF but won't capture the selection:\n");
 
-await Shell.Run("echo")
+await Shell.Builder("echo")
   .WithArguments("Option A\nOption B\nOption C\nOption D")
   .Pipe("fzf", "--prompt", "This selection won't be captured: ")
   .ExecuteInteractiveAsync();
@@ -72,7 +72,7 @@ Console.WriteLine($"Current directory: {currentDir}");
 // Look specifically in the Tests directory if it exists
 string searchPath = Directory.Exists("Tests") ? "Tests" : ".";
 
-string testFile = await Shell.Run("find")
+string testFile = await Shell.Builder("find")
   .WithArguments(searchPath, "-name", "*.cs", "-type", "f")
   .Pipe("head", "-15")  // Limit results
   .Pipe("fzf", "--prompt", "Select a test file: ", "--height", "60%")
@@ -91,7 +91,7 @@ else
 Console.WriteLine("\n\nTest 6: Simple list selection (debugging test)");
 Console.WriteLine("----------------------------------------------");
 
-string simpleChoice = await Shell.Run("printf")
+string simpleChoice = await Shell.Builder("printf")
   .WithArguments("Option1\\nOption2\\nOption3")
   .Pipe("fzf", "--prompt", "Choose: ")
   .GetStringInteractiveAsync();

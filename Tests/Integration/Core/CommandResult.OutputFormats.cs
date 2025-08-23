@@ -6,7 +6,7 @@ internal sealed class OutputFormatsTests
 {
   public static async Task TestGetStringAsyncReturnsRawOutput()
   {
-    string result = await Shell.Run("echo").WithArguments("line1\nline2\nline3").GetStringAsync();
+    string result = await Shell.Builder("echo").WithArguments("line1\nline2\nline3").GetStringAsync();
     
     AssertTrue(
       result.Contains("line1", StringComparison.Ordinal) && 
@@ -19,7 +19,7 @@ internal sealed class OutputFormatsTests
   public static async Task TestGetLinesAsyncSplitsLinesCorrectly()
   {
     // Use printf to ensure consistent cross-platform newlines
-    string[] lines = await Shell.Run("printf").WithArguments("line1\nline2\nline3").GetLinesAsync();
+    string[] lines = await Shell.Builder("printf").WithArguments("line1\nline2\nline3").GetLinesAsync();
     
     AssertTrue(
       lines.Length == 3 && lines[0] == "line1" && lines[1] == "line2" && lines[2] == "line3",
@@ -29,7 +29,7 @@ internal sealed class OutputFormatsTests
 
   public static async Task TestGetLinesAsyncRemovesEmptyLines()
   {
-    string[] lines = await Shell.Run("printf").WithArguments("line1\n\nline2\n\n").GetLinesAsync();
+    string[] lines = await Shell.Builder("printf").WithArguments("line1\n\nline2\n\n").GetLinesAsync();
     
     AssertTrue(
       lines.Length == 2 && lines[0] == "line1" && lines[1] == "line2",
@@ -39,8 +39,8 @@ internal sealed class OutputFormatsTests
 
   public static async Task TestEmptyOutputHandling()
   {
-    string result = await Shell.Run("echo").WithArguments("").GetStringAsync();
-    string[] lines = await Shell.Run("echo").WithArguments("").GetLinesAsync();
+    string result = await Shell.Builder("echo").WithArguments("").GetStringAsync();
+    string[] lines = await Shell.Builder("echo").WithArguments("").GetLinesAsync();
     
     AssertTrue(
       result.Length <= 2 && lines.Length == 0,
@@ -50,7 +50,7 @@ internal sealed class OutputFormatsTests
 
   public static async Task TestRealWorldLsCommand()
   {
-    string[] files = await Shell.Run("ls").WithArguments("-1").GetLinesAsync();
+    string[] files = await Shell.Builder("ls").WithArguments("-1").GetLinesAsync();
     
     AssertTrue(
       files.Length > 0,

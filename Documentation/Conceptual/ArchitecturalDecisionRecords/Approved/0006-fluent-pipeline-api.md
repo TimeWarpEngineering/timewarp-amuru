@@ -120,7 +120,7 @@ public CommandResult Pipe(string executable, params string[] arguments)
 ### Basic Pipeline
 ```csharp
 // Find and filter files
-var filteredFiles = await Run("find", ".", "-name", "*.cs")
+var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .GetLinesAsync();
 ```
@@ -128,7 +128,7 @@ var filteredFiles = await Run("find", ".", "-name", "*.cs")
 ### Multi-stage Pipeline
 ```csharp
 // Complex text processing
-var words = await Run("echo", "The quick brown fox jumps over the lazy dog")
+var words = await Shell.Builder("echo", "The quick brown fox jumps over the lazy dog")
     .Pipe("tr", " ", "\\n")
     .Pipe("grep", "o")
     .Pipe("sort")
@@ -138,7 +138,7 @@ var words = await Run("echo", "The quick brown fox jumps over the lazy dog")
 ### Pipeline with Caching
 ```csharp
 // Cache expensive first operation
-var files = Run("find", "/large/dir", "-name", "*.log").Cached();
+var files = Shell.Builder("find", "/large/dir", "-name", "*.log").Cached();
 var errors = await files.Pipe("grep", "ERROR").GetLinesAsync();
 var warnings = await files.Pipe("grep", "WARN").GetLinesAsync();
 ```

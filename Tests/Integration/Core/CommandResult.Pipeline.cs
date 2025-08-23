@@ -7,7 +7,7 @@ internal sealed class PipelineTests
 
   public static async Task TestBasicPipeline()
   {
-    string result = await Shell.Run("echo").WithArguments("hello\nworld\ntest")
+    string result = await Shell.Builder("echo").WithArguments("hello\nworld\ntest")
       .Pipe("grep", "world")
       .GetStringAsync();
     
@@ -19,7 +19,7 @@ internal sealed class PipelineTests
 
   public static async Task TestMultiStagePipeline()
   {
-    string result = await Shell.Run("echo").WithArguments("line1\nline2\nline3\nline4")
+    string result = await Shell.Builder("echo").WithArguments("line1\nline2\nline3\nline4")
       .Pipe("grep", "line")
       .Pipe("wc", "-l")
       .GetStringAsync();
@@ -32,7 +32,7 @@ internal sealed class PipelineTests
 
   public static async Task TestPipelineWithGetLinesAsync()
   {
-    string[] lines = await Shell.Run("echo").WithArguments("apple\nbanana\ncherry")
+    string[] lines = await Shell.Builder("echo").WithArguments("apple\nbanana\ncherry")
       .Pipe("grep", "a")
       .GetLinesAsync();
     
@@ -44,7 +44,7 @@ internal sealed class PipelineTests
 
   public static async Task TestPipelineWithExecuteAsync()
   {
-    await Shell.Run("echo").WithArguments("test")
+    await Shell.Builder("echo").WithArguments("test")
       .Pipe("grep", "test")
       .ExecuteAsync();
     
@@ -55,7 +55,7 @@ internal sealed class PipelineTests
   public static async Task TestPipelineWithFailedFirstCommandThrows()
   {
     await AssertThrowsAsync<Exception>(
-      async () => await Shell.Run("nonexistentcommand12345").WithNoValidation()
+      async () => await Shell.Builder("nonexistentcommand12345").WithNoValidation()
         .Pipe("grep", "anything")
         .GetStringAsync(),
       "Pipeline with non-existent first command should throw even with no validation"
@@ -66,7 +66,7 @@ internal sealed class PipelineTests
   {
     string[] echoArgs = { "test" };
     await AssertThrowsAsync<Exception>(
-      async () => await Shell.Run("echo").WithArguments(echoArgs).WithNoValidation()
+      async () => await Shell.Builder("echo").WithArguments(echoArgs).WithNoValidation()
         .Pipe("nonexistentcommand12345")
         .GetStringAsync(),
       "Pipeline with non-existent second command should throw even with no validation"
@@ -75,7 +75,7 @@ internal sealed class PipelineTests
 
   public static async Task TestRealWorldPipelineFindAndFilter()
   {
-    string[] files = await Shell.Run("find").WithArguments(".", "-name", "*.cs", "-type", "f")
+    string[] files = await Shell.Builder("find").WithArguments(".", "-name", "*.cs", "-type", "f")
       .Pipe("head", "-5")
       .GetLinesAsync();
     
@@ -87,7 +87,7 @@ internal sealed class PipelineTests
 
   public static async Task TestComplexPipelineChaining()
   {
-    string result = await Shell.Run("echo").WithArguments("The quick brown fox jumps over the lazy dog")
+    string result = await Shell.Builder("echo").WithArguments("The quick brown fox jumps over the lazy dog")
       .Pipe("tr", " ", "\n")
       .Pipe("grep", "o")
       .Pipe("wc", "-l")
@@ -102,7 +102,7 @@ internal sealed class PipelineTests
   public static async Task TestPipeWithNoArguments()
   {
     // Test that Pipe works without arguments (using new optional parameter)
-    string result = await Shell.Run("echo").WithArguments("zebra\napple\nbanana")
+    string result = await Shell.Builder("echo").WithArguments("zebra\napple\nbanana")
       .Build()
       .Pipe("sort")  // No arguments!
       .GetStringAsync();

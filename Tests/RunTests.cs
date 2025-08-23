@@ -23,7 +23,7 @@ try
     var testResults = new List<(string TestName, bool Passed, string Output)>();
 
     // Discover all test files
-    string[] testFiles = await Shell.Run("find").WithArguments("Integration", "-name", "*.cs", "-type", "f").GetLinesAsync();
+    string[] testFiles = await Shell.Builder("find").WithArguments("Integration", "-name", "*.cs", "-type", "f").GetLinesAsync();
 
 if (testFiles.Length == 0)
 {

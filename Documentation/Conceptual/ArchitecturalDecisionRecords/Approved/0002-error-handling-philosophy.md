@@ -92,11 +92,11 @@ By default, commands use CliWrap's default validation behavior (CommandResultVal
 
 ```csharp
 // Default behavior - throws on failure
-await Run("git", "status").ExecuteAsync();
+await Shell.Builder("git", "status").ExecuteAsync();
 
 // Opt-in graceful degradation
 var options = new CommandOptions().WithValidation(CommandResultValidation.None);
-await Run("git", "status", options).ExecuteAsync();
+await Shell.Builder("git", "status", options).ExecuteAsync();
 ```
 
 When validation is disabled with `CommandResultValidation.None`:

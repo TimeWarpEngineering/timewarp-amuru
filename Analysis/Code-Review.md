@@ -106,12 +106,12 @@ return result.StandardOutput.Split
 
 ```csharp
 // Problem solved with caching
-CommandResult cmd = Run("expensive-command").Cached();
+CommandResult cmd = Shell.Builder("expensive-command").Cached();
 string output = await cmd.GetStringAsync();  // Executes command
 string[] lines = await cmd.GetLinesAsync();  // Uses cached result
 
 // Also supports pipeline caching for advanced scenarios
-var files = Run("find", "/large/dir", "-name", "*.log").Cached();
+var files = Shell.Builder("find", "/large/dir", "-name", "*.log").Cached();
 var errors = await files.Pipe("grep", "ERROR").GetLinesAsync();
 var warnings = await files.Pipe("grep", "WARN").GetLinesAsync();
 // Only one expensive find operation executed
@@ -229,7 +229,7 @@ public async Task<string> GetStringAsync(CancellationToken cancellationToken = d
 ~~2. **Implement Caching/Memoization**:~~ ✅ **IMPLEMENTED**
 ```csharp
 // Opt-in caching via .Cached() method
-var cachedCmd = Run("expensive-command").Cached();
+var cachedCmd = Shell.Builder("expensive-command").Cached();
 var result1 = await cachedCmd.GetStringAsync(); // Executes
 var result2 = await cachedCmd.GetStringAsync(); // Returns cached result
 ```

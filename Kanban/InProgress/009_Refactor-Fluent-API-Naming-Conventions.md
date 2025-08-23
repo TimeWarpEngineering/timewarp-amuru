@@ -27,7 +27,7 @@ Refactor the fluent API naming conventions to fix semantic inconsistencies and e
 - [ ] Add DotNet.Builder() for base dotnet commands
 - [ ] Add DotNet.WithListSdks(), WithListRuntimes(), WithVersion(), WithInfo()
 - [ ] Keep DotNet.Build(), Test(), Run() etc. for subcommands
-- [ ] Decide on Shell.Run() vs Shell.Builder()
+- [ ] Decide on Shell.Builder() vs Shell.Builder()
 - [ ] Update all existing usages in tests and examples
 - [ ] Update all existing usages in Scripts/
 
@@ -72,6 +72,6 @@ DotNet.Run()         // Returns DotNetRunBuilder (for dotnet run subcommand)
 
 ### Special Considerations
 
-- **Shell Class**: Consider keeping `Shell.Run()` since it's more generic, or change to `Shell.Builder()` for consistency
+- **Shell Class**: Consider keeping `Shell.Builder()` since it's more generic, or change to `Shell.Builder()` for consistency
 - **Backwards Compatibility**: This is a breaking change, but justified during beta phase
 - **Discovery**: IntelliSense will clearly show the distinction between `Builder()`, `WithXxx()`, and subcommand methods

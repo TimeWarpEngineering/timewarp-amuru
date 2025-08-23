@@ -43,12 +43,12 @@ Example timeout usage:
 // Global timeout through CommandOptions
 var options = new CommandOptions()
     .WithTimeout(TimeSpan.FromMinutes(5));
-var result = await Run("long-command", new string[0], options).GetStringAsync();
+var result = await Shell.Builder("long-command", new string[0], options).GetStringAsync();
 
 // Per-command timeout via CancellationToken
 using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(30));
-var result = await Run("quick-command").GetStringAsync(cts.Token);
+var result = await Shell.Builder("quick-command").GetStringAsync(cts.Token);
 ```
 
 This example demonstrates how a library feature task would be structured, including API design considerations, implementation requirements, and comprehensive testing/documentation needs.

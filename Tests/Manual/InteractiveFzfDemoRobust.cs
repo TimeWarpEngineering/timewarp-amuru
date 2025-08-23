@@ -22,7 +22,7 @@ Console.WriteLine("Test 2: List files in current directory");
 Console.WriteLine("---------------------------------------");
 
 // Use ls instead of find for simpler output
-string selectedLocalFile = await Shell.Run("ls")
+string selectedLocalFile = await Shell.Builder("ls")
   .WithArguments("-1")  // One file per line
   .Pipe("grep", "\\.cs$")  // Only .cs files
   .Pipe("head", "-10")
@@ -35,7 +35,7 @@ Console.WriteLine($"Result: '{selectedLocalFile}'\n");
 Console.WriteLine("Test 3: Selection from echo command");
 Console.WriteLine("-----------------------------------");
 
-string echoChoice = await Shell.Run("echo")
+string echoChoice = await Shell.Builder("echo")
   .WithArguments("-e", "First Option\\nSecond Option\\nThird Option")
   .Pipe("fzf", "--prompt", "Pick one: ")
   .GetStringInteractiveAsync();
@@ -48,7 +48,7 @@ Console.WriteLine("-------------------------------------------");
 Console.WriteLine("This should exit immediately if no input...");
 
 // Use --exit-0 to make FZF exit immediately if there's no input
-string emptyResult = await Shell.Run("find")
+string emptyResult = await Shell.Builder("find")
   .WithArguments(".", "-name", "*.doesnotexist")
   .Pipe("fzf", "--exit-0", "--prompt", "Should be empty: ")
   .GetStringInteractiveAsync();
@@ -84,7 +84,7 @@ try
   
   Console.WriteLine($"Created test files in: {tempDir}");
   
-  string foundTestFile = await Shell.Run("find")
+  string foundTestFile = await Shell.Builder("find")
     .WithArguments(tempDir, "-name", "*.cs")
     .Pipe("xargs", "grep", "-l", "Test")
     .Pipe("fzf", "--prompt", "Select a file containing 'Test': ")
