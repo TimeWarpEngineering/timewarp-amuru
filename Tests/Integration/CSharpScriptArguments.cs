@@ -21,7 +21,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
       // Make it executable on Unix-like systems
       if (!OperatingSystem.IsWindows())
       {
-        await Shell.Run("chmod").WithArguments("+x", testScript).ExecuteAsync();
+        await Shell.Builder("chmod").WithArguments("+x", testScript).ExecuteAsync();
       }
     }
     
@@ -31,7 +31,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestArgumentsWithDashPassedToScript()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Run(script).WithArguments("-v", "pattern").GetStringAsync();
+    string result = await Shell.Builder(script).WithArguments("-v", "pattern").GetStringAsync();
     
     AssertTrue(
       result.Contains("Args: -v, pattern", StringComparison.Ordinal),
@@ -42,7 +42,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestMultipleDashedArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Run(script).WithArguments("--verbose", "-c", "config.json", "--help").GetStringAsync();
+    string result = await Shell.Builder(script).WithArguments("--verbose", "-c", "config.json", "--help").GetStringAsync();
     
     AssertTrue(
       result.Contains("Args: --verbose, -c, config.json, --help", StringComparison.Ordinal),
@@ -53,7 +53,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestMixedArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Run(script).WithArguments("command", "-f", "file.txt", "--", "extra").GetStringAsync();
+    string result = await Shell.Builder(script).WithArguments("command", "-f", "file.txt", "--", "extra").GetStringAsync();
     
     AssertTrue(
       result.Contains("Args: command, -f, file.txt, --, extra", StringComparison.Ordinal),
@@ -64,7 +64,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestNoArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Run(script).GetStringAsync();
+    string result = await Shell.Builder(script).GetStringAsync();
     
     AssertTrue(
       result.Trim() == "Args:",
@@ -74,7 +74,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
 
   public static async Task TestRegularExecutableUnaffected()
   {
-    string result = await Shell.Run("echo").WithArguments("-n", "test").GetStringAsync();
+    string result = await Shell.Builder("echo").WithArguments("-n", "test").GetStringAsync();
     
     AssertTrue(
       result.Trim() == "test",

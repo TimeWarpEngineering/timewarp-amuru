@@ -9,7 +9,7 @@ public static class Fzf
   /// Creates a fluent builder for the 'fzf' command.
   /// </summary>
   /// <returns>A FzfBuilder for configuring the fzf command</returns>
-  public static FzfBuilder Run()
+  public static FzfBuilder Builder()
   {
     return new FzfBuilder();
   }

@@ -89,7 +89,7 @@ The library's integration testing approach is actually superior to unit testing 
 
 ```csharp
 // Integration test with real command (preferred)
-var result = await Run("echo", "test output").GetStringAsync();
+var result = await Shell.Builder("echo", "test output").GetStringAsync();
 Assert.Equal("test output", result.Trim());
 
 // Unit test with mock (less valuable)

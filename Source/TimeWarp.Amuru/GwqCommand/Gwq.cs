@@ -9,7 +9,7 @@ public static class Gwq
   /// Creates a fluent builder for the 'gwq' command.
   /// </summary>
   /// <returns>A GwqBuilder for configuring the gwq command</returns>
-  public static GwqBuilder Run()
+  public static GwqBuilder Builder()
   {
     return new GwqBuilder();
   }

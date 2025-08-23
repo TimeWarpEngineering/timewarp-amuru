@@ -14,7 +14,7 @@ internal sealed class CachingCommandsTests
     try
     {
       // Use a command that appends to a file to track executions
-      CommandResult cachedCmd = Shell.Run("bash").WithArguments("-c", $"echo 'execution' >> {testFile}").Build().Cached();
+      CommandResult cachedCmd = Shell.Builder("bash").WithArguments("-c", $"echo 'execution' >> {testFile}").Build().Cached();
       
       // Execute multiple times
       await cachedCmd.ExecuteAsync();
@@ -39,7 +39,7 @@ internal sealed class CachingCommandsTests
   public static async Task TestGetStringAsyncCaching()
   {
     // Use a command that returns current time
-    CommandResult cachedCmd = Shell.Run("date").WithArguments("+%N").Build().Cached(); // Nanoseconds for precision
+    CommandResult cachedCmd = Shell.Builder("date").WithArguments("+%N").Build().Cached(); // Nanoseconds for precision
     
     string result1 = await cachedCmd.GetStringAsync();
     await Task.Delay(10); // Small delay to ensure time would change
@@ -54,7 +54,7 @@ internal sealed class CachingCommandsTests
 
   public static async Task TestGetLinesAsyncCaching()
   {
-    CommandResult cachedCmd = Shell.Run("echo").WithArguments("line1\nline2\nline3").Build().Cached();
+    CommandResult cachedCmd = Shell.Builder("echo").WithArguments("line1\nline2\nline3").Build().Cached();
     
     string[] lines1 = await cachedCmd.GetLinesAsync();
     string[] lines2 = await cachedCmd.GetLinesAsync();
@@ -70,7 +70,7 @@ internal sealed class CachingCommandsTests
 
   public static async Task TestNonCachedCommandsExecuteFreshEachTime()
   {
-    CommandResult nonCachedCmd = Shell.Run("date").WithArguments("+%N").Build(); // No .Cached() call
+    CommandResult nonCachedCmd = Shell.Builder("date").WithArguments("+%N").Build(); // No .Cached() call
     
     string result1 = await nonCachedCmd.GetStringAsync();
     await Task.Delay(10); // Small delay
@@ -85,7 +85,7 @@ internal sealed class CachingCommandsTests
   public static async Task TestPipelineCaching()
   {
     string testData = "apple\nbanana\napricot\navocado";
-    CommandResult cachedPipeline = Shell.Run("echo").WithArguments(testData).Build()
+    CommandResult cachedPipeline = Shell.Builder("echo").WithArguments(testData).Build()
       .Pipe("grep", "a")
       .Pipe("sort")
       .Cached();
@@ -102,7 +102,7 @@ internal sealed class CachingCommandsTests
   public static async Task TestIntermediatePipelineCaching()
   {
     // Cache an expensive first operation
-    CommandResult cachedFind = Shell.Run("echo").WithArguments("file1.cs\nfile2.txt\nfile3.cs\nfile4.md").Build().Cached();
+    CommandResult cachedFind = Shell.Builder("echo").WithArguments("file1.cs\nfile2.txt\nfile3.cs\nfile4.md").Build().Cached();
     
     // Different filters on the same cached base
     string[] csFiles = await cachedFind.Pipe("grep", ".cs").GetLinesAsync();
@@ -117,8 +117,8 @@ internal sealed class CachingCommandsTests
 
   public static async Task TestCacheIsolation()
   {
-    CommandResult cmd1 = Shell.Run("echo").WithArguments(Guid.NewGuid().ToString()).Build().Cached();
-    CommandResult cmd2 = Shell.Run("echo").WithArguments(Guid.NewGuid().ToString()).Build().Cached();
+    CommandResult cmd1 = Shell.Builder("echo").WithArguments(Guid.NewGuid().ToString()).Build().Cached();
+    CommandResult cmd2 = Shell.Builder("echo").WithArguments(Guid.NewGuid().ToString()).Build().Cached();
     
     string result1 = await cmd1.GetStringAsync();
     string result2 = await cmd2.GetStringAsync();
@@ -131,7 +131,7 @@ internal sealed class CachingCommandsTests
 
   public static async Task TestMixedCachingOnSameCommand()
   {
-    CommandResult baseCmd = Shell.Run("echo").WithArguments("test_data").Build();
+    CommandResult baseCmd = Shell.Builder("echo").WithArguments("test_data").Build();
     
     // First call cached
     string cachedResult1 = await baseCmd.Cached().GetStringAsync();
@@ -155,7 +155,7 @@ internal sealed class CachingCommandsTests
   public static async Task TestCachingWithCancellationToken()
   {
     using var cts = new CancellationTokenSource();
-    CommandResult cachedCmd = Shell.Run("echo").WithArguments("cancellation_test").Build().Cached();
+    CommandResult cachedCmd = Shell.Builder("echo").WithArguments("cancellation_test").Build().Cached();
     
     string result1 = await cachedCmd.GetStringAsync(cts.Token);
     string result2 = await cachedCmd.GetStringAsync(cts.Token);
@@ -171,7 +171,7 @@ internal sealed class CachingCommandsTests
     // Test caching of commands that fail due to non-zero exit code
     // Use a command that exists but returns non-zero exit
     CommandOptions noValidation = new CommandOptions().WithNoValidation();
-    CommandResult cachedCmd = Shell.Run("bash").WithArguments(BashExitArgs).WithNoValidation().Build().Cached();
+    CommandResult cachedCmd = Shell.Builder("bash").WithArguments(BashExitArgs).WithNoValidation().Build().Cached();
     
     string result1 = await cachedCmd.GetStringAsync();
     string result2 = await cachedCmd.GetStringAsync();

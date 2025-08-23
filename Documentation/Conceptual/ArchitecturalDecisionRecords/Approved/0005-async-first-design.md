@@ -101,9 +101,9 @@ This enables natural concurrent execution:
 
 ```csharp
 // Concurrent command execution
-var task1 = Run("git", "status").GetStringAsync();
-var task2 = Run("git", "log", "--oneline", "-5").GetLinesAsync();
-var task3 = Run("git", "diff", "--name-only").GetLinesAsync();
+var task1 = Shell.Builder("git", "status").GetStringAsync();
+var task2 = Shell.Builder("git", "log", "--oneline", "-5").GetLinesAsync();
+var task3 = Shell.Builder("git", "diff", "--name-only").GetLinesAsync();
 
 // Wait for all to complete
 await Task.WhenAll(task1, task2, task3);
@@ -120,7 +120,7 @@ All async methods accept optional `CancellationToken` parameters to support:
 // Timeout example
 using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(30));
-var result = await Run("long-running-command").GetStringAsync(cts.Token);
+var result = await Shell.Builder("long-running-command").GetStringAsync(cts.Token);
 ```
 
 ## Links

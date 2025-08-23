@@ -6,11 +6,11 @@ internal sealed class GwqCommandTests
 {
   public static async Task TestBasicGwqBuilderCreation()
   {
-    GwqBuilder gwqBuilder = Gwq.Run();
+    GwqBuilder gwqBuilder = Gwq.Builder();
     
     AssertTrue(
       gwqBuilder != null,
-      "Gwq.Run() should create builder successfully"
+      "Gwq.Builder() should create builder successfully"
     );
     
     await Task.CompletedTask;
@@ -18,7 +18,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqAddCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Add("feature/new-branch")
       .Build()
       .ToCommandString();
@@ -33,7 +33,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqAddWithPath()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Add("feature/branch", "~/worktrees/feature")
       .Build()
       .ToCommandString();
@@ -48,7 +48,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqAddInteractive()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .AddInteractive()
       .Build()
       .ToCommandString();
@@ -63,7 +63,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqAddWithNewBranch()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Add("feature/new")
       .WithNewBranch()
       .WithForce()
@@ -80,7 +80,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqListCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .List()
       .Build()
       .ToCommandString();
@@ -95,7 +95,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqListWithOptions()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .List()
       .WithGlobal()
       .WithVerbose()
@@ -113,7 +113,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqRemoveCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Remove()
       .Build()
       .ToCommandString();
@@ -128,7 +128,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqRemoveWithPattern()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Remove("feature/old")
       .WithDeleteBranch()
       .WithDryRun()
@@ -145,7 +145,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqRmAlias()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Rm("feature/completed")
       .WithForceDeleteBranch()
       .Build()
@@ -161,7 +161,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqStatusCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Status()
       .Build()
       .ToCommandString();
@@ -176,7 +176,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqStatusWithComprehensiveOptions()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Status()
       .WithGlobal()
       .WithJson()
@@ -197,7 +197,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqStatusWithWatchMode()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Status()
       .WithWatch()
       .WithInterval(10)
@@ -215,7 +215,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqGetCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Get("feature")
       .Build()
       .ToCommandString();
@@ -230,7 +230,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqGetWithNullTermination()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Get("main")
       .WithGlobal()
       .WithNull()
@@ -247,7 +247,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqExecCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Exec("feature")
       .WithCommand("npm", "test")
       .Build()
@@ -263,7 +263,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqExecWithStayOption()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Exec("main")
       .WithCommand("git", "pull")
       .WithStay()
@@ -281,7 +281,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqConfigList()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .ConfigList()
       .Build()
       .ToCommandString();
@@ -296,12 +296,12 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqConfigGetAndSet()
   {
-    string getCommand = Gwq.Run()
+    string getCommand = Gwq.Builder()
       .ConfigGet("worktree.basedir")
       .Build()
       .ToCommandString();
     
-    string setCommand = Gwq.Run()
+    string setCommand = Gwq.Builder()
       .ConfigSet("worktree.basedir", "~/worktrees")
       .Build()
       .ToCommandString();
@@ -321,7 +321,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqPruneCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Prune()
       .Build()
       .ToCommandString();
@@ -336,7 +336,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqVersionCommand()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Version()
       .Build()
       .ToCommandString();
@@ -352,7 +352,7 @@ internal sealed class GwqCommandTests
   public static async Task TestGwqWithWorkingDirectoryAndEnvironment()
   {
     // Note: Working directory and environment variables don't appear in ToCommandString()
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .WithWorkingDirectory("/tmp")
       .WithEnvironmentVariable("GIT_DIR", "/tmp/.git")
       .List()
@@ -369,7 +369,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqPipeToExtension()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .List()
       .PipeTo("grep", "feature")
       .ToCommandString();
@@ -384,7 +384,7 @@ internal sealed class GwqCommandTests
 
   public static async Task TestGwqCommandBuilds()
   {
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .List()
       .WithGlobal()
       .Build()
@@ -401,7 +401,7 @@ internal sealed class GwqCommandTests
   public static async Task TestGwqVersionExecution()
   {
     // Test command string generation for version command
-    string command = Gwq.Run()
+    string command = Gwq.Builder()
       .Version()
       .Build()
       .ToCommandString();

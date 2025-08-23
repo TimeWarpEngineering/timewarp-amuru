@@ -45,41 +45,41 @@ If you find this project useful, please give it a star. Thanks!
 using TimeWarp.Amuru;
 
 // Get command output as string
-var date = await Run("date").GetStringAsync();
+var date = await Shell.Builder("date").GetStringAsync();
 Console.WriteLine($"Current date: {date}");
 
 // Process output line by line
-var files = await Run("find", ".", "-name", "*.cs").GetLinesAsync();
+var files = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
 foreach (var file in files)
 {
     Console.WriteLine($"Found: {file}");
 }
 
 // Execute without capturing output
-await Run("echo", "Hello World").ExecuteAsync();
+await Shell.Builder("echo", "Hello World").ExecuteAsync();
 
 // Chain commands with pipelines
-var filteredFiles = await Run("find", ".", "-name", "*.cs")
+var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .GetLinesAsync();
 
 // Use caching for expensive operations
-var files = Run("find", "/large/dir", "-name", "*.log").Cached();
+var files = Shell.Builder("find", "/large/dir", "-name", "*.log").Cached();
 var errors = await files.Pipe("grep", "ERROR").GetLinesAsync();
 var warnings = await files.Pipe("grep", "WARN").GetLinesAsync();
 // Only one expensive find operation executed!
 
 // C# scripts with arguments work seamlessly
-await Run("./myscript.cs", "--verbose", "-o", "output.txt").ExecuteAsync();
+await Shell.Builder("./myscript.cs", "--verbose", "-o", "output.txt").ExecuteAsync();
 
 // Use the new fluent builder API for complex commands
-var result = await Shell.Run("git")
+var result = await Shell.Builder("git")
     .WithArguments("log", "--oneline", "-n", "10")
     .WithWorkingDirectory("/my/repo")
     .GetStringAsync();
 
 // Provide standard input to commands
-var grepResult = await Shell.Run("grep")
+var grepResult = await Shell.Builder("grep")
     .WithArguments("pattern")
     .WithStandardInput("line1\nline2 with pattern\nline3")
     .GetStringAsync();
@@ -92,25 +92,25 @@ var packages = await DotNet.ListPackages()
 
 // Interactive file selection with Fzf (NEW in v0.6.0)
 // Use GetStringInteractiveAsync() to show FZF UI and capture selection
-var selectedFile = await Fzf.Run()
+var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
     .GetStringInteractiveAsync();
 
 // Interactive pipeline - find files and select with FZF
-var chosenFile = await Shell.Run("find")
+var chosenFile = await Shell.Builder("find")
     .WithArguments(".", "-name", "*.cs")
     .Pipe("fzf", "--preview", "head -20 {}")
     .GetStringInteractiveAsync();
 
 // Multi-select with interactive FZF
-var selectedItems = await Fzf.Run()
+var selectedItems = await Fzf.Builder()
     .FromInput("Red", "Green", "Blue", "Yellow")
     .WithMulti()
     .GetStringInteractiveAsync();
 
 // Full interactive mode (e.g., for vim, nano, etc.)
-await Shell.Run("vim")
+await Shell.Builder("vim")
     .WithArguments("myfile.txt")
     .ExecuteInteractiveAsync();
 ```
@@ -127,6 +127,23 @@ Or reference in your C# script:
 ```
 
 Check out the latest NuGet package: [TimeWarp.Cli](https://www.nuget.org/packages/TimeWarp.Cli/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Cli?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Cli/)
+
+### DotNet Commands
+
+```csharp
+// Global dotnet options
+var sdks = await DotNet.WithListSdks().GetLinesAsync();
+var runtimes = await DotNet.WithListRuntimes().GetLinesAsync();
+var version = await DotNet.WithVersion().GetStringAsync();
+var info = await DotNet.WithInfo().GetStringAsync();
+
+// Base builder for custom arguments
+await DotNet.Builder().WithArguments("--list-sdks").GetLinesAsync();
+
+// Subcommands (existing API)
+await DotNet.Build().WithConfiguration("Release").ExecuteAsync();
+await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
+```
 
 ## Key Features
 
@@ -152,20 +169,20 @@ TimeWarp.Cli provides intelligent error handling that distinguishes between diff
 ### Default Behavior (Throws Exceptions)
 ```csharp
 // Throws CommandExecutionException on non-zero exit code
-await Run("ls", "/nonexistent").GetStringAsync();
+await Shell.Builder("ls", "/nonexistent").GetStringAsync();
 
 // Throws exception if command not found
-await Run("nonexistentcommand").GetStringAsync();
+await Shell.Builder("nonexistentcommand").GetStringAsync();
 ```
 
 ### Graceful Degradation (Opt-in)
 ```csharp
 // Returns empty string/array on command failure
 var options = new CommandOptions().WithValidation(CommandResultValidation.None);
-var result = await Run("ls", "/nonexistent", options).GetStringAsync(); // ""
+var result = await Shell.Builder("ls", "/nonexistent", options).GetStringAsync(); // ""
 
 // Note: Process start failures (command not found) always throw
-await Run("nonexistentcommand", options).GetStringAsync(); // Still throws!
+await Shell.Builder("nonexistentcommand", options).GetStringAsync(); // Still throws!
 ```
 
 ### Special Cases
@@ -184,7 +201,7 @@ CliConfiguration.SetCommandPath("fzf", "/path/to/mock/fzf");
 CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 
 // Your code using these commands will now use the mocks
-var selected = await Fzf.Run()
+var selected = await Fzf.Builder()
     .FromInput("option1", "option2", "option3")
     .GetStringAsync(); // Uses mock fzf
 
@@ -196,7 +213,7 @@ CliConfiguration.Reset();
 ```csharp
 // Create a simple mock script
 File.WriteAllText("/tmp/mock-fzf", "#!/bin/bash\necho 'mock-selection'");
-Run("chmod", "+x", "/tmp/mock-fzf");
+Shell.Builder("chmod", "+x", "/tmp/mock-fzf");
 
 // Configure TimeWarp.Cli to use it
 CliConfiguration.SetCommandPath("fzf", "/tmp/mock-fzf");

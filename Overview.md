@@ -27,7 +27,7 @@ Clean, fluent API that feels like natural C# but with shell power:
 
 ```csharp
 // New way with our wrapper
-var files = await Run("find", homeDirectory, "-name", "*.ps1", "-type", "f").GetLinesAsync();
+var files = await Shell.Builder("find", homeDirectory, "-name", "*.ps1", "-type", "f").GetLinesAsync();
 ```
 
 ## Architecture
@@ -74,20 +74,20 @@ public class CommandResult
 
 ```csharp
 // Get raw output
-var date = await Run("date").GetStringAsync();
+var date = await Shell.Builder("date").GetStringAsync();
 
 // Get lines as array
-var files = await Run("ls", "-la").GetLinesAsync();
+var files = await Shell.Builder("ls", "-la").GetLinesAsync();
 
 // Just execute (fire and forget)
-await Run("mkdir", "temp").ExecuteAsync();
+await Shell.Builder("mkdir", "temp").ExecuteAsync();
 
 // Strongly-typed dotnet command examples
-var buildResult = await Run("dotnet", "build", "--configuration", "Release").GetStringAsync();
-var testOutput = await Run("dotnet", "test", "--logger", "console").GetLinesAsync();
-var packages = await Run("dotnet", "list", "package").GetLinesAsync();
-await Run("dotnet", "restore").ExecuteAsync();
-var runOutput = await Run("dotnet", "run", "--project", "MyApp.csproj", "--", "arg1", "arg2").GetStringAsync();
+var buildResult = await Shell.Builder("dotnet", "build", "--configuration", "Release").GetStringAsync();
+var testOutput = await Shell.Builder("dotnet", "test", "--logger", "console").GetLinesAsync();
+var packages = await Shell.Builder("dotnet", "list", "package").GetLinesAsync();
+await Shell.Builder("dotnet", "restore").ExecuteAsync();
+var runOutput = await Shell.Builder("dotnet", "run", "--project", "MyApp.csproj", "--", "arg1", "arg2").GetStringAsync();
 ```
 
 ## Why This Matters for C# Scripts
@@ -115,7 +115,7 @@ var result = await (
 
 Into this elegant one-liner:
 ```csharp
-var selected = await Run("find", "~", "-name", "*.ps1", "-type", "f")
+var selected = await Shell.Builder("find", "~", "-name", "*.ps1", "-type", "f")
     .Pipe("xargs", "grep", "-l", "Luna")
     .Pipe("fzf", "--preview=cat {}")
     .ExecuteAsync();
@@ -237,7 +237,7 @@ The ultimate vision - integrate LLM inference directly into command pipelines:
 ### LLM as a Pipeline Stage
 ```csharp
 // Extract structured data from unstructured logs
-var incidents = await Run("tail", "-f", "/var/log/system.log")
+var incidents = await Shell.Builder("tail", "-f", "/var/log/system.log")
     .Pipe("grep", "ERROR")
     .PipeToLLM("Extract the timestamp, error code, and service name as JSON")
     .ParseJson<Incident>()
@@ -294,7 +294,7 @@ await Monitor.System()
 ### AI-Powered Data Transformation
 ```csharp
 // Transform between formats using natural language
-var yaml = await Run("cat", "config.json")
+var yaml = await Shell.Builder("cat", "config.json")
     .PipeToLLM("Convert this JSON to YAML format")
     .SaveAs("config.yaml");
 
@@ -304,7 +304,7 @@ var models = await Database.Query("SELECT * FROM schema")
     .SaveAs("Models.cs");
 
 // Smart data extraction
-var contacts = await Run("find", ".", "-name", "*.pdf", "-type", "f")
+var contacts = await Shell.Builder("find", ".", "-name", "*.pdf", "-type", "f")
     .SelectFiles()
     .PipeToLLM("Extract all email addresses and phone numbers")
     .Distinct()
@@ -349,7 +349,7 @@ var optimized = await Shell.Learn(result)
     .SaveAs("SumTodaysCsvColumn3.cs");
 
 // Future runs use the optimized syntactic version (fast, deterministic)
-var sum = await Run("./SumTodaysCsvColumn3.cs").GetStringAsync();
+var sum = await Shell.Builder("./SumTodaysCsvColumn3.cs").GetStringAsync();
 ```
 
 ### Adaptive Command Learning
@@ -445,19 +445,19 @@ This means you can start experimenting with semantic/syntactic hybrid approaches
 ### Using Claude in C# Scripts Today
 ```csharp
 // Semantic analysis with Claude CLI
-var analysis = await Run("git", "diff")
+var analysis = await Shell.Builder("git", "diff")
     .Pipe("claude", "summarize the changes and suggest a commit message")
     .GetStringAsync();
 
 // Hybrid approach - syntactic search, semantic analysis
-var testFiles = await Run("find", ".", "-name", "*Test.cs", "-type", "f")
+var testFiles = await Shell.Builder("find", ".", "-name", "*Test.cs", "-type", "f")
     .GetLinesAsync();
     
-var coverage = await Run("echo", string.Join('\n', testFiles))
+var coverage = await Shell.Builder("echo", string.Join('\n', testFiles))
     .Pipe("claude", "which test files seem to be missing coverage for their corresponding source files?")
     .GetStringAsync();
 
 // Let Claude help generate syntactic code
-var code = await Run("claude", "generate a C# method that finds and deletes temporary files older than 7 days")
+var code = await Shell.Builder("claude", "generate a C# method that finds and deletes temporary files older than 7 days")
     .SaveAs("CleanupTempFiles.cs");
 ```

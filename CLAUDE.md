@@ -117,28 +117,28 @@ public async Task<ExecutionResult> ExecuteInteractiveAsync()  // Full interactiv
 #:package TimeWarp.Amuru
 
 // Get command output
-var date = await Run("date").GetStringAsync();
+var date = await Shell.Builder("date").GetStringAsync();
 
 // Process lines
-var files = await Run("find", ".", "-name", "*.cs").GetLinesAsync();
+var files = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
 foreach (var file in files) Console.WriteLine(file);
 
 // Execute without output
-await Run("echo", "Hello World").ExecuteAsync();
+await Shell.Builder("echo", "Hello World").ExecuteAsync();
 
 // Pipeline commands (NEW in v0.2.0)
-var filteredFiles = await Run("find", ".", "-name", "*.cs")
+var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .GetLinesAsync();
 
 // Multi-stage pipelines
-var count = await Run("git", "log", "--oneline", "-n", "10")
+var count = await Shell.Builder("git", "log", "--oneline", "-n", "10")
     .Pipe("head", "-5")
     .Pipe("wc", "-l")
     .GetStringAsync();
 
 // Fluent builder API (NEW in v0.6.0)
-var result = await Shell.Run("git")
+var result = await Shell.Builder("git")
     .WithArguments("log", "--oneline", "-n", "10")
     .WithWorkingDirectory("/my/repo")
     .WithEnvironmentVariable("GIT_PAGER", "cat")
@@ -146,7 +146,7 @@ var result = await Shell.Run("git")
     .GetStringAsync();
 
 // Complex command building
-var output = await Shell.Run("docker")
+var output = await Shell.Builder("docker")
     .WithArguments("run", "--rm")
     .WithArguments("-e", "NODE_ENV=production")
     .WithArguments("-v", "/host/path:/container/path")
@@ -154,32 +154,32 @@ var output = await Shell.Run("docker")
     .ExecuteAsync();
 
 // Provide standard input to commands
-var grepResult = await Shell.Run("grep")
+var grepResult = await Shell.Builder("grep")
     .WithArguments("pattern")
     .WithStandardInput("line1\nline2 with pattern\nline3")
     .GetStringAsync();
 
 // Combine standard input with pipelines
-var sortedTop3 = await Shell.Run("sort")
+var sortedTop3 = await Shell.Builder("sort")
     .WithStandardInput("banana\napple\ncherry\ndate")
     .Pipe("head", "-3")
     .GetLinesAsync();
 
 // Interactive command execution (NEW in v0.6.0)
 // Select a file with FZF and capture the selection
-var selectedFile = await Fzf.Run()
+var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
     .GetStringInteractiveAsync();
 
 // Interactive pipeline - find and select files
-var chosenCsFile = await Shell.Run("find")
+var chosenCsFile = await Shell.Builder("find")
     .WithArguments(".", "-name", "*.cs")
     .Pipe("fzf", "--preview", "head -20 {}")
     .GetStringInteractiveAsync();
 
 // Full interactive mode for editors, REPLs, etc.
-await Shell.Run("vim")
+await Shell.Builder("vim")
     .WithArguments("config.json")
     .ExecuteInteractiveAsync();
 ```
@@ -190,7 +190,7 @@ await Shell.Run("vim")
   ```csharp
   // Disable validation for graceful degradation
   var options = new CommandOptions().WithValidation(CommandResultValidation.None);
-  await Run("git", new[] { "status" }, options).ExecuteAsync();
+  await Shell.Builder("git", new[] { "status" }, options).ExecuteAsync();
   
   // Or with builders
   await DotNet.Build()
@@ -212,7 +212,7 @@ CliConfiguration.SetCommandPath("fzf", "/path/to/mock/fzf");
 CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 
 // Commands now use the mocks
-var result = await Fzf.Run()
+var result = await Fzf.Builder()
     .FromInput("option1", "option2")
     .GetStringAsync(); // Uses mock fzf
 

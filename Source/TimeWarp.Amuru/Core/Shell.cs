@@ -10,7 +10,7 @@ public static class Shell
   /// </summary>
   /// <param name="executable">The executable or command to run</param>
   /// <returns>A RunBuilder for configuring the command</returns>
-  public static RunBuilder Run(string executable)
+  public static RunBuilder Builder(string executable)
   {
     return new RunBuilder(executable);
   }

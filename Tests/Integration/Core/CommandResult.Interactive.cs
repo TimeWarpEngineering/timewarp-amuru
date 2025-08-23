@@ -19,7 +19,7 @@ internal sealed class CommandResultInteractiveTests
       CliConfiguration.SetCommandPath("fzf", mockFzfPath);
       
       // Test simple selection
-      string result = await Fzf.Run()
+      string result = await Fzf.Builder()
         .FromInput("option1", "option2", "option3")
         .WithPrompt("Select: ")
         .GetStringInteractiveAsync();
@@ -45,7 +45,7 @@ internal sealed class CommandResultInteractiveTests
       CliConfiguration.SetCommandPath("fzf", mockFzfPath);
       
       // Test pipeline: echo | fzf
-      string result = await Shell.Run("echo")
+      string result = await Shell.Builder("echo")
         .WithArguments("red\ngreen\nblue")
         .Pipe("fzf", "--prompt", "Select color: ")
         .GetStringInteractiveAsync();
@@ -65,7 +65,7 @@ internal sealed class CommandResultInteractiveTests
   public static async Task TestExecuteInteractiveAsync()
   {
     // Test with a simple echo command (non-interactive but safe)
-    ExecutionResult result = await Shell.Run("echo")
+    ExecutionResult result = await Shell.Builder("echo")
       .WithArguments("Hello from interactive mode")
       .ExecuteInteractiveAsync();
     
@@ -84,7 +84,7 @@ internal sealed class CommandResultInteractiveTests
   public static async Task TestInteractiveMethodsWithNullCommand()
   {
     // Test graceful degradation with empty command
-    CommandResult nullCommand = Shell.Run("").Build();
+    CommandResult nullCommand = Shell.Builder("").Build();
     
     string stringResult = await nullCommand.GetStringInteractiveAsync();
     AssertTrue(

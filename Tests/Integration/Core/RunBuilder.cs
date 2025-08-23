@@ -6,7 +6,7 @@ internal sealed class RunBuilderTests
 {
   public static async Task TestBasicRunBuilderCommandString()
   {
-    string command = Shell.Run("echo")
+    string command = Shell.Builder("echo")
       .WithArguments("Hello", "World")
       .Build()
       .ToCommandString();
@@ -21,7 +21,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestBasicRunBuilder()
   {
-    string result = await Shell.Run("echo")
+    string result = await Shell.Builder("echo")
       .WithArguments("Hello", "World")
       .GetStringAsync();
     
@@ -33,7 +33,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithMultipleWithArgumentsCommandString()
   {
-    string command = Shell.Run("echo")
+    string command = Shell.Builder("echo")
       .WithArguments("arg1")
       .WithArguments("arg2", "arg3")
       .Build()
@@ -49,7 +49,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithMultipleWithArguments()
   {
-    string result = await Shell.Run("echo")
+    string result = await Shell.Builder("echo")
       .WithArguments("arg1")
       .WithArguments("arg2", "arg3")
       .GetStringAsync();
@@ -63,7 +63,7 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithEnvironmentVariableCommandString()
   {
     // Note: Environment variables don't appear in ToCommandString()
-    string command = Shell.Run("printenv")
+    string command = Shell.Builder("printenv")
       .WithEnvironmentVariable("TEST_VAR", "test_value")
       .WithArguments("TEST_VAR")
       .Build()
@@ -79,7 +79,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithEnvironmentVariable()
   {
-    string result = await Shell.Run("printenv")
+    string result = await Shell.Builder("printenv")
       .WithEnvironmentVariable("TEST_VAR", "test_value")
       .WithArguments("TEST_VAR")
       .GetStringAsync();
@@ -93,7 +93,7 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithNoValidation()
   {
     // This would normally throw because 'false' exits with code 1
-    ExecutionResult result = await Shell.Run("false")
+    ExecutionResult result = await Shell.Builder("false")
       .WithNoValidation()
       .ExecuteAsync();
     
@@ -105,7 +105,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderGetLinesAsync()
   {
-    string[] lines = await Shell.Run("printf")
+    string[] lines = await Shell.Builder("printf")
       .WithArguments("line1\\nline2\\nline3")
       .GetLinesAsync();
     
@@ -123,7 +123,7 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithWorkingDirectoryCommandString()
   {
     // Note: Working directory doesn't appear in ToCommandString()
-    string command = Shell.Run("pwd")
+    string command = Shell.Builder("pwd")
       .WithWorkingDirectory("/tmp")
       .Build()
       .ToCommandString();
@@ -139,7 +139,7 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithWorkingDirectory()
   {
     string tempDir = Path.GetTempPath();
-    string result = await Shell.Run("pwd")
+    string result = await Shell.Builder("pwd")
       .WithWorkingDirectory(tempDir)
       .GetStringAsync();
     
@@ -151,7 +151,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderPipelineCommandString()
   {
-    string command = Shell.Run("echo")
+    string command = Shell.Builder("echo")
       .WithArguments("Hello\nWorld\nTest")
       .Build()
       .Pipe("grep", "World")
@@ -167,7 +167,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderPipeline()
   {
-    string result = await Shell.Run("echo")
+    string result = await Shell.Builder("echo")
       .WithArguments("Hello\nWorld\nTest")
       .Build()
       .Pipe("grep", "World")
@@ -181,7 +181,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderExecuteAsync()
   {
-    ExecutionResult result = await Shell.Run("echo")
+    ExecutionResult result = await Shell.Builder("echo")
       .WithArguments("test output")
       .ExecuteAsync();
     
@@ -199,7 +199,7 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderChaining()
   {
     // Test that all methods can be chained fluently
-    string result = await Shell.Run("bash")
+    string result = await Shell.Builder("bash")
       .WithArguments("-c", "echo $TEST1 $TEST2")
       .WithEnvironmentVariable("TEST1", "Hello")
       .WithEnvironmentVariable("TEST2", "World")
@@ -214,7 +214,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInput()
   {
-    string result = await Shell.Run("grep")
+    string result = await Shell.Builder("grep")
       .WithArguments("World")
       .WithStandardInput("Hello World\nGoodbye Moon\nHello Universe")
       .GetStringAsync();
@@ -227,7 +227,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInputLines()
   {
-    string result = await Shell.Run("wc")
+    string result = await Shell.Builder("wc")
       .WithArguments("-l")
       .WithStandardInput("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
       .GetStringAsync();
@@ -240,7 +240,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInputPipeline()
   {
-    string[] result = await Shell.Run("cat")
+    string[] result = await Shell.Builder("cat")
       .WithStandardInput("apple\nbanana\ncherry\ndate")
       .Pipe("sort")
       .Pipe("head", "-2")
@@ -254,7 +254,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithEmptyStandardInput()
   {
-    string result = await Shell.Run("cat")
+    string result = await Shell.Builder("cat")
       .WithStandardInput("")
       .GetStringAsync();
     
@@ -266,7 +266,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithComplexArgumentsCommandString()
   {
-    string command = Shell.Run("git")
+    string command = Shell.Builder("git")
       .WithArguments("log", "--oneline", "--author=\"John Doe\"", "--grep=fix")
       .Build()
       .ToCommandString();
@@ -281,7 +281,7 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithNoValidationCommandString()
   {
-    string command = Shell.Run("false")
+    string command = Shell.Builder("false")
       .WithNoValidation()
       .Build()
       .ToCommandString();

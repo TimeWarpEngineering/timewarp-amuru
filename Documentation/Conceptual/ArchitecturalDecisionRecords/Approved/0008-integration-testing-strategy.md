@@ -96,7 +96,7 @@ Tests use real commands that are available on target platforms:
 public async Task GetStringAsync_WithEchoCommand_ReturnsExpectedOutput()
 {
     // Arrange
-    var command = Run("echo", "Hello World");
+    var command = Shell.Builder("echo", "Hello World");
     
     // Act
     var result = await command.GetStringAsync();
@@ -110,7 +110,7 @@ public async Task GetStringAsync_WithEchoCommand_ReturnsExpectedOutput()
 public async Task GetStringAsync_WithNonExistentCommand_ReturnsEmptyString()
 {
     // Arrange
-    var command = Run("nonexistentcommand");
+    var command = Shell.Builder("nonexistentcommand");
     
     // Act
     var result = await command.GetStringAsync();

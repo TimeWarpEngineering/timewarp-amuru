@@ -18,7 +18,7 @@ using (var context = ScriptContext.FromEntryPoint())
   Console.WriteLine($"Working Dir: {Directory.GetCurrentDirectory()}");
   
   // Do work in script directory
-  string[] localFiles = await Shell.Run("ls").GetLinesAsync();
+  string[] localFiles = await Shell.Builder("ls").GetLinesAsync();
   Console.WriteLine($"Files in script dir: {localFiles.Length}");
 }
 
@@ -31,7 +31,7 @@ using (var context = ScriptContext.FromRelativePath("..", changeToTargetDirector
   Console.WriteLine($"Working Dir: {Directory.GetCurrentDirectory()}");
   
   // List parent directory items
-  string[] parentItems = await Shell.Run("ls").GetLinesAsync();
+  string[] parentItems = await Shell.Builder("ls").GetLinesAsync();
   Console.WriteLine("Parent directory items:");
   foreach (string item in parentItems.Take(5))
   {

@@ -10,7 +10,7 @@ Console.WriteLine("=====================================\n");
 Console.WriteLine("Test 1: Select a fruit using GetStringInteractiveAsync()");
 Console.WriteLine("---------------------------------------------------------");
 
-string selectedFruit = await Fzf.Run()
+string selectedFruit = await Fzf.Builder()
   .FromInput("Apple", "Banana", "Cherry", "Date", "Elderberry")
   .WithPrompt("Select a fruit: ")
   .WithHeightPercent(40)
@@ -23,7 +23,7 @@ Console.WriteLine($"\nYou selected: '{selectedFruit}'");
 Console.WriteLine("\n\nTest 2: Select a .cs file from current directory");
 Console.WriteLine("-------------------------------------------------");
 
-string selectedFile = await Shell.Run("find")
+string selectedFile = await Shell.Builder("find")
   .WithArguments(".", "-name", "*.cs", "-type", "f")
   .Pipe("head", "-30")
   .Pipe("fzf", "--prompt", "Select a C# file: ", "--height", "50%", "--preview", "head -20 {}")
@@ -35,7 +35,7 @@ Console.WriteLine($"\nYou selected: '{selectedFile}'");
 Console.WriteLine("\n\nTest 3: Multi-select colors (use Tab to select multiple)");
 Console.WriteLine("--------------------------------------------------------");
 
-string selectedColors = await Fzf.Run()
+string selectedColors = await Fzf.Builder()
   .FromInput("Red", "Green", "Blue", "Yellow", "Purple", "Orange", "Pink", "Brown")
   .WithMulti()
   .WithPrompt("Select colors (Tab to multi-select): ")
@@ -56,7 +56,7 @@ Console.WriteLine("\n\nTest 4: ExecuteInteractiveAsync (full console output)");
 Console.WriteLine("----------------------------------------------------");
 Console.WriteLine("The following will show FZF but won't capture the selection:\n");
 
-await Shell.Run("echo")
+await Shell.Builder("echo")
   .WithArguments("Option A\nOption B\nOption C\nOption D")
   .Pipe("fzf", "--prompt", "This selection won't be captured: ")
   .ExecuteInteractiveAsync();
@@ -65,7 +65,7 @@ await Shell.Run("echo")
 Console.WriteLine("\n\nTest 5: Complex pipeline - find files containing 'Test'");
 Console.WriteLine("-------------------------------------------------------");
 
-string testFile = await Shell.Run("find")
+string testFile = await Shell.Builder("find")
   .WithArguments(".", "-name", "*.cs", "-type", "f")
   .Pipe("xargs", "grep", "-l", "Test")
   .Pipe("head", "-20")

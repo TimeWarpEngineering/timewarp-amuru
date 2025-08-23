@@ -6,7 +6,7 @@ internal sealed class BasicCommandTests
 {
   public static async Task TestSimpleEchoCommand()
   {
-    string result = await Shell.Run("echo").WithArguments("Hello World").GetStringAsync();
+    string result = await Shell.Builder("echo").WithArguments("Hello World").GetStringAsync();
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -16,7 +16,7 @@ internal sealed class BasicCommandTests
 
   public static async Task TestCommandWithMultipleArguments()
   {
-    string result = await Shell.Run("echo").WithArguments("arg1", "arg2", "arg3").GetStringAsync();
+    string result = await Shell.Builder("echo").WithArguments("arg1", "arg2", "arg3").GetStringAsync();
     
     AssertTrue(
       result.Trim() == "arg1 arg2 arg3",
@@ -26,7 +26,7 @@ internal sealed class BasicCommandTests
 
   public static async Task TestExecuteAsyncDoesNotThrow()
   {
-    await Shell.Run("echo").WithArguments("test").ExecuteAsync();
+    await Shell.Builder("echo").WithArguments("test").ExecuteAsync();
     
     // Test passes if no exception is thrown
     AssertTrue(true, "ExecuteAsync should work without throwing");
@@ -34,7 +34,7 @@ internal sealed class BasicCommandTests
 
   public static async Task TestDateCommand()
   {
-    string result = await Shell.Run("date").GetStringAsync();
+    string result = await Shell.Builder("date").GetStringAsync();
     
     AssertTrue(
       !string.IsNullOrEmpty(result.Trim()),

@@ -35,7 +35,7 @@ if (scriptDir != null)
   Console.WriteLine($"Parent directory: {Path.GetFileName(scriptDir)}");
   
   // List other scripts in the same directory
-  string[] otherScripts = await Shell.Run("find")
+  string[] otherScripts = await Shell.Builder("find")
     .WithArguments(scriptDir, "-maxdepth", "1", "-name", "*.cs", "-type", "f")
     .GetLinesAsync();
   
@@ -50,5 +50,5 @@ Console.WriteLine("\n✅ AppContext extensions demonstration complete!");
 Console.WriteLine("Testing CA1303 suppression with a literal string!");
 
 // Test CA2007 suppression - await without ConfigureAwait
-string testOutput = await Shell.Run("echo").WithArguments("CA2007 test").GetStringAsync();
+string testOutput = await Shell.Builder("echo").WithArguments("CA2007 test").GetStringAsync();
 Console.WriteLine($"CA2007 test result: {testOutput.Trim()}");

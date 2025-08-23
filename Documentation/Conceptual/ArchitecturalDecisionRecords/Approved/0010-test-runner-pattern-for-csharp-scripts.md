@@ -115,14 +115,14 @@ internal sealed class CommandResultTests
 
   public static async Task TestEmptyCommandReturnsEmptyString()
   {
-    string result = await Run("").GetStringAsync();
+    string result = await Shell.Builder("").GetStringAsync();
     AssertTrue(string.IsNullOrEmpty(result), "Empty command should return empty string");
   }
 
   public static async Task TestCommandThrowsOnError()
   {
     await AssertThrowsAsync<Exception>(
-      async () => await Run("false").ExecuteAsync(),
+      async () => await Shell.Builder("false").ExecuteAsync(),
       "Command with non-zero exit should throw"
     );
   }

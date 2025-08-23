@@ -9,7 +9,7 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(10)); // Long timeout, command should complete
     
-    string result = await Shell.Run("echo").WithArguments("Hello World").GetStringAsync(cts.Token);
+    string result = await Shell.Builder("echo").WithArguments("Hello World").GetStringAsync(cts.Token);
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -24,7 +24,7 @@ internal sealed class CancellationTests
     
     try
     {
-      string result = await Shell.Run("echo").WithArguments("test").GetStringAsync(cts.Token);
+      string result = await Shell.Builder("echo").WithArguments("test").GetStringAsync(cts.Token);
       // Should return empty string due to cancellation
       AssertTrue(
         string.IsNullOrEmpty(result),
@@ -43,7 +43,7 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    string[] lines = await Shell.Run("echo").WithArguments("line1\nline2\nline3").GetLinesAsync(cts.Token);
+    string[] lines = await Shell.Builder("echo").WithArguments("line1\nline2\nline3").GetLinesAsync(cts.Token);
     
     AssertTrue(
       lines.Length == 3 && lines[0] == "line1" && lines[1] == "line2" && lines[2] == "line3",
@@ -56,7 +56,7 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    ExecutionResult result = await Shell.Run("echo").WithArguments("execute test").ExecuteAsync(cts.Token);
+    ExecutionResult result = await Shell.Builder("echo").WithArguments("execute test").ExecuteAsync(cts.Token);
     
     AssertTrue(
       result.ExitCode == 0,
@@ -75,8 +75,8 @@ internal sealed class CancellationTests
     try
     {
       string result = isWindows 
-        ? await Shell.Run("timeout").WithArguments("5").GetStringAsync(cts.Token)  // Windows: timeout 5 seconds
-        : await Shell.Run("sleep").WithArguments("5").GetStringAsync(cts.Token);   // Unix: sleep 5 seconds
+        ? await Shell.Builder("timeout").WithArguments("5").GetStringAsync(cts.Token)  // Windows: timeout 5 seconds
+        : await Shell.Builder("sleep").WithArguments("5").GetStringAsync(cts.Token);   // Unix: sleep 5 seconds
       
       // If we get here, either the command completed very quickly or returned empty due to cancellation
       AssertTrue(
@@ -96,7 +96,7 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    string result = await Shell.Run("echo").WithArguments("line1\nline2\nline3")
+    string result = await Shell.Builder("echo").WithArguments("line1\nline2\nline3")
       .Pipe("grep", "line")
       .GetStringAsync(cts.Token);
     
@@ -108,7 +108,7 @@ internal sealed class CancellationTests
 
   public static async Task TestDefaultCancellationTokenBehavior()
   {
-    string result = await Shell.Run("echo").WithArguments("default token test").GetStringAsync();
+    string result = await Shell.Builder("echo").WithArguments("default token test").GetStringAsync();
     
     AssertTrue(
       result.Trim() == "default token test",

@@ -31,7 +31,7 @@ Chosen option: "Static method entry point", because it provides the most natural
 
 ### Positive Consequences
 
-* Zero boilerplate - scripts can immediately call `Run("command")`
+* Zero boilerplate - scripts can immediately call `Shell.Builder("command")`
 * Feels natural for shell scripting scenarios
 * No object lifetime management required
 * Globally available like shell built-ins

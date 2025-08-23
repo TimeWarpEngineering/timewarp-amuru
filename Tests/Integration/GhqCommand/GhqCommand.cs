@@ -6,11 +6,11 @@ internal sealed class GhqCommandTests
 {
   public static async Task TestBasicGhqBuilderCreation()
   {
-    GhqBuilder ghqBuilder = Ghq.Run();
+    GhqBuilder ghqBuilder = Ghq.Builder();
     
     AssertTrue(
       ghqBuilder != null,
-      "Ghq.Run() should create builder successfully"
+      "Ghq.Builder() should create builder successfully"
     );
     
     await Task.CompletedTask;
@@ -18,7 +18,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqGetCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Get("github.com/TimeWarpEngineering/timewarp-cli")
       .Build()
       .ToCommandString();
@@ -33,7 +33,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqCloneCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Clone("github.com/user/repo")
       .Build()
       .ToCommandString();
@@ -48,7 +48,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqGetWithOptions()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Get("github.com/user/repo")
       .WithShallow()
       .WithBranch("develop")
@@ -66,7 +66,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqListCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .Build()
       .ToCommandString();
@@ -81,7 +81,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqListWithOptions()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .WithFullPath()
       .WithExact()
@@ -99,7 +99,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqRemoveCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Remove("github.com/old/repo")
       .Build()
       .ToCommandString();
@@ -114,7 +114,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqRmCommandWithDryRun()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Rm("github.com/old/repo")
       .WithDryRun()
       .Build()
@@ -130,7 +130,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqRootCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Root()
       .Build()
       .ToCommandString();
@@ -145,7 +145,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqRootWithAllOption()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Root()
       .WithAll()
       .Build()
@@ -161,7 +161,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqCreateCommand()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Create("github.com/user/new-repo")
       .Build()
       .ToCommandString();
@@ -177,7 +177,7 @@ internal sealed class GhqCommandTests
   public static async Task TestGhqWithWorkingDirectoryAndEnvironment()
   {
     // Note: Working directory and environment variables don't appear in ToCommandString()
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .WithWorkingDirectory("/tmp")
       .WithEnvironmentVariable("GHQ_ROOT", "/tmp/ghq")
       .List()
@@ -194,7 +194,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqGetWithAdvancedOptions()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Get("github.com/example/repo")
       .WithLook()
       .WithParallel()
@@ -213,7 +213,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqGetWithVcsBackend()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Get("gitlab.com/user/project")
       .WithVcs("gitlab")
       .Build()
@@ -229,7 +229,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqListWithUniqueOption()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .WithUnique()
       .Build()
@@ -245,7 +245,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqGetWithBareRepository()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Get("github.com/user/bare-repo")
       .WithBare()
       .Build()
@@ -261,7 +261,7 @@ internal sealed class GhqCommandTests
 
   public static async Task TestGhqPipeToExtension()
   {
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .PipeTo("grep", "timewarp")
       .ToCommandString();
@@ -277,7 +277,7 @@ internal sealed class GhqCommandTests
   public static async Task TestGhqCommandBuilds()
   {
     // This tests that the command builds correctly even if ghq might not be installed
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .WithFullPath()
       .Build()
@@ -294,7 +294,7 @@ internal sealed class GhqCommandTests
   public static async Task TestGhqRootExecution()
   {
     // Test command string generation for root command
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .Root()
       .Build()
       .ToCommandString();
@@ -310,7 +310,7 @@ internal sealed class GhqCommandTests
   public static async Task TestGhqListExecution()
   {
     // Test command string generation for list command
-    string command = Ghq.Run()
+    string command = Ghq.Builder()
       .List()
       .Build()
       .ToCommandString();

@@ -34,31 +34,31 @@ Creates a new command execution context with advanced configuration options.
 **Example Usage:**
 ```csharp
 // Simple command execution
-var output = await Run("echo", "Hello World").GetStringAsync();
+var output = await Shell.Builder("echo", "Hello World").GetStringAsync();
 
 // Command with multiple arguments
-var files = await Run("find", ".", "-name", "*.cs").GetLinesAsync();
+var files = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
 
 // Execute without capturing output
-await Run("git", "add", ".").ExecuteAsync();
+await Shell.Builder("git", "add", ".").ExecuteAsync();
 
 // Advanced configuration with working directory
 var options = new CommandOptions()
     .WithWorkingDirectory("/path/to/project");
-var result = await Run("git", new[] { "status" }, options).GetStringAsync();
+var result = await Shell.Builder("git", new[] { "status" }, options).GetStringAsync();
 
 // Configuration with environment variables
 var envOptions = new CommandOptions()
     .WithEnvironmentVariable("NODE_ENV", "production")
     .WithEnvironmentVariable("API_KEY", "secret123");
-var output = await Run("node", new[] { "build.js" }, envOptions).GetStringAsync();
+var output = await Shell.Builder("node", new[] { "build.js" }, envOptions).GetStringAsync();
 
 // Combined configuration
 var combinedOptions = new CommandOptions()
     .WithWorkingDirectory("/app")
     .WithEnvironmentVariable("PATH", "/custom/bin:/usr/bin")
     .WithEnvironmentVariable("DEBUG", "true");
-await Run("make", new[] { "install" }, combinedOptions).ExecuteAsync();
+await Shell.Builder("make", new[] { "install" }, combinedOptions).ExecuteAsync();
 ```
 
 ## CommandOptions Configuration
@@ -71,7 +71,7 @@ var options = new CommandOptions()
     .WithWorkingDirectory("/path/to/project");
 
 // Command will execute in the specified directory
-var result = await Run("ls", new string[0], options).GetLinesAsync();
+var result = await Shell.Builder("ls", new string[0], options).GetLinesAsync();
 ```
 
 ### Environment Variables
@@ -190,11 +190,11 @@ This class is designed to be used in C# scripts with the following pattern:
 #:package TimeWarp.Cli
 
 // Direct usage - Run is available globally
-var result = await Run("date").GetStringAsync();
+var result = await Shell.Builder("date").GetStringAsync();
 Console.WriteLine($"Current date: {result}");
 
 // Multiple commands
-var files = await Run("ls", "-la").GetLinesAsync();
+var files = await Shell.Builder("ls", "-la").GetLinesAsync();
 foreach (var file in files)
 {
   Console.WriteLine(file);
