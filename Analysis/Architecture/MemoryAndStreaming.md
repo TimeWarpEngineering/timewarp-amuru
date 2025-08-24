@@ -164,6 +164,40 @@ The flag approach adds complexity without solving the real issue:
 3. **Use Stream methods for large outputs** - Process without buffering
 4. **Use StreamToFileAsync() for huge outputs** - Direct to disk
 
+### Memory Usage by Method
+
+| Method | Memory Usage | Safe for Large Output | Use Case |
+|--------|--------------|----------------------|----------|
+| `RunAsync()` | None | ✅ Yes | Default - show output |
+| `CaptureAsync()` | Full output | ⚠️ No (>10MB risky) | Small outputs only |
+| `StreamStdoutAsync()` | Per line | ✅ Yes | Process line by line |
+| `StreamStderrAsync()` | Per line | ✅ Yes | Monitor errors |
+| `StreamCombinedAsync()` | Per line | ✅ Yes | Process with source info |
+| `StreamToFileAsync()` | None | ✅ Yes | Save large outputs |
+| `RunAndCaptureAsync()` | Full output | ⚠️ No | Logging + display |
+
+### Best Practices
+
+```csharp
+// ✅ GOOD: Default to streaming for unknown size
+await Shell.Builder("docker", "logs", "container").RunAsync();
+
+// ✅ GOOD: Explicit capture for known small output
+var version = await Shell.Builder("node", "--version").CaptureAsync();
+
+// ⚠️ RISKY: Capturing potentially large output
+var logs = await Shell.Builder("cat", "/var/log/application.log").CaptureAsync();
+
+// ✅ BETTER: Stream large files
+await foreach (var line in Shell.Builder("cat", "/var/log/application.log").StreamStdoutAsync())
+{
+    if (line.Contains("ERROR")) ProcessError(line);
+}
+
+// ✅ BEST: Direct to file for huge outputs
+await Shell.Builder("pg_dump", "database").StreamToFileAsync("backup.sql");
+```
+
 ### For Library
 
 1. **Never buffer unless asked** - RunAsync() doesn't capture

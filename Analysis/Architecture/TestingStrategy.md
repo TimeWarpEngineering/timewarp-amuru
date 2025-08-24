@@ -1,5 +1,9 @@
 # TimeWarp.Amuru Testing Strategy
 
+## Final Decision: Simple Mock with AsyncLocal
+
+**Primary API: Thread-safe, simple mocking for scripts. DI support as future option.**
+
 ## The Problem
 
 Real process execution makes unit testing difficult:
@@ -9,9 +13,121 @@ Real process execution makes unit testing difficult:
 - Hard to test error scenarios
 - Difficult to verify command calls and arguments
 
-## Proposed Solution: Full Testing Infrastructure
+## Recommended Solution: Simple Mock Mode with AsyncLocal
 
-### Core Abstraction (ICommandExecutor)
+### Primary API (Ships with Core Library)
+
+Thread-safe, test-isolated mocking using AsyncLocal:
+
+```csharp
+namespace TimeWarp.Amuru.Testing;
+
+public static class CommandMock
+{
+    private static readonly AsyncLocal<MockState?> state = new();
+    
+    // Enable mocking for current async context
+    public static IDisposable Enable()
+    {
+        state.Value = new MockState();
+        return new MockScope(() => state.Value = null);
+    }
+    
+    // Setup a mock
+    public static MockSetup Setup(string command, params string[] args)
+    {
+        if (state.Value == null)
+            throw new InvalidOperationException("Call CommandMock.Enable() first");
+        return state.Value.Setup(command, args);
+    }
+    
+    // Verify calls
+    public static void VerifyCalled(string command, params string[] args)
+    {
+        if (state.Value == null)
+            throw new InvalidOperationException("Call CommandMock.Enable() first");
+        state.Value.VerifyCalled(command, args);
+    }
+    
+    public static int CallCount(string command, params string[] args)
+        => state.Value?.CallCount(command, args) ?? 0;
+}
+
+public class MockSetup
+{
+    public MockSetup Returns(string stdout, string stderr = "", int exitCode = 0);
+    public MockSetup ReturnsError(string stderr, int exitCode = 1);
+    public MockSetup Throws<TException>() where TException : Exception, new();
+    public MockSetup Delays(TimeSpan delay);
+}
+```
+
+### Usage Patterns
+
+```csharp
+// Basic test with automatic cleanup
+[Test]
+public async Task GitStatusTest()
+{
+    using (CommandMock.Enable())  // Scoped to this test only
+    {
+        CommandMock.Setup("git", "status")
+            .Returns("On branch main\nnothing to commit");
+        
+        var result = await Shell.Builder("git", "status").CaptureAsync();
+        
+        Assert.Equal("On branch main\nnothing to commit", result.Stdout);
+        CommandMock.VerifyCalled("git", "status");
+    } // Automatically cleaned up
+}
+
+// Parallel test safety - each test isolated
+[Test]
+public async Task ParallelSafeTests()
+{
+    await Parallel.ForEachAsync(Enumerable.Range(1, 100), async (i, _) =>
+    {
+        using (CommandMock.Enable())  // Each parallel execution isolated
+        {
+            CommandMock.Setup("echo", i.ToString())
+                .Returns($"Echo {i}");
+            
+            var result = await Shell.Builder("echo", i.ToString()).CaptureAsync();
+            Assert.Equal($"Echo {i}", result.Stdout);
+        }
+    });
+}
+
+// Error scenarios
+[Test]
+public async Task HandleCommandFailure()
+{
+    using (CommandMock.Enable())
+    {
+        CommandMock.Setup("docker", "build", ".")
+            .ReturnsError("Cannot connect to Docker daemon", exitCode: 1);
+        
+        var result = await Shell.Builder("docker", "build", ".")
+            .WithValidation(CommandResultValidation.None)
+            .CaptureAsync();
+        
+        Assert.False(result.Success);
+        Assert.Contains("Cannot connect", result.Stderr);
+    }
+}
+```
+
+### Benefits of AsyncLocal Approach
+
+1. **Test Isolation**: Each test gets its own mock state
+2. **Thread Safety**: AsyncLocal ensures no bleeding between parallel tests
+3. **Automatic Cleanup**: IDisposable pattern ensures cleanup
+4. **No Global State**: No static fields that persist between tests
+5. **Simple API**: Just Enable() and Setup()
+
+## Future Options (Separate Packages)
+
+### Option 1: Full DI Support (TimeWarp.Amuru.Testing.DI)
 
 Provide a mockable interface for all command execution:
 
@@ -63,31 +179,6 @@ public class MockSetup
 }
 ```
 
-### Static Access with Override
-
-For scripts that don't use DI:
-
-```csharp
-public static class CommandExecutor
-{
-    private static ICommandExecutor? customExecutor;
-    private static readonly ICommandExecutor defaultExecutor = new DefaultCommandExecutor();
-    
-    public static ICommandExecutor Current => customExecutor ?? defaultExecutor;
-    
-    public static void UseExecutor(ICommandExecutor executor) => customExecutor = executor;
-    public static void UseDefault() => customExecutor = null;
-}
-
-// Usage in tests
-var mockExecutor = new MockCommandExecutor();
-mockExecutor.Setup("git", "status")
-    .ReturnsOutput("On branch main\nnothing to commit");
-
-CommandExecutor.UseExecutor(mockExecutor);
-// Run tests
-CommandExecutor.UseDefault();
-```
 
 ### Dependency Injection Support
 
@@ -123,105 +214,72 @@ public class GitService
 }
 ```
 
-### Advanced Testing Features
+### Option 2: Record and Replay (TimeWarp.Amuru.Testing.Replay)
 
-#### Fluent Mock Builder
+For testing against real external systems:
+
 ```csharp
-var mock = new MockCommandExecutor()
-    .WhenCommand("docker", "build", ".")
-        .StreamsOutput("Building image...")
-        .DelaysFor(TimeSpan.FromSeconds(2))
-        .ThenStreamsOutput("Successfully built abc123")
-        .Returns(0)
-    .WhenCommand("docker", "push")
-        .ThrowsOnCancellation()
-    .WhenCommandMatches(cmd => cmd.StartsWith("find"))
-        .ReturnsOutput("file1.txt\nfile2.txt");
-```
-
-#### Record and Replay
-```csharp
-// Record mode - captures real outputs
-var recorder = new CommandRecorder("test-fixtures/git-commands.json");
-CommandExecutor.UseExecutor(recorder);
-
-// Run your code - real commands execute and get recorded
-await Shell.Builder("git", "status").CaptureAsync();
-await Shell.Builder("git", "log", "--oneline", "-5").CaptureAsync();
-
-await recorder.SaveAsync();
-
-// Replay mode - uses recorded outputs
-var replay = await CommandReplay.LoadAsync("test-fixtures/git-commands.json");
-CommandExecutor.UseExecutor(replay);
-
-// Same commands now return recorded outputs - no real execution
-var status = await Shell.Builder("git", "status").CaptureAsync();
-```
-
-#### Fake File System Integration
-```csharp
-// Using System.IO.Abstractions
-var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+public static class CommandRecorder
 {
-    { "/app/config.json", new MockFileData("{ \"key\": \"value\" }") },
-    { "/app/data.txt", new MockFileData("test data") }
-});
+    public static async Task<IDisposable> StartRecording(string file)
+    {
+        // Records real command outputs to file
+    }
+    
+    public static IDisposable PlaybackFrom(string file)
+    {
+        // Replays recorded outputs from file
+    }
+}
 
-var mockExecutor = new MockCommandExecutor(fileSystem);
-mockExecutor.Setup("cat", "/app/config.json")
-    .ReturnsFileContent();  // Automatically uses mock file system
+// First run - record real outputs
+using (await CommandRecorder.StartRecording("fixtures/git-test.json"))
+{
+    await Shell.Builder("git", "status").CaptureAsync();  // Real execution
+    await Shell.Builder("git", "log", "--oneline", "-5").CaptureAsync();
+}
+
+// Subsequent runs - replay without real execution
+using (CommandRecorder.PlaybackFrom("fixtures/git-test.json"))
+{
+    var status = await Shell.Builder("git", "status").CaptureAsync();  // From recording
+    var log = await Shell.Builder("git", "log", "--oneline", "-5").CaptureAsync();
+}
 ```
 
-## Alternative: Simple Mock Mode
+## Why This Design
 
-A simpler approach without DI or abstractions:
+### Primary Users: Script Writers
+- Most users are writing scripts, not apps
+- They need simple, zero-config testing
+- AsyncLocal provides safety without complexity
 
-```csharp
-// Enable mock mode for testing
-CommandMock.Enable();
+### Key Benefits
+1. **Zero Config**: Just `using (CommandMock.Enable())`
+2. **Test Isolation**: Each test completely isolated
+3. **Thread Safe**: Parallel tests work perfectly
+4. **Auto Cleanup**: IDisposable ensures cleanup
+5. **Familiar API**: Similar to popular mocking libraries
 
-// Setup mocks
-CommandMock.Setup("git", "status")
-    .Returns(stdout: "On branch main", exitCode: 0);
+### Future-Proof
+- Core library ships with simple mocking only
+- DI support can be added as separate package if needed
+- Record/replay can be added as extension package
+- No breaking changes to add these later
 
-// Your code runs normally
-var result = await Shell.Builder("git", "status").CaptureAsync();
+## Implementation Priority
 
-// Verify calls
-Assert.True(CommandMock.WasCalled("git", "status"));
+1. **Ship with v1.0**: Simple CommandMock with AsyncLocal
+2. **Based on feedback**: Add DI package if requested
+3. **Based on usage**: Add record/replay if patterns emerge
 
-// Reset after test
-CommandMock.Reset();
-```
+## Summary
 
-## Considerations
+The AsyncLocal-based CommandMock provides the perfect balance:
+- Simple enough for scripts
+- Safe enough for parallel tests
+- Extensible enough for future needs
+- No global state risks
+- Automatic cleanup
 
-### For Scripts (Primary Use Case)
-- Scripts typically don't use DI
-- Simple mock mode might be sufficient
-- Most script writers might not test at all
-
-### For Applications (TUIs, Hosted Services)
-- Nuru supports DI in console apps
-- Long-lived TUIs might benefit from proper DI
-- ASP.NET hosted services definitely need DI support
-- Testability becomes more important
-
-### Questions to Resolve
-1. Do we support both approaches (simple mock + full DI)?
-2. Is the complexity worth it for a scripting library?
-3. Should DI support be in a separate package (TimeWarp.Amuru.Testing)?
-4. Do we need record/replay or is that overengineering?
-
-## Testing Strategy Comparison
-
-| Feature | Simple Mock | Full DI/Abstraction |
-|---------|------------|-------------------|
-| Setup Complexity | Low | Medium |
-| Script Friendly | ✅ | ❌ |
-| DI Support | ❌ | ✅ |
-| Verification | Basic | Full |
-| Performance | Fast | Fast |
-| Learning Curve | Easy | Moderate |
-| TUI/App Support | Limited | Full |
+This is the testing solution that matches our library philosophy: simple, predictable, and just works.

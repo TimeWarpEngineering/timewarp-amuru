@@ -1,8 +1,13 @@
 # TimeWarp.Amuru Caching Strategy
 
-## The Question
+## Final Decision: NO CACHING
 
-Should we provide caching at all? No shell caches commands automatically. Users can cache results themselves in C# if needed.
+**The library will NOT implement any built-in caching. Period.**
+
+## Why This is the Right Decision
+
+### Shells Don't Cache
+No shell (bash, PowerShell, zsh, cmd) caches command results. Running the same command twice runs it twice. This is fundamental to how shells work.
 
 ## Arguments For Caching
 
@@ -120,18 +125,53 @@ public static class CacheExtensions
 }
 ```
 
-## Recommendation
+## Final Reasoning
 
-**Lean towards NO built-in caching.**
+1. **Shell Principle**: We're building a shell wrapper. Shells don't cache. End of story.
+2. **Correctness**: Commands have side effects and time-dependent results. Caching breaks this.
+3. **Simplicity**: No cache = no cache bugs, no invalidation logic, no configuration.
+4. **User Control**: C# developers can trivially cache if they need it:
+   ```csharp
+   // One-liner caching
+   var result = cachedResult ??= await Shell.Builder("command").CaptureAsync();
+   ```
+5. **Predictability**: Every command execution is fresh. No surprises.
 
-Reasons:
-1. Keeps the library focused and simple
-2. Avoids dangerous misuse
-3. Users can easily add caching if needed
-4. Not a standard shell feature
-5. Reduces API surface and complexity
+## What Users Should Do Instead
 
-If we do add it later based on user feedback, it should be:
-- Opt-in via separate package (TimeWarp.Amuru.Caching)
-- Very explicit about dangers
-- Simple implementation without complex features
+If users need caching for expensive operations:
+
+```csharp
+// Simple field caching
+private static CommandOutput? gitStatusCache;
+
+// Method with built-in cache
+public async Task<string> GetGitStatus()
+{
+    gitStatusCache ??= await Shell.Builder("git", "status").CaptureAsync();
+    return gitStatusCache.Stdout;
+}
+
+// Time-based cache
+private static (CommandOutput Result, DateTime CachedAt)? dockerPsCache;
+
+public async Task<CommandOutput> GetDockerContainers()
+{
+    if (dockerPsCache?.CachedAt > DateTime.Now.AddSeconds(-30))
+        return dockerPsCache.Value.Result;
+    
+    var result = await Shell.Builder("docker", "ps").CaptureAsync();
+    dockerPsCache = (result, DateTime.Now);
+    return result;
+}
+```
+
+This gives them complete control over:
+- What to cache
+- When to invalidate
+- How long to keep it
+- Memory management
+
+## Conclusion
+
+No caching. The library stays simple, predictable, and shell-like. Users who need caching can implement exactly what they need in a few lines of C#.

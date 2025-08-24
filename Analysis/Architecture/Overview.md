@@ -29,13 +29,15 @@ This folder contains architectural analysis and design documents for TimeWarp.Am
 - **Decision**: Follow shell principle - never buffer unless explicitly asked
 
 ### 2. Testing Approach
-- **Option A**: Simple mock mode for scripts
-- **Option B**: Full DI/abstraction for TUIs and apps
-- **Question**: Do we need both? Is DI overkill for a scripting library?
+- **DECISION**: Simple mock with AsyncLocal for thread safety - FINAL
+- **Implementation**: CommandMock.Enable() with automatic cleanup
+- **Benefits**: Test isolation, parallel safety, no global state
+- **Future**: DI support as optional package if needed
 
 ### 3. Caching
-- **Leaning**: No built-in caching - let users handle it
-- **Rationale**: Shells don't cache, keeps library simple, avoids footguns
+- **DECISION**: No built-in caching - FINAL
+- **Rationale**: Shells don't cache, users can trivially cache in C# if needed
+- **Principle**: Every command execution is fresh, just like in a shell
 
 ### 4. Native Commands
 - **Structure**: Single static class with partials for organization
