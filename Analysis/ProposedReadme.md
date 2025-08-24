@@ -458,7 +458,6 @@ public class GitService
 }
 
 // In tests
-[Fact]
 public async Task GetCurrentBranch_ReturnsMainBranch()
 {
     var mock = new MockCommandExecutor();
