@@ -260,3 +260,88 @@ public static class CommandCache
 3. **Log cache hits** in debug mode for transparency
 4. **Memory limits** - Consider LRU eviction or max cache size
 5. **No persistence** - In-memory only to avoid stale data across runs
+
+## Testing and Mocking Design
+
+Real process execution makes unit testing difficult. The library must provide proper abstractions:
+
+### Core Abstraction
+```csharp
+public interface ICommandExecutor
+{
+    Task<CommandOutput> ExecuteAsync(CommandRequest request, CancellationToken token = default);
+    IAsyncEnumerable<CommandLine> StreamAsync(CommandRequest request, CancellationToken token = default);
+}
+
+public class CommandRequest
+{
+    public string Executable { get; set; }
+    public string[] Arguments { get; set; }
+    public string? WorkingDirectory { get; set; }
+    public Dictionary<string, string> EnvironmentVariables { get; set; }
+    public string? StandardInput { get; set; }
+    public TimeSpan? Timeout { get; set; }
+}
+```
+
+### Mock Implementation
+```csharp
+public class MockCommandExecutor : ICommandExecutor
+{
+    private readonly Dictionary<string, MockSetup> setups = new();
+    
+    public MockSetup Setup(string command, params string[] args)
+    {
+        var key = $"{command} {string.Join(" ", args)}";
+        var setup = new MockSetup();
+        setups[key] = setup;
+        return setup;
+    }
+    
+    public bool WasCalled(string command, params string[] args) { }
+    public int CallCount(string command, params string[] args) { }
+}
+
+public class MockSetup
+{
+    public MockSetup ReturnsOutput(string stdout, string stderr = "", int exitCode = 0);
+    public MockSetup ReturnsError(string stderr, int exitCode = 1);
+    public MockSetup Throws<TException>() where TException : Exception, new();
+    public MockSetup DelaysFor(TimeSpan delay);
+}
+```
+
+### Static Access with Override
+```csharp
+public static class CommandExecutor
+{
+    private static ICommandExecutor? customExecutor;
+    private static readonly ICommandExecutor defaultExecutor = new DefaultCommandExecutor();
+    
+    public static ICommandExecutor Current => customExecutor ?? defaultExecutor;
+    
+    public static void UseExecutor(ICommandExecutor executor) => customExecutor = executor;
+    public static void UseDefault() => customExecutor = null;
+}
+
+// Shell.Builder uses CommandExecutor.Current internally
+```
+
+### Dependency Injection Integration
+```csharp
+// For apps using DI
+services.AddSingleton<ICommandExecutor, DefaultCommandExecutor>();
+services.AddScoped<ICommandExecutor>(sp => 
+{
+    var mock = new MockCommandExecutor();
+    // Configure mock
+    return mock;
+});
+```
+
+This design enables:
+- Fast unit tests without process execution
+- DI-friendly architecture for modern apps
+- Static convenience for scripts
+- Verification of command calls
+- Deterministic test behavior

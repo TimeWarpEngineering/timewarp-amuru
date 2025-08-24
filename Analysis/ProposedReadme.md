@@ -399,6 +399,87 @@ if (!result.Success)
 }
 ```
 
+## Testing and Mocking
+
+TimeWarp.Amuru provides comprehensive testing support, from fast unit tests with mocks to integration tests with real processes:
+
+### Unit Testing with Mock Executor
+
+For fast, deterministic unit tests without real process execution:
+
+```csharp
+// In your test setup
+var mockExecutor = new MockCommandExecutor();
+mockExecutor.Setup("git", "status")
+    .ReturnsOutput("On branch main\nnothing to commit");
+mockExecutor.Setup("npm", "test")
+    .ReturnsError("Test failed", exitCode: 1);
+
+// Inject mock for testing
+CommandExecutor.UseExecutor(mockExecutor);
+
+// Your code under test runs normally
+var status = await Shell.Builder("git", "status").CaptureAsync();
+Assert.Equal("On branch main\nnothing to commit", status.Stdout);
+
+// Verify commands were called
+Assert.True(mockExecutor.WasCalled("git", "status"));
+Assert.Equal(2, mockExecutor.TotalCallCount);
+
+// Reset after test
+CommandExecutor.UseDefault();
+```
+
+### Dependency Injection Support
+
+For proper DI in applications:
+
+```csharp
+// Register in DI container
+services.AddSingleton<ICommandExecutor, DefaultCommandExecutor>();
+// Or for testing
+services.AddSingleton<ICommandExecutor, MockCommandExecutor>();
+
+// In your service
+public class GitService
+{
+    private readonly ICommandExecutor executor;
+    
+    public GitService(ICommandExecutor executor)
+    {
+        this.executor = executor;
+    }
+    
+    public async Task<string> GetCurrentBranch()
+    {
+        var result = await executor.RunCommandAsync("git", "branch", "--show-current");
+        return result.Stdout.Trim();
+    }
+}
+
+// In tests
+[Fact]
+public async Task GetCurrentBranch_ReturnsMainBranch()
+{
+    var mock = new MockCommandExecutor();
+    mock.Setup("git", "branch", "--show-current").ReturnsOutput("main\n");
+    
+    var service = new GitService(mock);
+    var branch = await service.GetCurrentBranch();
+    
+    Assert.Equal("main", branch);
+}
+```
+
+### Testing Strategies
+
+| Strategy | Speed | Isolation | Real Behavior | Use Case |
+|----------|-------|-----------|---------------|----------|
+| `MockCommandExecutor` | ⚡ Fast | ✅ Full | ❌ | Unit tests |
+| `TestContainers` | 🐢 Slow | ✅ Full | ✅ | Integration tests |
+| `Record/Replay` | ⚡ Fast | ✅ Full | 📼 Recorded | Complex scenarios |
+| `Real Commands` | 🐢 Slow | ❌ | ✅ | E2E tests |
+
 ## Common Patterns
 
 ### Running Shell Scripts and .NET Single-File Apps
