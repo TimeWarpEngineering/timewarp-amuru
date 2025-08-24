@@ -278,20 +278,60 @@ var sorted = await Shell.Builder("sort")
     .CaptureAsync();
 ```
 
-### Caching Expensive Operations
+### Caching Read-Only Commands
 
-Cache command results to avoid re-running expensive operations:
+**⚠️ WARNING: Only cache read-only commands! Never cache state-changing operations like `git pull`, `npm install`, or database writes.**
+
+Cache expensive read-only operations with explicit control:
 
 ```csharp
-// Create cached command
-var findCommand = Shell.Builder("find", "/", "-name", "*.log").Cached();
+// Basic caching - key is auto-generated from command + args + working dir + env vars
+var findCommand = Shell.Builder("find", ".", "-name", "*.cs")
+    .Cached();  // Cache indefinitely (process lifetime)
 
-// First call executes command
-var logs1 = await findCommand.CaptureAsync();
+// First call executes
+var files1 = await findCommand.CaptureAsync();
 
-// Subsequent calls return cached result instantly
-var logs2 = await findCommand.CaptureAsync();  // No execution!
+// Subsequent calls return cached result
+var files2 = await findCommand.CaptureAsync();  // No execution!
+
+// Cache with expiration (TTL)
+var gitStatus = Shell.Builder("git", "status")
+    .Cached(TimeSpan.FromMinutes(5));  // Expire after 5 minutes
+
+// Custom cache key for explicit control
+var report = Shell.Builder("generate-report.sh")
+    .WithArguments(date.ToString("yyyy-MM-dd"))
+    .Cached($"report-{date:yyyy-MM-dd}");  // Control exact cache key
+
+// Invalidate specific cache
+CommandCache.Invalidate("report-2024-01-15");
+
+// Clear all caches (useful in tests or on config changes)
+CommandCache.Clear();
+
+// Check if cached
+if (CommandCache.Contains("report-2024-01-15"))
+{
+    Console.WriteLine("Report already generated");
+}
 ```
+
+**Cache Key Components** (auto-generated if not specified):
+- Executable path
+- All arguments
+- Working directory
+- Environment variables
+- Standard input (if provided)
+
+**Cache Scope**: In-memory only, per-process lifetime (unless TTL specified)
+
+**Best Practices**:
+- ✅ Cache: `find`, `ls`, `git log`, `cat` (read-only operations)
+- ❌ Never cache: `git pull`, `npm install`, `docker build`, `rm` (state-changing)
+- Use TTL for data that changes slowly (git status, file listings)
+- Use custom keys when you need explicit control
+- Clear caches in tests to ensure isolation
 
 ## Specialized Command Builders
 

@@ -168,6 +168,7 @@ await Shell.Builder("npm", "install").RunAsync();  // Finally!
 5. **All async methods MUST accept CancellationToken parameter** (default to CancellationToken.None)
 6. WithTimeout should create internal CancellationTokenSource and link with any passed token
 7. Process termination on cancellation should be graceful (SIGTERM/CtrlC) with fallback to forceful
+8. **Caching must be explicit and safe** - see Caching Design section below
 
 ## Cancellation Token Integration
 
@@ -197,3 +198,65 @@ private async Task<T> ExecuteWithTimeoutAsync<T>(Func<CancellationToken, Task<T>
     }
     return await execution(externalToken);
 }
+
+## Caching Design
+
+Caching is powerful but dangerous if misused. The design must prevent footguns:
+
+### Cache Key Generation
+Default cache key includes ALL state that affects output:
+- Executable path (resolved)
+- All arguments (in order)
+- Working directory (absolute path)
+- Environment variables (sorted)
+- Standard input (if provided)
+
+```csharp
+string GenerateCacheKey(CommandBuilder builder)
+{
+    var components = new[]
+    {
+        builder.Executable,
+        string.Join("|", builder.Arguments),
+        builder.WorkingDirectory ?? Environment.CurrentDirectory,
+        string.Join("|", builder.EnvironmentVariables.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}")),
+        builder.StandardInput ?? ""
+    };
+    
+    using var sha256 = SHA256.Create();
+    var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(string.Join("|", components)));
+    return Convert.ToBase64String(hash);
+}
+```
+
+### API Surface
+```csharp
+// Basic caching (indefinite, auto-generated key)
+.Cached()
+
+// With TTL expiration
+.Cached(TimeSpan.FromMinutes(5))
+
+// Custom key (explicit control)
+.Cached(string customKey)
+
+// Custom key with TTL
+.Cached(string customKey, TimeSpan ttl)
+
+// Global cache management
+public static class CommandCache
+{
+    public static void Clear();
+    public static void Invalidate(string key);
+    public static bool Contains(string key);
+    public static int Count { get; }
+    public static TimeSpan? GetTimeToLive(string key);
+}
+```
+
+### Safety Requirements
+1. **Big warning in docs** - Only cache read-only commands
+2. **Consider read-only flag** - `.Cached(readOnly: true)` to make it explicit
+3. **Log cache hits** in debug mode for transparency
+4. **Memory limits** - Consider LRU eviction or max cache size
+5. **No persistence** - In-memory only to avoid stale data across runs
