@@ -168,7 +168,6 @@ await Shell.Builder("npm", "install").RunAsync();  // Finally!
 5. **All async methods MUST accept CancellationToken parameter** (default to CancellationToken.None)
 6. WithTimeout should create internal CancellationTokenSource and link with any passed token
 7. Process termination on cancellation should be graceful (SIGTERM/CtrlC) with fallback to forceful
-8. **Caching must be explicit and safe** - see Caching Design section below
 
 ## Cancellation Token Integration
 
@@ -199,149 +198,10 @@ private async Task<T> ExecuteWithTimeoutAsync<T>(Func<CancellationToken, Task<T>
     return await execution(externalToken);
 }
 
-## Caching Design
+## Testing and Mocking
 
-Caching is powerful but dangerous if misused. The design must prevent footguns:
-
-### Cache Key Generation
-Default cache key includes ALL state that affects output:
-- Executable path (resolved)
-- All arguments (in order)
-- Working directory (absolute path)
-- Environment variables (sorted)
-- Standard input (if provided)
-
-```csharp
-string GenerateCacheKey(CommandBuilder builder)
-{
-    var components = new[]
-    {
-        builder.Executable,
-        string.Join("|", builder.Arguments),
-        builder.WorkingDirectory ?? Environment.CurrentDirectory,
-        string.Join("|", builder.EnvironmentVariables.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}")),
-        builder.StandardInput ?? ""
-    };
-    
-    using var sha256 = SHA256.Create();
-    var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(string.Join("|", components)));
-    return Convert.ToBase64String(hash);
-}
-```
-
-### API Surface
-```csharp
-// Basic caching (indefinite, auto-generated key)
-.Cached()
-
-// With TTL expiration
-.Cached(TimeSpan.FromMinutes(5))
-
-// Custom key (explicit control)
-.Cached(string customKey)
-
-// Custom key with TTL
-.Cached(string customKey, TimeSpan ttl)
-
-// Global cache management
-public static class CommandCache
-{
-    public static void Clear();
-    public static void Invalidate(string key);
-    public static bool Contains(string key);
-    public static int Count { get; }
-    public static TimeSpan? GetTimeToLive(string key);
-}
-```
-
-### Safety Requirements
-1. **Big warning in docs** - Only cache read-only commands
-2. **Consider read-only flag** - `.Cached(readOnly: true)` to make it explicit
-3. **Log cache hits** in debug mode for transparency
-4. **Memory limits** - Consider LRU eviction or max cache size
-5. **No persistence** - In-memory only to avoid stale data across runs
-
-## Testing and Mocking Design
-
-Real process execution makes unit testing difficult. The library must provide proper abstractions:
-
-### Core Abstraction
-```csharp
-public interface ICommandExecutor
-{
-    Task<CommandOutput> ExecuteAsync(CommandRequest request, CancellationToken token = default);
-    IAsyncEnumerable<CommandLine> StreamAsync(CommandRequest request, CancellationToken token = default);
-}
-
-public class CommandRequest
-{
-    public string Executable { get; set; }
-    public string[] Arguments { get; set; }
-    public string? WorkingDirectory { get; set; }
-    public Dictionary<string, string> EnvironmentVariables { get; set; }
-    public string? StandardInput { get; set; }
-    public TimeSpan? Timeout { get; set; }
-}
-```
-
-### Mock Implementation
-```csharp
-public class MockCommandExecutor : ICommandExecutor
-{
-    private readonly Dictionary<string, MockSetup> setups = new();
-    
-    public MockSetup Setup(string command, params string[] args)
-    {
-        var key = $"{command} {string.Join(" ", args)}";
-        var setup = new MockSetup();
-        setups[key] = setup;
-        return setup;
-    }
-    
-    public bool WasCalled(string command, params string[] args) { }
-    public int CallCount(string command, params string[] args) { }
-}
-
-public class MockSetup
-{
-    public MockSetup ReturnsOutput(string stdout, string stderr = "", int exitCode = 0);
-    public MockSetup ReturnsError(string stderr, int exitCode = 1);
-    public MockSetup Throws<TException>() where TException : Exception, new();
-    public MockSetup DelaysFor(TimeSpan delay);
-}
-```
-
-### Static Access with Override
-```csharp
-public static class CommandExecutor
-{
-    private static ICommandExecutor? customExecutor;
-    private static readonly ICommandExecutor defaultExecutor = new DefaultCommandExecutor();
-    
-    public static ICommandExecutor Current => customExecutor ?? defaultExecutor;
-    
-    public static void UseExecutor(ICommandExecutor executor) => customExecutor = executor;
-    public static void UseDefault() => customExecutor = null;
-}
-
-// Shell.Builder uses CommandExecutor.Current internally
-```
-
-### Dependency Injection Integration
-```csharp
-// For apps using DI
-services.AddSingleton<ICommandExecutor, DefaultCommandExecutor>();
-services.AddScoped<ICommandExecutor>(sp => 
-{
-    var mock = new MockCommandExecutor();
-    // Configure mock
-    return mock;
-});
-```
-
-This design enables:
-- Fast unit tests without process execution
-- DI-friendly architecture for modern apps
-- Static convenience for scripts
-- Verification of command calls
-- Deterministic test behavior
+Testing strategy has been finalized - see [TestingStrategy.md](TestingStrategy.md) for details:
+- Simple CommandMock with AsyncLocal for thread safety
+- Automatic cleanup via IDisposable pattern
+- No global state risks
+- DI support as optional future package
