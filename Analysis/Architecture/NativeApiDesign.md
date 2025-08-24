@@ -1,44 +1,69 @@
 # Native API Design Decisions
 
-## 1. Namespace Structure: Flat with Partials
+## 1. Namespace Structure: Organized by Operation Type
 
-**Decision: Use one static class with partial files for organization**
+**Decision: Use separate namespaces with Commands and Direct classes**
 
 ```csharp
-// Native.cs (main file)
-namespace TimeWarp.Amuru;
-public static partial class Native { }
-
-// Native.FileOps.cs (partial)
-public static partial class Native 
+// Native/File/Commands.cs
+namespace TimeWarp.Amuru.Native.File;
+public static class Commands 
 {
     public static CommandOutput Cat(string path) { }
     public static CommandOutput Head(string path, int lines = 10) { }
     public static CommandOutput Tail(string path, int lines = 10) { }
 }
 
-// Native.DirectoryOps.cs (partial)
-public static partial class Native 
+// Native/File/Direct.cs  
+namespace TimeWarp.Amuru.Native.File;
+public static class Direct
+{
+    public static IAsyncEnumerable<string> Cat(string path) { }
+    public static IAsyncEnumerable<string> Head(string path, int lines = 10) { }
+    public static IAsyncEnumerable<string> Tail(string path, int lines = 10) { }
+}
+
+// Native/Directory/Commands.cs
+namespace TimeWarp.Amuru.Native.Directory;
+public static class Commands 
 {
     public static CommandOutput Ls(string path = ".") { }
     public static CommandOutput Pwd() { }
     public static CommandOutput Mkdir(string path, bool parents = false) { }
 }
 
-// Native.TextOps.cs (partial)
-public static partial class Native 
+// Native/Directory/Direct.cs
+namespace TimeWarp.Amuru.Native.Directory;
+public static class Direct
+{
+    public static IAsyncEnumerable<FileInfo> Ls(string path = ".") { }
+    public static string Pwd() { }
+}
+
+// Native/Text/Commands.cs
+namespace TimeWarp.Amuru.Native.Text;
+public static class Commands 
 {
     public static CommandOutput Grep(string pattern, string input) { }
     public static CommandOutput Wc(string input) { }
     public static CommandOutput Echo(string text) { }
 }
+
+// Native/Text/Direct.cs
+namespace TimeWarp.Amuru.Native.Text;
+public static class Direct
+{
+    public static IAsyncEnumerable<string> Grep(string pattern, IAsyncEnumerable<string> input) { }
+}
 ```
 
 **Benefits:**
-- Flat API: `Native.Cat()`, `Native.Ls()` - simple and discoverable
-- Organized code: Each partial file groups related operations
-- No nested namespaces to navigate
-- IntelliSense shows all commands under `Native.`
+- User control via global usings: `global using static TimeWarp.Amuru.Native.File.Commands;`
+- Zero verbosity when desired: Just `Cat("file")` not `Native.Cat("file")`
+- Choice of API style: Commands (shell-like) or Direct (LINQ-able)
+- Organized code: Each namespace groups related operations
+- Scalable: Can add dozens of commands without bloat
+- IntelliSense friendly: Smaller, focused classes
 
 ## 2. Return Type: CommandOutput vs Native C# Types
 
@@ -126,41 +151,50 @@ catch (FileNotFoundException ex)
 - **No stderr**: Lose the ability to capture error output
 - **Inconsistent API**: Users must remember which commands are native
 
-### Option C: Hybrid Approach
+### Option C: Hybrid Approach (RECOMMENDED)
 
-**Provide both APIs:**
+**Provide both APIs via namespace organization:**
 
 ```csharp
-public static partial class Native
+namespace TimeWarp.Amuru.Native.File;
+
+// Shell-compatible API (returns CommandOutput)
+public static class Commands
 {
-    // Shell-compatible API (returns CommandOutput)
     public static CommandOutput Cat(string path) { }
-    
-    // C# native API in nested class
-    public static class Direct
-    {
-        public static string Cat(string path) => File.ReadAllText(path);
-        public static IEnumerable<FileSystemInfo> Ls(string path = ".") { }
-    }
 }
 
-// Usage - choose your style
-var shellStyle = Native.Cat("file.txt");  // Returns CommandOutput
-var csharpStyle = Native.Direct.Cat("file.txt");  // Returns string
+// C# native streaming API
+public static class Direct
+{
+    public static IAsyncEnumerable<string> Cat(string path) { }
+}
+
+// Usage - user chooses via global usings
+// Option 1: Shell style
+global using static TimeWarp.Amuru.Native.File.Commands;
+var shellStyle = Cat("file.txt");  // Returns CommandOutput
+
+// Option 2: Direct streaming
+global using static TimeWarp.Amuru.Native.File.Direct;
+await foreach (var line in Cat("file.txt")) { }  // IAsyncEnumerable<string>
 ```
 
-## Recommendation: Consistent CommandOutput
+## Recommendation: Hybrid Approach with Namespaces
 
-**Use CommandOutput for all native commands.**
+**Provide BOTH APIs through namespace organization.**
 
 Reasoning:
-1. **We're building a shell in C#** - consistency matters more than C# idioms
-2. **Composability is key** - being able to pipe native and external commands
-3. **Predictable behavior** - users don't have to remember which commands are native
-4. **Error handling consistency** - always check exit codes the same way
-5. **Future piping** - enables `Native.Cat("file").Pipe(Native.Grep("pattern"))`
+1. **User choice** - Shell users get Commands, LINQ users get Direct
+2. **Zero verbosity** - Global static usings eliminate all prefixes
+3. **Best of both worlds** - Shell composability AND LINQ power
+4. **Scalability** - Namespace organization prevents giant class bloat
+5. **Progressive disclosure** - Start fully qualified, move to static imports
 
-The slight verbosity (`result.Stdout`) is worth the consistency and composability gains.
+The namespace approach with Commands/Direct classes gives maximum flexibility:
+- `Commands` classes return `CommandOutput` for shell consistency
+- `Direct` classes return `IAsyncEnumerable<T>` for LINQ composition
+- Users control their experience via global usings
 
 ## 3. Standalone Executables
 

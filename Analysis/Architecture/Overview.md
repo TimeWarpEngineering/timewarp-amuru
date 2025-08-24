@@ -6,12 +6,14 @@ This folder contains architectural analysis and design documents for TimeWarp.Am
 
 ### Core Shell API
 - **[CoreShellApi.md](CoreShellApi.md)** - Core command execution API design (RunAsync, CaptureAsync, etc.)
+- **[MemoryAndStreaming.md](MemoryAndStreaming.md)** - Memory management and streaming philosophy
 - **[TestingStrategy.md](TestingStrategy.md)** - Testing and mocking approaches (simple vs DI)
 - **[CachingStrategy.md](CachingStrategy.md)** - Whether and how to implement caching
 
 ### Strongly-Typed Commands
 - **[NativeCommands-Proposal.md](NativeCommands-Proposal.md)** - In-process implementations of common shell commands
-- **[NativeApiDesign.md](NativeApiDesign.md)** - Design decisions for Native API (partials, return types, etc.)
+- **[NativeApiDesign.md](NativeApiDesign.md)** - Design decisions for Native API (return types, etc.)
+- **[NativeNamespaceDesign.md](NativeNamespaceDesign.md)** - Namespace organization with Commands/Direct classes
 
 ### User-Facing Documentation (Proposed)
 - **[../ProposedReadme.md](../ProposedReadme.md)** - Original proposed README with all features
@@ -20,10 +22,11 @@ This folder contains architectural analysis and design documents for TimeWarp.Am
 ## Key Design Decisions Under Consideration
 
 ### 1. Core API Methods
-- `RunAsync()` - Stream to console (like bash/PowerShell default)
-- `CaptureAsync()` - Silent execution with output capture
+- `RunAsync()` - Stream to console (like bash/PowerShell default) - NO CAPTURE
+- `CaptureAsync()` - Silent execution with EXPLICIT output capture
 - `StreamAsync()` variants - Handle large outputs without memory issues
 - Clear naming that indicates behavior
+- **Decision**: Follow shell principle - never buffer unless explicitly asked
 
 ### 2. Testing Approach
 - **Option A**: Simple mock mode for scripts
