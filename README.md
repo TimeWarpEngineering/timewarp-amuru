@@ -166,34 +166,52 @@ await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
 
 ### Standard Output and Error Streams
 
-By default, TimeWarp.Amuru captures both stdout and stderr into a single combined output stream:
+TimeWarp.Amuru provides several methods for handling command output:
 
 ```csharp
-// GetStringAsync() returns combined stdout and stderr
+// GetStringAsync() - Captures combined stdout and stderr as a single string
 var output = await Shell.Builder("command").GetStringAsync();
 
-// GetLinesAsync() returns combined output split into lines
+// GetLinesAsync() - Captures combined output split into lines (empty lines removed)
 var lines = await Shell.Builder("command").GetLinesAsync();
 
-// ExecuteAsync() runs without capturing, output goes to console
-await Shell.Builder("command").ExecuteAsync();
+// ExecuteAsync() - Captures output but returns ExecutionResult object
+var result = await Shell.Builder("command").ExecuteAsync();
+Console.WriteLine($"Exit code: {result.ExitCode}");
+Console.WriteLine($"Stdout: {result.StandardOutput}");
+Console.WriteLine($"Stderr: {result.StandardError}");
 ```
 
-This design choice simplifies most use cases where you want all output from a command, regardless of which stream it was written to. Both stdout and stderr are captured in the order they were produced, preserving the actual command output as you would see it in a terminal.
+**Important**: All these methods capture output internally using `ExecuteBufferedAsync`. They do NOT stream output to the console in real-time. The output is buffered and returned after the command completes.
 
 ### Interactive Commands
 
-For interactive commands that need direct terminal access:
+For commands that need real-time console interaction:
 
 ```csharp
-// GetStringInteractiveAsync() - Shows UI, captures final output
+// ExecuteInteractiveAsync() - Streams directly to console, no capture
+// Use for editors, REPLs, or when you want real-time output
+var result = await Shell.Builder("vim", "file.txt").ExecuteInteractiveAsync();
+// result.StandardOutput and StandardError will be empty
+
+// GetStringInteractiveAsync() - Hybrid: shows UI on stderr, captures stdout
+// Perfect for selection tools like fzf
 var selection = await Fzf.Builder()
     .FromInput("option1", "option2")
     .GetStringInteractiveAsync();
-
-// ExecuteInteractiveAsync() - Full terminal control (editors, REPLs)
-await Shell.Builder("vim", "file.txt").ExecuteInteractiveAsync();
 ```
+
+### Output Method Summary
+
+| Method | Captures Output | Streams to Console | Use Case |
+|--------|----------------|-------------------|----------|
+| `GetStringAsync()` | ✅ Combined | ❌ | Get all output as string |
+| `GetLinesAsync()` | ✅ Combined | ❌ | Process output line by line |
+| `ExecuteAsync()` | ✅ Separate | ❌ | Need exit code and separate streams |
+| `ExecuteInteractiveAsync()` | ❌ | ✅ | Interactive tools, real-time output |
+| `GetStringInteractiveAsync()` | ✅ Stdout only | ✅ Stderr only | Selection tools (fzf, etc.) |
+
+**Note**: Currently, there is no built-in method that both streams output to console in real-time AND captures it. If you need this behavior, you would need to use `ExecuteInteractiveAsync()` for real-time display or `ExecuteAsync()` for capture, but not both simultaneously.
 
 ## Error Handling
 
