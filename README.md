@@ -19,7 +19,7 @@
 
 # TimeWarp.Amuru
 
-**TimeWarp.Amuru** (formerly TimeWarp.Cli) is a powerful fluent API library for elegant command-line execution in C#. It transforms shell scripting into a type-safe, IntelliSense-friendly experience with a simple static `Run()` method, async operations, and proper error handling.
+**TimeWarp.Amuru** is a powerful fluent API library for elegant command-line execution in C#. It transforms shell scripting into a type-safe, IntelliSense-friendly experience with a simple static `Builder()` method, async operations, and proper error handling.
 
 Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scripting directly into your C# code. Whether you're building automation tools, DevOps scripts, or integrating command-line tools into your applications, TimeWarp.Amuru provides the elegant, type-safe API you need.
 
@@ -118,15 +118,15 @@ await Shell.Builder("vim")
 ## Installation
 
 ```console
-dotnet add package TimeWarp.Cli
+dotnet add package TimeWarp.Amuru --prerelease
 ```
 
 Or reference in your C# script:
 ```csharp
-#:package TimeWarp.Cli
+#:package TimeWarp.Amuru@1.0.0-beta.3
 ```
 
-Check out the latest NuGet package: [TimeWarp.Cli](https://www.nuget.org/packages/TimeWarp.Cli/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Cli?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Cli/)
+Check out the latest NuGet package: [TimeWarp.Amuru](https://www.nuget.org/packages/TimeWarp.Amuru/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Amuru?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Amuru/)
 
 ### DotNet Commands
 
@@ -147,7 +147,7 @@ await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
 
 ## Key Features
 
-- **Simple Static API**: Global `Run()` method for immediate access
+- **Simple Static API**: Global `Builder()` method for immediate access
 - **Fluent Interface**: Chain operations naturally with `.Pipe()`, `.Cached()`, etc.
 - **Async-First Design**: All operations support modern async/await patterns
 - **Smart Error Handling**: Commands throw on errors by default, with opt-in graceful degradation
@@ -162,9 +162,42 @@ await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
 - **Interactive Commands**: Support for interactive tools like FZF with `GetStringInteractiveAsync()` and `ExecuteInteractiveAsync()`
 - **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
 
+## Output Handling
+
+### Standard Output and Error Streams
+
+By default, TimeWarp.Amuru captures both stdout and stderr into a single combined output stream:
+
+```csharp
+// GetStringAsync() returns combined stdout and stderr
+var output = await Shell.Builder("command").GetStringAsync();
+
+// GetLinesAsync() returns combined output split into lines
+var lines = await Shell.Builder("command").GetLinesAsync();
+
+// ExecuteAsync() runs without capturing, output goes to console
+await Shell.Builder("command").ExecuteAsync();
+```
+
+This design choice simplifies most use cases where you want all output from a command, regardless of which stream it was written to. Both stdout and stderr are captured in the order they were produced, preserving the actual command output as you would see it in a terminal.
+
+### Interactive Commands
+
+For interactive commands that need direct terminal access:
+
+```csharp
+// GetStringInteractiveAsync() - Shows UI, captures final output
+var selection = await Fzf.Builder()
+    .FromInput("option1", "option2")
+    .GetStringInteractiveAsync();
+
+// ExecuteInteractiveAsync() - Full terminal control (editors, REPLs)
+await Shell.Builder("vim", "file.txt").ExecuteInteractiveAsync();
+```
+
 ## Error Handling
 
-TimeWarp.Cli provides intelligent error handling that distinguishes between different failure types:
+TimeWarp.Amuru provides intelligent error handling that distinguishes between different failure types:
 
 ### Default Behavior (Throws Exceptions)
 ```csharp
@@ -192,7 +225,7 @@ await Shell.Builder("nonexistentcommand", options).GetStringAsync(); // Still th
 
 ## Testing and Mocking
 
-TimeWarp.Cli provides built-in support for mocking commands during testing through the `CliConfiguration` class:
+TimeWarp.Amuru provides built-in support for mocking commands during testing through the `CliConfiguration` class:
 
 ### Basic Mocking
 ```csharp
@@ -213,9 +246,9 @@ CliConfiguration.Reset();
 ```csharp
 // Create a simple mock script
 File.WriteAllText("/tmp/mock-fzf", "#!/bin/bash\necho 'mock-selection'");
-Shell.Builder("chmod", "+x", "/tmp/mock-fzf");
+await Shell.Builder("chmod", "+x", "/tmp/mock-fzf").ExecuteAsync();
 
-// Configure TimeWarp.Cli to use it
+// Configure TimeWarp.Amuru to use it
 CliConfiguration.SetCommandPath("fzf", "/tmp/mock-fzf");
 ```
 
@@ -243,9 +276,9 @@ TimeWarp.Amuru provides specialized support for .NET 10's new file-based apps (s
 
 ## Architecture
 
-TimeWarp.Cli is built on several key architectural principles:
+TimeWarp.Amuru is built on several key architectural principles:
 
-- **Static Entry Point**: Minimal ceremony with global `Run()` method
+- **Static Entry Point**: Minimal ceremony with global `Builder()` method
 - **Immutable Design**: Thread-safe, readonly objects throughout
 - **Integration Testing**: Real command validation over mocking
 - **Predictable Error Handling**: Clear distinction between failure types
@@ -256,13 +289,13 @@ See our [Architectural Decision Records](Documentation/Conceptual/ArchitecturalD
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** - Complete API reference and usage guide
-- **[CommandExtensions.md](Source/TimeWarp.Cli/CommandExtensions.md)** - Static API documentation
-- **[CommandResult.md](Source/TimeWarp.Cli/CommandResult.md)** - Fluent interface documentation
+- **[CommandExtensions.md](Source/TimeWarp.Amuru/CommandExtensions.md)** - Static API documentation
+- **[CommandResult.md](Source/TimeWarp.Amuru/CommandResult.md)** - Fluent interface documentation
 - **[Architectural Decisions](Documentation/Conceptual/ArchitecturalDecisionRecords/Overview.md)** - Design rationale and decisions
 
 ## Example Scripts
 
-See [Spikes/CsScripts/](Spikes/CsScripts/) for example scripts demonstrating TimeWarp.Cli usage patterns.
+See [Spikes/CsScripts/](Spikes/CsScripts/) for example scripts demonstrating TimeWarp.Amuru usage patterns.
 
 ## Unlicense
 
