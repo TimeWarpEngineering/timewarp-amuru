@@ -165,3 +165,35 @@ await Shell.Builder("npm", "install").RunAsync();  // Finally!
 2. CaptureAsync should capture BOTH stdout and stderr (fix current bug)
 3. RunAsync should merge stdout/stderr to console (preserve order)
 4. Consider adding streaming overload that yields lines as they come (IAsyncEnumerable)
+5. **All async methods MUST accept CancellationToken parameter** (default to CancellationToken.None)
+6. WithTimeout should create internal CancellationTokenSource and link with any passed token
+7. Process termination on cancellation should be graceful (SIGTERM/CtrlC) with fallback to forceful
+
+## Cancellation Token Integration
+
+Every async method signature should follow this pattern:
+```csharp
+public async Task<int> RunAsync(CancellationToken cancellationToken = default)
+public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
+public async IAsyncEnumerable<CommandLine> StreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+```
+
+WithTimeout implementation should link tokens:
+```csharp
+public CommandBuilder WithTimeout(TimeSpan timeout)
+{
+    this.timeoutDuration = timeout;
+    return this;
+}
+
+// In execution methods:
+private async Task<T> ExecuteWithTimeoutAsync<T>(Func<CancellationToken, Task<T>> execution, CancellationToken externalToken)
+{
+    if (timeoutDuration.HasValue)
+    {
+        using var timeoutCts = new CancellationTokenSource(timeoutDuration.Value);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, timeoutCts.Token);
+        return await execution(linkedCts.Token);
+    }
+    return await execution(externalToken);
+}

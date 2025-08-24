@@ -210,6 +210,41 @@ var result = await Shell.Builder("git")
     .CaptureAsync();
 ```
 
+### Cancellation and Timeout
+
+All async methods accept `CancellationToken` for cooperative cancellation:
+
+```csharp
+// Simple timeout using CancellationTokenSource
+var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+var result = await Shell.Builder("npm", "install").RunAsync(cts.Token);
+
+// Graceful shutdown in ASP.NET/hosted services
+public async Task ProcessAsync(CancellationToken stoppingToken)
+{
+    await Shell.Builder("long-process").RunAsync(stoppingToken);
+}
+
+// Combine timeout with external cancellation
+var cts = CancellationTokenSource.CreateLinkedTokenSource(
+    externalToken, 
+    new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token
+);
+await Shell.Builder("build.sh").RunAsync(cts.Token);
+
+// WithTimeout is syntactic sugar that creates internal CancellationTokenSource
+await Shell.Builder("test")
+    .WithTimeout(TimeSpan.FromSeconds(30))  // Creates internal token
+    .RunAsync();  // Can still pass external token
+
+// Both timeout AND external cancellation
+await Shell.Builder("deploy")
+    .WithTimeout(TimeSpan.FromMinutes(10))  // Internal timeout
+    .RunAsync(externalCancellationToken);   // Also respects external cancellation
+```
+
+**Important**: When cancelled, processes are terminated gracefully (SIGTERM on Unix, CtrlC on Windows) with a brief grace period before forceful termination.
+
 ### Piping Commands
 
 Chain commands together with Unix-style pipes:
@@ -416,15 +451,17 @@ foreach (var file in files.Lines)
 
 ## Method Reference
 
+All async methods accept an optional `CancellationToken` parameter (default: `CancellationToken.None`):
+
 | Method | Streams to Console | Buffers in Memory | Returns | Use Case |
 |--------|-------------------|-------------------|---------|----------|
-| `RunAsync()` | ✅ | ❌ | `int` (exit code) | Default scripting behavior |
-| `CaptureAsync()` | ❌ | ✅ Full | `CommandOutput` | Process small/medium outputs |
-| `StreamAsync()` | ❌ | ❌ | `IAsyncEnumerable<CommandLine>` | Process large outputs line-by-line |
-| `StreamToFileAsync()` | ❌ | ❌ | `int` (exit code) | Direct huge outputs to file |
-| `RunAndCaptureAsync()` | ✅ | ✅ Full | `CommandOutput` | See output + save logs |
-| `PassthroughAsync()` | ✅ | ❌ | `void` | Interactive tools |
-| `SelectAsync()` | ✅ (UI only) | ✅ (selection only) | `string` | Selection interfaces |
+| `RunAsync(token)` | ✅ | ❌ | `int` (exit code) | Default scripting behavior |
+| `CaptureAsync(token)` | ❌ | ✅ Full | `CommandOutput` | Process small/medium outputs |
+| `StreamAsync(token)` | ❌ | ❌ | `IAsyncEnumerable<CommandLine>` | Process large outputs line-by-line |
+| `StreamToFileAsync(path, token)` | ❌ | ❌ | `int` (exit code) | Direct huge outputs to file |
+| `RunAndCaptureAsync(token)` | ✅ | ✅ Full | `CommandOutput` | See output + save logs |
+| `PassthroughAsync(token)` | ✅ | ❌ | `void` | Interactive tools |
+| `SelectAsync(token)` | ✅ (UI only) | ✅ (selection only) | `string` | Selection interfaces |
 
 ## Why These Methods?
 
