@@ -11,9 +11,11 @@ This folder contains architectural analysis and design documents for TimeWarp.Am
 - **[CachingStrategy.md](CachingStrategy.md)** - Whether and how to implement caching
 
 ### Strongly-Typed Commands
+- **[StronglyTypedCommands.md](StronglyTypedCommands.md)** - Strongly-typed builders for external tools
 - **[NativeCommands-Proposal.md](NativeCommands-Proposal.md)** - In-process implementations of common shell commands
 - **[NativeApiDesign.md](NativeApiDesign.md)** - Design decisions for Native API (return types, etc.)
 - **[NativeNamespaceDesign.md](NativeNamespaceDesign.md)** - Namespace organization with Commands/Direct classes
+- **[BuilderExtensibility.md](BuilderExtensibility.md)** - Creating custom builders and native/external hybrid patterns
 
 ### User-Facing Documentation (Proposed)
 - **[../ProposedReadme.md](../ProposedReadme.md)** - Original proposed README with all features
@@ -40,8 +42,9 @@ This folder contains architectural analysis and design documents for TimeWarp.Am
 - **Principle**: Every command execution is fresh, just like in a shell
 
 ### 4. Native Commands
-- **Structure**: Single static class with partials for organization
+- **Structure**: Namespace organization with Commands/Direct classes
 - **Returns**: CommandOutput for consistency and composability
+- **Hybrid Pattern**: Natives can wrap externals for optimization (feature, not bug)
 - **Scope**: Start with essential commands (Cat, Ls, Grep, etc.)
 
 ## Status

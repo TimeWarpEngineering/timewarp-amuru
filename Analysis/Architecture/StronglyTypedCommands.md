@@ -4,6 +4,8 @@
 
 Strongly-typed builders provide fluent APIs for specific external tools, offering IntelliSense, compile-time checking, and better discoverability than raw string arguments.
 
+**Note**: Builders can overlap with Native commands intentionally - see [BuilderExtensibility.md](BuilderExtensibility.md) for hybrid patterns where natives wrap externals for optimization.
+
 ## Current Implementations
 
 ### DotNet Commands
