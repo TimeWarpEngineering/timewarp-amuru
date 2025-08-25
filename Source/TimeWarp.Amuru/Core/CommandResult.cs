@@ -13,33 +13,12 @@ public class CommandResult
   // Property to access Command from other CommandResult instances in Pipe() method
   private Command? InternalCommand => Command;
   
-  // Caching support
-  private BufferedCommandResult? CachedResult;
-  private ExecutionResult? CachedExecuteResult;
-  private bool HasExecuted;
-  private readonly bool EnableCaching;
   
-  internal CommandResult(Command? command) : this(command, false)
-  {
-  }
-  
-  private CommandResult(Command? command, bool enableCaching)
+  internal CommandResult(Command? command)
   {
     Command = command;
-    EnableCaching = enableCaching;
   }
   
-  /// <summary>
-  /// Creates a new CommandResult instance with caching enabled.
-  /// Subsequent calls to GetStringAsync(), GetLinesAsync(), or ExecuteAsync() 
-  /// will return cached results instead of re-executing the command.
-  /// </summary>
-  /// <returns>A new CommandResult instance with caching enabled</returns>
-  public CommandResult Cached()
-  {
-    // Return a new instance with caching enabled, preserving the command
-    return new CommandResult(Command, true);
-  }
   
   public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
   {
@@ -48,20 +27,7 @@ public class CommandResult
       return string.Empty;
     }
     
-    // Check cache if caching is enabled
-    if (EnableCaching && CachedResult != null)
-    {
-      return CachedResult.StandardOutput;
-    }
-    
     BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Store in cache if caching is enabled
-    if (EnableCaching)
-    {
-      CachedResult = result;
-    }
-    
     return result.StandardOutput;
   }
   
@@ -72,24 +38,7 @@ public class CommandResult
       return [];
     }
     
-    // Check cache if caching is enabled
-    if (EnableCaching && CachedResult != null)
-    {
-      return CachedResult.StandardOutput.Split
-      (
-        NewlineCharacters, 
-        StringSplitOptions.RemoveEmptyEntries
-      );
-    }
-    
     BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Store in cache if caching is enabled
-    if (EnableCaching)
-    {
-      CachedResult = result;
-    }
-    
     return result.StandardOutput.Split
     (
       NewlineCharacters, 
@@ -108,12 +57,6 @@ public class CommandResult
       );
     }
     
-    // If caching is enabled and already executed, return cached result
-    if (EnableCaching && HasExecuted && CachedExecuteResult != null)
-    {
-      return CachedExecuteResult;
-    }
-    
     // Use ExecuteBufferedAsync to capture stdout and stderr
     BufferedCommandResult bufferedResult = await Command.ExecuteBufferedAsync(cancellationToken);
     
@@ -127,15 +70,6 @@ public class CommandResult
       bufferedResult.StandardOutput,
       bufferedResult.StandardError
     );
-    
-    // Store result and mark as executed if caching is enabled
-    if (EnableCaching)
-    {
-      HasExecuted = true;
-      CachedExecuteResult = result;
-      // Also cache the buffered result for GetStringAsync/GetLinesAsync
-      CachedResult = bufferedResult;
-    }
     
     return result;
   }
@@ -248,8 +182,7 @@ public class CommandResult
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = Command | nextCommandResult.InternalCommand;
       
-      // Preserve caching state in the pipeline
-      return new CommandResult(pipedCommand, EnableCaching);
+      return new CommandResult(pipedCommand);
     }
     catch
     {
