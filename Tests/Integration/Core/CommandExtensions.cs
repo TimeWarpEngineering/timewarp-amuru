@@ -6,38 +6,38 @@ internal sealed class BasicCommandTests
 {
   public static async Task TestSimpleEchoCommand()
   {
-    string result = await Shell.Builder("echo").WithArguments("Hello World").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("Hello World").CaptureAsync();
     
     AssertTrue(
-      result.Trim() == "Hello World",
+      output.Stdout.Trim() == "Hello World",
       "Echo command should return 'Hello World'"
     );
   }
 
   public static async Task TestCommandWithMultipleArguments()
   {
-    string result = await Shell.Builder("echo").WithArguments("arg1", "arg2", "arg3").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("arg1", "arg2", "arg3").CaptureAsync();
     
     AssertTrue(
-      result.Trim() == "arg1 arg2 arg3",
-      $"Multiple arguments should work correctly, got '{result.Trim()}'"
+      output.Stdout.Trim() == "arg1 arg2 arg3",
+      $"Multiple arguments should work correctly, got '{output.Stdout.Trim()}'"
     );
   }
 
   public static async Task TestExecuteAsyncDoesNotThrow()
   {
-    await Shell.Builder("echo").WithArguments("test").ExecuteAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("test").CaptureAsync();
     
     // Test passes if no exception is thrown
-    AssertTrue(true, "ExecuteAsync should work without throwing");
+    AssertTrue(output.Success, "Command should execute successfully");
   }
 
   public static async Task TestDateCommand()
   {
-    string result = await Shell.Builder("date").GetStringAsync();
+    CommandOutput output = await Shell.Builder("date").CaptureAsync();
     
     AssertTrue(
-      !string.IsNullOrEmpty(result.Trim()),
+      !string.IsNullOrEmpty(output.Stdout.Trim()),
       "Date command should return non-empty result"
     );
   }
