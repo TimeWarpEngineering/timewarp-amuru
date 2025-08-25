@@ -150,4 +150,76 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   {
     return Build().Pipe(executable, arguments);
   }
+
+  /// <summary>
+  /// Executes the command and streams output to the console in real-time.
+  /// This is the default behavior matching shell execution (80% use case).
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The exit code of the command</returns>
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Executes the command silently and captures all output.
+  /// No output is written to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().CaptureAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Executes the command and streams stdout lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stdout lines</returns>
+  public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (string line in Build().StreamStdoutAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams stderr lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stderr lines</returns>
+  public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (string line in Build().StreamStderrAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams combined output with source information.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of OutputLine objects</returns>
+  public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (OutputLine line in Build().StreamCombinedAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams output directly to a file without buffering.
+  /// </summary>
+  /// <param name="filePath">Path to the output file</param>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>A task that completes when the command finishes</returns>
+  public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
+  {
+    await Build().StreamToFileAsync(filePath, cancellationToken);
+  }
 }

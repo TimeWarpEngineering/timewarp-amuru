@@ -196,4 +196,155 @@ public class CommandResult
   /// </summary>
   /// <returns>The command string in the format "executable arguments", or "[No command]" if no command is configured</returns>
   public string ToCommandString() => Command?.ToString() ?? "[No command]";
+
+  /// <summary>
+  /// Executes the command and streams output to the console in real-time.
+  /// This is the default behavior matching shell execution (80% use case).
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The exit code of the command</returns>
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return 0;
+    }
+
+    // Stream to console using CliWrap's pipe targets
+    Command consoleCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.Error.WriteLine));
+
+    CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken);
+    return result.ExitCode;
+  }
+
+  /// <summary>
+  /// Executes the command silently and captures all output.
+  /// No output is written to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return CommandOutput.Empty();
+    }
+
+    // Capture both stdout and stderr with timestamps
+    List<OutputLine> outputLines = [];
+    Lock outputLock = new();
+
+    Command captureCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (outputLock.EnterScope())
+        {
+          outputLines.Add(new OutputLine(line, false));
+        }
+      }))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (outputLock.EnterScope())
+        {
+          outputLines.Add(new OutputLine(line, true));
+        }
+      }));
+
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
+    return new CommandOutput(outputLines, result.ExitCode);
+  }
+
+  /// <summary>
+  /// Executes the command and streams stdout lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stdout lines</returns>
+  public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for stdout
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardOutputCommandEvent stdOut)
+      {
+        yield return stdOut.Text;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams stderr lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stderr lines</returns>
+  public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for stderr
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardErrorCommandEvent stdErr)
+      {
+        yield return stdErr.Text;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams combined output with source information.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of OutputLine objects</returns>
+  public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for combined output
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardOutputCommandEvent stdOut)
+      {
+        yield return new OutputLine(stdOut.Text, false);
+      }
+      else if (evt is StandardErrorCommandEvent stdErr)
+      {
+        yield return new OutputLine(stdErr.Text, true);
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams output directly to a file without buffering.
+  /// </summary>
+  /// <param name="filePath">Path to the output file</param>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>A task that completes when the command finishes</returns>
+  public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return;
+    }
+
+    await using FileStream fileStream = File.Create(filePath);
+    
+    Command fileCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
+      .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
+
+    await fileCommand.ExecuteAsync(cancellationToken);
+  }
 }
