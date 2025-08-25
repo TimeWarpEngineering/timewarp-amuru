@@ -87,7 +87,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
     return CommandExtensions.Run(Executable, Arguments.ToArray(), Options, StandardInput);
   }
 
-  // Temporary compatibility methods - will be removed after builders are updated
+  // Temporary compatibility methods - will be removed after all builders are updated
   [Obsolete("Use CaptureAsync().Result.Stdout instead")]
   public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
   {
@@ -117,7 +117,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   {
     return await Build().GetStringInteractiveAsync(cancellationToken);
   }
-  
+
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.
   /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
