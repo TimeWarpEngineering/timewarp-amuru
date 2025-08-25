@@ -4,9 +4,6 @@ public class CommandResult
 {
   private readonly Command? Command;
   
-  // Constants for line splitting - handle both Unix (\n) and Windows (\r\n) line endings
-  private static readonly char[] NewlineCharacters = { '\n', '\r' };
-  
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
   
@@ -20,67 +17,13 @@ public class CommandResult
   }
   
   
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return string.Empty;
-    }
-    
-    BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    return result.StandardOutput;
-  }
-  
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return [];
-    }
-    
-    BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    return result.StandardOutput.Split
-    (
-      NewlineCharacters, 
-      StringSplitOptions.RemoveEmptyEntries
-    );
-  }
-  
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
-    }
-    
-    // Use ExecuteBufferedAsync to capture stdout and stderr
-    BufferedCommandResult bufferedResult = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Create our result with captured output
-    var result = new ExecutionResult(
-      new CliWrap.CommandResult(
-        bufferedResult.ExitCode,
-        bufferedResult.StartTime,
-        bufferedResult.ExitTime
-      ),
-      bufferedResult.StandardOutput,
-      bufferedResult.StandardError
-    );
-    
-    return result;
-  }
-  
   /// <summary>
-  /// Executes the command with stdin, stdout, and stderr connected to the console for interactive use.
-  /// This allows commands like fzf to work with user input and terminal UI.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
     {
@@ -114,12 +57,12 @@ public class CommandResult
   }
   
   /// <summary>
-  /// Executes the command interactively while capturing the output.
+  /// Executes an interactive selection command and returns the selected value.
   /// This is ideal for commands like fzf where the UI is rendered to stderr but the selection is written to stdout.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The captured output string from the interactive command</returns>
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  /// <returns>The selected value from the interactive command</returns>
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
     {
@@ -196,6 +139,44 @@ public class CommandResult
   /// </summary>
   /// <returns>The command string in the format "executable arguments", or "[No command]" if no command is configured</returns>
   public string ToCommandString() => Command?.ToString() ?? "[No command]";
+
+  // Temporary compatibility methods - will be removed after builders are updated
+  [Obsolete("Use CaptureAsync().Result.Stdout instead")]
+  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  {
+    CommandOutput result = await CaptureAsync(cancellationToken);
+    return result.Stdout;
+  }
+
+  [Obsolete("Use CaptureAsync().Result.GetLines() instead")]
+  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  {
+    CommandOutput result = await CaptureAsync(cancellationToken);
+    return result.GetLines();
+  }
+
+  [Obsolete("Use CaptureAsync() instead")]
+  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  {
+    CommandOutput result = await CaptureAsync(cancellationToken);
+    return new ExecutionResult(
+      new CliWrap.CommandResult(result.ExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
+      result.Stdout,
+      result.Stderr
+    );
+  }
+
+  [Obsolete("Use PassthroughAsync() instead")]
+  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
+  {
+    return await PassthroughAsync(cancellationToken);
+  }
+
+  [Obsolete("Use SelectAsync() instead")]
+  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  {
+    return await SelectAsync(cancellationToken);
+  }
 
   /// <summary>
   /// Executes the command and streams output to the console in real-time.

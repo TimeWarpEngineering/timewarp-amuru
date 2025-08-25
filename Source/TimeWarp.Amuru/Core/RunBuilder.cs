@@ -87,57 +87,58 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
     return CommandExtensions.Run(Executable, Arguments.ToArray(), Options, StandardInput);
   }
 
-  /// <summary>
-  /// Executes the command and returns the output as a string.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as a string</returns>
+  // Temporary compatibility methods - will be removed after builders are updated
+  [Obsolete("Use CaptureAsync().Result.Stdout instead")]
   public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
   {
     return await Build().GetStringAsync(cancellationToken);
   }
 
-  /// <summary>
-  /// Executes the command and returns the output as an array of lines.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as an array of lines</returns>
+  [Obsolete("Use CaptureAsync().Result.GetLines() instead")]
   public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
   {
     return await Build().GetLinesAsync(cancellationToken);
   }
 
-  /// <summary>
-  /// Executes the command and returns the execution result.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>ExecutionResult containing command output and execution details</returns>
+  [Obsolete("Use CaptureAsync() instead")]
   public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
   {
     return await Build().ExecuteAsync(cancellationToken);
   }
-  
-  /// <summary>
-  /// Executes the command interactively with stdin, stdout, and stderr connected to the console.
-  /// This allows interactive commands like fzf, vim, or interactive prompts to work properly.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
+
+  [Obsolete("Use PassthroughAsync() instead")]
   public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
   {
     return await Build().ExecuteInteractiveAsync(cancellationToken);
   }
+
+  [Obsolete("Use SelectAsync() instead")]
+  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().GetStringInteractiveAsync(cancellationToken);
+  }
   
   /// <summary>
-  /// Executes the command interactively and captures the output.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  /// <summary>
+  /// Executes an interactive selection command and returns the selected value.
   /// The UI is rendered to the console (via stderr) while stdout is captured and returned.
   /// This is ideal for interactive selection tools like fzf.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The captured output string from the interactive command</returns>
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  /// <returns>The selected value from the interactive command</returns>
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringInteractiveAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken);
   }
 
   /// <summary>
