@@ -191,6 +191,40 @@ public class CommandResult
       return 0;
     }
 
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Write mock output to console to simulate RunAsync behavior
+        if (!string.IsNullOrEmpty(setupData.Stdout))
+        {
+          Console.WriteLine(setupData.Stdout);
+        }
+        if (!string.IsNullOrEmpty(setupData.Stderr))
+        {
+          Console.Error.WriteLine(setupData.Stderr);
+        }
+        
+        return setupData.ExitCode;
+      }
+    }
+
     // Stream to console using CliWrap's pipe targets
     Command consoleCommand = Command
       .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
@@ -211,6 +245,35 @@ public class CommandResult
     if (Command == null)
     {
       return CommandOutput.Empty();
+    }
+
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      // Extract command details from CliWrap Command
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        // Record that this command was called
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        // Apply delay if configured
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        // Throw exception if configured
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Return mock result
+        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
+      }
     }
 
     // Capture both stdout and stderr with timestamps
