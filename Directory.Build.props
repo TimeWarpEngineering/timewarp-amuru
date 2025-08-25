@@ -19,6 +19,9 @@
     <!-- Fail build on analyzer warnings since TreatWarningsAsErrors is true -->
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     
+    <!-- Temporarily suppress obsolete warnings while migrating to new API -->
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
+    
     <!-- Use local packages directory instead of global cache -->
     <RestorePackagesPath>$(MSBuildThisFileDirectory)LocalNuGetCache</RestorePackagesPath>
     

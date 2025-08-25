@@ -214,11 +214,12 @@ public class CommandResult
         // Write mock output to console to simulate RunAsync behavior
         if (!string.IsNullOrEmpty(setupData.Stdout))
         {
-          Console.WriteLine(setupData.Stdout);
+          await Console.Out.WriteLineAsync(setupData.Stdout);
         }
+        
         if (!string.IsNullOrEmpty(setupData.Stderr))
         {
-          Console.Error.WriteLine(setupData.Stderr);
+          await Console.Error.WriteLineAsync(setupData.Stderr);
         }
         
         return setupData.ExitCode;
