@@ -89,30 +89,30 @@ public partial class FzfBuilder
     return command;
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
 
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().RunAndCaptureAsync(cancellationToken);
   }
   
   /// <summary>
-  /// Executes fzf interactively, allowing user to select items with keyboard navigation.
-  /// This method connects stdin, stdout, and stderr to the console for full interactive use.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows fzf to work with user input and terminal UI.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteInteractiveAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
   }
   
   /// <summary>
@@ -121,8 +121,8 @@ public partial class FzfBuilder
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The selected item(s) as a string, or empty string if cancelled</returns>
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringInteractiveAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken);
   }
 }

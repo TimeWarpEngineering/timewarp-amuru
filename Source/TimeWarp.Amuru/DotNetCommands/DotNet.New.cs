@@ -307,33 +307,47 @@ public class DotNetNewBuilder : ICommandBuilder<DotNetNewBuilder>
   }
 
   /// <summary>
-  /// Executes the dotnet new command and returns the output as a string.
+  /// Executes the command and streams output to the console in real-time.
+  /// This is the default behavior matching shell execution.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as a string</returns>
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  /// <returns>The exit code of the command</returns>
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
   /// <summary>
-  /// Executes the dotnet new command and returns the output as an array of lines.
+  /// Executes the command silently and captures all output.
+  /// No output is written to the console.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as an array of lines</returns>
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
+  
   /// <summary>
-  /// Executes the dotnet new command without capturing output.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>A task representing the command execution</returns>
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  /// <summary>
+  /// Executes an interactive selection command and returns the selected value.
+  /// The UI is rendered to the console (via stderr) while stdout is captured and returned.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The selected value from the interactive command</returns>
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }
 
@@ -363,19 +377,24 @@ public class DotNetNewListBuilder
     return CommandExtensions.Run("dotnet", arguments.ToArray(), Options);
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }
 
@@ -399,19 +418,24 @@ public class DotNetNewSearchBuilder
     return CommandExtensions.Run("dotnet", arguments.ToArray(), Options);
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }
 
@@ -435,19 +459,24 @@ public class DotNetNewInstallBuilder
     return CommandExtensions.Run("dotnet", arguments.ToArray(), Options);
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }
 
@@ -471,19 +500,24 @@ public class DotNetNewUninstallBuilder
     return CommandExtensions.Run("dotnet", arguments.ToArray(), Options);
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }
 
@@ -505,18 +539,23 @@ public class DotNetNewUpdateBuilder
     return CommandExtensions.Run("dotnet", arguments.ToArray(), Options);
   }
 
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken);
   }
 
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetLinesAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken);
   }
-
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
+  
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().SelectAsync(cancellationToken);
   }
 }

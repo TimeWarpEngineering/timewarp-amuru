@@ -22,7 +22,7 @@ internal sealed class CommandResultInteractiveTests
       string result = await Fzf.Builder()
         .FromInput("option1", "option2", "option3")
         .WithPrompt("Select: ")
-        .GetStringInteractiveAsync();
+        .SelectAsync();
       
       AssertTrue(
         result == "option1",
@@ -48,7 +48,7 @@ internal sealed class CommandResultInteractiveTests
       string result = await Shell.Builder("echo")
         .WithArguments("red\ngreen\nblue")
         .Pipe("fzf", "--prompt", "Select color: ")
-        .GetStringInteractiveAsync();
+        .SelectAsync();
       
       AssertTrue(
         result == "red",
@@ -67,7 +67,7 @@ internal sealed class CommandResultInteractiveTests
     // Test with a simple echo command (non-interactive but safe)
     ExecutionResult result = await Shell.Builder("echo")
       .WithArguments("Hello from interactive mode")
-      .ExecuteInteractiveAsync();
+      .PassthroughAsync();
     
     AssertTrue(
       result.ExitCode == 0,
@@ -77,7 +77,7 @@ internal sealed class CommandResultInteractiveTests
     // Output strings should be empty since output went to console
     AssertTrue(
       string.IsNullOrEmpty(result.StandardOutput),
-      "ExecuteInteractiveAsync should not capture stdout"
+      "PassthroughAsync should not capture stdout"
     );
   }
   
@@ -86,16 +86,16 @@ internal sealed class CommandResultInteractiveTests
     // Test graceful degradation with empty command
     CommandResult nullCommand = Shell.Builder("").Build();
     
-    string stringResult = await nullCommand.GetStringInteractiveAsync();
+    string stringResult = await nullCommand.SelectAsync();
     AssertTrue(
       string.IsNullOrEmpty(stringResult),
-      "GetStringInteractiveAsync with null command should return empty string"
+      "SelectAsync with null command should return empty string"
     );
     
-    ExecutionResult execResult = await nullCommand.ExecuteInteractiveAsync();
+    ExecutionResult execResult = await nullCommand.PassthroughAsync();
     AssertTrue(
       execResult.ExitCode == 0,
-      "ExecuteInteractiveAsync with null command should return exit code 0"
+      "PassthroughAsync with null command should return exit code 0"
     );
   }
   

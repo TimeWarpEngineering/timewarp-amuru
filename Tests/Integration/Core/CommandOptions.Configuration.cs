@@ -21,13 +21,15 @@ internal sealed class ConfigurationTests
     try
     {
       CommandOptions options = new CommandOptions().WithWorkingDirectory(testDir);
-      string result = await Shell.Builder("pwd").WithWorkingDirectory(testDir).GetStringAsync();
+      CommandOutput output = await Shell.Builder("pwd").WithWorkingDirectory(testDir).CaptureAsync();
+      string result = output.Stdout;
       
       // On Windows, pwd might not exist, try different approach
       if (string.IsNullOrEmpty(result))
       {
         // Try with echo command that should work on all platforms
-        result = await Shell.Builder("echo").WithArguments(TestArray).WithWorkingDirectory(testDir).GetStringAsync();
+        CommandOutput echoOutput = await Shell.Builder("echo").WithArguments(TestArray).WithWorkingDirectory(testDir).CaptureAsync();
+        result = echoOutput.Stdout;
         AssertTrue(
           result.Trim() == "test",
           "Working directory configuration should work (verified via echo)"
@@ -62,12 +64,14 @@ internal sealed class ConfigurationTests
       ? new[] { "%TEST_VAR%" }  // Windows batch style
       : new[] { "$TEST_VAR" };  // Unix shell style
     
-    string result = await Shell.Builder("echo").WithArguments(echoArgs).WithEnvironmentVariable("TEST_VAR", "test_value_123").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments(echoArgs).WithEnvironmentVariable("TEST_VAR", "test_value_123").CaptureAsync();
+    string result = output.Stdout;
     
     if (!result.Trim().Contains("test_value_123", StringComparison.Ordinal))
     {
       // Fallback test - just verify the command ran successfully with options
-      string fallbackResult = await Shell.Builder("echo").WithArguments(TestArray).WithEnvironmentVariable("TEST_VAR", "test_value_123").GetStringAsync();
+      CommandOutput fallbackOutput = await Shell.Builder("echo").WithArguments(TestArray).WithEnvironmentVariable("TEST_VAR", "test_value_123").CaptureAsync();
+      string fallbackResult = fallbackOutput.Stdout;
       AssertTrue(
         fallbackResult.Trim() == "test",
         "Configuration with environment variables should not break execution"
@@ -91,7 +95,8 @@ internal sealed class ConfigurationTests
     };
     
     CommandOptions options = new CommandOptions().WithEnvironmentVariables(envVars);
-    string result = await Shell.Builder("echo").WithArguments(MultiEnvTestArray).WithEnvironmentVariable("VAR1", "value1").WithEnvironmentVariable("VAR2", "value2").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments(MultiEnvTestArray).WithEnvironmentVariable("VAR1", "value1").WithEnvironmentVariable("VAR2", "value2").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "multi-env-test",
@@ -106,7 +111,8 @@ internal sealed class ConfigurationTests
       .WithWorkingDirectory(tempDir)
       .WithEnvironmentVariable("COMBINED_TEST", "success");
     
-    string result = await Shell.Builder("echo").WithArguments(CombinedTestArray).WithWorkingDirectory(tempDir).WithEnvironmentVariable("COMBINED_TEST", "success").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments(CombinedTestArray).WithWorkingDirectory(tempDir).WithEnvironmentVariable("COMBINED_TEST", "success").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "combined_test",
@@ -121,7 +127,8 @@ internal sealed class ConfigurationTests
       .WithEnvironmentVariable("FLUENT1", "value1")
       .WithEnvironmentVariable("FLUENT2", "value2");
     
-    string result = await Shell.Builder("echo").WithArguments(FluentTestArray).WithWorkingDirectory(Path.GetTempPath()).WithEnvironmentVariable("TEST1", "value1").WithEnvironmentVariable("TEST2", "value2").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments(FluentTestArray).WithWorkingDirectory(Path.GetTempPath()).WithEnvironmentVariable("TEST1", "value1").WithEnvironmentVariable("TEST2", "value2").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "fluent_test",
@@ -131,7 +138,8 @@ internal sealed class ConfigurationTests
 
   public static async Task TestBackwardCompatibility()
   {
-    string result = await Shell.Builder("echo").WithArguments("backward_compatibility_test").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("backward_compatibility_test").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "backward_compatibility_test",
@@ -144,9 +152,10 @@ internal sealed class ConfigurationTests
     CommandOptions options = new CommandOptions()
       .WithEnvironmentVariable("PIPELINE_TEST", "pipeline_value");
     
-    string[] result = await Shell.Builder("echo").WithArguments(LineTestArray).WithEnvironmentVariable("LINE_TEST", "value")
+    CommandOutput output = await Shell.Builder("echo").WithArguments(LineTestArray).WithEnvironmentVariable("LINE_TEST", "value")
       .Pipe("grep", "line")
-      .GetLinesAsync();
+      .CaptureAsync();
+    string[] result = output.GetLines();
     
     AssertTrue(
       result.Length >= 2,

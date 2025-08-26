@@ -19,7 +19,7 @@
 
 # TimeWarp.Amuru
 
-**TimeWarp.Amuru** (formerly TimeWarp.Cli) is a powerful fluent API library for elegant command-line execution in C#. It transforms shell scripting into a type-safe, IntelliSense-friendly experience with a simple static `Run()` method, async operations, and proper error handling.
+**TimeWarp.Amuru** is a powerful fluent API library for elegant command-line execution in C#. It transforms shell scripting into a type-safe, IntelliSense-friendly experience with a simple static `Builder()` method, async operations, and proper error handling.
 
 Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scripting directly into your C# code. Whether you're building automation tools, DevOps scripts, or integrating command-line tools into your applications, TimeWarp.Amuru provides the elegant, type-safe API you need.
 
@@ -44,155 +44,275 @@ If you find this project useful, please give it a star. Thanks!
 
 using TimeWarp.Amuru;
 
-// Get command output as string
-var date = await Shell.Builder("date").GetStringAsync();
-Console.WriteLine($"Current date: {date}");
+// Default behavior - stream to console (like bash/PowerShell)
+await Shell.Builder("npm", "install").RunAsync();
 
-// Process output line by line
-var files = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
-foreach (var file in files)
+// Capture output when needed
+var result = await Shell.Builder("git", "status").CaptureAsync();
+if (result.Success)
 {
-    Console.WriteLine($"Found: {file}");
+    Console.WriteLine($"Git says: {result.Stdout}");
 }
 
-// Execute without capturing output
-await Shell.Builder("echo", "Hello World").ExecuteAsync();
+// Stream large files without memory issues
+await foreach (var line in Shell.Builder("tail", "-f", "/var/log/app.log").StreamStdoutAsync())
+{
+    Console.WriteLine($"Log: {line}");
+}
 
 // Chain commands with pipelines
-var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
+var result = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
-    .GetLinesAsync();
+    .CaptureAsync();
+Console.WriteLine($"Found {result.Lines.Length} async files");
 
-// Use caching for expensive operations
-var files = Shell.Builder("find", "/large/dir", "-name", "*.log").Cached();
-var errors = await files.Pipe("grep", "ERROR").GetLinesAsync();
-var warnings = await files.Pipe("grep", "WARN").GetLinesAsync();
-// Only one expensive find operation executed!
+// Work with CommandOutput
+var output = await Shell.Builder("docker", "ps").CaptureAsync();
+Console.WriteLine($"Exit code: {output.ExitCode}");
+Console.WriteLine($"Success: {output.Success}");
+Console.WriteLine($"Stdout: {output.Stdout}");
+Console.WriteLine($"Stderr: {output.Stderr}");
+Console.WriteLine($"Combined: {output.Combined}");
 
-// C# scripts with arguments work seamlessly
-await Shell.Builder("./myscript.cs", "--verbose", "-o", "output.txt").ExecuteAsync();
-
-// Use the new fluent builder API for complex commands
+// Use the fluent builder API for complex commands
 var result = await Shell.Builder("git")
     .WithArguments("log", "--oneline", "-n", "10")
     .WithWorkingDirectory("/my/repo")
-    .GetStringAsync();
+    .WithCancellationToken(cancellationToken)
+    .CaptureAsync();
 
 // Provide standard input to commands
 var grepResult = await Shell.Builder("grep")
     .WithArguments("pattern")
     .WithStandardInput("line1\nline2 with pattern\nline3")
-    .GetStringAsync();
+    .CaptureAsync();
 
-// Use fluent command builders for .NET commands
-var packages = await DotNet.ListPackages()
-    .WithOutdated()
-    .AsJson()
-    .ToListAsync();
-
-// Interactive file selection with Fzf (NEW in v0.6.0)
-// Use GetStringInteractiveAsync() to show FZF UI and capture selection
+// Interactive selection with Fzf
 var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
-    .GetStringInteractiveAsync();
+    .SelectAsync();
 
-// Interactive pipeline - find files and select with FZF
+// Interactive pipeline - find and select files
 var chosenFile = await Shell.Builder("find")
     .WithArguments(".", "-name", "*.cs")
     .Pipe("fzf", "--preview", "head -20 {}")
-    .GetStringInteractiveAsync();
+    .SelectAsync();
 
-// Multi-select with interactive FZF
-var selectedItems = await Fzf.Builder()
-    .FromInput("Red", "Green", "Blue", "Yellow")
-    .WithMulti()
-    .GetStringInteractiveAsync();
-
-// Full interactive mode (e.g., for vim, nano, etc.)
+// Full interactive mode for editors, REPLs, etc.
 await Shell.Builder("vim")
     .WithArguments("myfile.txt")
-    .ExecuteInteractiveAsync();
+    .PassthroughAsync();
 ```
 
 ## Installation
 
 ```console
-dotnet add package TimeWarp.Cli
+dotnet add package TimeWarp.Amuru --prerelease
 ```
 
 Or reference in your C# script:
 ```csharp
-#:package TimeWarp.Cli
+#:package TimeWarp.Amuru@1.0.0-beta.3
 ```
 
-Check out the latest NuGet package: [TimeWarp.Cli](https://www.nuget.org/packages/TimeWarp.Cli/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Cli?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Cli/)
+Check out the latest NuGet package: [TimeWarp.Amuru](https://www.nuget.org/packages/TimeWarp.Amuru/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Amuru?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Amuru/)
 
 ### DotNet Commands
 
 ```csharp
 // Global dotnet options
-var sdks = await DotNet.WithListSdks().GetLinesAsync();
-var runtimes = await DotNet.WithListRuntimes().GetLinesAsync();
-var version = await DotNet.WithVersion().GetStringAsync();
-var info = await DotNet.WithInfo().GetStringAsync();
+var sdks = await DotNet.WithListSdks().CaptureAsync();
+var runtimes = await DotNet.WithListRuntimes().CaptureAsync();
+var version = await DotNet.WithVersion().CaptureAsync();
 
 // Base builder for custom arguments
-await DotNet.Builder().WithArguments("--list-sdks").GetLinesAsync();
+var result = await DotNet.Builder()
+    .WithArguments("--list-sdks")
+    .CaptureAsync();
 
-// Subcommands (existing API)
-await DotNet.Build().WithConfiguration("Release").ExecuteAsync();
-await DotNet.Test().WithFilter("Category=Unit").ExecuteAsync();
+// Build and test with streaming output
+await DotNet.Build()
+    .WithConfiguration("Release")
+    .RunAsync();
+
+await DotNet.Test()
+    .WithFilter("Category=Unit")
+    .RunAsync();
 ```
 
 ## Key Features
 
-- **Simple Static API**: Global `Run()` method for immediate access
-- **Fluent Interface**: Chain operations naturally with `.Pipe()`, `.Cached()`, etc.
+- **Shell-Like Default**: `RunAsync()` streams to console just like bash/PowerShell
+- **Explicit Capture**: `CaptureAsync()` for when you need to process output
+- **Memory-Efficient Streaming**: `IAsyncEnumerable` for large data without buffering
+- **Complete Output Access**: CommandOutput with Stdout, Stderr, Combined, and ExitCode
+- **Fluent Interface**: Chain operations naturally with `.Pipe()` and builder methods
 - **Async-First Design**: All operations support modern async/await patterns
 - **Smart Error Handling**: Commands throw on errors by default, with opt-in graceful degradation
 - **Pipeline Support**: Chain commands with Unix-like pipe semantics
 - **Standard Input Support**: Provide stdin to commands with `.WithStandardInput()`
-- **Opt-in Caching**: Cache expensive command results with `.Cached()` method
+- **NO CACHING Philosophy**: Like shells, commands run fresh every time
 - **Configuration Options**: Working directory, environment variables, and more
 - **Cancellation Support**: Full CancellationToken support for timeouts and manual cancellation
 - **Cross-Platform**: Works on Windows, Linux, and macOS
-- **C# Script Support**: Seamless execution of C# scripts with proper argument handling
 - **Command Builders**: Fluent builders for complex commands (DotNet, Fzf, Ghq, Gwq)
-- **Interactive Commands**: Support for interactive tools like FZF with `GetStringInteractiveAsync()` and `ExecuteInteractiveAsync()`
+- **Interactive Commands**: `PassthroughAsync()` for editors, `SelectAsync()` for selection tools
 - **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
+
+## Output Handling
+
+### Core API Methods
+
+TimeWarp.Amuru provides clear, purpose-built methods for different scenarios:
+
+```csharp
+// RunAsync() - Default shell behavior, streams to console
+await Shell.Builder("npm", "install").RunAsync();
+// Returns: exit code (int)
+// Console output: real-time streaming
+
+// CaptureAsync() - Silent execution with full output capture
+var result = await Shell.Builder("git", "status").CaptureAsync();
+// Returns: CommandOutput with all streams
+// Console output: none (silent)
+
+// PassthroughAsync() - Full terminal control for interactive tools
+await Shell.Builder("vim", "file.txt").PassthroughAsync();
+// Returns: void
+// Console output: direct terminal passthrough
+
+// SelectAsync() - Selection tools (shows UI, captures selection)
+var selected = await Fzf.Builder()
+    .FromInput("option1", "option2")
+    .SelectAsync();
+// Returns: selected string
+// Console output: UI on stderr, selection captured from stdout
+```
+
+### The CommandOutput Type
+
+```csharp
+var output = await Shell.Builder("docker", "ps").CaptureAsync();
+
+// Access individual streams
+Console.WriteLine($"Stdout: {output.Stdout}");
+Console.WriteLine($"Stderr: {output.Stderr}");
+Console.WriteLine($"Combined: {output.Combined}"); // Both in chronological order
+
+// Check status
+Console.WriteLine($"Exit code: {output.ExitCode}");
+Console.WriteLine($"Success: {output.Success}"); // ExitCode == 0
+
+// Convenience properties for line processing
+foreach (var line in output.Lines) // Combined.Split('\n')
+{
+    ProcessLine(line);
+}
+```
+
+### Streaming Large Data
+
+For commands that produce large amounts of data:
+
+```csharp
+// Stream lines as they arrive (no buffering)
+await foreach (var line in Shell.Builder("tail", "-f", "/var/log/app.log")
+    .StreamStdoutAsync(cancellationToken))
+{
+    Console.WriteLine($"Log: {line}");
+}
+
+// Stream with LINQ-style processing
+var errorLines = Shell.Builder("cat", "huge.log")
+    .StreamStdoutAsync()
+    .Where(line => line.Contains("ERROR"))
+    .Take(100);
+
+await foreach (var error in errorLines)
+{
+    LogError(error);
+}
+```
+
+### Method Comparison
+
+| Method | Console Output | Captures | Returns | Primary Use Case |
+|--------|---------------|----------|---------|------------------|
+| `RunAsync()` | ✅ Real-time | ❌ | Exit code | Default scripting (80%) |
+| `CaptureAsync()` | ❌ Silent | ✅ All streams | CommandOutput | Process output (15%) |
+| `PassthroughAsync()` | ✅ Direct | ❌ | void | Interactive tools (4%) |
+| `SelectAsync()` | ✅ UI only | ✅ Selection | string | Selection tools (1%) |
+| `StreamStdoutAsync()` | ❌ | ✅ As stream | IAsyncEnumerable | Large data |
+
+### Design Philosophy: NO CACHING
+
+TimeWarp.Amuru intentionally does NOT cache command results:
+
+```csharp
+// Shells don't cache - neither do we
+await Shell.Builder("date").RunAsync();  // Shows current time
+await Shell.Builder("date").RunAsync();  // Shows NEW current time
+
+// If you need caching, it's trivial in C#:
+private static CommandOutput? cachedResult;
+var result = cachedResult ??= await Shell.Builder("expensive-command").CaptureAsync();
+```
+
+**Why no caching?**
+- Commands can have side effects
+- Results change over time
+- Shells don't cache
+- Users can trivially cache in C# if needed
 
 ## Error Handling
 
-TimeWarp.Cli provides intelligent error handling that distinguishes between different failure types:
+TimeWarp.Amuru provides intelligent error handling that distinguishes between different failure types:
 
 ### Default Behavior (Throws Exceptions)
 ```csharp
 // Throws CommandExecutionException on non-zero exit code
-await Shell.Builder("ls", "/nonexistent").GetStringAsync();
+await Shell.Builder("ls", "/nonexistent").RunAsync();
 
-// Throws exception if command not found
-await Shell.Builder("nonexistentcommand").GetStringAsync();
+// CaptureAsync also throws on failure by default
+var result = await Shell.Builder("git", "invalid-command").CaptureAsync();
 ```
 
 ### Graceful Degradation (Opt-in)
 ```csharp
-// Returns empty string/array on command failure
-var options = new CommandOptions().WithValidation(CommandResultValidation.None);
-var result = await Shell.Builder("ls", "/nonexistent", options).GetStringAsync(); // ""
+// Disable validation for graceful degradation
+var result = await Shell.Builder("ls", "/nonexistent")
+    .WithValidation(CommandResultValidation.None)
+    .CaptureAsync();
 
-// Note: Process start failures (command not found) always throw
-await Shell.Builder("nonexistentcommand", options).GetStringAsync(); // Still throws!
+if (!result.Success)
+{
+    Console.WriteLine($"Command failed with exit code: {result.ExitCode}");
+    Console.WriteLine($"Error: {result.Stderr}");
+}
 ```
 
-### Special Cases
-- Empty/whitespace commands return empty results (no exception)
-- Null command options return empty results (defensive programming)
-- Pipeline failures propagate based on validation settings
+### Cancellation and Timeouts
+```csharp
+// With explicit cancellation token
+var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+await Shell.Builder("long-running-command")
+    .RunAsync(cts.Token);
+
+// With timeout via builder
+await Shell.Builder("slow-command")
+    .WithTimeout(TimeSpan.FromSeconds(10))
+    .RunAsync();
+
+// Timeout and external token are combined
+await Shell.Builder("another-command")
+    .WithTimeout(TimeSpan.FromSeconds(5))
+    .RunAsync(userCancellationToken);
+```
 
 ## Testing and Mocking
 
-TimeWarp.Cli provides built-in support for mocking commands during testing through the `CliConfiguration` class:
+TimeWarp.Amuru provides built-in support for mocking commands during testing through the `CliConfiguration` class:
 
 ### Basic Mocking
 ```csharp
@@ -203,7 +323,10 @@ CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 // Your code using these commands will now use the mocks
 var selected = await Fzf.Builder()
     .FromInput("option1", "option2", "option3")
-    .GetStringAsync(); // Uses mock fzf
+    .SelectAsync(); // Uses mock fzf
+
+var status = await Shell.Builder("git", "status")
+    .CaptureAsync(); // Uses mock git
 
 // Clean up after tests
 CliConfiguration.Reset();
@@ -213,10 +336,15 @@ CliConfiguration.Reset();
 ```csharp
 // Create a simple mock script
 File.WriteAllText("/tmp/mock-fzf", "#!/bin/bash\necho 'mock-selection'");
-Shell.Builder("chmod", "+x", "/tmp/mock-fzf");
+await Shell.Builder("chmod", "+x", "/tmp/mock-fzf").RunAsync();
 
-// Configure TimeWarp.Cli to use it
+// Configure TimeWarp.Amuru to use it
 CliConfiguration.SetCommandPath("fzf", "/tmp/mock-fzf");
+
+// Now SelectAsync will use the mock
+var selected = await Fzf.Builder()
+    .FromInput("a", "b", "c")
+    .SelectAsync(); // Returns "mock-selection"
 ```
 
 ### Testing Interactive Commands
@@ -243,9 +371,9 @@ TimeWarp.Amuru provides specialized support for .NET 10's new file-based apps (s
 
 ## Architecture
 
-TimeWarp.Cli is built on several key architectural principles:
+TimeWarp.Amuru is built on several key architectural principles:
 
-- **Static Entry Point**: Minimal ceremony with global `Run()` method
+- **Static Entry Point**: Minimal ceremony with global `Builder()` method
 - **Immutable Design**: Thread-safe, readonly objects throughout
 - **Integration Testing**: Real command validation over mocking
 - **Predictable Error Handling**: Clear distinction between failure types
@@ -256,13 +384,13 @@ See our [Architectural Decision Records](Documentation/Conceptual/ArchitecturalD
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** - Complete API reference and usage guide
-- **[CommandExtensions.md](Source/TimeWarp.Cli/CommandExtensions.md)** - Static API documentation
-- **[CommandResult.md](Source/TimeWarp.Cli/CommandResult.md)** - Fluent interface documentation
+- **[CommandExtensions.md](Source/TimeWarp.Amuru/CommandExtensions.md)** - Static API documentation
+- **[CommandResult.md](Source/TimeWarp.Amuru/CommandResult.md)** - Fluent interface documentation
 - **[Architectural Decisions](Documentation/Conceptual/ArchitecturalDecisionRecords/Overview.md)** - Design rationale and decisions
 
 ## Example Scripts
 
-See [Spikes/CsScripts/](Spikes/CsScripts/) for example scripts demonstrating TimeWarp.Cli usage patterns.
+See [Spikes/CsScripts/](Spikes/CsScripts/) for example scripts demonstrating TimeWarp.Amuru usage patterns.
 
 ## Unlicense
 

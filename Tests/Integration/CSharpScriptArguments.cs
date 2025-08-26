@@ -21,7 +21,7 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
       // Make it executable on Unix-like systems
       if (!OperatingSystem.IsWindows())
       {
-        await Shell.Builder("chmod").WithArguments("+x", testScript).ExecuteAsync();
+        await Shell.Builder("chmod").WithArguments("+x", testScript).RunAsync();
       }
     }
     
@@ -31,7 +31,8 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestArgumentsWithDashPassedToScript()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Builder(script).WithArguments("-v", "pattern").GetStringAsync();
+    CommandOutput output = await Shell.Builder(script).WithArguments("-v", "pattern").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Contains("Args: -v, pattern", StringComparison.Ordinal),
@@ -42,7 +43,8 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestMultipleDashedArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Builder(script).WithArguments("--verbose", "-c", "config.json", "--help").GetStringAsync();
+    CommandOutput output = await Shell.Builder(script).WithArguments("--verbose", "-c", "config.json", "--help").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Contains("Args: --verbose, -c, config.json, --help", StringComparison.Ordinal),
@@ -53,7 +55,8 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestMixedArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Builder(script).WithArguments("command", "-f", "file.txt", "--", "extra").GetStringAsync();
+    CommandOutput output = await Shell.Builder(script).WithArguments("command", "-f", "file.txt", "--", "extra").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Contains("Args: command, -f, file.txt, --, extra", StringComparison.Ordinal),
@@ -64,7 +67,8 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
   public static async Task TestNoArguments()
   {
     string script = await GetOrCreateTestScript();
-    string result = await Shell.Builder(script).GetStringAsync();
+    CommandOutput output = await Shell.Builder(script).CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "Args:",
@@ -74,7 +78,8 @@ Console.WriteLine($""Args: {string.Join("", "", args)}"");
 
   public static async Task TestRegularExecutableUnaffected()
   {
-    string result = await Shell.Builder("echo").WithArguments("-n", "test").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("-n", "test").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "test",

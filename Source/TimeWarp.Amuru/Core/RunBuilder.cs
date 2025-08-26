@@ -88,56 +88,26 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   }
 
   /// <summary>
-  /// Executes the command and returns the output as a string.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as a string</returns>
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().GetStringAsync(cancellationToken);
-  }
-
-  /// <summary>
-  /// Executes the command and returns the output as an array of lines.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The command output as an array of lines</returns>
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().GetLinesAsync(cancellationToken);
-  }
-
-  /// <summary>
-  /// Executes the command and returns the execution result.
-  /// </summary>
-  /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>ExecutionResult containing command output and execution details</returns>
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().ExecuteAsync(cancellationToken);
-  }
-  
-  /// <summary>
-  /// Executes the command interactively with stdin, stdout, and stderr connected to the console.
-  /// This allows interactive commands like fzf, vim, or interactive prompts to work properly.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().ExecuteInteractiveAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken);
   }
   
   /// <summary>
-  /// Executes the command interactively and captures the output.
+  /// Executes an interactive selection command and returns the selected value.
   /// The UI is rendered to the console (via stderr) while stdout is captured and returned.
   /// This is ideal for interactive selection tools like fzf.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The captured output string from the interactive command</returns>
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  /// <returns>The selected value from the interactive command</returns>
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().GetStringInteractiveAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken);
   }
 
   /// <summary>
@@ -149,5 +119,88 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   public CommandResult Pipe(string executable, params string[] arguments)
   {
     return Build().Pipe(executable, arguments);
+  }
+
+  /// <summary>
+  /// Executes the command and streams output to the console in real-time.
+  /// This is the default behavior matching shell execution (80% use case).
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The exit code of the command</returns>
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Executes the command silently and captures all output.
+  /// No output is written to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().CaptureAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Executes the command, streams output to console AND captures it.
+  /// Useful for debugging/logging scenarios where you want to see output and save it.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAndCaptureAsync(cancellationToken);
+  }
+
+  /// <summary>
+  /// Executes the command and streams stdout lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stdout lines</returns>
+  public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (string line in Build().StreamStdoutAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams stderr lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stderr lines</returns>
+  public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (string line in Build().StreamStderrAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams combined output with source information.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of OutputLine objects</returns>
+  public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    await foreach (OutputLine line in Build().StreamCombinedAsync(cancellationToken))
+    {
+      yield return line;
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams output directly to a file without buffering.
+  /// </summary>
+  /// <param name="filePath">Path to the output file</param>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>A task that completes when the command finishes</returns>
+  public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
+  {
+    await Build().StreamToFileAsync(filePath, cancellationToken);
   }
 }

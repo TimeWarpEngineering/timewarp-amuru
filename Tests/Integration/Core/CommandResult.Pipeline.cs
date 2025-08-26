@@ -7,9 +7,10 @@ internal sealed class PipelineTests
 
   public static async Task TestBasicPipeline()
   {
-    string result = await Shell.Builder("echo").WithArguments("hello\nworld\ntest")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("hello\nworld\ntest")
       .Pipe("grep", "world")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "world",
@@ -19,10 +20,11 @@ internal sealed class PipelineTests
 
   public static async Task TestMultiStagePipeline()
   {
-    string result = await Shell.Builder("echo").WithArguments("line1\nline2\nline3\nline4")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("line1\nline2\nline3\nline4")
       .Pipe("grep", "line")
       .Pipe("wc", "-l")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "4",
@@ -32,9 +34,10 @@ internal sealed class PipelineTests
 
   public static async Task TestPipelineWithGetLinesAsync()
   {
-    string[] lines = await Shell.Builder("echo").WithArguments("apple\nbanana\ncherry")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("apple\nbanana\ncherry")
       .Pipe("grep", "a")
-      .GetLinesAsync();
+      .CaptureAsync();
+    string[] lines = output.GetLines();
     
     AssertTrue(
       lines.Length == 2 && lines[0] == "apple" && lines[1] == "banana",
@@ -46,7 +49,7 @@ internal sealed class PipelineTests
   {
     await Shell.Builder("echo").WithArguments("test")
       .Pipe("grep", "test")
-      .ExecuteAsync();
+      .RunAsync();
     
     // Test passes if no exception is thrown
     AssertTrue(true, "Pipeline with ExecuteAsync should not throw");
@@ -57,7 +60,7 @@ internal sealed class PipelineTests
     await AssertThrowsAsync<Exception>(
       async () => await Shell.Builder("nonexistentcommand12345").WithNoValidation()
         .Pipe("grep", "anything")
-        .GetStringAsync(),
+        .CaptureAsync(),
       "Pipeline with non-existent first command should throw even with no validation"
     );
   }
@@ -68,16 +71,17 @@ internal sealed class PipelineTests
     await AssertThrowsAsync<Exception>(
       async () => await Shell.Builder("echo").WithArguments(echoArgs).WithNoValidation()
         .Pipe("nonexistentcommand12345")
-        .GetStringAsync(),
+        .CaptureAsync(),
       "Pipeline with non-existent second command should throw even with no validation"
     );
   }
 
   public static async Task TestRealWorldPipelineFindAndFilter()
   {
-    string[] files = await Shell.Builder("find").WithArguments(".", "-name", "*.cs", "-type", "f")
+    CommandOutput output = await Shell.Builder("find").WithArguments(".", "-name", "*.cs", "-type", "f")
       .Pipe("head", "-5")
-      .GetLinesAsync();
+      .CaptureAsync();
+    string[] files = output.GetLines();
     
     AssertTrue(
       files.Length <= 5 && files.All(f => f.EndsWith(".cs", StringComparison.Ordinal)),
@@ -87,11 +91,12 @@ internal sealed class PipelineTests
 
   public static async Task TestComplexPipelineChaining()
   {
-    string result = await Shell.Builder("echo").WithArguments("The quick brown fox jumps over the lazy dog")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("The quick brown fox jumps over the lazy dog")
       .Pipe("tr", " ", "\n")
       .Pipe("grep", "o")
       .Pipe("wc", "-l")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "4",
@@ -102,10 +107,11 @@ internal sealed class PipelineTests
   public static async Task TestPipeWithNoArguments()
   {
     // Test that Pipe works without arguments (using new optional parameter)
-    string result = await Shell.Builder("echo").WithArguments("zebra\napple\nbanana")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("zebra\napple\nbanana")
       .Build()
       .Pipe("sort")  // No arguments!
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     string[] lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
     

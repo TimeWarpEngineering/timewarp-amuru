@@ -4,149 +4,26 @@ public class CommandResult
 {
   private readonly Command? Command;
   
-  // Constants for line splitting - handle both Unix (\n) and Windows (\r\n) line endings
-  private static readonly char[] NewlineCharacters = { '\n', '\r' };
-  
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
   
   // Property to access Command from other CommandResult instances in Pipe() method
   private Command? InternalCommand => Command;
   
-  // Caching support
-  private BufferedCommandResult? CachedResult;
-  private ExecutionResult? CachedExecuteResult;
-  private bool HasExecuted;
-  private readonly bool EnableCaching;
   
-  internal CommandResult(Command? command) : this(command, false)
-  {
-  }
-  
-  private CommandResult(Command? command, bool enableCaching)
+  internal CommandResult(Command? command)
   {
     Command = command;
-    EnableCaching = enableCaching;
   }
+  
   
   /// <summary>
-  /// Creates a new CommandResult instance with caching enabled.
-  /// Subsequent calls to GetStringAsync(), GetLinesAsync(), or ExecuteAsync() 
-  /// will return cached results instead of re-executing the command.
-  /// </summary>
-  /// <returns>A new CommandResult instance with caching enabled</returns>
-  public CommandResult Cached()
-  {
-    // Return a new instance with caching enabled, preserving the command
-    return new CommandResult(Command, true);
-  }
-  
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return string.Empty;
-    }
-    
-    // Check cache if caching is enabled
-    if (EnableCaching && CachedResult != null)
-    {
-      return CachedResult.StandardOutput;
-    }
-    
-    BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Store in cache if caching is enabled
-    if (EnableCaching)
-    {
-      CachedResult = result;
-    }
-    
-    return result.StandardOutput;
-  }
-  
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return [];
-    }
-    
-    // Check cache if caching is enabled
-    if (EnableCaching && CachedResult != null)
-    {
-      return CachedResult.StandardOutput.Split
-      (
-        NewlineCharacters, 
-        StringSplitOptions.RemoveEmptyEntries
-      );
-    }
-    
-    BufferedCommandResult result = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Store in cache if caching is enabled
-    if (EnableCaching)
-    {
-      CachedResult = result;
-    }
-    
-    return result.StandardOutput.Split
-    (
-      NewlineCharacters, 
-      StringSplitOptions.RemoveEmptyEntries
-    );
-  }
-  
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
-  {
-    if (Command == null)
-    {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
-    }
-    
-    // If caching is enabled and already executed, return cached result
-    if (EnableCaching && HasExecuted && CachedExecuteResult != null)
-    {
-      return CachedExecuteResult;
-    }
-    
-    // Use ExecuteBufferedAsync to capture stdout and stderr
-    BufferedCommandResult bufferedResult = await Command.ExecuteBufferedAsync(cancellationToken);
-    
-    // Create our result with captured output
-    var result = new ExecutionResult(
-      new CliWrap.CommandResult(
-        bufferedResult.ExitCode,
-        bufferedResult.StartTime,
-        bufferedResult.ExitTime
-      ),
-      bufferedResult.StandardOutput,
-      bufferedResult.StandardError
-    );
-    
-    // Store result and mark as executed if caching is enabled
-    if (EnableCaching)
-    {
-      HasExecuted = true;
-      CachedExecuteResult = result;
-      // Also cache the buffered result for GetStringAsync/GetLinesAsync
-      CachedResult = bufferedResult;
-    }
-    
-    return result;
-  }
-  
-  /// <summary>
-  /// Executes the command with stdin, stdout, and stderr connected to the console for interactive use.
-  /// This allows commands like fzf to work with user input and terminal UI.
+  /// Passes the command through to the terminal with full interactive control.
+  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
+  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
     {
@@ -180,12 +57,12 @@ public class CommandResult
   }
   
   /// <summary>
-  /// Executes the command interactively while capturing the output.
+  /// Executes an interactive selection command and returns the selected value.
   /// This is ideal for commands like fzf where the UI is rendered to stderr but the selection is written to stdout.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
-  /// <returns>The captured output string from the interactive command</returns>
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
+  /// <returns>The selected value from the interactive command</returns>
+  public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
     {
@@ -248,8 +125,7 @@ public class CommandResult
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = Command | nextCommandResult.InternalCommand;
       
-      // Preserve caching state in the pipeline
-      return new CommandResult(pipedCommand, EnableCaching);
+      return new CommandResult(pipedCommand);
     }
     catch
     {
@@ -263,4 +139,295 @@ public class CommandResult
   /// </summary>
   /// <returns>The command string in the format "executable arguments", or "[No command]" if no command is configured</returns>
   public string ToCommandString() => Command?.ToString() ?? "[No command]";
+
+  /// <summary>
+  /// Executes the command and streams output to the console in real-time.
+  /// This is the default behavior matching shell execution (80% use case).
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The exit code of the command</returns>
+  public async Task<int> RunAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return 0;
+    }
+
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Write mock output to console to simulate RunAsync behavior
+        if (!string.IsNullOrEmpty(setupData.Stdout))
+        {
+          await Console.Out.WriteLineAsync(setupData.Stdout);
+        }
+        
+        if (!string.IsNullOrEmpty(setupData.Stderr))
+        {
+          await Console.Error.WriteLineAsync(setupData.Stderr);
+        }
+        
+        return setupData.ExitCode;
+      }
+    }
+
+    // Stream to console using CliWrap's pipe targets
+    Command consoleCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.Error.WriteLine));
+
+    CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken);
+    return result.ExitCode;
+  }
+
+  /// <summary>
+  /// Executes the command, streams output to console AND captures it.
+  /// Useful for debugging/logging scenarios where you want to see output and save it.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return CommandOutput.Empty();
+    }
+
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Write to console for RunAndCapture behavior
+        if (!string.IsNullOrEmpty(setupData.Stdout))
+        {
+          await Console.Out.WriteLineAsync(setupData.Stdout);
+        }
+        
+        if (!string.IsNullOrEmpty(setupData.Stderr))
+        {
+          await Console.Error.WriteLineAsync(setupData.Stderr);
+        }
+        
+        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
+      }
+    }
+
+    // Use StringBuilders to capture output while also streaming to console
+    StringBuilder stdOutBuilder = new();
+    StringBuilder stdErrBuilder = new();
+    
+    // Create pipe targets that both stream to console AND capture
+    var stdOutTarget = PipeTarget.Merge(
+      PipeTarget.ToDelegate(Console.WriteLine),
+      PipeTarget.ToStringBuilder(stdOutBuilder)
+    );
+    
+    var stdErrTarget = PipeTarget.Merge(
+      PipeTarget.ToDelegate(Console.Error.WriteLine),
+      PipeTarget.ToStringBuilder(stdErrBuilder)
+    );
+    
+    Command captureCommand = Command
+      .WithStandardOutputPipe(stdOutTarget)
+      .WithStandardErrorPipe(stdErrTarget);
+    
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
+    
+    return new CommandOutput(
+      stdOutBuilder.ToString(),
+      stdErrBuilder.ToString(),
+      result.ExitCode
+    );
+  }
+
+  /// <summary>
+  /// Executes the command silently and captures all output.
+  /// No output is written to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return CommandOutput.Empty();
+    }
+
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      // Extract command details from CliWrap Command
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        // Record that this command was called
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        // Apply delay if configured
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        // Throw exception if configured
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Return mock result
+        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
+      }
+    }
+
+    // Capture both stdout and stderr with timestamps
+    List<OutputLine> outputLines = [];
+    Lock outputLock = new();
+
+    Command captureCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (outputLock.EnterScope())
+        {
+          outputLines.Add(new OutputLine(line, false));
+        }
+      }))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (outputLock.EnterScope())
+        {
+          outputLines.Add(new OutputLine(line, true));
+        }
+      }));
+
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
+    return new CommandOutput(outputLines, result.ExitCode);
+  }
+
+  /// <summary>
+  /// Executes the command and streams stdout lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stdout lines</returns>
+  public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for stdout
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardOutputCommandEvent stdOut)
+      {
+        yield return stdOut.Text;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams stderr lines without buffering.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of stderr lines</returns>
+  public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for stderr
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardErrorCommandEvent stdErr)
+      {
+        yield return stdErr.Text;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams combined output with source information.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>An async enumerable of OutputLine objects</returns>
+  public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      yield break;
+    }
+
+    // Use CliWrap's event stream for combined output
+    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    {
+      if (evt is StandardOutputCommandEvent stdOut)
+      {
+        yield return new OutputLine(stdOut.Text, false);
+      }
+      else if (evt is StandardErrorCommandEvent stdErr)
+      {
+        yield return new OutputLine(stdErr.Text, true);
+      }
+    }
+  }
+
+  /// <summary>
+  /// Executes the command and streams output directly to a file without buffering.
+  /// </summary>
+  /// <param name="filePath">Path to the output file</param>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>A task that completes when the command finishes</returns>
+  public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return;
+    }
+
+    await using FileStream fileStream = File.Create(filePath);
+    
+    Command fileCommand = Command
+      .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
+      .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
+
+    await fileCommand.ExecuteAsync(cancellationToken);
+  }
 }

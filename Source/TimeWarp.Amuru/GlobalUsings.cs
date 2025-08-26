@@ -1,6 +1,9 @@
 global using System;
 global using System.Globalization;
+global using System.Runtime.CompilerServices;
 global using System.Text;
+global using System.Threading;
 global using CliWrap;
 global using CliWrap.Buffered;
+global using CliWrap.EventStream;
 global using TimeWarp.Amuru.Interfaces;

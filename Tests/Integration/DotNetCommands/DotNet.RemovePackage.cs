@@ -130,15 +130,16 @@ internal sealed class DotNetRemovePackageTests
       $"Expected correct command string even for non-existent projects, got '{command}'"
     );
     
-    // With WithNoValidation(), GetStringAsync returns empty string on failure
-    string result = await DotNet.RemovePackage("TestPackage")
+    // With WithNoValidation(), CaptureAsync returns output on failure
+    CommandOutput output = await DotNet.RemovePackage("TestPackage")
       .WithProject("nonexistent.csproj")
       .WithNoValidation()
-      .GetStringAsync();
+      .Build()
+      .CaptureAsync();
     
     AssertTrue(
-      result != null,
-      "GetStringAsync with WithNoValidation() should return non-null even for failed commands"
+      output != null,
+      "CaptureAsync with WithNoValidation() should return non-null even for failed commands"
     );
     
     await Task.CompletedTask;
