@@ -14,30 +14,30 @@ Update all documentation to reflect the new API design, including README.md, CLA
 ## Checklist
 
 ### README.md Updates
-- [ ] Update API overview section
-- [ ] Replace all GetStringAsync() examples
-- [ ] Replace all GetLinesAsync() examples
-- [ ] Add RunAsync() as the primary example
-- [ ] Add section on NO CACHING philosophy
-- [ ] Update method comparison table
-- [ ] Add streaming examples
-- [ ] Add CancellationToken examples
+- [x] Update API overview section
+- [x] Replace all GetStringAsync() examples
+- [x] Replace all GetLinesAsync() examples
+- [x] Add RunAsync() as the primary example
+- [x] Add section on NO CACHING philosophy
+- [x] Update method comparison table
+- [x] Add streaming examples
+- [x] Add CancellationToken examples
 
 ### CLAUDE.md Updates
-- [ ] Update API method descriptions
-- [ ] Update usage examples
-- [ ] Add new method signatures
-- [ ] Remove references to caching
-- [ ] Add CommandOutput documentation
-- [ ] Update best practices section
+- [x] Update API method descriptions
+- [x] Update usage examples
+- [x] Add new method signatures
+- [x] Remove references to caching
+- [x] Add CommandOutput documentation
+- [x] Update best practices section
 
 ### Create Migration Guide
-- [ ] Create Analysis/MigrationGuide.md
-- [ ] Document all method mappings (old → new)
-- [ ] Provide code examples for each migration
-- [ ] Explain rationale for changes
-- [ ] Include breaking change warnings
-- [ ] Add troubleshooting section
+- [x] Create Analysis/MigrationGuide.md
+- [x] Document all method mappings (old → new)
+- [x] Provide code examples for each migration
+- [x] Explain rationale for changes
+- [x] Include breaking change warnings
+- [x] Add troubleshooting section
 
 ### Documentation Structure
 - [ ] API Reference

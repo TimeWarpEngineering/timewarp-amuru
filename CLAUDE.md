@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TimeWarp.Amuru is a fluent API wrapper around CliWrap for elegant C# scripting. The library makes shell command execution feel natural and concise in C#, providing a simple static `Run()` method with async operations and graceful error handling.
+TimeWarp.Amuru is a fluent API wrapper around CliWrap for elegant C# scripting. The library makes shell command execution feel natural and concise in C#, providing shell-like default behavior with `RunAsync()` for streaming and `CaptureAsync()` for silent execution with full output capture.
 
 **Target Framework:** .NET 10.0  
 **Current Version:** 0.2.0  
@@ -13,8 +13,9 @@ TimeWarp.Amuru is a fluent API wrapper around CliWrap for elegant C# scripting. 
 ## Project Structure
 
 - `Source/TimeWarp.Amuru/` - Main library (published as NuGet package)
-  - `CommandExtensions.cs` - Static `Run()` method entry point
-  - `CommandResult.cs` - Fluent result wrapper with async operations
+  - `Shell.cs` - Static `Builder()` method entry point
+  - `CommandBuilder.cs` - Fluent builder with execution methods
+  - `CommandOutput.cs` - Complete output with stdout, stderr, exit code
 - `Scripts/` - Build automation scripts (all use TimeWarp.Amuru itself)
 - `Tests/` - Integration tests with custom test runner
 - `Spikes/CsScripts/` - Example scripts demonstrating API usage
@@ -95,20 +96,35 @@ The project uses a Kanban board system located in the `Kanban/` directory:
 
 ## API Design
 
-### Core API
+### Core API Methods
 ```csharp
-// Entry point - static Run method
-public static CommandResult Run(string executable, params string[] arguments)
+// Entry point - static Builder method
+public static CommandBuilder Builder(string executable, params string[] arguments)
 
-// CommandResult methods (all async)
-public async Task<string> GetStringAsync()      // Get full output as string
-public async Task<string[]> GetLinesAsync()     // Get output as line array
-public async Task ExecuteAsync()                // Execute without capturing output
-public CommandResult Pipe(string executable, params string[] arguments)  // Chain commands
+// Primary execution methods (all accept CancellationToken)
+public async Task<int> RunAsync(CancellationToken ct = default)           // Stream to console (default shell behavior)
+public async Task<CommandOutput> CaptureAsync(CancellationToken ct = default)  // Silent capture with full output
+public async Task PassthroughAsync(CancellationToken ct = default)        // Interactive tools (vim, REPLs)
+public async Task<string> SelectAsync(CancellationToken ct = default)     // Selection tools (fzf pattern)
 
-// Interactive methods (NEW in v0.6.0)
-public async Task<string> GetStringInteractiveAsync()    // Interactive UI with captured output
-public async Task<ExecutionResult> ExecuteInteractiveAsync()  // Full interactive mode
+// Streaming for large data
+public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken ct = default)
+public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken ct = default)
+
+// Pipeline support
+public CommandBuilder Pipe(string executable, params string[] arguments)
+
+// CommandOutput structure
+public class CommandOutput
+{
+    public string Stdout { get; }      // stdout only
+    public string Stderr { get; }      // stderr only
+    public string Combined { get; }    // Both in chronological order
+    public int ExitCode { get; }
+    public bool Success => ExitCode == 0;
+    public string[] Lines => Combined.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+    public string[] StdoutLines => Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+}
 ```
 
 ### Usage Examples
@@ -116,72 +132,82 @@ public async Task<ExecutionResult> ExecuteInteractiveAsync()  // Full interactiv
 #!/usr/bin/dotnet run
 #:package TimeWarp.Amuru
 
-// Get command output
-var date = await Shell.Builder("date").GetStringAsync();
+// Default behavior - stream to console like a shell
+await Shell.Builder("npm", "install").RunAsync();
+await Shell.Builder("docker", "build", ".").RunAsync();
 
-// Process lines
-var files = await Shell.Builder("find", ".", "-name", "*.cs").GetLinesAsync();
-foreach (var file in files) Console.WriteLine(file);
+// Capture output for processing
+var result = await Shell.Builder("git", "status").CaptureAsync();
+if (result.Success)
+{
+    Console.WriteLine($"Clean: {!result.Stdout.Contains("modified")}");
+}
 
-// Execute without output
-await Shell.Builder("echo", "Hello World").ExecuteAsync();
+// Work with CommandOutput
+var output = await Shell.Builder("ls", "-la").CaptureAsync();
+Console.WriteLine($"Files found: {output.Lines.Length}");
+Console.WriteLine($"Errors: {output.Stderr}");
 
-// Pipeline commands (NEW in v0.2.0)
-var filteredFiles = await Shell.Builder("find", ".", "-name", "*.cs")
+// Stream large files without buffering
+await foreach (var line in Shell.Builder("tail", "-f", "/var/log/app.log")
+    .StreamStdoutAsync())
+{
+    if (line.Contains("ERROR")) 
+        LogError(line);
+}
+
+// Pipeline commands
+var result = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
-    .GetLinesAsync();
-
-// Multi-stage pipelines
-var count = await Shell.Builder("git", "log", "--oneline", "-n", "10")
-    .Pipe("head", "-5")
     .Pipe("wc", "-l")
-    .GetStringAsync();
+    .CaptureAsync();
 
-// Fluent builder API (NEW in v0.6.0)
+Console.WriteLine($"Async methods count: {result.Stdout.Trim()}");
+
+// Fluent builder with cancellation
+var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 var result = await Shell.Builder("git")
-    .WithArguments("log", "--oneline", "-n", "10")
-    .WithWorkingDirectory("/my/repo")
-    .WithEnvironmentVariable("GIT_PAGER", "cat")
-    .WithNoValidation()
-    .GetStringAsync();
+    .WithArguments("clone", "https://github.com/large/repo.git")
+    .WithWorkingDirectory("/tmp")
+    .RunAsync(cts.Token);
 
-// Complex command building
-var output = await Shell.Builder("docker")
-    .WithArguments("run", "--rm")
-    .WithArguments("-e", "NODE_ENV=production")
-    .WithArguments("-v", "/host/path:/container/path")
-    .WithArguments("node:latest", "npm", "test")
-    .ExecuteAsync();
+// Timeout support
+await Shell.Builder("slow-command")
+    .WithTimeout(TimeSpan.FromSeconds(30))
+    .RunAsync();
 
-// Provide standard input to commands
+// Provide standard input
 var grepResult = await Shell.Builder("grep")
     .WithArguments("pattern")
     .WithStandardInput("line1\nline2 with pattern\nline3")
-    .GetStringAsync();
+    .CaptureAsync();
 
-// Combine standard input with pipelines
-var sortedTop3 = await Shell.Builder("sort")
-    .WithStandardInput("banana\napple\ncherry\ndate")
-    .Pipe("head", "-3")
-    .GetLinesAsync();
+Console.WriteLine($"Matches: {grepResult.StdoutLines.Length}");
 
-// Interactive command execution (NEW in v0.6.0)
-// Select a file with FZF and capture the selection
+// Interactive selection with FZF
 var selectedFile = await Fzf.Builder()
     .FromInput("file1.txt", "file2.txt", "file3.txt")
     .WithPreview("cat {}")
-    .GetStringInteractiveAsync();
+    .SelectAsync();
 
-// Interactive pipeline - find and select files
-var chosenCsFile = await Shell.Builder("find")
+Console.WriteLine($"User selected: {selectedFile}");
+
+// Interactive pipeline - find and select
+var chosenFile = await Shell.Builder("find")
     .WithArguments(".", "-name", "*.cs")
     .Pipe("fzf", "--preview", "head -20 {}")
-    .GetStringInteractiveAsync();
+    .SelectAsync();
 
-// Full interactive mode for editors, REPLs, etc.
+// Full passthrough for editors, REPLs
 await Shell.Builder("vim")
     .WithArguments("config.json")
-    .ExecuteInteractiveAsync();
+    .PassthroughAsync();
+
+// NO CACHING - commands run fresh every time
+var time1 = await Shell.Builder("date").CaptureAsync();
+Thread.Sleep(1000);
+var time2 = await Shell.Builder("date").CaptureAsync();
+// time1.Stdout != time2.Stdout (different times!)
 ```
 
 ### Error Handling
@@ -189,21 +215,39 @@ await Shell.Builder("vim")
 - Use `.WithValidation(CommandResultValidation.None)` to disable exception throwing:
   ```csharp
   // Disable validation for graceful degradation
-  var options = new CommandOptions().WithValidation(CommandResultValidation.None);
-  await Shell.Builder("git", new[] { "status" }, options).ExecuteAsync();
-  
-  // Or with builders
-  await DotNet.Build()
+  var result = await Shell.Builder("git", "invalid-command")
     .WithValidation(CommandResultValidation.None)
-    .ExecuteAsync();
+    .CaptureAsync();
+  
+  if (!result.Success)
+  {
+      Console.WriteLine($"Failed with code: {result.ExitCode}");
+      Console.WriteLine($"Error: {result.Stderr}");
+  }
   ```
-- When validation is disabled with `CommandResultValidation.None`:
-  - `GetStringAsync()` returns empty string on failure
-  - `GetLinesAsync()` returns empty array on failure
-  - `ExecuteAsync()` completes without throwing
-  - Pipeline commands maintain graceful degradation
+- When validation is disabled:
+  - `RunAsync()` returns exit code without throwing
+  - `CaptureAsync()` returns CommandOutput with failure info
+  - Pipeline commands propagate based on validation settings
 
-### Testing and Mocking (NEW in v0.6.0)
+### Cancellation and Timeouts
+```csharp
+// All async methods accept CancellationToken
+var cts = new CancellationTokenSource();
+await Shell.Builder("long-command").RunAsync(cts.Token);
+
+// Timeout creates internal CancellationTokenSource
+await Shell.Builder("slow-command")
+    .WithTimeout(TimeSpan.FromSeconds(10))
+    .RunAsync();
+
+// Tokens are combined when both provided
+await Shell.Builder("another-command")
+    .WithTimeout(TimeSpan.FromSeconds(5))
+    .RunAsync(userCancellationToken);
+```
+
+### Testing and Mocking
 The library provides `CliConfiguration` for mocking commands during testing:
 
 ```csharp
@@ -212,9 +256,10 @@ CliConfiguration.SetCommandPath("fzf", "/path/to/mock/fzf");
 CliConfiguration.SetCommandPath("git", "/path/to/mock/git");
 
 // Commands now use the mocks
-var result = await Fzf.Builder()
+var result = await Shell.Builder("git", "status").CaptureAsync();
+var selected = await Fzf.Builder()
     .FromInput("option1", "option2")
-    .GetStringAsync(); // Uses mock fzf
+    .SelectAsync();
 
 // Clean up
 CliConfiguration.Reset();
@@ -227,14 +272,37 @@ API Methods:
 - `CliConfiguration.HasCustomPath(command)` - Check if override exists
 - `CliConfiguration.AllCommandPaths` - Get all current overrides
 
+## Design Philosophy: NO CACHING
+
+TimeWarp.Amuru intentionally does NOT cache command results. This is a fundamental design decision:
+
+```csharp
+// Shells don't cache - neither do we
+await Shell.Builder("date").RunAsync();  // Shows current time
+await Shell.Builder("date").RunAsync();  // Shows NEW current time
+
+// If you need caching, it's trivial in C#:
+private static CommandOutput? cachedResult;
+var result = cachedResult ??= await Shell.Builder("expensive-command").CaptureAsync();
+```
+
+**Why no caching?**
+- Commands can have side effects
+- Results change over time
+- Shells don't cache
+- Users can trivially cache in C# if needed
+- Caching would introduce hidden state and surprises
+
 ## Key Architecture Decisions
 
-1. **Minimal API Surface**: Only two classes exposed (CommandExtensions, CommandResult)
-2. **Static Entry Point**: Global `Run()` method for simplicity in scripts
-3. **Async-First**: All operations are async for non-blocking execution
-4. **No Exceptions**: Failed commands return empty results
-5. **Pipeline Support**: Commands can be chained with `.Pipe()` for shell-like operations
-6. **Dogfooding**: Test runner uses TimeWarp.Amuru itself for execution
+1. **Shell-Like Default**: `RunAsync()` streams to console just like bash/PowerShell
+2. **Explicit Capture**: `CaptureAsync()` for when you need to process output
+3. **NO CACHING**: Commands run fresh every time, like real shells
+4. **Complete Output**: CommandOutput provides all streams and exit code
+5. **Memory Efficient**: Streaming APIs for large data without buffering
+6. **Cancellation First**: All async methods accept CancellationToken
+7. **Pipeline Support**: Commands can be chained with `.Pipe()` for shell-like operations
+8. **Dogfooding**: Test runner uses TimeWarp.Amuru itself for execution
 
 ## Build System Architecture
 
