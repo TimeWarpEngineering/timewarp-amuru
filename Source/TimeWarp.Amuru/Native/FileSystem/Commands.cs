@@ -14,9 +14,6 @@ public static class Commands
   /// <returns>CommandOutput with file content in stdout, or error in stderr</returns>
   public static CommandOutput GetContent(string path)
   {
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-    Console.WriteLine("DEBUG: Commands.GetContent v2 - using project reference");
-#pragma warning restore CA1303
     try
     {
       var lines = new List<string>();
@@ -37,33 +34,6 @@ public static class Commands
         0
       );
     }
-    catch (AggregateException ae) when (ae.InnerException is FileNotFoundException)
-    {
-      // Debug: print actual exception message
-      Console.WriteLine($"DEBUG: Caught FileNotFoundException: {ae.InnerException.Message}");
-      return new CommandOutput(
-        string.Empty,
-        $"GetContent: {path}: No such file or directory",
-        1
-      );
-    }
-    catch (AggregateException ae) when (ae.InnerException is UnauthorizedAccessException)
-    {
-      return new CommandOutput(
-        string.Empty,
-        $"GetContent: {path}: Permission denied",
-        1
-      );
-    }
-    catch (AggregateException ae)
-    {
-      Console.WriteLine($"DEBUG: Caught AggregateException, InnerException type: {ae.InnerException?.GetType().Name ?? "null"}");
-      return new CommandOutput(
-        string.Empty,
-        $"GetContent: {path}: {ae.InnerException?.Message ?? ae.Message}",
-        1
-      );
-    }
     catch (FileNotFoundException)
     {
       return new CommandOutput(
@@ -82,9 +52,6 @@ public static class Commands
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"DEBUG: Caught {ex.GetType().Name}: {ex.Message}");
-      if (ex.InnerException != null)
-        Console.WriteLine($"DEBUG: InnerException is {ex.InnerException.GetType().Name}: {ex.InnerException.Message}");
       return new CommandOutput(
         string.Empty,
         $"GetContent: {path}: {ex.Message}",
@@ -128,30 +95,6 @@ public static class Commands
         string.Join("\n", entries),
         string.Empty,
         0
-      );
-    }
-    catch (AggregateException ae) when (ae.InnerException is DirectoryNotFoundException)
-    {
-      return new CommandOutput(
-        string.Empty,
-        $"GetChildItem: {path}: No such file or directory",
-        1
-      );
-    }
-    catch (AggregateException ae) when (ae.InnerException is UnauthorizedAccessException)
-    {
-      return new CommandOutput(
-        string.Empty,
-        $"GetChildItem: {path}: Permission denied",
-        1
-      );
-    }
-    catch (AggregateException ae)
-    {
-      return new CommandOutput(
-        string.Empty,
-        $"GetChildItem: {path}: {ae.InnerException?.Message ?? ae.Message}",
-        1
       );
     }
     catch (DirectoryNotFoundException)
