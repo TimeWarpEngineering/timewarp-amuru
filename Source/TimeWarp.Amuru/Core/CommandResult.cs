@@ -140,44 +140,6 @@ public class CommandResult
   /// <returns>The command string in the format "executable arguments", or "[No command]" if no command is configured</returns>
   public string ToCommandString() => Command?.ToString() ?? "[No command]";
 
-  // Temporary compatibility methods - will be removed after builders are updated
-  [Obsolete("Use CaptureAsync().Result.Stdout instead")]
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
-  {
-    CommandOutput result = await CaptureAsync(cancellationToken);
-    return result.Stdout;
-  }
-
-  [Obsolete("Use CaptureAsync().Result.GetLines() instead")]
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
-  {
-    CommandOutput result = await CaptureAsync(cancellationToken);
-    return result.GetLines();
-  }
-
-  [Obsolete("Use CaptureAsync() instead")]
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
-  {
-    CommandOutput result = await CaptureAsync(cancellationToken);
-    return new ExecutionResult(
-      new CliWrap.CommandResult(result.ExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-      result.Stdout,
-      result.Stderr
-    );
-  }
-
-  [Obsolete("Use PassthroughAsync() instead")]
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
-  {
-    return await PassthroughAsync(cancellationToken);
-  }
-
-  [Obsolete("Use SelectAsync() instead")]
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
-  {
-    return await SelectAsync(cancellationToken);
-  }
-
   /// <summary>
   /// Executes the command and streams output to the console in real-time.
   /// This is the default behavior matching shell execution (80% use case).

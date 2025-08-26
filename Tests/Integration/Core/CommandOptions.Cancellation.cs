@@ -9,7 +9,8 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(10)); // Long timeout, command should complete
     
-    string result = await Shell.Builder("echo").WithArguments("Hello World").GetStringAsync(cts.Token);
+    CommandOutput output = await Shell.Builder("echo").WithArguments("Hello World").CaptureAsync(cts.Token);
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -24,7 +25,8 @@ internal sealed class CancellationTests
     
     try
     {
-      string result = await Shell.Builder("echo").WithArguments("test").GetStringAsync(cts.Token);
+      CommandOutput output = await Shell.Builder("echo").WithArguments("test").CaptureAsync(cts.Token);
+      string result = output.Stdout;
       // Should return empty string due to cancellation
       AssertTrue(
         string.IsNullOrEmpty(result),
@@ -43,11 +45,12 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    string[] lines = await Shell.Builder("echo").WithArguments("line1\nline2\nline3").GetLinesAsync(cts.Token);
+    CommandOutput output = await Shell.Builder("echo").WithArguments("line1\nline2\nline3").CaptureAsync(cts.Token);
+    string[] lines = output.GetLines();
     
     AssertTrue(
       lines.Length == 3 && lines[0] == "line1" && lines[1] == "line2" && lines[2] == "line3",
-      $"GetLinesAsync with cancellation token should return 3 lines, got {lines.Length}"
+      $"CaptureAsync with cancellation token should return 3 lines, got {lines.Length}"
     );
   }
 
@@ -56,11 +59,11 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    ExecutionResult result = await Shell.Builder("echo").WithArguments("execute test").ExecuteAsync(cts.Token);
+    int exitCode = await Shell.Builder("echo").WithArguments("execute test").RunAsync(cts.Token);
     
     AssertTrue(
-      result.ExitCode == 0,
-      $"ExecuteAsync with cancellation token should succeed with exit code 0, got {result.ExitCode}"
+      exitCode == 0,
+      $"RunAsync with cancellation token should succeed with exit code 0, got {exitCode}"
     );
   }
 
@@ -74,9 +77,10 @@ internal sealed class CancellationTests
     
     try
     {
-      string result = isWindows 
-        ? await Shell.Builder("timeout").WithArguments("5").GetStringAsync(cts.Token)  // Windows: timeout 5 seconds
-        : await Shell.Builder("sleep").WithArguments("5").GetStringAsync(cts.Token);   // Unix: sleep 5 seconds
+      CommandOutput output = isWindows 
+        ? await Shell.Builder("timeout").WithArguments("5").CaptureAsync(cts.Token)  // Windows: timeout 5 seconds
+        : await Shell.Builder("sleep").WithArguments("5").CaptureAsync(cts.Token);   // Unix: sleep 5 seconds
+      string result = output.Stdout;
       
       // If we get here, either the command completed very quickly or returned empty due to cancellation
       AssertTrue(
@@ -96,9 +100,10 @@ internal sealed class CancellationTests
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
     
-    string result = await Shell.Builder("echo").WithArguments("line1\nline2\nline3")
+    CommandOutput output = await Shell.Builder("echo").WithArguments("line1\nline2\nline3")
       .Pipe("grep", "line")
-      .GetStringAsync(cts.Token);
+      .CaptureAsync(cts.Token);
+    string result = output.Stdout;
     
     AssertTrue(
       !string.IsNullOrEmpty(result) && result.Contains("line", StringComparison.Ordinal),
@@ -108,7 +113,8 @@ internal sealed class CancellationTests
 
   public static async Task TestDefaultCancellationTokenBehavior()
   {
-    string result = await Shell.Builder("echo").WithArguments("default token test").GetStringAsync();
+    CommandOutput output = await Shell.Builder("echo").WithArguments("default token test").CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "default token test",

@@ -87,37 +87,6 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
     return CommandExtensions.Run(Executable, Arguments.ToArray(), Options, StandardInput);
   }
 
-  // Temporary compatibility methods - will be removed after all builders are updated
-  [Obsolete("Use CaptureAsync().Result.Stdout instead")]
-  public async Task<string> GetStringAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().GetStringAsync(cancellationToken);
-  }
-
-  [Obsolete("Use CaptureAsync().Result.GetLines() instead")]
-  public async Task<string[]> GetLinesAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().GetLinesAsync(cancellationToken);
-  }
-
-  [Obsolete("Use CaptureAsync() instead")]
-  public async Task<ExecutionResult> ExecuteAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().ExecuteAsync(cancellationToken);
-  }
-
-  [Obsolete("Use PassthroughAsync() instead")]
-  public async Task<ExecutionResult> ExecuteInteractiveAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().ExecuteInteractiveAsync(cancellationToken);
-  }
-
-  [Obsolete("Use SelectAsync() instead")]
-  public async Task<string> GetStringInteractiveAsync(CancellationToken cancellationToken = default)
-  {
-    return await Build().GetStringInteractiveAsync(cancellationToken);
-  }
-
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.
   /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.

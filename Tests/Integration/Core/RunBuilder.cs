@@ -21,9 +21,10 @@ internal sealed class RunBuilderTests
 
   public static async Task TestBasicRunBuilder()
   {
-    string result = await Shell.Builder("echo")
+    CommandOutput output = await Shell.Builder("echo")
       .WithArguments("Hello", "World")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -49,10 +50,11 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithMultipleWithArguments()
   {
-    string result = await Shell.Builder("echo")
+    CommandOutput output = await Shell.Builder("echo")
       .WithArguments("arg1")
       .WithArguments("arg2", "arg3")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "arg1 arg2 arg3",
@@ -79,10 +81,11 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithEnvironmentVariable()
   {
-    string result = await Shell.Builder("printenv")
+    CommandOutput output = await Shell.Builder("printenv")
       .WithEnvironmentVariable("TEST_VAR", "test_value")
       .WithArguments("TEST_VAR")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "test_value",
@@ -93,21 +96,22 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithNoValidation()
   {
     // This would normally throw because 'false' exits with code 1
-    ExecutionResult result = await Shell.Builder("false")
+    int exitCode = await Shell.Builder("false")
       .WithNoValidation()
-      .ExecuteAsync();
+      .RunAsync();
     
     AssertTrue(
-      result.ExitCode == 1,
+      exitCode == 1,
       "WithNoValidation should allow non-zero exit codes"
     );
   }
 
   public static async Task TestRunBuilderGetLinesAsync()
   {
-    string[] lines = await Shell.Builder("printf")
+    CommandOutput output = await Shell.Builder("printf")
       .WithArguments("line1\\nline2\\nline3")
-      .GetLinesAsync();
+      .CaptureAsync();
+    string[] lines = output.GetLines();
     
     AssertTrue(
       lines.Length == 3,
@@ -139,9 +143,10 @@ internal sealed class RunBuilderTests
   public static async Task TestRunBuilderWithWorkingDirectory()
   {
     string tempDir = Path.GetTempPath();
-    string result = await Shell.Builder("pwd")
+    CommandOutput output = await Shell.Builder("pwd")
       .WithWorkingDirectory(tempDir)
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == tempDir.TrimEnd('/'),
@@ -167,11 +172,12 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderPipeline()
   {
-    string result = await Shell.Builder("echo")
+    CommandOutput output = await Shell.Builder("echo")
       .WithArguments("Hello\nWorld\nTest")
       .Build()
       .Pipe("grep", "World")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "World",
@@ -181,30 +187,31 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderExecuteAsync()
   {
-    ExecutionResult result = await Shell.Builder("echo")
+    CommandOutput output = await Shell.Builder("echo")
       .WithArguments("test output")
-      .ExecuteAsync();
+      .CaptureAsync();
     
     AssertTrue(
-      result.IsSuccess,
+      output.Success,
       "Command should execute successfully"
     );
     
     AssertTrue(
-      result.StandardOutput.Trim() == "test output",
-      $"Output should match, got '{result.StandardOutput.Trim()}'"
+      output.Stdout.Trim() == "test output",
+      $"Output should match, got '{output.Stdout.Trim()}'"
     );
   }
 
   public static async Task TestRunBuilderChaining()
   {
     // Test that all methods can be chained fluently
-    string result = await Shell.Builder("bash")
+    CommandOutput output = await Shell.Builder("bash")
       .WithArguments("-c", "echo $TEST1 $TEST2")
       .WithEnvironmentVariable("TEST1", "Hello")
       .WithEnvironmentVariable("TEST2", "World")
       .WithNoValidation()
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -214,10 +221,11 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInput()
   {
-    string result = await Shell.Builder("grep")
+    CommandOutput output = await Shell.Builder("grep")
       .WithArguments("World")
       .WithStandardInput("Hello World\nGoodbye Moon\nHello Universe")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "Hello World",
@@ -227,10 +235,11 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInputLines()
   {
-    string result = await Shell.Builder("wc")
+    CommandOutput output = await Shell.Builder("wc")
       .WithArguments("-l")
       .WithStandardInput("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Trim() == "5",
@@ -240,11 +249,12 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithStandardInputPipeline()
   {
-    string[] result = await Shell.Builder("cat")
+    CommandOutput output = await Shell.Builder("cat")
       .WithStandardInput("apple\nbanana\ncherry\ndate")
       .Pipe("sort")
       .Pipe("head", "-2")
-      .GetLinesAsync();
+      .CaptureAsync();
+    string[] result = output.GetLines();
     
     AssertTrue(
       result.Length == 2 && result[0] == "apple" && result[1] == "banana",
@@ -254,9 +264,10 @@ internal sealed class RunBuilderTests
 
   public static async Task TestRunBuilderWithEmptyStandardInput()
   {
-    string result = await Shell.Builder("cat")
+    CommandOutput output = await Shell.Builder("cat")
       .WithStandardInput("")
-      .GetStringAsync();
+      .CaptureAsync();
+    string result = output.Stdout;
     
     AssertTrue(
       result.Length == 0,
