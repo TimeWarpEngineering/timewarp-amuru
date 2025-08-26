@@ -98,6 +98,11 @@ public partial class FzfBuilder
   {
     return await Build().CaptureAsync(cancellationToken);
   }
+
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAndCaptureAsync(cancellationToken);
+  }
   
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.

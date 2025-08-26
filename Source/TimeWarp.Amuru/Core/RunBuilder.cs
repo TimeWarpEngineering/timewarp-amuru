@@ -144,6 +144,17 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   }
 
   /// <summary>
+  /// Executes the command, streams output to console AND captures it.
+  /// Useful for debugging/logging scenarios where you want to see output and save it.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAndCaptureAsync(cancellationToken);
+  }
+
+  /// <summary>
   /// Executes the command and streams stdout lines without buffering.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>

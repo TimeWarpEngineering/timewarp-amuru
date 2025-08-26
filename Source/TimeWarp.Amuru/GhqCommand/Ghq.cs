@@ -85,6 +85,11 @@ public partial class GhqBuilder
     return await Build().CaptureAsync(cancellationToken);
   }
 
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAndCaptureAsync(cancellationToken);
+  }
+
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);

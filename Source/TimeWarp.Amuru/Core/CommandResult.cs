@@ -198,6 +198,82 @@ public class CommandResult
   }
 
   /// <summary>
+  /// Executes the command, streams output to console AND captures it.
+  /// Useful for debugging/logging scenarios where you want to see output and save it.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return CommandOutput.Empty();
+    }
+
+    // Check if mocking is enabled and a mock is configured
+    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    {
+      string? executable = Command.TargetFilePath;
+      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      
+      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      {
+        Testing.CommandMock.State.RecordCall(executable, arguments);
+        
+        if (setupData.Delay.HasValue)
+        {
+          await Task.Delay(setupData.Delay.Value, cancellationToken);
+        }
+        
+        if (setupData.Exception != null)
+        {
+          throw setupData.Exception;
+        }
+        
+        // Write to console for RunAndCapture behavior
+        if (!string.IsNullOrEmpty(setupData.Stdout))
+        {
+          await Console.Out.WriteLineAsync(setupData.Stdout);
+        }
+        
+        if (!string.IsNullOrEmpty(setupData.Stderr))
+        {
+          await Console.Error.WriteLineAsync(setupData.Stderr);
+        }
+        
+        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
+      }
+    }
+
+    // Use StringBuilders to capture output while also streaming to console
+    StringBuilder stdOutBuilder = new();
+    StringBuilder stdErrBuilder = new();
+    
+    // Create pipe targets that both stream to console AND capture
+    var stdOutTarget = PipeTarget.Merge(
+      PipeTarget.ToDelegate(Console.WriteLine),
+      PipeTarget.ToStringBuilder(stdOutBuilder)
+    );
+    
+    var stdErrTarget = PipeTarget.Merge(
+      PipeTarget.ToDelegate(Console.Error.WriteLine),
+      PipeTarget.ToStringBuilder(stdErrBuilder)
+    );
+    
+    Command captureCommand = Command
+      .WithStandardOutputPipe(stdOutTarget)
+      .WithStandardErrorPipe(stdErrTarget);
+    
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
+    
+    return new CommandOutput(
+      stdOutBuilder.ToString(),
+      stdErrBuilder.ToString(),
+      result.ExitCode
+    );
+  }
+
+  /// <summary>
   /// Executes the command silently and captures all output.
   /// No output is written to the console.
   /// </summary>
