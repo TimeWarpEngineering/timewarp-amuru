@@ -383,7 +383,7 @@ See our [Architectural Decision Records](Documentation/Conceptual/ArchitecturalD
 
 ## Documentation
 
-- **[CLAUDE.md](CLAUDE.md)** - Complete API reference and usage guide
+- **[Migration Guide](Analysis/MigrationGuide.md)** - Guide for migrating from older versions
 - **[CommandExtensions.md](Source/TimeWarp.Amuru/CommandExtensions.md)** - Static API documentation
 - **[CommandResult.md](Source/TimeWarp.Amuru/CommandResult.md)** - Fluent interface documentation
 - **[Architectural Decisions](Documentation/Conceptual/ArchitecturalDecisionRecords/Overview.md)** - Design rationale and decisions
