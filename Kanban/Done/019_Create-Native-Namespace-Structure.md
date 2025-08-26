@@ -14,56 +14,56 @@ Set up the namespace structure for Native commands using PowerShell-inspired nam
 ## Checklist
 
 ### Namespace Structure
-- [ ] Create Source/TimeWarp.Amuru/Native/ directory structure
-  - [ ] Native/FileSystem/ directory (handles files and directories)
-  - [ ] Native/Text/ directory
-  - [ ] Native/SystemInfo/ directory
-  - [ ] Native/Process/ directory
+- [x] Create Source/TimeWarp.Amuru/Native/ directory structure
+  - [x] Native/FileSystem/ directory (handles files and directories)
+  - [x] Native/Text/ directory
+  - [x] Native/SystemInfo/ directory
+  - [x] Native/Process/ directory
 
 ### FileSystem Namespace Implementation
-- [ ] Create Native/FileSystem/Commands.cs
-  - [ ] Static class Commands
-  - [ ] Implement GetContent(string path) returning CommandOutput (primary)
-  - [ ] Implement GetChildItem(string path = ".") returning CommandOutput (primary)
-  - [ ] Add bash aliases: Cat() => GetContent(), Ls() => GetChildItem()
-  - [ ] Handle file not found with proper stderr/exit code
-  - [ ] No exceptions - shell semantics
+- [x] Create Native/FileSystem/Commands.cs
+  - [x] Static class Commands
+  - [x] Implement GetContent(string path) returning CommandOutput (primary)
+  - [x] Implement GetChildItem(string path = ".") returning CommandOutput (primary)
+  - [x] Add bash aliases: Cat() => GetContent(), Ls() => GetChildItem()
+  - [x] Handle file not found with proper stderr/exit code
+  - [x] No exceptions - shell semantics
 
-- [ ] Create Native/FileSystem/Direct.cs
-  - [ ] Static class Direct
-  - [ ] Implement GetContent(string path) returning IAsyncEnumerable<string>
-  - [ ] Implement GetChildItem(string path = ".") returning IAsyncEnumerable<FileSystemInfo>
-  - [ ] Stream results without buffering
-  - [ ] Can throw exceptions (C# semantics)
+- [x] Create Native/FileSystem/Direct.cs
+  - [x] Static class Direct
+  - [x] Implement GetContent(string path) returning IAsyncEnumerable<string>
+  - [x] Implement GetChildItem(string path = ".") returning IAsyncEnumerable<FileSystemInfo>
+  - [x] Stream results without buffering
+  - [x] Can throw exceptions (C# semantics)
 
 ### CommandOutput Integration
-- [ ] Ensure Native.GetContent returns proper CommandOutput
-  - [ ] Stdout contains file/directory content
-  - [ ] Stderr contains error messages if any
-  - [ ] ExitCode 0 for success, 1 for failure
-  - [ ] Success property works correctly
+- [x] Ensure Native.GetContent returns proper CommandOutput
+  - [x] Stdout contains file/directory content
+  - [x] Stderr contains error messages if any
+  - [x] ExitCode 0 for success, 1 for failure
+  - [x] Success property works correctly
 
 ### Global Usings Setup
-- [ ] Create example GlobalUsings patterns
-  - [ ] PowerShell-style: `global using static TimeWarp.Amuru.Native.FileSystem.Commands;`
-  - [ ] Bash-style: `global using static TimeWarp.Amuru.Native.Aliases.Bash;`
-  - [ ] Show how users control verbosity
+- [x] Create example GlobalUsings patterns
+  - [x] PowerShell-style: `global using static TimeWarp.Amuru.Native.FileSystem.Commands;`
+  - [x] Bash-style: `global using static TimeWarp.Amuru.Native.Aliases.Bash;`
+  - [x] Show how users control verbosity
 
 ### Alias System
-- [ ] Create Native/Aliases/Bash.cs
-  - [ ] Static methods that delegate to primary implementations
-  - [ ] Cat() => FileSystem.Commands.GetContent()
-  - [ ] Ls() => FileSystem.Commands.GetChildItem()
-  - [ ] Allow both naming conventions
+- [x] Create Native/Aliases/Bash.cs
+  - [x] Static methods that delegate to primary implementations
+  - [x] Cat() => FileSystem.Commands.GetContent()
+  - [x] Ls() => FileSystem.Commands.GetChildItem()
+  - [x] Allow both naming conventions
 
 ### Testing
-- [ ] Test Commands.GetContent with existing file
-- [ ] Test Commands.GetContent with missing file
-- [ ] Test Commands.GetChildItem with valid directory
-- [ ] Test bash aliases work correctly
-- [ ] Test Direct.GetContent streaming behavior
-- [ ] Test both APIs can coexist
-- [ ] Test global using patterns
+- [x] Test Commands.GetContent with existing file
+- [x] Test Commands.GetContent with missing file
+- [x] Test Commands.GetChildItem with valid directory
+- [x] Test bash aliases work correctly
+- [x] Test Direct.GetContent streaming behavior
+- [x] Test both APIs can coexist
+- [x] Test global using patterns
 
 ## Notes
 
