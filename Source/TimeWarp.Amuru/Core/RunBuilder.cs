@@ -161,7 +161,8 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// <returns>An async enumerable of stdout lines</returns>
   public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    await foreach (string line in Build().StreamStdoutAsync(cancellationToken))
+    CommandResult command = Build();
+    await foreach (string line in command.StreamStdoutAsync(cancellationToken))
     {
       yield return line;
     }
@@ -174,7 +175,8 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// <returns>An async enumerable of stderr lines</returns>
   public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    await foreach (string line in Build().StreamStderrAsync(cancellationToken))
+    CommandResult command = Build();
+    await foreach (string line in command.StreamStderrAsync(cancellationToken))
     {
       yield return line;
     }
@@ -187,7 +189,8 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// <returns>An async enumerable of OutputLine objects</returns>
   public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    await foreach (OutputLine line in Build().StreamCombinedAsync(cancellationToken))
+    CommandResult command = Build();
+    await foreach (OutputLine line in command.StreamCombinedAsync(cancellationToken))
     {
       yield return line;
     }
