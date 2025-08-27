@@ -19,6 +19,8 @@
 
 # TimeWarp.Amuru
 
+*Amuru means "command" in Swahili*
+
 **TimeWarp.Amuru** is a powerful fluent API library for elegant command-line execution in C#. It transforms shell scripting into a type-safe, IntelliSense-friendly experience with a simple static `Builder()` method, async operations, and proper error handling.
 
 Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scripting directly into your C# code. Whether you're building automation tools, DevOps scripts, or integrating command-line tools into your applications, TimeWarp.Amuru provides the elegant, type-safe API you need.
