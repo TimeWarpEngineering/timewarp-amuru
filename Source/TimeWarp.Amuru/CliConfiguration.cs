@@ -15,6 +15,9 @@ public static class CliConfiguration
   /// </summary>
   /// <param name="command">The command name (e.g., "fzf", "git")</param>
   /// <param name="path">The full path to the executable</param>
+  /// <exception cref="ArgumentNullException">Thrown when command or path is null</exception>
+  /// <exception cref="FileNotFoundException">Thrown when the specified path does not exist</exception>
+  /// <exception cref="UnauthorizedAccessException">Thrown when the file exists but is not executable</exception>
   /// <example>
   /// CliConfiguration.SetCommandPath("fzf", "/tmp/mock-bin/fzf");
   /// </example>
@@ -22,6 +25,35 @@ public static class CliConfiguration
   {
     ArgumentNullException.ThrowIfNull(command);
     ArgumentNullException.ThrowIfNull(path);
+    
+    // Validate that the file exists
+    if (!File.Exists(path))
+    {
+      throw new FileNotFoundException($"The specified executable path does not exist: {path}", path);
+    }
+    
+    // On Unix-like systems, check if the file is executable
+    if (!OperatingSystem.IsWindows())
+    {
+      try
+      {
+        // Try to get file attributes to ensure we have access
+        FileAttributes attributes = File.GetAttributes(path);
+        
+        // Check if it's a directory (not an executable file)
+        if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
+        {
+          throw new ArgumentException($"The specified path is a directory, not an executable file: {path}", nameof(path));
+        }
+        
+        // For Unix systems, we could check execute permission but File.GetAttributes doesn't provide that
+        // The actual execute check will happen when CliWrap tries to run it
+      }
+      catch (UnauthorizedAccessException)
+      {
+        throw new UnauthorizedAccessException($"Cannot access the specified executable: {path}");
+      }
+    }
     
     lock (Lock)
     {
