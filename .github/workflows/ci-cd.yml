@@ -41,31 +41,27 @@ jobs:
           chmod +x Tests/RunTests.cs
           chmod +x Tests/Integration/*.cs
 
-      - name: Create LocalNuGetFeed directory
-        run: mkdir -p LocalNuGetFeed
-
       - name: Build and Test
         run: |
           echo "Building TimeWarp.Amuru..."
           dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release
-          
+
+          echo "Building TimeWarp.Multiavatar..."
+          dotnet build Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release
+
+          echo "Building TimeWarp.Amuru.Tool..."
+          dotnet build Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release
+
           # Skip tests for now - .NET 10 preview has issues with script execution in CI
           # Tests run fine locally
           echo "Skipping tests in CI (dotnet script execution issues with .NET 10 preview)"
-
-      - name: Build for Release
-        if: github.event_name == 'release'
-        run: |
-          echo "Building TimeWarp.Amuru for release (GeneratePackageOnBuild=true)..."
-          dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release
 
       - name: Check if version already published (Releases only)
         if: github.event_name == 'release'
         run: |
           VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+
           echo "Checking if TimeWarp.Amuru $VERSION is already published on NuGet.org..."
-          
-          # Check TimeWarp.Amuru using package search - only check NuGet.org source
           if dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
             echo "⚠️ WARNING: TimeWarp.Amuru $VERSION is already published to NuGet.org"
             echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
@@ -74,10 +70,28 @@ jobs:
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
           fi
 
+          echo "Checking if TimeWarp.Amuru.Tool $VERSION is already published on NuGet.org..."
+          if dotnet package search TimeWarp.Amuru.Tool --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
+            echo "⚠️ WARNING: TimeWarp.Amuru.Tool $VERSION is already published to NuGet.org"
+            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
+            exit 1
+          else
+            echo "✅ TimeWarp.Amuru.Tool $VERSION is not yet published on NuGet.org"
+          fi
+
       - name: Publish to NuGet.org (Releases only)
         if: github.event_name == 'release'
         run: |
-          dotnet nuget push LocalNuGetFeed/*.nupkg \
+          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+
+          echo "Publishing TimeWarp.Amuru $VERSION..."
+          dotnet nuget push "Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.$VERSION.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+          echo "Publishing TimeWarp.Amuru.Tool $VERSION..."
+          dotnet nuget push "Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
@@ -88,4 +102,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Packages-${{ github.run_number }}
-          path: LocalNuGetFeed/*.nupkg
+          if-no-files-found: error
+          path: |
+            Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
+            Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.*.nupkg
