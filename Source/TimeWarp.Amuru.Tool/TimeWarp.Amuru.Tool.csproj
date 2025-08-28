@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
@@ -9,7 +10,6 @@
     <PackageId>TimeWarp.Amuru.Tool</PackageId>
     <Title>TimeWarp Amuru CLI Tool</Title>
     <Description>A collection of CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.</Description>
-    <Authors>TimeWarp Engineering</Authors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +18,10 @@
 
     <!-- TimeWarp.Multiavatar for avatar generation -->
     <ProjectReference Include="..\TimeWarp.Multiavatar\TimeWarp.Multiavatar.csproj" />
+
+    <!-- Shared assets -->
+    <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 
