@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TimeWarp.Nuru" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\**\*.json" />
+  </ItemGroup>
+
+</Project>
