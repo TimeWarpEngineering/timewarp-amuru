@@ -14,6 +14,9 @@ internal static class Program
     {
         NuruAppBuilder builder = new();
 
+        // Enable auto-help
+        builder.AddAutoHelp();
+
         // Default route - simple test message
         builder.AddDefaultRoute(() =>
         {
