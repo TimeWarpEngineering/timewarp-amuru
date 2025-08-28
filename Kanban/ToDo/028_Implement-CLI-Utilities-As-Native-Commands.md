@@ -183,6 +183,24 @@ timewarp post --title "Release Notes" --content release.md --template blog
 - **Performance**: Native implementations should be fast enough for build scripts
 - **Deterministic Output**: Same input should produce same output (important for avatars/colors)
 
+## Source Code Location
+
+The existing implementations for these utilities can be found at:
+- **Source Path**: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/timewarp-flow/Cramer-2025-08-01-cron/exe/`
+
+To begin implementation:
+1. Copy the source files from the above location to an `/exe` directory in this project (at least temporarily)
+2. Review and refactor the existing code to follow TimeWarp.Amuru patterns
+3. Migrate functionality into the native commands structure
+
+Available source files:
+- `convert-timestamp.cs` - Unix timestamp conversion utility
+- `generate-avatar.cs` - Avatar generation from email/seed
+- `generate-color.cs` - Color scheme generation
+- `multiavatar.cs` - Multi-style avatar generator
+- `post.cs` - Blog/blip posting tool
+- `ssh-key-helper` - SSH key management utility
+
 ## Dependencies
 
 - Task 019 (Native namespace structure) must be complete
