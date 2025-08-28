@@ -51,6 +51,9 @@ jobs:
 
           echo "Building TimeWarp.Amuru.Tool..."
           dotnet build Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release
+          
+          echo "Packing TimeWarp.Amuru.Tool..."
+          dotnet pack Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release --no-build
 
           # Skip tests for now - .NET 10 preview has issues with script execution in CI
           # Tests run fine locally
