@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+
+    <!-- .NET Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>timewarp</ToolCommandName>
+    <PackageId>TimeWarp.Amuru.Tool</PackageId>
+    <Title>TimeWarp Amuru CLI Tool</Title>
+    <Description>A collection of CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.</Description>
+    <Authors>TimeWarp Engineering</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core TimeWarp.Amuru library -->
+    <ProjectReference Include="..\TimeWarp.Amuru\TimeWarp.Amuru.csproj" />
+
+    <!-- TimeWarp.Multiavatar for avatar generation -->
+    <ProjectReference Include="..\TimeWarp.Multiavatar\TimeWarp.Multiavatar.csproj" />
+  </ItemGroup>
+
+
+</Project>

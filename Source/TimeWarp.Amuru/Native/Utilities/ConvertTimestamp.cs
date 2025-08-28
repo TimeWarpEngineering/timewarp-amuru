@@ -98,7 +98,7 @@ public static class ConvertTimestamp
   /// <summary>
   /// Builder class for configuring timestamp conversion options.
   /// </summary>
-  internal class TimestampConverter
+  internal sealed class TimestampConverter
   {
     private readonly long Timestamp;
     private string Format = "yyyy-MM-ddTHH:mm:ssK";

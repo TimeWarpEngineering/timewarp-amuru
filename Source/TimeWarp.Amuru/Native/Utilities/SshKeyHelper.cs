@@ -368,7 +368,7 @@ public static class SshKeyHelper
   /// <summary>
   /// Information about an SSH key.
   /// </summary>
-  internal class SshKeyInfo
+  internal sealed class SshKeyInfo
   {
     /// <summary>
     /// Path to the key file

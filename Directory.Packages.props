@@ -6,5 +6,6 @@
   <ItemGroup>
     <!-- External packages -->
     <PackageVersion Include="CliWrap" Version="3.9.0" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.8" />
   </ItemGroup>
 </Project>
