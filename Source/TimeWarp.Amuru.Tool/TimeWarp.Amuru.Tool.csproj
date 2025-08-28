@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>Logo.png</PackageIcon>
 
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
