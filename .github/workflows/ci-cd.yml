@@ -1,4 +1,4 @@
-name: NuGet Publish
+name: CI/CD Pipeline
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - 'Tests/**'
       - 'Scripts/**'
       - '.github/workflows/**'
+      - 'exe/**'
   pull_request:
     branches:
       - master
@@ -17,11 +18,157 @@ on:
       - 'Tests/**'
       - 'Scripts/**'
       - '.github/workflows/**'
+      - 'exe/**'
   release:
     types: [published] # Triggered when a release is published via GitHub Releases UI or gh CLI
 
 jobs:
+  # First: Build all standalone executables
+  build-executables:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive_cmd: tar czf
+            archive_ext: .tar.gz
+          - os: windows-latest
+            rid: win-x64
+            archive_cmd: Compress-Archive -Path
+            archive_ext: .zip
+          - os: macos-latest
+            rid: osx-x64
+            archive_cmd: tar czf
+            archive_ext: .tar.gz
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Build Standalone Executables
+        shell: bash
+        run: |
+          echo "Building standalone executables for ${{ matrix.rid }}..."
+
+          # Make scripts executable (Unix-like systems)
+          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
+            chmod +x exe/*.cs
+          fi
+
+          # Create output directory
+          mkdir -p artifacts/${{ matrix.rid }}
+
+          # Build each executable
+          for script in multiavatar generate-avatar convert-timestamp generate-color; do
+            echo "Building $script for ${{ matrix.rid }}..."
+
+            dotnet publish exe/$script.cs -c Release -r ${{ matrix.rid }} \
+              --self-contained -p:PublishSingleFile=true \
+              -o artifacts/${{ matrix.rid }}
+          done
+
+      - name: Create Archive (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd artifacts
+          tar czf timewarp-utilities-${{ matrix.rid }}.tar.gz ${{ matrix.rid }}/*
+          cd ..
+
+      - name: Create Archive (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cd artifacts
+          Compress-Archive -Path "${{ matrix.rid }}/*" -DestinationPath "timewarp-utilities-${{ matrix.rid }}.zip"
+          cd ..
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: artifacts/timewarp-utilities-${{ matrix.rid }}${{ matrix.archive_ext }}
+
+      - name: Upload Executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: Executables-${{ matrix.rid }}
+          if-no-files-found: error
+          path: |
+            artifacts/timewarp-utilities-${{ matrix.rid }}${{ matrix.archive_ext }}
+
+  # Second: Build the installer executable
+  build-installer:
+    needs: build-executables  # Ensure executables are built first
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+          - os: macos-latest
+            rid: osx-x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Build installer executable
+        shell: bash
+        run: |
+          echo "Building installer for ${{ matrix.rid }}..."
+
+          # Make installer.cs executable on Unix
+          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
+            chmod +x exe/installer.cs 2>/dev/null || true
+          fi
+
+          # Build self-contained installer
+          dotnet publish exe/installer.cs -c Release -r ${{ matrix.rid }} \
+            --self-contained -p:PublishSingleFile=true \
+            -o artifacts/
+
+      - name: Rename installer
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            mv artifacts/installer.exe artifacts/installer-${{ matrix.rid }}.exe
+          else
+            mv artifacts/installer artifacts/installer-${{ matrix.rid }}
+          fi
+
+      - name: Generate installer attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: artifacts/installer-${{ matrix.rid }}*
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Installer-${{ matrix.rid }}
+          if-no-files-found: error
+          path: artifacts/installer-${{ matrix.rid }}*
+
+  # Third: Build and publish NuGet packages
   build-and-publish:
+    needs: [build-executables, build-installer]  # Depend on both executable builds
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -52,13 +199,13 @@ jobs:
 
           echo "Building TimeWarp.Amuru.Tool..."
           dotnet build Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release
-          
+
           echo "Packing TimeWarp.Amuru..."
           dotnet pack Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release --no-build
-          
+
           echo "Packing TimeWarp.Multiavatar..."
           dotnet pack Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release --no-build
-          
+
           echo "Packing TimeWarp.Amuru.Tool..."
           dotnet pack Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release --no-build
 
@@ -123,8 +270,7 @@ jobs:
         env:
           DOTNET_NUGET_SIGNATURE_VERIFICATION: false
 
-
-      - name: Upload Artifacts
+      - name: Upload NuGet Packages
         uses: actions/upload-artifact@v4
         with:
           name: Packages-${{ github.run_number }}
@@ -134,78 +280,19 @@ jobs:
             Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.*.nupkg
             Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.*.nupkg
 
-  build-executables:
+  # Fourth: Upload release assets (only on release)
+  upload-release-assets:
     if: github.event_name == 'release'
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - os: ubuntu-latest
-            rid: linux-x64
-            archive_cmd: tar czf
-            archive_ext: .tar.gz
-          - os: windows-latest
-            rid: win-x64
-            archive_cmd: Compress-Archive -Path
-            archive_ext: .zip
-          - os: macos-latest
-            rid: osx-x64
-            archive_cmd: tar czf
-            archive_ext: .tar.gz
-    runs-on: ${{ matrix.os }}
+    needs: [build-and-publish]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
         with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-          dotnet-quality: 'preview'
-
-      - name: Build Standalone Executables
-        shell: bash
-        run: |
-          echo "Building standalone executables for ${{ matrix.rid }}..."
-
-          # Make scripts executable (Unix-like systems)
-          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
-            chmod +x exe/*.cs
-          fi
-
-          # Create output directory
-          mkdir -p artifacts/${{ matrix.rid }}
-
-          # Build each executable
-          for script in multiavatar generate-avatar convert-timestamp generate-color; do
-            echo "Building $script for ${{ matrix.rid }}..."
-
-            dotnet publish exe/$script.cs -c Release -r ${{ matrix.rid }} \
-              --self-contained -p:PublishSingleFile=true \
-              -o artifacts/${{ matrix.rid }}
-          done
-
-      - name: Create Archive (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: |
-          cd artifacts
-          tar czf timewarp-utilities-${{ matrix.rid }}.tar.gz ${{ matrix.rid }}/*
-          cd ..
-
-      - name: Create Archive (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          cd artifacts
-          Compress-Archive -Path "${{ matrix.rid }}/*" -DestinationPath "timewarp-utilities-${{ matrix.rid }}.zip"
-          cd ..
-
-      - name: Upload Executables
-        uses: actions/upload-artifact@v4
-        with:
-          name: Executables-${{ matrix.rid }}
-          if-no-files-found: error
-          path: |
-            artifacts/timewarp-utilities-${{ matrix.rid }}${{ matrix.archive_ext }}
+          files: |
+            Executables-*/*
+            Installer-*/*
+            Packages-*/*
