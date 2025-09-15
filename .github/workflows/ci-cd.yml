@@ -136,23 +136,28 @@ jobs:
           mkdir -p artifacts/osx-x64
           
           # Build each executable for multiple platforms
+          # Note: Trimming is disabled because TimeWarp.Nuru and TimeWarp.Mediator use reflection
+          # for routing and mediator patterns which are not trim-compatible
           for script in multiavatar generate-avatar convert-timestamp generate-color; do
             echo "Building $script..."
-            
+
             # Linux
             dotnet publish exe/$script.cs -c Release -r linux-x64 \
-              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
-              -p:TrimMode=partial -o artifacts/linux-x64
-            
+              --self-contained -p:PublishSingleFile=true \
+              -p:PublishTrimmed=false \
+              -o artifacts/linux-x64
+
             # Windows
             dotnet publish exe/$script.cs -c Release -r win-x64 \
-              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
-              -p:TrimMode=partial -o artifacts/win-x64
-            
+              --self-contained -p:PublishSingleFile=true \
+              -p:PublishTrimmed=false \
+              -o artifacts/win-x64
+
             # macOS
             dotnet publish exe/$script.cs -c Release -r osx-x64 \
-              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
-              -p:TrimMode=partial -o artifacts/osx-x64
+              --self-contained -p:PublishSingleFile=true \
+              -p:PublishTrimmed=false \
+              -o artifacts/osx-x64
           done
           
           # Create archives
