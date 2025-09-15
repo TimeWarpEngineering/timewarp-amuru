@@ -2,7 +2,8 @@
 
 #:package TimeWarp.Nuru
 #:package Blockcore.Nostr.Client
-#:property PublishAot=false
+#:property TrimMode=partial
+#:property NoWarn=IL2104
 
 using TimeWarp.Nuru;
 using Nostr.Client.Client;
