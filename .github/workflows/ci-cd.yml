@@ -122,40 +122,6 @@ jobs:
         env:
           DOTNET_NUGET_SIGNATURE_VERIFICATION: false
 
-      - name: Build Standalone Executables (Releases only)
-        if: github.event_name == 'release'
-        run: |
-          echo "Building standalone executables..."
-
-          # Make scripts executable
-          chmod +x exe/*.cs
-
-          # Create output directory
-          mkdir -p artifacts/linux-x64
-
-          # Build each executable for Linux only (runner is ubuntu-latest)
-          # AOT compilation requires matching OS - can't cross-compile
-          for script in multiavatar generate-avatar convert-timestamp generate-color; do
-            echo "Building $script for Linux..."
-
-            dotnet publish exe/$script.cs -c Release -r linux-x64 \
-              --self-contained -p:PublishSingleFile=true \
-              -o artifacts/linux-x64
-          done
-
-          # Create archive for Linux
-          cd artifacts
-          tar czf timewarp-utilities-linux-x64.tar.gz linux-x64/*
-          cd ..
-
-      - name: Upload Standalone Executables (Releases only)
-        if: github.event_name == 'release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Executables-Linux-${{ github.run_number }}
-          if-no-files-found: error
-          path: |
-            artifacts/timewarp-utilities-linux-x64.tar.gz
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -166,3 +132,76 @@ jobs:
             Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
             Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.*.nupkg
             Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.*.nupkg
+
+  build-executables:
+    if: github.event_name == 'release'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            archive_cmd: tar czf
+            archive_ext: .tar.gz
+          - os: windows-latest
+            rid: win-x64
+            archive_cmd: Compress-Archive -Path
+            archive_ext: .zip
+          - os: macos-latest
+            rid: osx-x64
+            archive_cmd: tar czf
+            archive_ext: .tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+
+      - name: Build Standalone Executables
+        shell: bash
+        run: |
+          echo "Building standalone executables for ${{ matrix.rid }}..."
+
+          # Make scripts executable (Unix-like systems)
+          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
+            chmod +x exe/*.cs
+          fi
+
+          # Create output directory
+          mkdir -p artifacts/${{ matrix.rid }}
+
+          # Build each executable
+          for script in multiavatar generate-avatar convert-timestamp generate-color; do
+            echo "Building $script for ${{ matrix.rid }}..."
+
+            dotnet publish exe/$script.cs -c Release -r ${{ matrix.rid }} \
+              --self-contained -p:PublishSingleFile=true \
+              -o artifacts/${{ matrix.rid }}
+          done
+
+      - name: Create Archive (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd artifacts
+          tar czf timewarp-utilities-${{ matrix.rid }}.tar.gz ${{ matrix.rid }}/*
+          cd ..
+
+      - name: Create Archive (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          cd artifacts
+          Compress-Archive -Path "${{ matrix.rid }}/*" -DestinationPath "timewarp-utilities-${{ matrix.rid }}.zip"
+          cd ..
+
+      - name: Upload Executables
+        uses: actions/upload-artifact@v4
+        with:
+          name: Executables-${{ matrix.rid }}
+          if-no-files-found: error
+          path: |
+            artifacts/timewarp-utilities-${{ matrix.rid }}${{ matrix.archive_ext }}
