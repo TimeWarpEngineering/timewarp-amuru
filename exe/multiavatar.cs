@@ -2,7 +2,7 @@
 
 #:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
 #:property TrimMode=partial
-#:property NoWarn=IL2104
+#:property NoWarn=IL2104;IL3053
 
 using TimeWarp.Multiavatar;
 using TimeWarp.Nuru;

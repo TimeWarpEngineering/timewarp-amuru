@@ -1,7 +1,7 @@
 #!/usr/bin/dotnet --
 #:package TimeWarp.Nuru
 #:property TrimMode=partial
-#:property NoWarn=IL2104
+#:property NoWarn=IL2104;IL3053
 
 using TimeWarp.Nuru;
 using static System.Console;

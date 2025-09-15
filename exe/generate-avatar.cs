@@ -3,7 +3,7 @@
 #:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
 #:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 #:property TrimMode=partial
-#:property NoWarn=IL2104
+#:property NoWarn=IL2104;IL3053
 
 using System.Security.Cryptography;
 using System.Text;
