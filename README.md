@@ -38,6 +38,46 @@ Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scri
 
 If you find this project useful, please give it a star. Thanks!
 
+## Installation Options
+
+### 1. NuGet Packages
+
+```bash
+# Core library for building CLI applications
+dotnet add package TimeWarp.Amuru
+
+# Avatar generation library  
+dotnet add package TimeWarp.Multiavatar
+
+# Global CLI tool with all utilities
+dotnet tool install --global TimeWarp.Amuru.Tool
+```
+
+### 2. Standalone Executables
+
+Download pre-built executables from [GitHub Releases](https://github.com/TimeWarpEngineering/timewarp-amuru/releases):
+- Linux: `timewarp-utilities-linux-x64.tar.gz`
+- macOS: `timewarp-utilities-osx-x64.tar.gz`  
+- Windows: `timewarp-utilities-win-x64.zip`
+
+Or install via the CLI tool:
+```bash
+# Install all utilities to your PATH
+timewarp install
+
+# Install specific utility
+timewarp install multiavatar
+```
+
+### 3. Direct Script Execution
+
+```bash
+# Clone and run scripts directly
+git clone https://github.com/TimeWarpEngineering/timewarp-amuru.git
+chmod +x timewarp-amuru/exe/*.cs
+./timewarp-amuru/exe/multiavatar.cs "test@example.com"
+```
+
 ## Quick Start
 
 ```csharp
