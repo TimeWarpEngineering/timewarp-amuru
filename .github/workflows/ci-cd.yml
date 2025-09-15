@@ -126,51 +126,36 @@ jobs:
         if: github.event_name == 'release'
         run: |
           echo "Building standalone executables..."
-          
+
           # Make scripts executable
           chmod +x exe/*.cs
-          
+
           # Create output directory
           mkdir -p artifacts/linux-x64
-          mkdir -p artifacts/win-x64
-          mkdir -p artifacts/osx-x64
-          
-          # Build each executable for multiple platforms
-          for script in multiavatar generate-avatar convert-timestamp generate-color; do
-            echo "Building $script..."
 
-            # Linux
+          # Build each executable for Linux only (runner is ubuntu-latest)
+          # AOT compilation requires matching OS - can't cross-compile
+          for script in multiavatar generate-avatar convert-timestamp generate-color; do
+            echo "Building $script for Linux..."
+
             dotnet publish exe/$script.cs -c Release -r linux-x64 \
               --self-contained -p:PublishSingleFile=true \
               -o artifacts/linux-x64
-
-            # Windows
-            dotnet publish exe/$script.cs -c Release -r win-x64 \
-              --self-contained -p:PublishSingleFile=true \
-              -o artifacts/win-x64
-
-            # macOS
-            dotnet publish exe/$script.cs -c Release -r osx-x64 \
-              --self-contained -p:PublishSingleFile=true \
-              -o artifacts/osx-x64
           done
-          
-          # Create archives
+
+          # Create archive for Linux
           cd artifacts
           tar czf timewarp-utilities-linux-x64.tar.gz linux-x64/*
-          tar czf timewarp-utilities-osx-x64.tar.gz osx-x64/*
-          zip -r timewarp-utilities-win-x64.zip win-x64/*
           cd ..
 
       - name: Upload Standalone Executables (Releases only)
         if: github.event_name == 'release'
         uses: actions/upload-artifact@v4
         with:
-          name: Executables-${{ github.run_number }}
+          name: Executables-Linux-${{ github.run_number }}
           if-no-files-found: error
           path: |
-            artifacts/timewarp-utilities-*.tar.gz
-            artifacts/timewarp-utilities-*.zip
+            artifacts/timewarp-utilities-linux-x64.tar.gz
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
