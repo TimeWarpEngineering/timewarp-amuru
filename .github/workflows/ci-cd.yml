@@ -22,6 +22,13 @@ on:
   release:
     types: [published] # Triggered when a release is published via GitHub Releases UI or gh CLI
 
+# Required permissions for GitHub attestations and releases
+permissions:
+  contents: write  # Needed for creating releases
+  packages: write  # Needed for uploading packages
+  id-token: write  # Needed for attestations
+  attestations: write  # Needed for attestations
+
 jobs:
   # First: Build all standalone executables
   build-executables:
@@ -285,6 +292,8 @@ jobs:
     if: github.event_name == 'release'
     needs: [build-and-publish]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Need write permission to upload release assets
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
