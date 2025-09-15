@@ -16,27 +16,51 @@ timewarp --help
 
 ## Commands
 
-- `convert-timestamp <timestamp>` - Convert Unix timestamps to human-readable dates
-- `generate-avatar --email <email>` - Generate avatar from email address
-- `generate-color <seed>` - Generate color values from seeds
-- `multiavatar <identifier>` - Generate multi-style avatar
-- `post --content <content>` - Create and share content
-- `ssh --generate` - SSH key management operations
+### Avatar Generation
+- `multiavatar <input>` - Generate unique SVG avatar from any text
+- `multiavatar <input> --output <file>` - Generate and save to file
+- `multiavatar <input> --no-env` - Generate without environment circle
+- `multiavatar <input> --output-hash` - Display hash information
+- `generate-avatar` - Generate avatar for current git repository
+
+### Utilities
+- `convert-timestamp <timestamp>` - Convert Unix timestamps to ISO 8601 format
+- `generate-color <seed>` - Generate deterministic colors from seed text
+- `install [utility]` - Install standalone executables to system PATH
+
+### Future Commands
+- `post --content <content>` - Social media posting (coming soon)
+- `ssh --generate` - SSH key management (coming soon)
 
 ## Examples
 
 ```bash
-# Convert timestamp
+# Generate avatar to stdout
+timewarp multiavatar "user@example.com"
+
+# Save avatar to file
+timewarp multiavatar "John Doe" --output john.svg
+
+# Generate without environment circle
+timewarp multiavatar "test" --no-env
+
+# Generate repository avatar
+cd /my/git/repo
+timewarp generate-avatar
+
+# Convert Unix timestamp
 timewarp convert-timestamp 1234567890
+# Output: 2009-02-13T23:31:30+00:00
 
-# Generate color
-timewarp generate-color "my project"
+# Generate color from seed
+timewarp generate-color "my-project"
+# Output: Hex, RGB, and HSL values
 
-# Generate avatar
-timewarp generate-avatar --email user@example.com
+# Install all standalone utilities
+timewarp install
 
-# Generate SSH key
-timewarp ssh --generate
+# Install specific utility
+timewarp install multiavatar
 ```
 
 ## Library Dependencies

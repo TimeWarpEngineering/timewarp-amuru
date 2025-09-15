@@ -52,6 +52,12 @@ jobs:
           echo "Building TimeWarp.Amuru.Tool..."
           dotnet build Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release
           
+          echo "Packing TimeWarp.Amuru..."
+          dotnet pack Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release --no-build
+          
+          echo "Packing TimeWarp.Multiavatar..."
+          dotnet pack Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release --no-build
+          
           echo "Packing TimeWarp.Amuru.Tool..."
           dotnet pack Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release --no-build
 
@@ -71,6 +77,15 @@ jobs:
             exit 1
           else
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
+          fi
+
+          echo "Checking if TimeWarp.Multiavatar $VERSION is already published on NuGet.org..."
+          if dotnet package search TimeWarp.Multiavatar --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
+            echo "⚠️ WARNING: TimeWarp.Multiavatar $VERSION is already published to NuGet.org"
+            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
+            exit 1
+          else
+            echo "✅ TimeWarp.Multiavatar $VERSION is not yet published on NuGet.org"
           fi
 
           echo "Checking if TimeWarp.Amuru.Tool $VERSION is already published on NuGet.org..."
@@ -93,6 +108,12 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
+          echo "Publishing TimeWarp.Multiavatar $VERSION..."
+          dotnet nuget push "Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.$VERSION.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
           echo "Publishing TimeWarp.Amuru.Tool $VERSION..."
           dotnet nuget push "Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
@@ -101,6 +122,56 @@ jobs:
         env:
           DOTNET_NUGET_SIGNATURE_VERIFICATION: false
 
+      - name: Build Standalone Executables (Releases only)
+        if: github.event_name == 'release'
+        run: |
+          echo "Building standalone executables..."
+          
+          # Make scripts executable
+          chmod +x exe/*.cs
+          
+          # Create output directory
+          mkdir -p artifacts/linux-x64
+          mkdir -p artifacts/win-x64
+          mkdir -p artifacts/osx-x64
+          
+          # Build each executable for multiple platforms
+          for script in multiavatar generate-avatar convert-timestamp generate-color; do
+            echo "Building $script..."
+            
+            # Linux
+            dotnet publish exe/$script.cs -c Release -r linux-x64 \
+              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
+              -p:TrimMode=partial -o artifacts/linux-x64
+            
+            # Windows
+            dotnet publish exe/$script.cs -c Release -r win-x64 \
+              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
+              -p:TrimMode=partial -o artifacts/win-x64
+            
+            # macOS
+            dotnet publish exe/$script.cs -c Release -r osx-x64 \
+              --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true \
+              -p:TrimMode=partial -o artifacts/osx-x64
+          done
+          
+          # Create archives
+          cd artifacts
+          tar czf timewarp-utilities-linux-x64.tar.gz linux-x64/*
+          tar czf timewarp-utilities-osx-x64.tar.gz osx-x64/*
+          zip -r timewarp-utilities-win-x64.zip win-x64/*
+          cd ..
+
+      - name: Upload Standalone Executables (Releases only)
+        if: github.event_name == 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Executables-${{ github.run_number }}
+          if-no-files-found: error
+          path: |
+            artifacts/timewarp-utilities-*.tar.gz
+            artifacts/timewarp-utilities-*.zip
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -108,4 +179,5 @@ jobs:
           if-no-files-found: error
           path: |
             Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
+            Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.*.nupkg
             Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.*.nupkg

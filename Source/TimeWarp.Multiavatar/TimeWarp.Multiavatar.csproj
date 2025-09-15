@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>Logo.png</PackageIcon>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>TimeWarp.Multiavatar</PackageId>
+    <Title>TimeWarp Multiavatar</Title>
+    <Description>A .NET library for generating unique, deterministic avatars from any text input. Creates beautiful SVG avatars with 48 billion unique variations based on SHA256 hashing.</Description>
+    <PackageTags>avatar;svg;multiavatar;generator;identity;profile;deterministic</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +18,12 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Data\**\*.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared assets -->
+    <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

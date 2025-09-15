@@ -38,6 +38,27 @@ Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scri
 
 If you find this project useful, please give it a star. Thanks!
 
+## Installation
+
+```bash
+# Core library for shell scripting and process execution
+dotnet add package TimeWarp.Amuru
+```
+
+Or reference in your C# script:
+```csharp
+#:package TimeWarp.Amuru@1.0.0-beta.9
+```
+
+### Optional: CLI Tools
+
+```bash
+# Global CLI tool with additional utilities
+dotnet tool install --global TimeWarp.Amuru.Tool
+```
+
+The CLI tool includes various utilities like timestamp conversion, color generation, and more. See the [Tool Documentation](Source/TimeWarp.Amuru.Tool/README.md) for details.
+
 ## Quick Start
 
 ```csharp
@@ -106,19 +127,6 @@ await Shell.Builder("vim")
     .WithArguments("myfile.txt")
     .PassthroughAsync();
 ```
-
-## Installation
-
-```console
-dotnet add package TimeWarp.Amuru --prerelease
-```
-
-Or reference in your C# script:
-```csharp
-#:package TimeWarp.Amuru@1.0.0-beta.3
-```
-
-Check out the latest NuGet package: [TimeWarp.Amuru](https://www.nuget.org/packages/TimeWarp.Amuru/) [![nuget](https://img.shields.io/nuget/v/TimeWarp.Amuru?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Amuru/)
 
 ### DotNet Commands
 
@@ -398,6 +406,11 @@ See [Spikes/CsScripts/](Spikes/CsScripts/) for example scripts demonstrating Tim
 
 [![License](https://img.shields.io/github/license/TimeWarpEngineering/timewarp-amuru.svg?style=flat-square&logo=github)](https://unlicense.org)  
 This project is licensed under the [Unlicense](https://unlicense.org).
+
+## Related Packages
+
+- **[TimeWarp.Multiavatar](https://www.nuget.org/packages/TimeWarp.Multiavatar/)** - Avatar generation library (see [documentation](Source/TimeWarp.Multiavatar/README.md))
+- **[TimeWarp.Amuru.Tool](https://www.nuget.org/packages/TimeWarp.Amuru.Tool/)** - CLI utilities collection
 
 ## Contributing
 
