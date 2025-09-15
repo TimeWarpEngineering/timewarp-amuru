@@ -1,8 +1,8 @@
 #!/usr/bin/dotnet --
 
 #:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
-#:property PublishAot=false
 #:property TrimMode=partial
+#:property NoWarn=IL2104
 
 using TimeWarp.Multiavatar;
 using TimeWarp.Nuru;
