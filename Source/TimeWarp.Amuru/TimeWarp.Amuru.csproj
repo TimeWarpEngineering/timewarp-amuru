@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blockcore.Nostr.Client" />
     <PackageReference Include="CliWrap" />
   </ItemGroup>
 
