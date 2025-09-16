@@ -8,76 +8,57 @@ using TimeWarp.Multiavatar;
 using TimeWarp.Nuru;
 using static System.Console;
 
-var builder = new NuruAppBuilder();
+NuruAppBuilder builder = new();
 
-// Default route - generate avatar from input
-builder.AddRoute("{input}", (string input) =>
-{
-    string svg = MultiavatarGenerator.Generate(input);
-    Write(svg);
-});
+builder.AddAutoHelp();
 
-// Generate with output file
-builder.AddRoute("{input} --output {file}", (string input, string file) =>
-{
-    string svg = MultiavatarGenerator.Generate(input);
-    File.WriteAllText(file, svg);
-    WriteLine($"Avatar saved to: {file}");
-});
+builder.AddRoute
+(
+  "{input|Text to generate avatar from (email, username, etc)} " +
+  "--output,-o {file?|Save SVG to file instead of stdout} " +
+  "--no-env|Generate without environment circle " +
+  "--output-hash|Display hash calculation details instead of SVG",
+  GenerateAvatar,
+  "Generate unique, deterministic SVG avatars from any text input"
+);
 
-// Generate without environment circle
-builder.AddRoute("{input} --no-env", (string input) =>
-{
-    string svg = MultiavatarGenerator.Generate(input, sansEnv: true);
-    Write(svg);
-});
+NuruApp app = builder.Build();
+return await app.RunAsync(args);
 
-// Generate without environment and save to file
-builder.AddRoute("{input} --no-env --output {file}", (string input, string file) =>
+static void GenerateAvatar(string input, string? file, bool noEnv, bool outputHash)
 {
-    string svg = MultiavatarGenerator.Generate(input, sansEnv: true);
-    File.WriteAllText(file, svg);
-    WriteLine($"Avatar saved to: {file}");
-});
-
-// Output hash information
-builder.AddRoute("{input} --output-hash", (string input) =>
-{
+  // If output-hash flag is set, show hash information instead
+  if (outputHash)
+  {
     string hash = HashService.GenerateHash(input);
     string sha256Hash = HashService.GetSha256Hash(input);
     string sha256Numbers = HashService.GetSha256Numbers(sha256Hash);
-    
+
     WriteLine($"{input}:");
     WriteLine($"  SHA256: {sha256Hash}");
     WriteLine($"  Numbers: {sha256Numbers}");
     WriteLine($"  Hash-12: {hash}");
     WriteLine("  Parts:");
-    WriteLine($"    env: {hash.Substring(0, 2)} -> {HashService.GetPartSelection(hash.Substring(0, 2))}");
-    WriteLine($"    clo: {hash.Substring(2, 2)} -> {HashService.GetPartSelection(hash.Substring(2, 2))}");
-    WriteLine($"    head: {hash.Substring(4, 2)} -> {HashService.GetPartSelection(hash.Substring(4, 2))}");
-    WriteLine($"    mouth: {hash.Substring(6, 2)} -> {HashService.GetPartSelection(hash.Substring(6, 2))}");
-    WriteLine($"    eyes: {hash.Substring(8, 2)} -> {HashService.GetPartSelection(hash.Substring(8, 2))}");
-    WriteLine($"    top: {hash.Substring(10, 2)} -> {HashService.GetPartSelection(hash.Substring(10, 2))}");
-});
+    WriteLine($"    env: {hash[..2]} -> {HashService.GetPartSelection(hash[..2])}");
+    WriteLine($"    clo: {hash[2..4]} -> {HashService.GetPartSelection(hash[2..4])}");
+    WriteLine($"    head: {hash[4..6]} -> {HashService.GetPartSelection(hash[4..6])}");
+    WriteLine($"    mouth: {hash[6..8]} -> {HashService.GetPartSelection(hash[6..8])}");
+    WriteLine($"    eyes: {hash[8..10]} -> {HashService.GetPartSelection(hash[8..10])}");
+    WriteLine($"    top: {hash[10..12]} -> {HashService.GetPartSelection(hash[10..12])}");
+    return;
+  }
 
-// Help command
-builder.AddRoute("help", () =>
-{
-    WriteLine("TimeWarp.Multiavatar - Generate unique avatars from text");
-    WriteLine();
-    WriteLine("Usage:");
-    WriteLine("  multiavatar <input>                        Generate avatar and output to stdout");
-    WriteLine("  multiavatar <input> --output <file>        Generate avatar and save to file");
-    WriteLine("  multiavatar <input> --no-env               Generate without environment circle");
-    WriteLine("  multiavatar <input> --no-env --output <f>  Generate without env and save");
-    WriteLine("  multiavatar <input> --output-hash          Output hash information");
-    WriteLine("  multiavatar help                           Show this help");
-    WriteLine();
-    WriteLine("Examples:");
-    WriteLine("  multiavatar \"user@example.com\"");
-    WriteLine("  multiavatar \"John Doe\" --output john.svg");
-    WriteLine("  multiavatar \"timewarp-flow\" --no-env");
-});
+  // Generate the avatar
+  string svg = MultiavatarGenerator.Generate(input, sansEnv: noEnv);
 
-NuruApp app = builder.Build();
-return await app.RunAsync(args);
+  // Output to file or stdout
+  if (!string.IsNullOrEmpty(file))
+  {
+    File.WriteAllText(file, svg);
+    WriteLine($"Avatar saved to: {file}");
+  }
+  else
+  {
+    Write(svg);
+  }
+}
