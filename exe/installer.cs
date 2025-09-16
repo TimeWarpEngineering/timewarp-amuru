@@ -1,5 +1,5 @@
 #!/usr/bin/dotnet --
-#:package TimeWarp.Amuru@1.0.0-beta.10
+#:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 
 using TimeWarp.Amuru;
 

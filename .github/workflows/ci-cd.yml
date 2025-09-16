@@ -137,6 +137,11 @@ jobs:
           dotnet-version: '10.0.x'
           dotnet-quality: 'preview'
 
+      - name: Build TimeWarp.Amuru library first
+        run: |
+          echo "Building TimeWarp.Amuru library..."
+          dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj -c Release
+
       - name: Build installer executable
         shell: bash
         run: |
