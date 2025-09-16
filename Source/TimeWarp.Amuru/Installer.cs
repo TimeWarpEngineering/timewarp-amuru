@@ -198,8 +198,7 @@ public static class Installer
             CommandOutput result = await Shell.Builder("gh")
                 .WithArguments(
                     "attestation", "verify", filePath,
-                    "--owner", GitHubOwner,
-                    "--repo", GitHubRepo
+                    "--repo", $"{GitHubOwner}/{GitHubRepo}"
                 )
                 .CaptureAsync();
 
