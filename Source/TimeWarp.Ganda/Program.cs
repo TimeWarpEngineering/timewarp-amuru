@@ -1,7 +1,7 @@
-namespace TimeWarp.Amuru.Tool;
+namespace TimeWarp.Ganda;
 
 /// <summary>
-/// CLI tool for TimeWarp Amuru utilities
+/// TimeWarp Ganda - Shell toolkit providing CLI utilities
 /// </summary>
 internal static class Program
 {

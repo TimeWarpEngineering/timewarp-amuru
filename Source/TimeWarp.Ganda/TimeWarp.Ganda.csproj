@@ -8,9 +8,9 @@
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>timewarp</ToolCommandName>
-    <PackageId>TimeWarp.Amuru.Tool</PackageId>
-    <Title>TimeWarp Amuru CLI Tool</Title>
-    <Description>A collection of CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.</Description>
+    <PackageId>TimeWarp.Ganda</PackageId>
+    <Title>TimeWarp Ganda Shell Toolkit</Title>
+    <Description>A shell toolkit (Ganda) providing CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.</Description>
   </PropertyGroup>
 
   <ItemGroup>

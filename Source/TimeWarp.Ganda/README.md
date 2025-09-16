@@ -1,6 +1,8 @@
-# TimeWarp.Amuru.Tool
+# TimeWarp.Ganda
 
-A collection of CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.
+*Ganda means "shell" in Swahili*
+
+A shell toolkit providing CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.
 
 ## Installation
 
@@ -14,7 +16,7 @@ For enhanced security, install GitHub CLI to verify artifact attestations:
 ### Install the Tool
 
 ```bash
-dotnet tool install --global TimeWarp.Amuru.Tool
+dotnet tool install --global TimeWarp.Ganda
 ```
 
 ## Usage

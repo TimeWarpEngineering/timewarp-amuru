@@ -209,8 +209,8 @@ jobs:
           echo "Building TimeWarp.Multiavatar..."
           dotnet build Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release
 
-          echo "Building TimeWarp.Amuru.Tool..."
-          dotnet build Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release
+          echo "Building TimeWarp.Ganda..."
+          dotnet build Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release
 
           echo "Packing TimeWarp.Amuru..."
           dotnet pack Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release --no-build
@@ -218,8 +218,8 @@ jobs:
           echo "Packing TimeWarp.Multiavatar..."
           dotnet pack Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release --no-build
 
-          echo "Packing TimeWarp.Amuru.Tool..."
-          dotnet pack Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj --configuration Release --no-build
+          echo "Packing TimeWarp.Ganda..."
+          dotnet pack Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release --no-build
 
           # Skip tests for now - .NET 10 preview has issues with script execution in CI
           # Tests run fine locally
@@ -248,13 +248,13 @@ jobs:
             echo "✅ TimeWarp.Multiavatar $VERSION is not yet published on NuGet.org"
           fi
 
-          echo "Checking if TimeWarp.Amuru.Tool $VERSION is already published on NuGet.org..."
-          if dotnet package search TimeWarp.Amuru.Tool --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
-            echo "⚠️ WARNING: TimeWarp.Amuru.Tool $VERSION is already published to NuGet.org"
+          echo "Checking if TimeWarp.Ganda $VERSION is already published on NuGet.org..."
+          if dotnet package search TimeWarp.Ganda --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
+            echo "⚠️ WARNING: TimeWarp.Ganda $VERSION is already published to NuGet.org"
             echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
             exit 1
           else
-            echo "✅ TimeWarp.Amuru.Tool $VERSION is not yet published on NuGet.org"
+            echo "✅ TimeWarp.Ganda $VERSION is not yet published on NuGet.org"
           fi
 
       - name: Publish to NuGet.org (Releases only)
@@ -274,8 +274,8 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-          echo "Publishing TimeWarp.Amuru.Tool $VERSION..."
-          dotnet nuget push "Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.$VERSION.nupkg" \
+          echo "Publishing TimeWarp.Ganda $VERSION..."
+          dotnet nuget push "Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
@@ -290,7 +290,7 @@ jobs:
           path: |
             Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
             Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.*.nupkg
-            Source/TimeWarp.Amuru.Tool/bin/Release/TimeWarp.Amuru.Tool.*.nupkg
+            Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.*.nupkg
 
   # Fourth: Upload release assets (only on release)
   upload-release-assets:
