@@ -88,13 +88,13 @@ For users without .NET SDK, standalone installers are available:
 ```bash
 # Linux/macOS
 curl -LO https://github.com/TimeWarpEngineering/timewarp-amuru/releases/latest/download/installer-linux-x64
-gh attestation verify installer-linux-x64 --owner TimeWarpEngineering --repo timewarp-amuru
+gh attestation verify installer-linux-x64 --repo TimeWarpEngineering/timewarp-amuru
 chmod +x installer-linux-x64
 ./installer-linux-x64
 
 # Windows
 # Download installer-win-x64.exe from releases
-gh attestation verify installer-win-x64.exe --owner TimeWarpEngineering --repo timewarp-amuru
+gh attestation verify installer-win-x64.exe --repo TimeWarpEngineering/timewarp-amuru
 .\installer-win-x64.exe
 ```
 
