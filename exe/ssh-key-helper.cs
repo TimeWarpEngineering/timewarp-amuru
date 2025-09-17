@@ -93,77 +93,61 @@ string? encrypted = null;
 string? decrypted = null;
 
 // Test encrypt
-try
+var encProcess = Process.Start(new ProcessStartInfo
 {
-    var encProcess = Process.Start(new ProcessStartInfo
+    FileName = "bash",
+    Arguments = $"-c \"echo '{testMessage}' | openssl pkeyutl -encrypt -pubin -inkey <(ssh-keygen -f {rsaPublicKey} -e -m PKCS8) | base64 -w 0\"",
+    UseShellExecute = false,
+    RedirectStandardOutput = true,
+    RedirectStandardError = true
+});
+
+if (encProcess != null)
+{
+    encrypted = encProcess.StandardOutput.ReadToEnd().Trim();
+    string error = encProcess.StandardError.ReadToEnd();
+    encProcess.WaitForExit();
+
+    if (encProcess.ExitCode == 0 && !string.IsNullOrEmpty(encrypted))
     {
-        FileName = "bash",
-        Arguments = $"-c \"echo '{testMessage}' | openssl pkeyutl -encrypt -pubin -inkey <(ssh-keygen -f {rsaPublicKey} -e -m PKCS8) | base64 -w 0\"",
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true
-    });
-    
-    if (encProcess != null)
-    {
-        encrypted = encProcess.StandardOutput.ReadToEnd().Trim();
-        string error = encProcess.StandardError.ReadToEnd();
-        encProcess.WaitForExit();
-        
-        if (encProcess.ExitCode == 0 && !string.IsNullOrEmpty(encrypted))
-        {
-            Console.WriteLine("✅ Encryption successful");
-        }
-        else
-        {
-            Console.WriteLine($"❌ Encryption failed: {error}");
-            return 1;
-        }
+        Console.WriteLine("✅ Encryption successful");
     }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"❌ Encryption error: {ex.Message}");
-    return 1;
+    else
+    {
+        Console.WriteLine($"❌ Encryption failed: {error}");
+        return 1;
+    }
 }
 
 // Test decrypt
 if (!string.IsNullOrEmpty(encrypted))
 {
-    try
+    var decProcess = Process.Start(new ProcessStartInfo
     {
-        var decProcess = Process.Start(new ProcessStartInfo
+        FileName = "bash",
+        Arguments = $"-c \"echo '{encrypted}' | base64 -d | openssl pkeyutl -decrypt -inkey {rsaPrivateKeyPem}\"",
+        UseShellExecute = false,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true
+    });
+
+    if (decProcess != null)
+    {
+        decrypted = decProcess.StandardOutput.ReadToEnd().Trim();
+        string error = decProcess.StandardError.ReadToEnd();
+        decProcess.WaitForExit();
+
+        if (decProcess.ExitCode == 0 && decrypted == testMessage)
         {
-            FileName = "bash",
-            Arguments = $"-c \"echo '{encrypted}' | base64 -d | openssl pkeyutl -decrypt -inkey {rsaPrivateKeyPem}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        });
-        
-        if (decProcess != null)
-        {
-            decrypted = decProcess.StandardOutput.ReadToEnd().Trim();
-            string error = decProcess.StandardError.ReadToEnd();
-            decProcess.WaitForExit();
-            
-            if (decProcess.ExitCode == 0 && decrypted == testMessage)
-            {
-                Console.WriteLine("✅ Decryption successful");
-                Console.WriteLine($"   Original: {testMessage}");
-                Console.WriteLine($"   Decrypted: {decrypted}");
-            }
-            else
-            {
-                Console.WriteLine($"❌ Decryption failed: {error}");
-                return 1;
-            }
+            Console.WriteLine("✅ Decryption successful");
+            Console.WriteLine($"   Original: {testMessage}");
+            Console.WriteLine($"   Decrypted: {decrypted}");
         }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Decryption error: {ex.Message}");
-        return 1;
+        else
+        {
+            Console.WriteLine($"❌ Decryption failed: {error}");
+            return 1;
+        }
     }
 }
 

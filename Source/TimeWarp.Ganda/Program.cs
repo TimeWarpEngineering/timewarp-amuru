@@ -51,7 +51,14 @@ internal static class Program
 
     builder.AddRoute
     (
-      "install {utility?|Utility name (multiavatar, generate-avatar, convert-timestamp, generate-color) or leave empty for all}",
+      "ssh-key-helper",
+      SshKeyHelperCommand,
+      "Generate and validate SSH keys for encryption/decryption operations"
+    );
+
+    builder.AddRoute
+    (
+      "install {utility?|Utility name (multiavatar, generate-avatar, convert-timestamp, generate-color, ssh-key-helper) or leave empty for all}",
       InstallCommand,
       "Download and install standalone utility executables to system PATH"
     );
@@ -220,5 +227,46 @@ internal static class Program
   private static async Task<int> InstallCommand(string? utility)
   {
     return await Installer.InstallUtilitiesAsync(utility == null ? null : [utility]);
+  }
+
+  private static int SshKeyHelperCommand()
+  {
+    // Generate RSA key pair for encryption if it doesn't exist
+    bool keyGenerated = SshKeyHelper.GenerateKeyPair(
+      keyType: "rsa",
+      keySize: 4096,
+      comment: "encryption-key"
+    );
+
+    if (!keyGenerated)
+    {
+      WriteLine("Failed to generate or locate RSA encryption key");
+      return 1;
+    }
+
+    // Test encryption/decryption
+    WriteLine("\n🧪 Testing encryption/decryption...");
+
+    string privateKeyPath = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+      ".ssh",
+      "id_rsa"
+    );
+
+    string publicKeyPath = privateKeyPath + ".pub";
+
+    // Validate the keys
+    bool isValid = SshKeyHelper.ValidateKey(privateKeyPath);
+    if (!isValid)
+    {
+      WriteLine("❌ SSH key validation failed");
+      return 1;
+    }
+
+    WriteLine("\n✅ SSH key setup complete!");
+    WriteLine($"   Use this key for encryption: {publicKeyPath}");
+    WriteLine($"   Use this key for decryption: {privateKeyPath}");
+
+    return 0;
   }
 }
