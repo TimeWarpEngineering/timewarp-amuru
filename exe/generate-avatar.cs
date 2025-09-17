@@ -1,6 +1,6 @@
 #!/usr/bin/dotnet --
 
-#:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
+#:package TimeWarp.Multiavatar
 #:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 #:package TimeWarp.Nuru
 #:property TrimMode=partial

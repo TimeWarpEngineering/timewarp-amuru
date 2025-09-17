@@ -1,6 +1,6 @@
 #!/usr/bin/dotnet --
 
-#:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
+#:package TimeWarp.Multiavatar
 #:property TrimMode=partial
 #:property NoWarn=IL2104;IL3053
 
