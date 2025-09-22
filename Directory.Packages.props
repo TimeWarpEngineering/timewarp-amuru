@@ -2,11 +2,11 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-  
   <ItemGroup>
     <!-- External packages -->
     <PackageVersion Include="Blockcore.Nostr.Client" Version="2.0.1" />
     <PackageVersion Include="CliWrap" Version="3.9.0" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.22.11" />
     <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.10" />
     <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.9" />
   </ItemGroup>

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" />
+    <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>
 
   <ItemGroup>
