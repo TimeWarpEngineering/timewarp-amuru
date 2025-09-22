@@ -17,8 +17,9 @@
     <!-- Core TimeWarp.Amuru library -->
     <ProjectReference Include="..\TimeWarp.Amuru\TimeWarp.Amuru.csproj" />
 
-    <!-- TimeWarp.Multiavatar for avatar generation -->
-    <ProjectReference Include="..\TimeWarp.Multiavatar\TimeWarp.Multiavatar.csproj" />
+    <!-- TimeWarp packages -->
+    <PackageReference Include="TimeWarp.Multiavatar" />
+    <PackageReference Include="TimeWarp.Nuru" />
 
     <!-- Shared assets -->
     <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />

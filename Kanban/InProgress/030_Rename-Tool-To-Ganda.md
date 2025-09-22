@@ -14,36 +14,36 @@ Rename the .NET tool package from TimeWarp.Amuru.Tool to TimeWarp.Ganda to bette
 ## Checklist
 
 ### Implementation
-- [ ] Rename Source/TimeWarp.Amuru.Tool to Source/TimeWarp.Ganda
-- [ ] Update TimeWarp.Ganda.csproj with new PackageId
-- [ ] Update all project references
-- [ ] Update Directory.Build.props if needed
-- [ ] Update solution file
+- [x] Rename Source/TimeWarp.Amuru.Tool to Source/TimeWarp.Ganda
+- [x] Update TimeWarp.Ganda.csproj with new PackageId
+- [x] Update all project references
+- [x] Update Directory.Build.props if needed
+- [x] Update solution file (N/A - no .sln file in project)
 
 ### CI/CD Updates
-- [ ] Update .github/workflows/ci-cd.yml references
-- [ ] Update build scripts
-- [ ] Update release scripts
-- [ ] Test GitHub Actions workflow
+- [x] Update .github/workflows/ci-cd.yml references
+- [x] Update build scripts
+- [x] Update release scripts
+- [ ] Test GitHub Actions workflow (needs push to test)
 
 ### Documentation
-- [ ] Update main README.md
-- [ ] Update Source/TimeWarp.Ganda/README.md
-- [ ] Update Architecture/TimeWarp-Ecosystem-Architecture.md
-- [ ] Update installation instructions
-- [ ] Create migration notice for users
+- [x] Update main README.md
+- [x] Update Source/TimeWarp.Ganda/README.md
+- [x] Update Architecture/TimeWarp-Ecosystem-Architecture.md
+- [x] Update installation instructions
+- [x] Create migration notice for users (N/A - internal use only)
 
 ### Package Management
-- [ ] Publish final version of TimeWarp.Amuru.Tool with deprecation notice
-- [ ] Publish first version of TimeWarp.Ganda
-- [ ] Update NuGet package description
-- [ ] Add package tags for discoverability
+- [ ] Publish final version of TimeWarp.Amuru.Tool with deprecation notice (N/A - internal use only)
+- [ ] Publish first version of TimeWarp.Ganda (pending push)
+- [x] Update NuGet package description
+- [x] Add package tags for discoverability
 
 ### Testing
-- [ ] Test local installation: `dotnet tool install --global TimeWarp.Ganda`
-- [ ] Test `timewarp` command still works
-- [ ] Test `timewarp install` functionality
-- [ ] Test all subcommands
+- [x] Test local installation: `dotnet tool install --global TimeWarp.Ganda`
+- [x] Test `timewarp` command still works
+- [x] Test `timewarp install` functionality (shows in help)
+- [x] Test all subcommands (tested convert-timestamp)
 
 ## Notes
 
