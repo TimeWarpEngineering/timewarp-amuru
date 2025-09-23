@@ -422,3 +422,7 @@ LocalNuGetCache/
 
 # Scratch workspace for experimental scripts
 /Scratch/
+.idea/.idea.TimeWarp.Amuru/.idea/.gitignore
+.idea/.idea.TimeWarp.Amuru/.idea/.name
+.idea/.idea.TimeWarp.Amuru/.idea/indexLayout.xml
+.idea/.idea.TimeWarp.Amuru/.idea/vcs.xml

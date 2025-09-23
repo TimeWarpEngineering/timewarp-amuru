@@ -47,12 +47,13 @@ public class JsonRpcClientBuilder
   /// </summary>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
   {
-    // Build the CliWrap command from our RunBuilder
-    CommandResult commandResult = runBuilder.Build();
+    // For now, just create a simple client
+    // We'll add actual process launching in smaller steps
+    _ = runBuilder; // Will use to launch process
+    _ = timeout; // Will pass to client
     _ = cancellationToken; // Will use for cancellation
 
-    // Create the client with the command and timeout
-    JsonRpcClient client = new(commandResult, timeout);
+    JsonRpcClient client = new();
 
     await Task.CompletedTask;
     return client;

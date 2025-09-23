@@ -7,7 +7,6 @@ namespace TimeWarp.Amuru.JsonRpc;
 internal sealed class JsonRpcClient : IJsonRpcClient
 #pragma warning restore CA1812
 {
-  private readonly CommandResult? commandResult;
   private readonly TimeSpan timeout;
 
   /// <summary>
@@ -18,15 +17,6 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     timeout = TimeSpan.FromSeconds(30);
   }
 
-  /// <summary>
-  /// Initializes a new instance of the JsonRpcClient class with a command.
-  /// </summary>
-  public JsonRpcClient(CommandResult commandResult, TimeSpan timeout)
-  {
-    this.commandResult = commandResult;
-    this.timeout = timeout;
-  }
-
   /// <inheritdoc />
   public Task<TResponse?> SendRequestAsync<TResponse>
   (
@@ -35,7 +25,6 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     CancellationToken cancellationToken = default
   )
   {
-    _ = commandResult; // Will use to send to process
     _ = timeout; // Will use for request timeout
     throw new NotImplementedException("JSON-RPC request sending not yet implemented");
   }
