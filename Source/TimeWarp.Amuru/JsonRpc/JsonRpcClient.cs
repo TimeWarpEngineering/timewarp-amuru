@@ -43,18 +43,23 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   }
 
   /// <inheritdoc />
-  public Task<TResponse?> SendRequestAsync<TResponse>
+  public async Task<TResponse?> SendRequestAsync<TResponse>
   (
     string method,
     object? parameters = null,
     CancellationToken cancellationToken = default
   )
   {
-    _ = processTask; // Will check if process is still running
-    _ = inputStream; // Will read responses from here
-    _ = outputStream; // Will write requests to here
-    _ = timeout; // Will use for request timeout
-    throw new NotImplementedException("JSON-RPC request sending not yet implemented");
+    if (jsonRpc is null)
+    {
+      throw new InvalidOperationException("JSON-RPC client not initialized");
+    }
+
+    // Use StreamJsonRpc to send the request
+    // It handles request ID generation, correlation, and response parsing
+    TResponse? result = await jsonRpc.InvokeAsync<TResponse>(method, parameters, cancellationToken);
+
+    return result;
   }
 
   /// <inheritdoc />
