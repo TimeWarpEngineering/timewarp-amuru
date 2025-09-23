@@ -1,4 +1,4 @@
-namespace TimeWarp.Amuru.JsonRpc;
+namespace TimeWarp.Amuru;
 
 /// <summary>
 /// Represents a JSON-RPC client for communicating with interactive processes.

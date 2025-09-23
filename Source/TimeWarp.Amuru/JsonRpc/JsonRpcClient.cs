@@ -1,4 +1,4 @@
-namespace TimeWarp.Amuru.JsonRpc;
+namespace TimeWarp.Amuru;
 
 /// <summary>
 /// Implementation of JSON-RPC client for communicating with interactive processes.
@@ -10,6 +10,7 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   private readonly CommandTask<CliWrap.CommandResult>? processTask;
   private readonly Stream? inputStream;
   private readonly Stream? outputStream;
+  private readonly JsonRpc? jsonRpc;
   private readonly TimeSpan timeout;
 
   /// <summary>
@@ -35,6 +36,10 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     this.inputStream = inputStream;
     this.outputStream = outputStream;
     this.timeout = timeout;
+
+    // Create and attach JsonRpc to the streams
+    jsonRpc = JsonRpc.Attach(outputStream, inputStream);
+    jsonRpc.StartListening();
   }
 
   /// <inheritdoc />
@@ -55,6 +60,9 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   /// <inheritdoc />
   public async ValueTask DisposeAsync()
   {
+    // Dispose JsonRpc first (before streams)
+    jsonRpc?.Dispose();
+
     // Clean up streams
     inputStream?.Dispose();
     outputStream?.Dispose();
