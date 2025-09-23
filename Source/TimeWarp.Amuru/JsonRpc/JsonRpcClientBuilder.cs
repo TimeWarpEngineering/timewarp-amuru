@@ -34,10 +34,11 @@ public class JsonRpcClientBuilder
   /// </summary>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
   {
-    // Create bidirectional streams for JSON-RPC communication
-    // These will be connected to the process's stdin/stdout
-    var inputStream = new MemoryStream();
-    var outputStream = new MemoryStream();
+    // We need to create a duplex stream for bidirectional communication
+    // Since CliWrap doesn't directly expose the process streams, we'll use
+    // System.IO.Pipelines to create a proper duplex stream
+    var inputPipe = new System.IO.Pipelines.Pipe();
+    var outputPipe = new System.IO.Pipelines.Pipe();
 
     // Create the CliWrap command with our configuration
     Command command = Cli.Wrap(executable)
@@ -47,16 +48,19 @@ public class JsonRpcClientBuilder
 
     // Configure for bidirectional communication
     command = command
-      .WithStandardInputPipe(PipeSource.FromStream(outputStream)) // What we write goes to process stdin
-      .WithStandardOutputPipe(PipeTarget.ToStream(inputStream))   // Process stdout comes to us
+      .WithStandardInputPipe(PipeSource.FromStream(inputPipe.Reader.AsStream()))
+      .WithStandardOutputPipe(PipeTarget.ToStream(outputPipe.Writer.AsStream()))
       .WithStandardErrorPipe(PipeTarget.Null); // Ignore stderr for JSON-RPC
 
     // Start the process (but don't await it - it runs in background)
     CommandTask<CliWrap.CommandResult> processTask = command.ExecuteAsync(cancellationToken);
 
     // Create client with the process and streams
-    // We'll connect StreamJsonRpc to these streams in the next step
-    JsonRpcClient client = new(processTask, inputStream, outputStream, timeout);
+    // For JSON-RPC: we write to inputPipe.Writer and read from outputPipe.Reader
+    Stream readStream = outputPipe.Reader.AsStream();
+    Stream writeStream = inputPipe.Writer.AsStream();
+
+    JsonRpcClient client = new(processTask, readStream, writeStream, timeout);
 
     await Task.CompletedTask;
     return client;
