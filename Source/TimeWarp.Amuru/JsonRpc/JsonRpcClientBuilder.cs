@@ -34,14 +34,24 @@ public class JsonRpcClientBuilder
   /// </summary>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
   {
-    // For now, just create a simple client with the configuration
-    // We'll add actual process launching in the next step
-    _ = executable; // Will use to launch process
-    _ = arguments; // Will use as process arguments
-    _ = options; // Will use for working directory, env vars, etc.
-    _ = timeout; // Will pass to client
-    _ = cancellationToken; // Will use for cancellation
+    // Create the CliWrap command with our configuration
+    Command command = Cli.Wrap(executable)
+      .WithArguments(arguments)
+      .WithWorkingDirectory(options.WorkingDirectory ?? Directory.GetCurrentDirectory())
+      .WithValidation(CommandResultValidation.None); // JSON-RPC processes stay alive
 
+    // Configure for bidirectional communication
+    // For now, just set up the pipes - we'll connect StreamJsonRpc later
+    command = command
+      .WithStandardInputPipe(PipeSource.FromStream(Stream.Null)) // Placeholder for now
+      .WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null)) // Placeholder for now
+      .WithStandardErrorPipe(PipeTarget.Null); // Ignore stderr for JSON-RPC
+
+    // Start the process (but don't await it - it runs in background)
+    CommandTask<CliWrap.CommandResult> processTask = command.ExecuteAsync(cancellationToken);
+
+    // For now, just create a simple client
+    // We'll connect StreamJsonRpc in the next step
     JsonRpcClient client = new();
 
     await Task.CompletedTask;
