@@ -38,8 +38,8 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     this.timeout = timeout;
 
     // Create and attach JsonRpc to the streams
+    // Attach already starts listening, so we don't need to call StartListening()
     jsonRpc = JsonRpc.Attach(outputStream, inputStream);
-    jsonRpc.StartListening();
   }
 
   /// <inheritdoc />
@@ -73,7 +73,7 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     outputStream?.Dispose();
 
     // If we have a process, dispose it
-    if (processTask != null)
+    if (processTask is not null)
     {
       try
       {
