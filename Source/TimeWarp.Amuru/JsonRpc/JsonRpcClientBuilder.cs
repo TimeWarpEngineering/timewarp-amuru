@@ -34,6 +34,11 @@ public class JsonRpcClientBuilder
   /// </summary>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
   {
+    // Create bidirectional streams for JSON-RPC communication
+    // These will be connected to the process's stdin/stdout
+    var inputStream = new MemoryStream();
+    var outputStream = new MemoryStream();
+
     // Create the CliWrap command with our configuration
     Command command = Cli.Wrap(executable)
       .WithArguments(arguments)
@@ -41,18 +46,17 @@ public class JsonRpcClientBuilder
       .WithValidation(CommandResultValidation.None); // JSON-RPC processes stay alive
 
     // Configure for bidirectional communication
-    // For now, just set up the pipes - we'll connect StreamJsonRpc later
     command = command
-      .WithStandardInputPipe(PipeSource.FromStream(Stream.Null)) // Placeholder for now
-      .WithStandardOutputPipe(PipeTarget.ToStream(Stream.Null)) // Placeholder for now
+      .WithStandardInputPipe(PipeSource.FromStream(outputStream)) // What we write goes to process stdin
+      .WithStandardOutputPipe(PipeTarget.ToStream(inputStream))   // Process stdout comes to us
       .WithStandardErrorPipe(PipeTarget.Null); // Ignore stderr for JSON-RPC
 
     // Start the process (but don't await it - it runs in background)
     CommandTask<CliWrap.CommandResult> processTask = command.ExecuteAsync(cancellationToken);
 
-    // For now, just create a simple client
-    // We'll connect StreamJsonRpc in the next step
-    JsonRpcClient client = new();
+    // Create client with the process and streams
+    // We'll connect StreamJsonRpc to these streams in the next step
+    JsonRpcClient client = new(processTask, inputStream, outputStream, timeout);
 
     await Task.CompletedTask;
     return client;

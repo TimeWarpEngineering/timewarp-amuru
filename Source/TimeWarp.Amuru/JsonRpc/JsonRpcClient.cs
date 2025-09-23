@@ -7,6 +7,9 @@ namespace TimeWarp.Amuru.JsonRpc;
 internal sealed class JsonRpcClient : IJsonRpcClient
 #pragma warning restore CA1812
 {
+  private readonly CommandTask<CliWrap.CommandResult>? processTask;
+  private readonly Stream? inputStream;
+  private readonly Stream? outputStream;
   private readonly TimeSpan timeout;
 
   /// <summary>
@@ -17,6 +20,23 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     timeout = TimeSpan.FromSeconds(30);
   }
 
+  /// <summary>
+  /// Initializes a new instance of the JsonRpcClient class with a running process.
+  /// </summary>
+  public JsonRpcClient
+  (
+    CommandTask<CliWrap.CommandResult> processTask,
+    Stream inputStream,
+    Stream outputStream,
+    TimeSpan timeout
+  )
+  {
+    this.processTask = processTask;
+    this.inputStream = inputStream;
+    this.outputStream = outputStream;
+    this.timeout = timeout;
+  }
+
   /// <inheritdoc />
   public Task<TResponse?> SendRequestAsync<TResponse>
   (
@@ -25,6 +45,9 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     CancellationToken cancellationToken = default
   )
   {
+    _ = processTask; // Will check if process is still running
+    _ = inputStream; // Will read responses from here
+    _ = outputStream; // Will write requests to here
     _ = timeout; // Will use for request timeout
     throw new NotImplementedException("JSON-RPC request sending not yet implemented");
   }
@@ -32,6 +55,27 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   /// <inheritdoc />
   public async ValueTask DisposeAsync()
   {
-    await Task.CompletedTask;
+    // Clean up streams
+    inputStream?.Dispose();
+    outputStream?.Dispose();
+
+    // If we have a process, dispose it
+    if (processTask != null)
+    {
+      try
+      {
+        // Give the process a chance to exit gracefully
+        await processTask.Task.ConfigureAwait(false);
+      }
+      catch
+      {
+        // Process may have already exited or errored
+      }
+      finally
+      {
+        // Dispose the CommandTask
+        processTask.Dispose();
+      }
+    }
   }
 }
