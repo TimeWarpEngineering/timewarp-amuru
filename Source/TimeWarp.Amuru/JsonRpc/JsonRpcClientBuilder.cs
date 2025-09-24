@@ -9,6 +9,7 @@ public class JsonRpcClientBuilder
   private readonly List<string> arguments;
   private readonly CommandOptions options;
   private TimeSpan timeout = TimeSpan.FromSeconds(30);
+  private IJsonRpcMessageFormatter? formatter;
 
   /// <summary>
   /// Initializes a new instance of the JsonRpcClientBuilder class.
@@ -30,6 +31,15 @@ public class JsonRpcClientBuilder
   }
 
   /// <summary>
+  /// Sets a custom JSON-RPC message formatter.
+  /// </summary>
+  public JsonRpcClientBuilder WithFormatter(IJsonRpcMessageFormatter formatter)
+  {
+    this.formatter = formatter ?? throw new ArgumentNullException(nameof(formatter));
+    return this;
+  }
+
+  /// <summary>
   /// Starts the process and creates the JSON-RPC client.
   /// </summary>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
@@ -46,11 +56,15 @@ public class JsonRpcClientBuilder
       .WithWorkingDirectory(options.WorkingDirectory ?? Directory.GetCurrentDirectory())
       .WithValidation(CommandResultValidation.None); // JSON-RPC processes stay alive
 
+    // Create a pipe for stderr to capture any errors
+    var errorPipe = new System.IO.Pipelines.Pipe();
+
     // Configure for bidirectional communication
+    // The process reads from inputPipe.Reader, writes to outputPipe.Writer
     command = command
       .WithStandardInputPipe(PipeSource.FromStream(inputPipe.Reader.AsStream()))
       .WithStandardOutputPipe(PipeTarget.ToStream(outputPipe.Writer.AsStream()))
-      .WithStandardErrorPipe(PipeTarget.Null); // Ignore stderr for JSON-RPC
+      .WithStandardErrorPipe(PipeTarget.ToStream(errorPipe.Writer.AsStream())); // Capture stderr
 
     // Start the process (but don't await it - it runs in background)
     CommandTask<CliWrap.CommandResult> processTask = command.ExecuteAsync(cancellationToken);
@@ -59,8 +73,11 @@ public class JsonRpcClientBuilder
     // For JSON-RPC: we write to inputPipe.Writer and read from outputPipe.Reader
     Stream readStream = outputPipe.Reader.AsStream();
     Stream writeStream = inputPipe.Writer.AsStream();
+    Stream errorStream = errorPipe.Reader.AsStream();
 
-    JsonRpcClient client = new(processTask, readStream, writeStream, timeout);
+    // Note: JsonRpcClient constructor expects (processTask, inputStream, outputStream, errorStream, formatter, timeout)
+    // where inputStream is what we write to and outputStream is what we read from
+    JsonRpcClient client = new(processTask, writeStream, readStream, errorStream, formatter, timeout);
 
     await Task.CompletedTask;
     return client;
