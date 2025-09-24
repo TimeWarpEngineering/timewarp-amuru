@@ -35,13 +35,16 @@ Currently, working with processes that use JSON-RPC for communication requires v
 
 ## Acceptance Criteria
 
-- [ ] Can establish JSON-RPC communication with 10-20 lines of code (vs current 200+)
-- [ ] Supports MCP server protocol (initialize, tools/list, tools/call)
-- [ ] Supports Language Server Protocol communication patterns
-- [ ] Handles concurrent requests with proper correlation
-- [ ] Provides type-safe responses with JsonRpcResponse<T>
+- [x] Can establish JSON-RPC communication with 10-20 lines of code (vs current 200+)
+- [x] Supports MCP server protocol (initialize, tools/list, tools/call) - tested with initialize
+- [ ] Supports Language Server Protocol communication patterns - not tested
+- [x] Handles concurrent requests with proper correlation - StreamJsonRpc does this
+- [x] Provides type-safe responses with SendRequestAsync<T>
 - [ ] Gracefully handles timeouts, malformed JSON, and process crashes
-- [ ] Includes comprehensive unit and integration tests
+  - Note: Has timeout support but not tested
+  - Malformed JSON causes ConnectionLostException (not graceful)
+  - Process crash handling not tested
+- [ ] Includes comprehensive unit and integration tests - only happy path test exists
 - [ ] Documentation with real-world examples for MCP, LSP, and custom protocols
 
 ## Definition of Ready
@@ -57,37 +60,37 @@ Currently, working with processes that use JSON-RPC for communication requires v
 ### Library Feature
 
 **Implementation:**
-- [ ] *Core functionality implemented (required)
-  - [ ] IJsonRpcClient interface
-  - [ ] JsonRpcClient implementation
-  - [ ] JsonRpcClientBuilder
-  - [ ] ShellBuilderJsonRpcExtensions
-- [ ] *Public API additions/changes (required if applicable)
-  - [ ] AsJsonRpcClient() extension method
-  - [ ] JsonRpcResponse and JsonRpcResponse<T> types
-  - [ ] JsonRpcError type
-- [ ] Configuration options added
-  - [ ] Timeout configuration
-  - [ ] Encoding configuration
-  - [ ] JsonSerializerOptions configuration
+- [x] *Core functionality implemented (required)
+  - [x] IJsonRpcClient interface
+  - [x] JsonRpcClient implementation
+  - [x] JsonRpcClientBuilder
+  - [x] ShellBuilderJsonRpcExtensions
+- [x] *Public API additions/changes (required if applicable)
+  - [x] AsJsonRpcClient() extension method
+  - [x] SendRequestAsync<T> with type-safe responses
+  - [ ] JsonRpcError type - using StreamJsonRpc's error handling
+- [x] Configuration options added
+  - [x] Timeout configuration
+  - [ ] Encoding configuration - hardcoded to UTF-8
+  - [x] JsonSerializerOptions configuration via custom formatter
 - [ ] Error handling implemented
-  - [ ] Process crash detection
-  - [ ] Timeout handling
-  - [ ] Malformed JSON handling
-  - [ ] Connection state management
-- [ ] *Backward compatibility maintained (required)
+  - [ ] Process crash detection - partial, disposes but not tested
+  - [x] Timeout handling - implemented with CancellationToken
+  - [ ] Malformed JSON handling - causes ConnectionLostException
+  - [ ] Connection state management - not implemented
+- [x] *Backward compatibility maintained (required)
 
 **Testing:**
 - [ ] *Integration tests added/updated (required)
-  - [ ] MCP server communication tests
-  - [ ] Concurrent request handling tests
-  - [ ] Error scenario tests
+  - [x] MCP server communication tests - one happy path test
+  - [ ] Concurrent request handling tests - not tested
+  - [ ] Error scenario tests - NO error tests exist
 - [ ] Edge case scenarios tested
-  - [ ] Partial message handling
-  - [ ] Large message handling
-  - [ ] Process termination during request
-- [ ] Performance impact validated
-- [ ] Cross-platform compatibility verified
+  - [ ] Partial message handling - not tested
+  - [ ] Large message handling - not tested
+  - [ ] Process termination during request - not tested
+- [ ] Performance impact validated - not measured
+- [ ] Cross-platform compatibility verified - only tested on Linux
 
 **Documentation:**
 - [ ] *API documentation updated (required for public changes)
