@@ -206,17 +206,11 @@ jobs:
           echo "Building TimeWarp.Amuru..."
           dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release
 
-          echo "Building TimeWarp.Multiavatar..."
-          dotnet build Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release
-
           echo "Building TimeWarp.Ganda..."
           dotnet build Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release
 
           echo "Packing TimeWarp.Amuru..."
           dotnet pack Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release --no-build
-
-          echo "Packing TimeWarp.Multiavatar..."
-          dotnet pack Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj --configuration Release --no-build
 
           echo "Packing TimeWarp.Ganda..."
           dotnet pack Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release --no-build
@@ -238,14 +232,6 @@ jobs:
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
           fi
 
-          echo "Checking if TimeWarp.Multiavatar $VERSION is already published on NuGet.org..."
-          if dotnet package search TimeWarp.Multiavatar --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
-            echo "⚠️ WARNING: TimeWarp.Multiavatar $VERSION is already published to NuGet.org"
-            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
-            exit 1
-          else
-            echo "✅ TimeWarp.Multiavatar $VERSION is not yet published on NuGet.org"
-          fi
 
           echo "Checking if TimeWarp.Ganda $VERSION is already published on NuGet.org..."
           if dotnet package search TimeWarp.Ganda --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
@@ -267,11 +253,6 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-          echo "Publishing TimeWarp.Multiavatar $VERSION..."
-          dotnet nuget push "Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.$VERSION.nupkg" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
 
           echo "Publishing TimeWarp.Ganda $VERSION..."
           dotnet nuget push "Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.$VERSION.nupkg" \
@@ -288,7 +269,6 @@ jobs:
           if-no-files-found: error
           path: |
             Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
-            Source/TimeWarp.Multiavatar/bin/Release/TimeWarp.Multiavatar.*.nupkg
             Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.*.nupkg
 
   # Fourth: Upload release assets (only on release)
