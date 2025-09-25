@@ -1,4 +1,4 @@
-# Example: Add Command Timeout Support
+# Add Command Timeout Support
 
 ## Description
 
@@ -50,8 +50,6 @@ using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(30));
 var result = await Shell.Builder("quick-command").GetStringAsync(cts.Token);
 ```
-
-This example demonstrates how a library feature task would be structured, including API design considerations, implementation requirements, and comprehensive testing/documentation needs.
 
 ## Implementation Notes
 
