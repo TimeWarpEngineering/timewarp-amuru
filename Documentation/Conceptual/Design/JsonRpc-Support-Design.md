@@ -119,7 +119,8 @@ public static class ShellBuilderJsonRpcExtensions
 
 1. **Newline-Delimited JSON**: Default for MCP servers
 2. **Content-Length Headers**: LSP-style communication
-3. **Custom Formats**: Extensible through formatters
+3. **AOT-Only**: Requires SystemTextJsonFormatter with JsonSerializerContext
+4. **No Newtonsoft.Json**: Not supported due to AOT incompatibility
 
 ### Error Handling Strategy
 
@@ -160,12 +161,16 @@ public static class ShellBuilderJsonRpcExtensions
 
 ## API Usage Examples
 
-### Basic MCP Server Communication
+### Basic MCP Server Communication (AOT-Compatible)
 
 ```csharp
+// Create formatter with appropriate JsonSerializerContext for AOT
+var formatter = new SystemTextJsonFormatter(McpJsonContext.Default);
+
 var client = await Shell.Builder("dotnet")
     .WithArguments("run", "--project", mcpServerPath)
     .AsJsonRpcClient()
+    .WithFormatter(formatter) // Required for AOT
     .WithTimeout(TimeSpan.FromSeconds(30))
     .StartAsync();
 

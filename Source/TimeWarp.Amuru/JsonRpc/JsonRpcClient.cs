@@ -27,21 +27,35 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   /// <summary>
   /// Initializes a new instance of the JsonRpcClient class with a running process.
   /// </summary>
+  /// <param name="processTask">The running process task.</param>
+  /// <param name="inputStream">Stream for writing to the process.</param>
+  /// <param name="outputStream">Stream for reading from the process.</param>
+  /// <param name="errorStream">Stream for reading errors from the process.</param>
+  /// <param name="formatter">Required JSON-RPC message formatter. For AOT compatibility, use SystemTextJsonFormatter with appropriate JsonSerializerContext.</param>
+  /// <param name="timeout">Timeout for JSON-RPC operations.</param>
   public JsonRpcClient
   (
     CommandTask<CliWrap.CommandResult> processTask,
     Stream inputStream,
     Stream outputStream,
     Stream errorStream,
-    IJsonRpcMessageFormatter? customFormatter,
+    IJsonRpcMessageFormatter formatter,
     TimeSpan timeout
   )
   {
-    this.processTask = processTask;
-    this.inputStream = inputStream;
-    this.outputStream = outputStream;
-    this.errorStream = errorStream;
+    this.processTask = processTask ?? throw new ArgumentNullException(nameof(processTask));
+    this.inputStream = inputStream ?? throw new ArgumentNullException(nameof(inputStream));
+    this.outputStream = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+    this.errorStream = errorStream ?? throw new ArgumentNullException(nameof(errorStream));
     this.timeout = timeout;
+
+    if (formatter == null)
+    {
+      throw new ArgumentNullException(nameof(formatter),
+        "Formatter is required for AOT compatibility. " +
+        "Use new SystemTextJsonFormatter() with an appropriate JsonSerializerContext. " +
+        "Example: new SystemTextJsonFormatter(MyJsonContext.Default)");
+    }
 
     // Start reading stderr in the background to log any errors
     errorReaderCts = new CancellationTokenSource();
@@ -51,9 +65,6 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     // Note: NewLineDelimitedMessageHandler expects (writer, reader) parameters
     // We write to inputStream and read from outputStream
 #pragma warning disable CA2000 // Dispose objects before losing scope - JsonRpc disposes these
-    // Use custom formatter if provided, otherwise default to JsonMessageFormatter
-    // TODO: For AOT scenarios, users need to provide a properly configured SystemTextJsonFormatter
-    IJsonRpcMessageFormatter formatter = customFormatter ?? new JsonMessageFormatter();
     IJsonRpcMessageHandler handler;
     if (formatter is IJsonRpcMessageTextFormatter textFormatter)
     {

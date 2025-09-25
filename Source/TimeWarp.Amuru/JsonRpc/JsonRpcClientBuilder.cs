@@ -42,8 +42,17 @@ public class JsonRpcClientBuilder
   /// <summary>
   /// Starts the process and creates the JSON-RPC client.
   /// </summary>
+  /// <exception cref="InvalidOperationException">Thrown when formatter is not configured for AOT compatibility.</exception>
   public async Task<IJsonRpcClient> StartAsync(CancellationToken cancellationToken = default)
   {
+    if (formatter == null)
+    {
+      throw new InvalidOperationException(
+        "Formatter is required for AOT compatibility. " +
+        "Call WithFormatter(new SystemTextJsonFormatter(YourJsonContext.Default)) before StartAsync(). " +
+        "Example: .WithFormatter(new SystemTextJsonFormatter(MyJsonContext.Default))");
+    }
+
     // We need to create a duplex stream for bidirectional communication
     // Since CliWrap doesn't directly expose the process streams, we'll use
     // System.IO.Pipelines to create a proper duplex stream
