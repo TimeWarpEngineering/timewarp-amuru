@@ -54,10 +54,10 @@ Or reference in your C# script:
 
 ```bash
 # Global CLI tool with additional utilities
-dotnet tool install --global TimeWarp.Amuru.Tool
+dotnet tool install --global TimeWarp.Ganda
 ```
 
-The CLI tool includes various utilities like timestamp conversion, color generation, and more. See the [Tool Documentation](Source/TimeWarp.Amuru.Tool/README.md) for details.
+The CLI tool includes various utilities like timestamp conversion, color generation, and more. See the [Tool Documentation](Source/TimeWarp.Ganda/README.md) for details.
 
 ## Quick Start
 
@@ -410,7 +410,7 @@ This project is licensed under the [Unlicense](https://unlicense.org).
 ## Related Packages
 
 - **[TimeWarp.Multiavatar](https://www.nuget.org/packages/TimeWarp.Multiavatar/)** - Avatar generation library (see [documentation](Source/TimeWarp.Multiavatar/README.md))
-- **[TimeWarp.Amuru.Tool](https://www.nuget.org/packages/TimeWarp.Amuru.Tool/)** - CLI utilities collection
+- **[TimeWarp.Ganda](https://www.nuget.org/packages/TimeWarp.Ganda/)** - Shell toolkit (CLI utilities collection)
 
 ## Contributing
 

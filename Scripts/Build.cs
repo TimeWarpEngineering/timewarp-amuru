@@ -75,10 +75,10 @@ try
             "../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj", 
             "TimeWarp.Multiavatar");
         
-        // Build TimeWarp.Amuru.Tool (which references both libraries)
+        // Build TimeWarp.Ganda (which references both libraries)
         allSuccess &= await BuildProjectAsync(
-            "../Source/TimeWarp.Amuru.Tool/TimeWarp.Amuru.Tool.csproj", 
-            "TimeWarp.Amuru.Tool");
+            "../Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj",
+            "TimeWarp.Ganda");
         
         if (allSuccess)
         {

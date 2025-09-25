@@ -1,11 +1,16 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
   </PropertyGroup>
-  
   <ItemGroup>
     <!-- External packages -->
+    <PackageVersion Include="Blockcore.Nostr.Client" Version="2.0.1" />
     <PackageVersion Include="CliWrap" Version="3.9.0" />
+    <PackageVersion Include="ModelContextProtocol.Core" Version="0.3.0-preview.4" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.23.32-alpha" />
+    <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.10" />
     <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.9" />
   </ItemGroup>
 </Project>

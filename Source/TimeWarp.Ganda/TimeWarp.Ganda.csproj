@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>Logo.png</PackageIcon>
+
+    <!-- .NET Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>timewarp</ToolCommandName>
+    <PackageId>TimeWarp.Ganda</PackageId>
+    <Title>TimeWarp Ganda Shell Toolkit</Title>
+    <Description>A shell toolkit (Ganda) providing CLI utilities for TimeWarp projects including avatar generation, timestamp conversion, SSH key management, and social media posting.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Core TimeWarp.Amuru library -->
+    <ProjectReference Include="..\TimeWarp.Amuru\TimeWarp.Amuru.csproj" />
+
+    <!-- TimeWarp packages -->
+    <PackageReference Include="TimeWarp.Multiavatar" />
+    <PackageReference Include="TimeWarp.Nuru" />
+
+    <!-- Shared assets -->
+    <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+
+</Project>

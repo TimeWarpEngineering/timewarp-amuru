@@ -54,25 +54,25 @@ GitHub Issue: #14
   - [x] SVG output with customization options
   - [x] Deterministic generation from seed
 
-- [ ] **Post** - Blog/blip posting tool
-  - [ ] Create(string title, string content) method
-  - [ ] Support markdown content
-  - [ ] Template support
-  - [ ] CLI: `--title` and `--content` parameters
+- [x] **Post** - Social platform posting tool (TimeWarp.Kijamii planned)
+  - [x] Working exe/post.cs implementation
+  - [x] Support markdown content
+  - [x] Nostr and X (Twitter) platform support
+  - [ ] Move to TimeWarp.Kijamii library (see Task 031)
 
-- [ ] **SshKeyHelper** - SSH key management utility
-  - [ ] GenerateKeyPair() method
-  - [ ] GetPublicKey(string privateKeyPath) method
-  - [ ] ValidateKey(string keyPath) method
-  - [ ] CLI: `--generate`, `--validate` parameters
+- [x] **SshKeyHelper** - SSH key management utility
+  - [x] GenerateKeyPair() method
+  - [x] GetPublicKey(string privateKeyPath) method
+  - [x] ValidateKey(string keyPath) method
+  - [x] CLI: `ssh-key-helper` command implemented
 
 ### Package Structure
 - [x] Create `TimeWarp.Amuru.Native.Utilities` namespace (using TimeWarp.Multiavatar)
 - [x] Implement each utility as a static class with fluent builder pattern where appropriate
 - [x] Follow existing native command patterns (Commands vs Direct APIs)
 
-### .NET Tool Package
-- [x] Create separate `TimeWarp.Amuru.Tool` project
+### .NET Tool Package (TimeWarp.Ganda)
+- [x] Create separate tool project (currently TimeWarp.Amuru.Tool, renaming to TimeWarp.Ganda - see Task 030)
 - [x] Configure as .NET tool in .csproj
 - [x] Implement command-line interface using TimeWarp.Nuru
 - [x] Support command routing: `timewarp <command> [options]`
@@ -111,21 +111,22 @@ GitHub Issue: #14
 
 ## Implementation Status
 
-### Completed (4/6 utilities)
+### Completed (5/6 utilities)
 ✅ **Multiavatar** - Fully implemented with TimeWarp.Multiavatar library and CLI
 ✅ **ConvertTimestamp** - Basic Unix to ISO8601 conversion implemented
 ✅ **GenerateColor** - Deterministic color generation with HEX/RGB/HSL output
 ✅ **GenerateAvatar** - Repository avatar generation using Multiavatar
+✅ **Post** - Social platform posting tool (exe/post.cs working, TimeWarp.Kijamii library planned)
+✅ **SshKeyHelper** - SSH key management (exe/ssh-key-helper.cs and Native utility implemented)
 
-### Remaining (2/6 utilities)
-⏳ **Post** - Blog/blip posting tool (not started)
-⏳ **SshKeyHelper** - SSH key management (not started)
+### Completed (6/6 utilities)
+✅ **SshKeyHelper** - SSH key management implemented
 
 ### Distribution Channels
-✅ **NuGet Package** - TimeWarp.Multiavatar published separately
-✅ **.NET Tool** - TimeWarp.Amuru.Tool configured and ready
+✅ **NuGet Packages** - TimeWarp.Multiavatar published, TimeWarp.Kijamii planned
+✅ **.NET Tool** - TimeWarp.Ganda (formerly Amuru.Tool) configured and ready
 ✅ **CI/CD Pipeline** - Automated builds for all platforms
-⏳ **Standalone Executables** - Pipeline ready, needs testing with actual release
+✅ **Standalone Executables** - Working for all utilities: multiavatar, convert-timestamp, generate-color, generate-avatar, ssh-key-helper
 
 ## Implementation Notes
 
@@ -178,20 +179,22 @@ timewarp post --title "Release Notes" --content release.md --template blog
 
 ### Distribution Strategy
 
-1. **NuGet Package** (`TimeWarp.Amuru`)
-   - Include utilities in main library
+1. **NuGet Packages**
+   - `TimeWarp.Amuru` - Core process control library with Native utilities
+   - `TimeWarp.Multiavatar` - Avatar generation (separate package)
+   - `TimeWarp.Kijamii` - Social platform posting (planned, see Task 031)
    - Available for C# script usage
-   - Version aligned with main package
 
-2. **.NET Tool** (`TimeWarp.Amuru.Tool`)
-   - Separate package to avoid conflicts
-   - Installable via `dotnet tool install`
-   - Global or local tool support
+2. **.NET Tool** (`TimeWarp.Ganda`, formerly `TimeWarp.Amuru.Tool`)
+   - Shell toolkit with `timewarp` command
+   - Installable via `dotnet tool install --global TimeWarp.Ganda`
+   - Provides access to all utilities
+   - See Task 030 for rename
 
 3. **GitHub Releases**
    - Attach standalone binaries to each release
-   - Platform-specific builds
-   - Include version in filename
+   - Platform-specific builds (win-x64, linux-x64, osx-x64)
+   - Install via `timewarp install` to user bin directory
 
 ### Technical Considerations
 
@@ -222,9 +225,17 @@ Available source files:
 ## Dependencies
 
 - Task 019 (Native namespace structure) must be complete
-- System.CommandLine for CLI parsing (or similar)
-- Consider ImageSharp for avatar generation
+- TimeWarp.Nuru for CLI routing (already integrated)
+- TimeWarp.Multiavatar for avatar generation (complete)
+- Blockcore.Nostr.Client for Nostr posting (integrated)
 - Consider SSH.NET for SSH key operations
+
+## Related Tasks
+
+- Task 030: Rename TimeWarp.Amuru.Tool to TimeWarp.Ganda
+- Task 031: Create TimeWarp.Kijamii Library (for Post utility)
+- Task 032: Extract TimeWarp.Multiavatar to Own Repository
+- Task 033: Extract TimeWarp.Kijamii to Own Repository
 
 ## References
 

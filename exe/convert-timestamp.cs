@@ -7,23 +7,31 @@ using TimeWarp.Nuru;
 using static System.Console;
 using System.Globalization;
 
-NuruApp app = new NuruAppBuilder()
-    .AddRoute("--GitCommitTimestamp {timestamp}", (string timestamp) =>
-    {
-      if (long.TryParse(timestamp, out long unixTimestamp))
-      {
-        var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(unixTimestamp);
-        WriteLine(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture));
-      }
-      else
-      {
-        WriteLine("Invalid timestamp");
-        return 1;
-      }
+NuruAppBuilder builder = new();
 
-      return 0;
-    })
-    .AddAutoHelp()
-    .Build();
+builder.AddAutoHelp();
 
+builder.AddRoute
+(
+  "{timestamp|Unix timestamp to convert (seconds since epoch)}",
+  ConvertTimestamp,
+  "Convert Unix timestamps to ISO 8601 format (yyyy-MM-ddTHH:mm:ssK)"
+);
+
+NuruApp app = builder.Build();
 return await app.RunAsync(args);
+
+static int ConvertTimestamp(string timestamp)
+{
+  if (long.TryParse(timestamp, out long unixTimestamp))
+  {
+    var dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(unixTimestamp);
+    WriteLine(dateTimeOffset.ToString("yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture));
+    return 0;
+  }
+  else
+  {
+    WriteLine("Invalid timestamp");
+    return 1;
+  }
+}

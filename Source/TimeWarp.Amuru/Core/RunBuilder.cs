@@ -206,4 +206,13 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   {
     await Build().StreamToFileAsync(filePath, cancellationToken);
   }
+
+  /// <summary>
+  /// Configures the command to be executed as a JSON-RPC client for interactive process communication.
+  /// </summary>
+  /// <returns>A JsonRpcClientBuilder for further configuration</returns>
+  public JsonRpcClientBuilder AsJsonRpcClient()
+  {
+    return new JsonRpcClientBuilder(Executable, Arguments, Options);
+  }
 }

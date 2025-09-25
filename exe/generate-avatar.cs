@@ -1,21 +1,30 @@
 #!/usr/bin/dotnet --
 
-#:project ../Source/TimeWarp.Multiavatar/TimeWarp.Multiavatar.csproj
+#:package TimeWarp.Multiavatar
 #:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:package TimeWarp.Nuru
 #:property TrimMode=partial
 #:property NoWarn=IL2104;IL3053;IL2087
 
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 using TimeWarp.Amuru;
 using TimeWarp.Multiavatar;
+using TimeWarp.Nuru;
 using static System.Console;
 
-// Main program entry point
-return await GenerateAvatarAsync();
+NuruAppBuilder builder = new();
 
-static async Task<int> GenerateAvatarAsync()
+builder.AddAutoHelp();
+
+builder.AddDefaultRoute
+(
+  GenerateAvatar,
+  "Generate an SVG avatar for the current git repository and save to assets/"
+);
+
+NuruApp app = builder.Build();
+return await app.RunAsync(args);
+
+static async Task<int> GenerateAvatar()
 {
   string? gitRoot = FindGitRoot();
   if (gitRoot == null)

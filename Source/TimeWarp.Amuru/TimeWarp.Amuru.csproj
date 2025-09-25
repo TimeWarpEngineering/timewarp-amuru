@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" />
+    <PackageReference Include="StreamJsonRpc" />
+    <!-- Note: Microsoft.VisualStudio.Validation was needed for project reference but not for package -->
   </ItemGroup>
 
   <ItemGroup>
