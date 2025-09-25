@@ -1,4 +1,7 @@
 #!/usr/bin/dotnet --
+#:package Shouldly
+
+using Shouldly;
 
 await RunTests<ConfigurationTests>();
 
@@ -65,20 +68,14 @@ internal sealed class ConfigurationTests
       // Set a custom path
       CliConfiguration.SetCommandPath("fzf", tempFile);
 
-      AssertTrue(
-        CliConfiguration.HasCustomPath("fzf"),
-        "Configuration should have custom path for fzf"
-      );
+      CliConfiguration.HasCustomPath("fzf").ShouldBeTrue("Configuration should have custom path for fzf");
 
       // Create and build a command - it should use the custom path
       CommandResult command = Fzf.Builder()
         .FromInput("test1", "test2")
         .Build();
 
-      AssertTrue(
-        command != null,
-        "Fzf command with custom path should build correctly"
-      );
+      command.ShouldNotBeNull("Fzf command with custom path should build correctly");
 
       // Cleanup config
       CliConfiguration.ClearCommandPath("fzf");
@@ -93,18 +90,12 @@ internal sealed class ConfigurationTests
 
       CliConfiguration.SetCommandPath("git", tempFile);
 
-      AssertTrue(
-        CliConfiguration.HasCustomPath("git"),
-        "Configuration should have custom path for git"
-      );
+      CliConfiguration.HasCustomPath("git").ShouldBeTrue("Configuration should have custom path for git");
 
       // Clear the path
       CliConfiguration.ClearCommandPath("git");
 
-      AssertFalse(
-        CliConfiguration.HasCustomPath("git"),
-        "Configuration should not have custom path after clearing"
-      );
+      CliConfiguration.HasCustomPath("git").ShouldBeFalse("Configuration should not have custom path after clearing");
     });
   }
   
@@ -117,18 +108,12 @@ internal sealed class ConfigurationTests
       CliConfiguration.SetCommandPath("git", files[1]);
       CliConfiguration.SetCommandPath("gh", files[2]);
 
-      AssertTrue(
-        CliConfiguration.AllCommandPaths.Count >= 3,
-        "Configuration should have at least 3 custom paths"
-      );
+      CliConfiguration.AllCommandPaths.Count.ShouldBeGreaterThanOrEqualTo(3, "Configuration should have at least 3 custom paths");
 
       // Reset all
       CliConfiguration.Reset();
 
-      AssertTrue(
-        CliConfiguration.AllCommandPaths.Count == 0,
-        "Configuration should have no custom paths after reset"
-      );
+      CliConfiguration.AllCommandPaths.Count.ShouldBe(0, "Configuration should have no custom paths after reset");
     });
   }
   
@@ -145,20 +130,11 @@ internal sealed class ConfigurationTests
 
       IReadOnlyDictionary<string, string> paths = CliConfiguration.AllCommandPaths;
 
-      AssertTrue(
-        paths.Count == 2,
-        "Should have exactly 2 custom paths"
-      );
-
-      AssertTrue(
-        paths.ContainsKey("cmd1") && paths["cmd1"] == files[0],
-        "Should have correct path for cmd1"
-      );
-
-      AssertTrue(
-        paths.ContainsKey("cmd2") && paths["cmd2"] == files[1],
-        "Should have correct path for cmd2"
-      );
+      paths.Count.ShouldBe(2, "Should have exactly 2 custom paths");
+      paths.ShouldContainKey("cmd1");
+      paths["cmd1"].ShouldBe(files[0], "Should have correct path for cmd1");
+      paths.ShouldContainKey("cmd2");
+      paths["cmd2"].ShouldBe(files[1], "Should have correct path for cmd2");
 
       // Cleanup config
       CliConfiguration.Reset();
@@ -190,10 +166,7 @@ internal sealed class ConfigurationTests
       CommandOutput output = await Shell.Builder("echo").WithArguments("test").CaptureAsync();
       string result = output.Stdout;
 
-      AssertTrue(
-        result.Trim() == "MOCK OUTPUT",
-        $"Expected 'MOCK OUTPUT' but got '{result.Trim()}'"
-      );
+      result.Trim().ShouldBe("MOCK OUTPUT");
     }
     finally
     {
@@ -233,11 +206,8 @@ internal sealed class ConfigurationTests
 
       await Task.WhenAll(tasks);
 
-      // Should complete without exceptions
-      AssertTrue(
-        true,
-        "Thread safety test completed without exceptions"
-      );
+      // Should complete without exceptions - if we got here, no exceptions were thrown
+      true.ShouldBeTrue("Thread safety test completed without exceptions");
 
       // Cleanup config
       CliConfiguration.Reset();
@@ -247,36 +217,12 @@ internal sealed class ConfigurationTests
   public static async Task TestNullArgumentHandling()
   {
     // Test null command
-    bool exceptionThrown = false;
-    try
-    {
-      CliConfiguration.SetCommandPath(null!, "/path");
-    }
-    catch (ArgumentNullException)
-    {
-      exceptionThrown = true;
-    }
-
-    AssertTrue(
-      exceptionThrown,
-      "SetCommandPath should throw ArgumentNullException for null command"
-    );
+    Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath(null!, "/path"))
+      .Message.ShouldContain("command");
 
     // Test null path
-    exceptionThrown = false;
-    try
-    {
-      CliConfiguration.SetCommandPath("cmd", null!);
-    }
-    catch (ArgumentNullException)
-    {
-      exceptionThrown = true;
-    }
-
-    AssertTrue(
-      exceptionThrown,
-      "SetCommandPath should throw ArgumentNullException for null path"
-    );
+    Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath("cmd", null!))
+      .Message.ShouldContain("path");
 
     await Task.CompletedTask;
   }
