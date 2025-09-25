@@ -199,7 +199,7 @@ jobs:
           chmod +x Scripts/Build.cs
           chmod +x Scripts/Clean.cs
           chmod +x Tests/RunTests.cs
-          chmod +x Tests/Integration/*.cs
+          find Tests/Integration -name "*.cs" -type f -exec chmod +x {} \;
 
       - name: Build and Test
         run: |
