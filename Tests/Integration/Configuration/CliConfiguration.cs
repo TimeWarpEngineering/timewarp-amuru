@@ -6,25 +6,30 @@ internal sealed class ConfigurationTests
 {
   public static async Task TestSetCommandPath()
   {
-    // Setup
-    string? originalFzf = CliConfiguration.HasCustomPath("fzf") ? 
-      CliConfiguration.AllCommandPaths["fzf"] : null;
-    
+    // Setup - create a temporary mock executable
+    string tempFile = Path.GetTempFileName();
+
     try
     {
+      // Make it executable on Unix-like systems
+      if (!OperatingSystem.IsWindows())
+      {
+        await Shell.Builder("chmod").WithArguments("+x", tempFile).RunAsync();
+      }
+
       // Set a custom path
-      CliConfiguration.SetCommandPath("fzf", "/custom/path/to/fzf");
-      
+      CliConfiguration.SetCommandPath("fzf", tempFile);
+
       AssertTrue(
         CliConfiguration.HasCustomPath("fzf"),
         "Configuration should have custom path for fzf"
       );
-      
+
       // Create and build a command - it should use the custom path
       CommandResult command = Fzf.Builder()
         .FromInput("test1", "test2")
         .Build();
-      
+
       AssertTrue(
         command != null,
         "Fzf command with custom path should build correctly"
@@ -33,60 +38,97 @@ internal sealed class ConfigurationTests
     finally
     {
       // Cleanup
-      if (originalFzf != null)
+      CliConfiguration.ClearCommandPath("fzf");
+      if (File.Exists(tempFile))
       {
-        CliConfiguration.SetCommandPath("fzf", originalFzf);
-      }
-      else
-      {
-        CliConfiguration.ClearCommandPath("fzf");
+        File.Delete(tempFile);
       }
     }
-    
+
     await Task.CompletedTask;
   }
   
   public static async Task TestClearCommandPath()
   {
-    // Setup
-    CliConfiguration.SetCommandPath("git", "/mock/git");
-    
-    AssertTrue(
-      CliConfiguration.HasCustomPath("git"),
-      "Configuration should have custom path for git"
-    );
-    
-    // Clear the path
-    CliConfiguration.ClearCommandPath("git");
-    
-    AssertFalse(
-      CliConfiguration.HasCustomPath("git"),
-      "Configuration should not have custom path after clearing"
-    );
-    
+    // Setup - create a temporary mock executable
+    string tempFile = Path.GetTempFileName();
+
+    try
+    {
+      // Make it executable on Unix-like systems
+      if (!OperatingSystem.IsWindows())
+      {
+        await Shell.Builder("chmod").WithArguments("+x", tempFile).RunAsync();
+      }
+
+      CliConfiguration.SetCommandPath("git", tempFile);
+
+      AssertTrue(
+        CliConfiguration.HasCustomPath("git"),
+        "Configuration should have custom path for git"
+      );
+
+      // Clear the path
+      CliConfiguration.ClearCommandPath("git");
+
+      AssertFalse(
+        CliConfiguration.HasCustomPath("git"),
+        "Configuration should not have custom path after clearing"
+      );
+    }
+    finally
+    {
+      // Cleanup temp file
+      if (File.Exists(tempFile))
+      {
+        File.Delete(tempFile);
+      }
+    }
+
     await Task.CompletedTask;
   }
   
   public static async Task TestReset()
   {
-    // Setup multiple custom paths
-    CliConfiguration.SetCommandPath("fzf", "/mock/fzf");
-    CliConfiguration.SetCommandPath("git", "/mock/git");
-    CliConfiguration.SetCommandPath("gh", "/mock/gh");
-    
-    AssertTrue(
-      CliConfiguration.AllCommandPaths.Count >= 3,
-      "Configuration should have at least 3 custom paths"
-    );
-    
-    // Reset all
-    CliConfiguration.Reset();
-    
-    AssertTrue(
-      CliConfiguration.AllCommandPaths.Count == 0,
-      "Configuration should have no custom paths after reset"
-    );
-    
+    // Create temp files for testing
+    string tempFile1 = Path.GetTempFileName();
+    string tempFile2 = Path.GetTempFileName();
+    string tempFile3 = Path.GetTempFileName();
+
+    try
+    {
+      // Make them executable on Unix-like systems
+      if (!OperatingSystem.IsWindows())
+      {
+        await Shell.Builder("chmod").WithArguments("+x", tempFile1, tempFile2, tempFile3).RunAsync();
+      }
+
+      // Setup multiple custom paths
+      CliConfiguration.SetCommandPath("fzf", tempFile1);
+      CliConfiguration.SetCommandPath("git", tempFile2);
+      CliConfiguration.SetCommandPath("gh", tempFile3);
+
+      AssertTrue(
+        CliConfiguration.AllCommandPaths.Count >= 3,
+        "Configuration should have at least 3 custom paths"
+      );
+
+      // Reset all
+      CliConfiguration.Reset();
+
+      AssertTrue(
+        CliConfiguration.AllCommandPaths.Count == 0,
+        "Configuration should have no custom paths after reset"
+      );
+    }
+    finally
+    {
+      // Cleanup temp files
+      if (File.Exists(tempFile1)) File.Delete(tempFile1);
+      if (File.Exists(tempFile2)) File.Delete(tempFile2);
+      if (File.Exists(tempFile3)) File.Delete(tempFile3);
+    }
+
     await Task.CompletedTask;
   }
   
@@ -94,31 +136,48 @@ internal sealed class ConfigurationTests
   {
     // Clear any existing configuration
     CliConfiguration.Reset();
-    
-    // Setup
-    CliConfiguration.SetCommandPath("cmd1", "/path/to/cmd1");
-    CliConfiguration.SetCommandPath("cmd2", "/path/to/cmd2");
-    
-    IReadOnlyDictionary<string, string> paths = CliConfiguration.AllCommandPaths;
-    
-    AssertTrue(
-      paths.Count == 2,
-      "Should have exactly 2 custom paths"
-    );
-    
-    AssertTrue(
-      paths.ContainsKey("cmd1") && paths["cmd1"] == "/path/to/cmd1",
-      "Should have correct path for cmd1"
-    );
-    
-    AssertTrue(
-      paths.ContainsKey("cmd2") && paths["cmd2"] == "/path/to/cmd2",
-      "Should have correct path for cmd2"
-    );
-    
-    // Cleanup
-    CliConfiguration.Reset();
-    
+
+    // Create temp files
+    string tempFile1 = Path.GetTempFileName();
+    string tempFile2 = Path.GetTempFileName();
+
+    try
+    {
+      // Make them executable on Unix-like systems
+      if (!OperatingSystem.IsWindows())
+      {
+        await Shell.Builder("chmod").WithArguments("+x", tempFile1, tempFile2).RunAsync();
+      }
+
+      // Setup
+      CliConfiguration.SetCommandPath("cmd1", tempFile1);
+      CliConfiguration.SetCommandPath("cmd2", tempFile2);
+
+      IReadOnlyDictionary<string, string> paths = CliConfiguration.AllCommandPaths;
+
+      AssertTrue(
+        paths.Count == 2,
+        "Should have exactly 2 custom paths"
+      );
+
+      AssertTrue(
+        paths.ContainsKey("cmd1") && paths["cmd1"] == tempFile1,
+        "Should have correct path for cmd1"
+      );
+
+      AssertTrue(
+        paths.ContainsKey("cmd2") && paths["cmd2"] == tempFile2,
+        "Should have correct path for cmd2"
+      );
+    }
+    finally
+    {
+      // Cleanup
+      CliConfiguration.Reset();
+      if (File.Exists(tempFile1)) File.Delete(tempFile1);
+      if (File.Exists(tempFile2)) File.Delete(tempFile2);
+    }
+
     await Task.CompletedTask;
   }
   
