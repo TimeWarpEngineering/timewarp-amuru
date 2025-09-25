@@ -221,9 +221,8 @@ jobs:
           echo "Packing TimeWarp.Ganda..."
           dotnet pack Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release --no-build
 
-          # Skip tests for now - .NET 10 preview has issues with script execution in CI
-          # Tests run fine locally
-          echo "Skipping tests in CI (dotnet script execution issues with .NET 10 preview)"
+          echo "Running tests..."
+          ./Tests/RunTests.cs
 
       - name: Check if version already published (Releases only)
         if: github.event_name == 'release'
