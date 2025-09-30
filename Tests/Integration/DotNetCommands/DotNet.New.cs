@@ -13,10 +13,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new console",
-      $"Expected 'dotnet new console', got '{command}'"
-    );
+    command.ShouldBe("dotnet new console");
     
     await Task.CompletedTask;
   }
@@ -27,10 +24,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new",
-      $"Expected 'dotnet new', got '{command}'"
-    );
+    command.ShouldBe("dotnet new");
     
     await Task.CompletedTask;
   }
@@ -45,10 +39,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new console --output ./test-output --name TestApp --dry-run --force",
-      $"Expected correct new command with configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet new console --output ./test-output --name TestApp --dry-run --force");
     
     await Task.CompletedTask;
   }
@@ -66,10 +57,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new web --framework net10.0 --output ./web-output --name MyWebApp --verbosity detailed --no-update-check --diagnostics",
-      $"Expected correct new command with template arguments, got '{command}'"
-    );
+    command.ShouldBe("dotnet new web --framework net10.0 --output ./web-output --name MyWebApp --verbosity detailed --no-update-check --diagnostics");
     
     await Task.CompletedTask;
   }
@@ -85,10 +73,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new classlib --name MyLibrary --project test.csproj",
-      $"Expected correct new command with project option, got '{command}'"
-    );
+    command.ShouldBe("dotnet new classlib --name MyLibrary --project test.csproj");
     
     await Task.CompletedTask;
   }
@@ -99,10 +84,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new list console",
-      $"Expected 'dotnet new list console', got '{command}'"
-    );
+    command.ShouldBe("dotnet new list console");
     
     await Task.CompletedTask;
   }
@@ -113,10 +95,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new search blazor",
-      $"Expected 'dotnet new search blazor', got '{command}'"
-    );
+    command.ShouldBe("dotnet new search blazor");
     
     await Task.CompletedTask;
   }
@@ -131,10 +110,7 @@ internal sealed class DotNetNewTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet new console --output ./dry-run-test --name TestConsoleApp --dry-run",
-      $"Expected correct new command with dry run, got '{command}'"
-    );
+    command.ShouldBe("dotnet new console --output ./dry-run-test --name TestConsoleApp --dry-run");
     
     await Task.CompletedTask;
   }

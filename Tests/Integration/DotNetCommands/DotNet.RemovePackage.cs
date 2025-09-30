@@ -11,10 +11,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove package TestPackage",
-      $"Expected 'dotnet remove package TestPackage', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove package TestPackage");
     
     await Task.CompletedTask;
   }
@@ -26,10 +23,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove MyApp.csproj package TestPackage",
-      $"Expected 'dotnet remove MyApp.csproj package TestPackage', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove MyApp.csproj package TestPackage");
     
     await Task.CompletedTask;
   }
@@ -41,10 +35,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove test.csproj package Microsoft.Extensions.Logging",
-      $"Expected 'dotnet remove test.csproj package Microsoft.Extensions.Logging', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove test.csproj package Microsoft.Extensions.Logging");
     
     await Task.CompletedTask;
   }
@@ -58,10 +49,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove test.csproj package Newtonsoft.Json",
-      $"Expected 'dotnet remove test.csproj package Newtonsoft.Json', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove test.csproj package Newtonsoft.Json");
     
     await Task.CompletedTask;
   }
@@ -76,10 +64,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove test.csproj package TestPackage",
-      $"Expected 'dotnet remove test.csproj package TestPackage', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove test.csproj package TestPackage");
     
     await Task.CompletedTask;
   }
@@ -91,10 +76,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove MyProject.csproj package Valid.Package.Name",
-      $"Expected 'dotnet remove MyProject.csproj package Valid.Package.Name', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove MyProject.csproj package Valid.Package.Name");
     
     await Task.CompletedTask;
   }
@@ -109,10 +91,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove test.csproj package ChainedPackage",
-      $"Expected 'dotnet remove test.csproj package ChainedPackage', got '{command}'"
-    );
+    command.ShouldBe("dotnet remove test.csproj package ChainedPackage");
     
     await Task.CompletedTask;
   }
@@ -125,10 +104,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet remove nonexistent.csproj package TestPackage",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet remove nonexistent.csproj package TestPackage");
     
     // With WithNoValidation(), CaptureAsync returns output on failure
     CommandOutput output = await DotNet.RemovePackage("TestPackage")
@@ -137,10 +113,7 @@ internal sealed class DotNetRemovePackageTests
       .Build()
       .CaptureAsync();
     
-    AssertTrue(
-      output != null,
-      "CaptureAsync with WithNoValidation() should return non-null even for failed commands"
-    );
+    output.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }

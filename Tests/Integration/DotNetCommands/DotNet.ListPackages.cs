@@ -11,10 +11,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package",
-      $"Expected 'dotnet list package', got '{command}'"
-    );
+    command.ShouldBe("dotnet list package");
     
     await Task.CompletedTask;
   }
@@ -30,10 +27,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package test.csproj --framework net10.0 --verbosity minimal --format console --outdated",
-      $"Expected correct list packages command with configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package test.csproj --framework net10.0 --verbosity minimal --format console --outdated");
     
     await Task.CompletedTask;
   }
@@ -51,10 +45,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package test.csproj --source https://api.nuget.org/v3/index.json --include-transitive --vulnerable --deprecated --interactive --include-prerelease",
-      $"Expected correct list packages command with transitive and vulnerable options, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package test.csproj --source https://api.nuget.org/v3/index.json --include-transitive --vulnerable --deprecated --interactive --include-prerelease");
     
     await Task.CompletedTask;
   }
@@ -75,10 +66,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package test.csproj --format json --output-version 1 --config nuget.config --outdated --highest-minor --highest-patch",
-      $"Expected correct list packages command with JSON format and version options, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package test.csproj --format json --output-version 1 --config nuget.config --outdated --highest-minor --highest-patch");
     
     await Task.CompletedTask;
   }
@@ -92,10 +80,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package test.csproj --framework net8.0 --verbosity quiet --include-transitive",
-      $"Expected correct list packages command with overload, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package test.csproj --framework net8.0 --verbosity quiet --include-transitive");
     
     await Task.CompletedTask;
   }
@@ -110,10 +95,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package nonexistent.csproj --outdated --include-transitive",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package nonexistent.csproj --outdated --include-transitive");
     
     await Task.CompletedTask;
   }
@@ -129,10 +111,7 @@ internal sealed class DotNetListPackagesTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet list package test.csproj --source https://api.nuget.org/v3/index.json --source https://myget.org/F/myfeed/api/v3/index.json --outdated",
-      $"Expected correct command string with multiple sources, got '{command}'"
-    );
+    command.ShouldBe("dotnet list package test.csproj --source https://api.nuget.org/v3/index.json --source https://myget.org/F/myfeed/api/v3/index.json --outdated");
     
     await Task.CompletedTask;
   }

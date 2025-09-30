@@ -12,10 +12,7 @@ internal sealed class DotNetUserSecretsCommandTests
     // DotNet.UserSecrets() alone doesn't build a valid command - needs a subcommand
     DotNetUserSecretsBuilder userSecretsBuilder = DotNet.UserSecrets();
     
-    AssertTrue(
-      userSecretsBuilder != null,
-      "DotNet.UserSecrets() should create a valid builder"
-    );
+    userSecretsBuilder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -27,10 +24,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets init",
-      $"Expected 'dotnet user-secrets init', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets init");
     
     await Task.CompletedTask;
   }
@@ -43,10 +37,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets init --project MyApp.csproj",
-      $"Expected 'dotnet user-secrets init --project MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets init --project MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -59,10 +50,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets init --id my-app-secrets",
-      $"Expected 'dotnet user-secrets init --id my-app-secrets', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets init --id my-app-secrets");
     
     await Task.CompletedTask;
   }
@@ -74,10 +62,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets set ConnectionString Server=localhost;Database=MyApp;",
-      $"Expected 'dotnet user-secrets set ConnectionString Server=localhost;Database=MyApp;', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets set ConnectionString Server=localhost;Database=MyApp;");
     
     await Task.CompletedTask;
   }
@@ -90,10 +75,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets set ApiKey secret-key-value --project MyApp.csproj",
-      $"Expected correct user-secrets set command with project, got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets set ApiKey secret-key-value --project MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -105,10 +87,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets remove ConnectionString",
-      $"Expected 'dotnet user-secrets remove ConnectionString', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets remove ConnectionString");
     
     await Task.CompletedTask;
   }
@@ -120,10 +99,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets list",
-      $"Expected 'dotnet user-secrets list', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets list");
     
     await Task.CompletedTask;
   }
@@ -135,10 +111,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets clear",
-      $"Expected 'dotnet user-secrets clear', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets clear");
     
     await Task.CompletedTask;
   }
@@ -152,10 +125,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets set DatabaseConnection Server=localhost; --project MyApp.csproj --id my-app-secrets",
-      $"Expected correct user-secrets set command with all options, got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets set DatabaseConnection Server=localhost; --project MyApp.csproj --id my-app-secrets");
     
     await Task.CompletedTask;
   }
@@ -170,10 +140,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets list",
-      $"Expected 'dotnet user-secrets list', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets list");
     
     await Task.CompletedTask;
   }
@@ -187,10 +154,7 @@ internal sealed class DotNetUserSecretsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet user-secrets list --project test.csproj",
-      $"Expected 'dotnet user-secrets list --project test.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet user-secrets list --project test.csproj");
     
     await Task.CompletedTask;
   }

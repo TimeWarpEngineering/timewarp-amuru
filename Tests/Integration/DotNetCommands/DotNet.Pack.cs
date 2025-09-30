@@ -11,10 +11,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack",
-      $"Expected 'dotnet pack', got '{command}'"
-    );
+    command.ShouldBe("dotnet pack");
     
     await Task.CompletedTask;
   }
@@ -26,10 +23,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack MyApp.csproj",
-      $"Expected 'dotnet pack MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet pack MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -46,10 +40,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./packages --no-restore",
-      $"Expected correct pack command with configuration options, got '{command}'"
-    );
+    command.ShouldBe("dotnet pack test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./packages --no-restore");
     
     await Task.CompletedTask;
   }
@@ -67,10 +58,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack test.csproj --configuration Release --version-suffix beta --nologo --include-symbols --include-source --serviceable",
-      $"Expected correct pack command with package-specific options, got '{command}'"
-    );
+    command.ShouldBe("dotnet pack test.csproj --configuration Release --version-suffix beta --nologo --include-symbols --include-source --serviceable");
     
     await Task.CompletedTask;
   }
@@ -87,10 +75,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack test.csproj --verbosity detailed --tl on",
-      $"Expected 'dotnet pack test.csproj --verbosity detailed --tl on', got '{command}'"
-    );
+    command.ShouldBe("dotnet pack test.csproj --verbosity detailed --tl on");
     
     await Task.CompletedTask;
   }
@@ -126,10 +111,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack test.csproj --configuration Release --output ./dist --version-suffix rc1 --no-dependencies",
-      $"Expected correct pack command with overload, got '{command}'"
-    );
+    command.ShouldBe("dotnet pack test.csproj --configuration Release --output ./dist --version-suffix rc1 --no-dependencies");
     
     await Task.CompletedTask;
   }
@@ -145,10 +127,7 @@ internal sealed class DotNetPackTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet pack nonexistent.csproj --configuration Release --output ./packages --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet pack nonexistent.csproj --configuration Release --output ./packages --no-restore");
     
     await Task.CompletedTask;
   }

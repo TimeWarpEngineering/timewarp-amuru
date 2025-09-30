@@ -13,10 +13,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search TimeWarp.Cli",
-      $"Expected 'dotnet package search TimeWarp.Cli', got '{command}'"
-    );
+    command.ShouldBe("dotnet package search TimeWarp.Cli");
     
     await Task.CompletedTask;
   }
@@ -27,10 +24,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search",
-      $"Expected 'dotnet package search', got '{command}'"
-    );
+    command.ShouldBe("dotnet package search");
     
     await Task.CompletedTask;
   }
@@ -45,10 +39,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search Microsoft.Extensions.Logging --source https://api.nuget.org/v3/index.json --take 5 --skip 0 --format table",
-      $"Expected correct package search command with configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet package search Microsoft.Extensions.Logging --source https://api.nuget.org/v3/index.json --take 5 --skip 0 --format table");
     
     await Task.CompletedTask;
   }
@@ -64,10 +55,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search Newtonsoft.Json --format json --verbosity detailed --exact-match --interactive --prerelease",
-      $"Expected correct package search command with advanced options, got '{command}'"
-    );
+    command.ShouldBe("dotnet package search Newtonsoft.Json --format json --verbosity detailed --exact-match --interactive --prerelease");
     
     await Task.CompletedTask;
   }
@@ -82,10 +70,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search TestPackage --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/example/feed --take 10 --configfile nuget.config",
-      $"Expected correct package search command with multiple sources, got '{command}'"
-    );
+    command.ShouldBe("dotnet package search TestPackage --source https://api.nuget.org/v3/index.json --source https://pkgs.dev.azure.com/example/feed --take 10 --configfile nuget.config");
     
     await Task.CompletedTask;
   }
@@ -100,10 +85,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search TestPackage --take 1",
-      $"Expected 'dotnet package search TestPackage --take 1', got '{command}'"
-    );
+    command.ShouldBe("dotnet package search TestPackage --take 1");
     
     await Task.CompletedTask;
   }
@@ -117,10 +99,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search Microsoft.Extensions.Logging --take 1 --format table",
-      $"Expected correct command for well-known package search, got '{command}'"
-    );
+    command.ShouldBe("dotnet package search Microsoft.Extensions.Logging --take 1 --format table");
     
     await Task.CompletedTask;
   }
@@ -134,10 +113,7 @@ internal sealed class DotNetPackageSearchTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet package search TimeWarp.Cli --exact-match --prerelease",
-      $"Expected 'dotnet package search TimeWarp.Cli --exact-match --prerelease', got '{command}'"
-    );
+    command.ShouldBe("dotnet package search TimeWarp.Cli --exact-match --prerelease");
     
     await Task.CompletedTask;
   }

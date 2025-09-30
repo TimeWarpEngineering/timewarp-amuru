@@ -10,10 +10,7 @@ internal sealed class DotNetSlnCommandTests
     // This test verifies the builder is created
     DotNetSlnBuilder builder = DotNet.Sln();
     
-    AssertTrue(
-      builder != null,
-      "DotNet.Sln() should create a valid builder"
-    );
+    builder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -23,10 +20,7 @@ internal sealed class DotNetSlnCommandTests
     // Test that we can create a builder with solution file
     DotNetSlnBuilder builder = DotNet.Sln("MySolution.sln");
     
-    AssertTrue(
-      builder != null,
-      "DotNet.Sln() with solution file should create a valid builder"
-    );
+    builder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -38,10 +32,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln MySolution.sln add MyApp.csproj",
-      $"Expected 'dotnet sln MySolution.sln add MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln MySolution.sln add MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -53,10 +44,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln MySolution.sln add MyApp.csproj MyLibrary.csproj MyTests.csproj",
-      $"Expected 'dotnet sln MySolution.sln add MyApp.csproj MyLibrary.csproj MyTests.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln MySolution.sln add MyApp.csproj MyLibrary.csproj MyTests.csproj");
     
     await Task.CompletedTask;
   }
@@ -68,10 +56,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln MySolution.sln list",
-      $"Expected 'dotnet sln MySolution.sln list', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln MySolution.sln list");
     
     await Task.CompletedTask;
   }
@@ -83,10 +68,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln MySolution.sln remove MyApp.csproj",
-      $"Expected 'dotnet sln MySolution.sln remove MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln MySolution.sln remove MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -98,10 +80,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln MySolution.sln migrate",
-      $"Expected 'dotnet sln MySolution.sln migrate', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln MySolution.sln migrate");
     
     await Task.CompletedTask;
   }
@@ -116,10 +95,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln list",
-      $"Expected 'dotnet sln list', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln list");
     
     await Task.CompletedTask;
   }
@@ -132,10 +108,7 @@ internal sealed class DotNetSlnCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet sln nonexistent.sln list",
-      $"Expected 'dotnet sln nonexistent.sln list', got '{command}'"
-    );
+    command.ShouldBe("dotnet sln nonexistent.sln list");
     
     await Task.CompletedTask;
   }

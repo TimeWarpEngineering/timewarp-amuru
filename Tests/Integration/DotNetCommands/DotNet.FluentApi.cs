@@ -13,10 +13,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
       
-    AssertTrue(
-      command == "dotnet run",
-      $"Expected 'dotnet run', got '{command}'"
-    );
+    command.ShouldBe("dotnet run");
     
     await Task.CompletedTask;
   }
@@ -32,10 +29,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet run --project test.csproj --configuration Debug --framework net10.0 --no-restore -- --help",
-      $"Expected correct run command with configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet run --project test.csproj --configuration Debug --framework net10.0 --no-restore -- --help");
     
     await Task.CompletedTask;
   }
@@ -52,10 +46,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet run --project test.csproj --configuration Release --verbosity minimal --no-restore --no-build -- arg1 arg2",
-      $"Expected correct chained run command, got '{command}'"
-    );
+    command.ShouldBe("dotnet run --project test.csproj --configuration Release --verbosity minimal --no-restore --no-build -- arg1 arg2");
     
     await Task.CompletedTask;
   }
@@ -70,10 +61,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet run --project test.csproj",
-      $"Expected 'dotnet run --project test.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet run --project test.csproj");
     
     await Task.CompletedTask;
   }
@@ -95,10 +83,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet run --project test.csproj --arch x64 --os linux --launch-profile Development --tl auto --no-launch-profile --force --interactive --property:Configuration=Debug --property:Platform=AnyCPU -e ASPNETCORE_ENVIRONMENT=Development",
-      $"Expected correct extended options command, got '{command}'"
-    );
+    command.ShouldBe("dotnet run --project test.csproj --arch x64 --os linux --launch-profile Development --tl auto --no-launch-profile --force --interactive --property:Configuration=Debug --property:Platform=AnyCPU -e ASPNETCORE_ENVIRONMENT=Development");
     
     await Task.CompletedTask;
   }
@@ -113,10 +98,7 @@ internal sealed class DotNetFluentApiTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet run --project nonexistent.csproj --configuration Debug --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet run --project nonexistent.csproj --configuration Debug --no-restore");
     
     await Task.CompletedTask;
   }

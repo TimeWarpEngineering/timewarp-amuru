@@ -10,10 +10,7 @@ internal sealed class DotNetReferenceTests
     // DotNet.Reference() alone doesn't build a valid command - needs a subcommand
     DotNetReferenceBuilder builder = DotNet.Reference();
     
-    AssertTrue(
-      builder != null,
-      "DotNet.Reference() should create a valid builder"
-    );
+    builder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -23,10 +20,7 @@ internal sealed class DotNetReferenceTests
     // Test that we can create a builder with project file
     DotNetReferenceBuilder builder = DotNet.Reference("MyApp.csproj");
     
-    AssertTrue(
-      builder != null,
-      "DotNet.Reference() with project should create a valid builder"
-    );
+    builder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -38,10 +32,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference --project MyApp.csproj add MyLibrary.csproj",
-      $"Expected 'dotnet reference --project MyApp.csproj add MyLibrary.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet reference --project MyApp.csproj add MyLibrary.csproj");
     
     await Task.CompletedTask;
   }
@@ -53,10 +44,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference --project MyApp.csproj add MyLibrary.csproj MyOtherLibrary.csproj",
-      $"Expected 'dotnet reference --project MyApp.csproj add MyLibrary.csproj MyOtherLibrary.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet reference --project MyApp.csproj add MyLibrary.csproj MyOtherLibrary.csproj");
     
     await Task.CompletedTask;
   }
@@ -68,10 +56,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference --project MyApp.csproj list",
-      $"Expected 'dotnet reference --project MyApp.csproj list', got '{command}'"
-    );
+    command.ShouldBe("dotnet reference --project MyApp.csproj list");
     
     await Task.CompletedTask;
   }
@@ -83,10 +68,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference --project MyApp.csproj remove MyLibrary.csproj",
-      $"Expected 'dotnet reference --project MyApp.csproj remove MyLibrary.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet reference --project MyApp.csproj remove MyLibrary.csproj");
     
     await Task.CompletedTask;
   }
@@ -101,10 +83,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference list",
-      $"Expected 'dotnet reference list', got '{command}'"
-    );
+    command.ShouldBe("dotnet reference list");
     
     await Task.CompletedTask;
   }
@@ -117,10 +96,7 @@ internal sealed class DotNetReferenceTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet reference --project nonexistent.csproj list",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet reference --project nonexistent.csproj list");
     
     await Task.CompletedTask;
   }
