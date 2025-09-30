@@ -10,12 +10,9 @@ internal sealed class DotNetAddPackageTests
     string command = DotNet.AddPackage("TestPackage")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add package TestPackage",
-      $"Expected 'dotnet add package TestPackage', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add package TestPackage");
+
     await Task.CompletedTask;
   }
   
@@ -25,12 +22,9 @@ internal sealed class DotNetAddPackageTests
       .WithProject("MyApp.csproj")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add MyApp.csproj package TestPackage",
-      $"Expected 'dotnet add MyApp.csproj package TestPackage', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add MyApp.csproj package TestPackage");
+
     await Task.CompletedTask;
   }
 
@@ -39,12 +33,9 @@ internal sealed class DotNetAddPackageTests
     string command = DotNet.AddPackage("TestPackage", "1.0.0")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add package TestPackage --version 1.0.0",
-      $"Expected 'dotnet add package TestPackage --version 1.0.0', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add package TestPackage --version 1.0.0");
+
     await Task.CompletedTask;
   }
 
@@ -57,12 +48,9 @@ internal sealed class DotNetAddPackageTests
       .WithNoRestore()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add test.csproj package Microsoft.Extensions.Logging --framework net10.0 --version 8.0.0 --no-restore",
-      $"Expected correct add package command with configuration, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add test.csproj package Microsoft.Extensions.Logging --framework net10.0 --version 8.0.0 --no-restore");
+
     await Task.CompletedTask;
   }
 
@@ -76,12 +64,9 @@ internal sealed class DotNetAddPackageTests
       .WithPackageDirectory("./packages")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add test.csproj package Newtonsoft.Json --version 13.0.3 --package-directory ./packages --source https://api.nuget.org/v3/index.json --prerelease",
-      $"Expected correct add package command with package options, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add test.csproj package Newtonsoft.Json --version 13.0.3 --package-directory ./packages --source https://api.nuget.org/v3/index.json --prerelease");
+
     await Task.CompletedTask;
   }
 
@@ -95,12 +80,9 @@ internal sealed class DotNetAddPackageTests
       .WithInteractive()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add test.csproj package TestPackage --interactive",
-      $"Expected 'dotnet add test.csproj package TestPackage --interactive', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add test.csproj package TestPackage --interactive");
+
     await Task.CompletedTask;
   }
 
@@ -114,12 +96,9 @@ internal sealed class DotNetAddPackageTests
       .WithNoRestore()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add test.csproj package TestPackage --framework net10.0 --source https://api.nuget.org/v3/index.json --source https://my-private-feed.com/v3/index.json --no-restore",
-      $"Expected correct add package command with multiple sources, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add test.csproj package TestPackage --framework net10.0 --source https://api.nuget.org/v3/index.json --source https://my-private-feed.com/v3/index.json --no-restore");
+
     await Task.CompletedTask;
   }
 
@@ -132,12 +111,9 @@ internal sealed class DotNetAddPackageTests
       .WithNoRestore()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet add nonexistent.csproj package TestPackage --version 1.0.0 --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet add nonexistent.csproj package TestPackage --version 1.0.0 --no-restore");
+
     await Task.CompletedTask;
   }
 }

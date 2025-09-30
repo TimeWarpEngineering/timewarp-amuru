@@ -92,12 +92,9 @@ internal sealed class DotNetPackTests
       .WithForce()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet pack test.csproj --configuration Release --source https://api.nuget.org/v3/index.json --no-build --force --property:PackageVersion=1.0.0 \"--property:PackageDescription=Test package\"",
-      $"Expected correct pack command with MSBuild properties and sources, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet pack test.csproj --configuration Release --source https://api.nuget.org/v3/index.json --no-build --force --property:PackageVersion=1.0.0 \"--property:PackageDescription=Test package\"");
+
     await Task.CompletedTask;
   }
 
