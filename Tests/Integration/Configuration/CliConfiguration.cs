@@ -1,7 +1,4 @@
 #!/usr/bin/dotnet --
-#:package Shouldly
-
-using Shouldly;
 
 await RunTests<ConfigurationTests>();
 

@@ -1,4 +1,10 @@
 #!/usr/bin/dotnet run
+#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+
+using TimeWarp.Amuru;
+using Shouldly;
+using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
 await RunTests<ErrorHandlingTests>();
 
@@ -8,9 +14,8 @@ internal sealed class ErrorHandlingTests
 
   public static async Task TestNonExistentCommandWithNoValidation()
   {
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("nonexistentcommand12345").WithNoValidation().CaptureAsync(),
-      "should have thrown for non-existent command"
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("nonexistentcommand12345").WithNoValidation().CaptureAsync()
     );
   }
 
@@ -20,17 +25,13 @@ internal sealed class ErrorHandlingTests
 
     CommandOutput output = await Shell.Builder("ls").WithArguments(lsArgs).WithNoValidation().CaptureAsync();
 
-    AssertTrue(
-      string.IsNullOrEmpty(output.Stdout),
-      "should return empty stdout for command with non-zero exit code and no validation"
-    );
+    output.Stdout.ShouldBeNullOrEmpty();
   }
 
   public static async Task TestExecuteAsyncThrowsOnNonZeroExit()
   {
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync(),
-      "should have thrown for command with non-zero exit code"
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync()
     );
   }
 
@@ -41,50 +42,41 @@ internal sealed class ErrorHandlingTests
     CommandOutput output = await Shell.Builder("ls").WithArguments(lsArgs2).WithNoValidation().CaptureAsync();
     string[] lines = output.GetStdoutLines(); // Use GetStdoutLines() to only get stdout
 
-    AssertTrue(lines.Length == 0, "should return empty array for stdout lines when command fails");
+    lines.Length.ShouldBe(0);
   }
 
   public static async Task TestSpecialCharactersInArguments()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("Hello \"World\" with 'quotes' and $pecial chars!").CaptureAsync();
 
-    AssertTrue(
-      !string.IsNullOrEmpty(output.Stdout),
-      "should not return empty string for command with special characters"
-    );
+    output.Stdout.ShouldNotBeNullOrEmpty();
   }
 
   public static async Task TestEmptyCommandReturnsEmptyString()
   {
     CommandOutput output = await Shell.Builder("").CaptureAsync();
-    AssertTrue(
-      string.IsNullOrEmpty(output.Stdout),
-      "should return empty string for empty command"
-    );
+
+    output.Stdout.ShouldBeNullOrEmpty();
   }
 
   public static async Task TestWhitespaceCommandReturnsEmptyString()
   {
     CommandOutput output = await Shell.Builder("   ").CaptureAsync();
-    AssertTrue(
-      string.IsNullOrEmpty(output.Stdout),
-      "should return empty string for whitespace command"
-    );
+
+    output.Stdout.ShouldBeNullOrEmpty();
   }
 
   public static async Task TestDefaultGetStringThrowsOnError()
   {
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync(),
-      "should have thrown for command with non-zero exit code"
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync()
     );
   }
 
   public static async Task TestDefaultGetLinesThrowsOnError()
   {
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync(),
-      "should have thrown for command with non-zero exit code"
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync()
     );
   }
 
@@ -92,9 +84,7 @@ internal sealed class ErrorHandlingTests
   {
     string[] lsArgs3 = ["/nonexistent/path/12345"];
     CommandOutput output = await Shell.Builder("ls").WithArguments(lsArgs3).WithNoValidation().CaptureAsync();
-    AssertTrue(
-      !output.Success,
-      "command should fail but not throw with no validation"
-    );
+
+    output.Success.ShouldBeFalse();
   }
 }

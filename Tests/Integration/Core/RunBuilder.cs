@@ -1,4 +1,10 @@
 #!/usr/bin/dotnet run
+#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+
+using TimeWarp.Amuru;
+using Shouldly;
+using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
 await RunTests<RunBuilderTests>();
 
@@ -10,12 +16,9 @@ internal sealed class RunBuilderTests
       .WithArguments("Hello", "World")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "echo Hello World",
-      $"Expected 'echo Hello World', got '{command}'"
-    );
-    
+
+    command.ShouldBe("echo Hello World");
+
     await Task.CompletedTask;
   }
 
@@ -25,11 +28,8 @@ internal sealed class RunBuilderTests
       .WithArguments("Hello", "World")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "Hello World",
-      "RunBuilder should work with basic arguments"
-    );
+
+    result.Trim().ShouldBe("Hello World");
   }
 
   public static async Task TestRunBuilderWithMultipleWithArgumentsCommandString()
@@ -39,12 +39,9 @@ internal sealed class RunBuilderTests
       .WithArguments("arg2", "arg3")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "echo arg1 arg2 arg3",
-      $"Expected 'echo arg1 arg2 arg3', got '{command}'"
-    );
-    
+
+    command.ShouldBe("echo arg1 arg2 arg3");
+
     await Task.CompletedTask;
   }
 
@@ -55,11 +52,8 @@ internal sealed class RunBuilderTests
       .WithArguments("arg2", "arg3")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "arg1 arg2 arg3",
-      $"Multiple WithArguments calls should accumulate, got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("arg1 arg2 arg3");
   }
 
   public static async Task TestRunBuilderWithEnvironmentVariableCommandString()
@@ -70,12 +64,9 @@ internal sealed class RunBuilderTests
       .WithArguments("TEST_VAR")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "printenv TEST_VAR",
-      $"Expected 'printenv TEST_VAR', got '{command}'"
-    );
-    
+
+    command.ShouldBe("printenv TEST_VAR");
+
     await Task.CompletedTask;
   }
 
@@ -86,11 +77,8 @@ internal sealed class RunBuilderTests
       .WithArguments("TEST_VAR")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "test_value",
-      $"Environment variable should be set correctly, got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("test_value");
   }
 
   public static async Task TestRunBuilderWithNoValidation()
@@ -99,11 +87,8 @@ internal sealed class RunBuilderTests
     int exitCode = await Shell.Builder("false")
       .WithNoValidation()
       .RunAsync();
-    
-    AssertTrue(
-      exitCode == 1,
-      "WithNoValidation should allow non-zero exit codes"
-    );
+
+    exitCode.ShouldBe(1);
   }
 
   public static async Task TestRunBuilderGetLinesAsync()
@@ -112,16 +97,11 @@ internal sealed class RunBuilderTests
       .WithArguments("line1\\nline2\\nline3")
       .CaptureAsync();
     string[] lines = output.GetLines();
-    
-    AssertTrue(
-      lines.Length == 3,
-      $"Should return 3 lines, got {lines.Length}"
-    );
-    
-    AssertTrue(
-      lines[0] == "line1" && lines[1] == "line2" && lines[2] == "line3",
-      "Lines should match expected values"
-    );
+
+    lines.Length.ShouldBe(3);
+    lines[0].ShouldBe("line1");
+    lines[1].ShouldBe("line2");
+    lines[2].ShouldBe("line3");
   }
 
   public static async Task TestRunBuilderWithWorkingDirectoryCommandString()
@@ -131,12 +111,9 @@ internal sealed class RunBuilderTests
       .WithWorkingDirectory("/tmp")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "pwd ",
-      $"Expected 'pwd ', got '{command}'"
-    );
-    
+
+    command.ShouldBe("pwd ");
+
     await Task.CompletedTask;
   }
 
@@ -147,11 +124,8 @@ internal sealed class RunBuilderTests
       .WithWorkingDirectory(tempDir)
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == tempDir.TrimEnd('/'),
-      $"Working directory should be set to {tempDir}, got {result.Trim()}"
-    );
+
+    result.Trim().ShouldBe(tempDir.TrimEnd('/'));
   }
 
   public static async Task TestRunBuilderPipelineCommandString()
@@ -161,12 +135,9 @@ internal sealed class RunBuilderTests
       .Build()
       .Pipe("grep", "World")
       .ToCommandString();
-    
-    AssertTrue(
-      command == "grep World",
-      $"Expected 'grep World', got '{command}'"
-    );
-    
+
+    command.ShouldBe("grep World");
+
     await Task.CompletedTask;
   }
 
@@ -178,11 +149,8 @@ internal sealed class RunBuilderTests
       .Pipe("grep", "World")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "World",
-      $"Pipeline should filter for 'World', got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("World");
   }
 
   public static async Task TestRunBuilderExecuteAsync()
@@ -190,16 +158,9 @@ internal sealed class RunBuilderTests
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("test output")
       .CaptureAsync();
-    
-    AssertTrue(
-      output.Success,
-      "Command should execute successfully"
-    );
-    
-    AssertTrue(
-      output.Stdout.Trim() == "test output",
-      $"Output should match, got '{output.Stdout.Trim()}'"
-    );
+
+    output.Success.ShouldBeTrue();
+    output.Stdout.Trim().ShouldBe("test output");
   }
 
   public static async Task TestRunBuilderChaining()
@@ -212,11 +173,8 @@ internal sealed class RunBuilderTests
       .WithNoValidation()
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "Hello World",
-      $"Chained configuration should work correctly, got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("Hello World");
   }
 
   public static async Task TestRunBuilderWithStandardInput()
@@ -226,11 +184,8 @@ internal sealed class RunBuilderTests
       .WithStandardInput("Hello World\nGoodbye Moon\nHello Universe")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "Hello World",
-      $"StandardInput with grep should find 'Hello World', got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("Hello World");
   }
 
   public static async Task TestRunBuilderWithStandardInputLines()
@@ -240,11 +195,8 @@ internal sealed class RunBuilderTests
       .WithStandardInput("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "5",
-      $"StandardInput line count should be 5, got '{result.Trim()}'"
-    );
+
+    result.Trim().ShouldBe("5");
   }
 
   public static async Task TestRunBuilderWithStandardInputPipeline()
@@ -255,11 +207,10 @@ internal sealed class RunBuilderTests
       .Pipe("head", "-2")
       .CaptureAsync();
     string[] result = output.GetLines();
-    
-    AssertTrue(
-      result.Length == 2 && result[0] == "apple" && result[1] == "banana",
-      $"StandardInput with pipeline should return sorted first 2 items"
-    );
+
+    result.Length.ShouldBe(2);
+    result[0].ShouldBe("apple");
+    result[1].ShouldBe("banana");
   }
 
   public static async Task TestRunBuilderWithEmptyStandardInput()
@@ -268,11 +219,8 @@ internal sealed class RunBuilderTests
       .WithStandardInput("")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Length == 0,
-      $"Empty StandardInput should return empty string"
-    );
+
+    result.Length.ShouldBe(0);
   }
 
   public static async Task TestRunBuilderWithComplexArgumentsCommandString()
@@ -281,12 +229,9 @@ internal sealed class RunBuilderTests
       .WithArguments("log", "--oneline", "--author=\"John Doe\"", "--grep=fix")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "git log --oneline \"--author=\\\"John Doe\\\"\" --grep=fix",
-      $"Expected 'git log --oneline \"--author=\\\"John Doe\\\"\" --grep=fix', got '{command}'"
-    );
-    
+
+    command.ShouldBe("git log --oneline \"--author=\\\"John Doe\\\"\" --grep=fix");
+
     await Task.CompletedTask;
   }
 
@@ -296,12 +241,9 @@ internal sealed class RunBuilderTests
       .WithNoValidation()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "false ",
-      $"Expected 'false ', got '{command}'"
-    );
-    
+
+    command.ShouldBe("false ");
+
     await Task.CompletedTask;
   }
 }
