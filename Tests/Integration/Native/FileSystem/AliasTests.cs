@@ -2,11 +2,6 @@
 #:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 #:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
 
-using TimeWarp.Amuru;
-using TimeWarp.Amuru.Test.Helpers;
-using static TimeWarp.Amuru.Native.Aliases.Bash;
-using static TimeWarp.Amuru.Test.Helpers.Asserts;
-
 await TestRunner.RunTests<AliasTests>();
 
 internal sealed class AliasTests
@@ -21,10 +16,8 @@ internal sealed class AliasTests
     {
       // Test Cat alias
       CommandOutput catResult = Cat(testFile);
-      AssertTrue(
-        catResult.Success && catResult.Stdout == "test content",
-        "Cat() alias should work like GetContent()"
-      );
+      catResult.Success.ShouldBeTrue();
+      catResult.Stdout.ShouldBe("test content");
     }
     finally
     {
@@ -36,10 +29,7 @@ internal sealed class AliasTests
   {
     // Test Ls alias
     CommandOutput lsResult = Ls(Path.GetTempPath());
-    AssertTrue(
-      lsResult.Success,
-      "Ls() alias should work like GetChildItem()"
-    );
+    lsResult.Success.ShouldBeTrue();
 
     await Task.CompletedTask;
   }
@@ -48,10 +38,8 @@ internal sealed class AliasTests
   {
     // Test Pwd alias
     CommandOutput pwdResult = Pwd();
-    AssertTrue(
-      pwdResult.Success && !string.IsNullOrEmpty(pwdResult.Stdout),
-      "Pwd() alias should return current directory"
-    );
+    pwdResult.Success.ShouldBeTrue();
+    pwdResult.Stdout.ShouldNotBeNullOrEmpty();
 
     await Task.CompletedTask;
   }
@@ -62,10 +50,7 @@ internal sealed class AliasTests
 
     // Test Cd alias
     CommandOutput cdResult = Cd(tempPath);
-    AssertTrue(
-      cdResult.Success,
-      "Cd() alias should work like SetLocation()"
-    );
+    cdResult.Success.ShouldBeTrue();
 
     await Task.CompletedTask;
   }
@@ -79,15 +64,8 @@ internal sealed class AliasTests
     // Test Rm alias
     CommandOutput result = Rm(testFile);
 
-    AssertTrue(
-      result.Success,
-      "Rm() alias should work like RemoveItem()"
-    );
-
-    AssertFalse(
-      File.Exists(testFile),
-      "File should be deleted by Rm alias"
-    );
+    result.Success.ShouldBeTrue();
+    File.Exists(testFile).ShouldBeFalse();
   }
 
   public static async Task TestRmDirectAlias()
@@ -99,10 +77,7 @@ internal sealed class AliasTests
     // Test RmDirect alias
     RmDirect(testFile);
 
-    AssertFalse(
-      File.Exists(testFile),
-      "File should be deleted by RmDirect alias"
-    );
+    File.Exists(testFile).ShouldBeFalse();
 
     await Task.CompletedTask;
   }

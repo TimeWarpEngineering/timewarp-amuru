@@ -2,12 +2,6 @@
 #:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 #:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
 
-using TimeWarp.Amuru;
-using TimeWarp.Amuru.Native.FileSystem;
-using TimeWarp.Amuru.Test.Helpers;
-using static TimeWarp.Amuru.Native.Aliases.Bash;
-using static TimeWarp.Amuru.Test.Helpers.Asserts;
-
 await TestRunner.RunTests<GetContentTests>();
 
 internal sealed class GetContentTests
@@ -24,20 +18,9 @@ internal sealed class GetContentTests
       // Test Commands.GetContent
       CommandOutput result = Commands.GetContent(testFile);
 
-      AssertTrue(
-        result.Success,
-        "GetContent should succeed for existing file"
-      );
-
-      AssertTrue(
-        result.Stdout == content,
-        $"Content should match. Expected: '{content}', Got: '{result.Stdout}'"
-      );
-
-      AssertTrue(
-        result.ExitCode == 0,
-        "Exit code should be 0 for success"
-      );
+      result.Success.ShouldBeTrue("GetContent should succeed for existing file");
+      result.Stdout.ShouldBe(content);
+      result.ExitCode.ShouldBe(0);
     }
     finally
     {
@@ -51,22 +34,9 @@ internal sealed class GetContentTests
 
     CommandOutput result = Commands.GetContent(nonExistentFile);
 
-    AssertFalse(
-      result.Success,
-      "GetContent should fail for non-existent file"
-    );
-
-    AssertTrue(
-      result.Stderr.Contains("No such file", StringComparison.Ordinal),
-      $"Error message should indicate file not found. Got: '{result.Stderr}'"
-    );
-
-    AssertTrue(
-      result.ExitCode == 1,
-      "Exit code should be 1 for failure"
-    );
-
-    await Task.CompletedTask;
+    result.Success.ShouldBeFalse();
+    result.Stderr.ShouldContain("No such file");
+    result.ExitCode.ShouldBe(1);
   }
 
   public static async Task TestDirectApiStreaming()
@@ -88,17 +58,11 @@ internal sealed class GetContentTests
         if (readLines.Count == 10)
         {
           // We've read 10 lines, rest should still be pending
-          AssertTrue(
-            readLines[9] == "Line 10",
-            "Should be reading lines in order"
-          );
+          readLines[9].ShouldBe("Line 10");
         }
       }
 
-      AssertTrue(
-        readLines.Count == 100,
-        $"Should read all 100 lines. Got: {readLines.Count}"
-      );
+      readLines.Count.ShouldBe(100);
     }
     finally
     {
@@ -110,23 +74,13 @@ internal sealed class GetContentTests
   {
     string nonExistentFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-    bool exceptionThrown = false;
-    try
+    await Should.ThrowAsync<FileNotFoundException>(async () =>
     {
       await foreach (string line in Direct.GetContent(nonExistentFile))
       {
         // Should not get here
       }
-    }
-    catch (FileNotFoundException)
-    {
-      exceptionThrown = true;
-    }
-
-    AssertTrue(
-      exceptionThrown,
-      "Direct API should throw FileNotFoundException for missing files"
-    );
+    });
   }
 
   public static async Task TestBothApisCanCoexist()
@@ -138,10 +92,7 @@ internal sealed class GetContentTests
     {
       // Commands API - returns CommandOutput
       CommandOutput commandResult = Commands.GetContent(testFile);
-      AssertTrue(
-        commandResult.Stdout == "coexist test",
-        "Commands API should work"
-      );
+      commandResult.Stdout.ShouldBe("coexist test");
 
       // Direct API - returns IAsyncEnumerable
       List<string> lines = new();
@@ -150,16 +101,10 @@ internal sealed class GetContentTests
         lines.Add(line);
       }
 
-      AssertTrue(
-        lines[0] == "coexist test",
-        "Direct API should work"
-      );
+      lines[0].ShouldBe("coexist test");
 
       // Both results should be the same content
-      AssertTrue(
-        commandResult.Stdout == string.Join("\n", lines),
-        "Both APIs should return same content"
-      );
+      commandResult.Stdout.ShouldBe(string.Join("\n", lines));
     }
     finally
     {
