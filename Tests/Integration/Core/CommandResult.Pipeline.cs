@@ -1,4 +1,10 @@
 #!/usr/bin/dotnet run
+#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+
+using TimeWarp.Amuru;
+using Shouldly;
+using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
 await RunTests<PipelineTests>();
 
@@ -11,11 +17,8 @@ internal sealed class PipelineTests
       .Pipe("grep", "world")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "world",
-      "Basic pipeline should filter for 'world'"
-    );
+
+    result.Trim().ShouldBe("world");
   }
 
   public static async Task TestMultiStagePipeline()
@@ -25,11 +28,8 @@ internal sealed class PipelineTests
       .Pipe("wc", "-l")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "4",
-      "Multi-stage pipeline should count 4 lines"
-    );
+
+    result.Trim().ShouldBe("4");
   }
 
   public static async Task TestPipelineWithGetLinesAsync()
@@ -38,11 +38,10 @@ internal sealed class PipelineTests
       .Pipe("grep", "a")
       .CaptureAsync();
     string[] lines = output.GetLines();
-    
-    AssertTrue(
-      lines.Length == 2 && lines[0] == "apple" && lines[1] == "banana",
-      $"Pipeline with GetLinesAsync should return [apple, banana], got [{string.Join(", ", lines)}]"
-    );
+
+    lines.Length.ShouldBe(2);
+    lines[0].ShouldBe("apple");
+    lines[1].ShouldBe("banana");
   }
 
   public static async Task TestPipelineWithExecuteAsync()
@@ -50,29 +49,27 @@ internal sealed class PipelineTests
     await Shell.Builder("echo").WithArguments("test")
       .Pipe("grep", "test")
       .RunAsync();
-    
+
     // Test passes if no exception is thrown
-    AssertTrue(true, "Pipeline with ExecuteAsync should not throw");
+    true.ShouldBeTrue();
   }
 
   public static async Task TestPipelineWithFailedFirstCommandThrows()
   {
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("nonexistentcommand12345").WithNoValidation()
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("nonexistentcommand12345").WithNoValidation()
         .Pipe("grep", "anything")
-        .CaptureAsync(),
-      "Pipeline with non-existent first command should throw even with no validation"
+        .CaptureAsync()
     );
   }
 
   public static async Task TestPipelineWithFailedSecondCommandThrows()
   {
     string[] echoArgs = { "test" };
-    await AssertThrowsAsync<Exception>(
-      async () => await Shell.Builder("echo").WithArguments(echoArgs).WithNoValidation()
+    await Should.ThrowAsync<Exception>(async () =>
+      await Shell.Builder("echo").WithArguments(echoArgs).WithNoValidation()
         .Pipe("nonexistentcommand12345")
-        .CaptureAsync(),
-      "Pipeline with non-existent second command should throw even with no validation"
+        .CaptureAsync()
     );
   }
 
@@ -82,11 +79,9 @@ internal sealed class PipelineTests
       .Pipe("head", "-5")
       .CaptureAsync();
     string[] files = output.GetLines();
-    
-    AssertTrue(
-      files.Length <= 5 && files.All(f => f.EndsWith(".cs", StringComparison.Ordinal)),
-      $"Real-world pipeline should find up to 5 .cs files, got {files.Length} files"
-    );
+
+    files.Length.ShouldBeLessThanOrEqualTo(5);
+    files.All(f => f.EndsWith(".cs", StringComparison.Ordinal)).ShouldBeTrue();
   }
 
   public static async Task TestComplexPipelineChaining()
@@ -97,11 +92,8 @@ internal sealed class PipelineTests
       .Pipe("wc", "-l")
       .CaptureAsync();
     string result = output.Stdout;
-    
-    AssertTrue(
-      result.Trim() == "4",
-      "Complex pipeline should find 4 words containing 'o' (brown, fox, over, dog)"
-    );
+
+    result.Trim().ShouldBe("4");
   }
 
   public static async Task TestPipeWithNoArguments()
@@ -112,12 +104,10 @@ internal sealed class PipelineTests
       .Pipe("sort")  // No arguments!
       .CaptureAsync();
     string result = output.Stdout;
-    
+
     string[] lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-    
-    AssertTrue(
-      lines.Length == 3 && lines[0].Trim() == "apple",
-      $"Pipe with no arguments should work for sort command, first line should be 'apple', got '{lines[0].Trim()}'"
-    );
+
+    lines.Length.ShouldBe(3);
+    lines[0].Trim().ShouldBe("apple");
   }
 }

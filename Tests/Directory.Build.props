@@ -21,14 +21,21 @@
     
     <!-- Direct reference to CliWrap for transitive dependency support -->
     <PackageReference Include="CliWrap" />
+
+    <!-- Shouldly assertion library -->
+    <PackageReference Include="Shouldly" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Global usings for all test projects -->
     <Using Include="TimeWarp.Amuru" />
+    <Using Include="TimeWarp.Amuru.Native.FileSystem" />
+    <Using Include="TimeWarp.Amuru.Test.Helpers" />
     <Using Include="System.Diagnostics" />
     <Using Include="System.Reflection" />
     <Using Include="System.Runtime.CompilerServices" />
+    <Using Include="Shouldly" />
+    <Using Include="TimeWarp.Amuru.Native.Aliases.Bash" Static="true" />
     <Using Include="TimeWarp.Amuru.Test.Helpers.TestHelpers" Static="true" />
     <Using Include="TimeWarp.Amuru.Test.Helpers.Asserts" Static="true" />
     <Using Include="TimeWarp.Amuru.Test.Helpers.TestRunner" Static="true" />

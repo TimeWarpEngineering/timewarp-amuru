@@ -12,10 +12,7 @@ internal sealed class DotNetWorkloadCommandTests
     // DotNet.Workload() alone doesn't build a valid command - needs a subcommand
     DotNetWorkloadBuilder workloadBuilder = DotNet.Workload();
     
-    AssertTrue(
-      workloadBuilder != null,
-      "DotNet.Workload() should create a valid builder"
-    );
+    workloadBuilder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -27,10 +24,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload --info",
-      $"Expected 'dotnet workload --info', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload --info");
     
     await Task.CompletedTask;
   }
@@ -42,10 +36,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload --version",
-      $"Expected 'dotnet workload --version', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload --version");
     
     await Task.CompletedTask;
   }
@@ -57,10 +48,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload install maui",
-      $"Expected 'dotnet workload install maui', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload install maui");
     
     await Task.CompletedTask;
   }
@@ -77,10 +65,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload install maui android ios --configfile nuget.config --include-previews --skip-manifest-update --source https://api.nuget.org/v3/index.json --version 8.0.100",
-      $"Expected correct workload install command with options, got '{command}'"
-    );
+    command.ShouldBe("dotnet workload install maui android ios --configfile nuget.config --include-previews --skip-manifest-update --source https://api.nuget.org/v3/index.json --version 8.0.100");
     
     await Task.CompletedTask;
   }
@@ -92,10 +77,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload list",
-      $"Expected 'dotnet workload list', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload list");
     
     await Task.CompletedTask;
   }
@@ -108,10 +90,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload list --verbosity detailed",
-      $"Expected 'dotnet workload list --verbosity detailed', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload list --verbosity detailed");
     
     await Task.CompletedTask;
   }
@@ -123,10 +102,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload search",
-      $"Expected 'dotnet workload search', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload search");
     
     await Task.CompletedTask;
   }
@@ -139,10 +115,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload search maui --verbosity minimal",
-      $"Expected 'dotnet workload search maui --verbosity minimal', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload search maui --verbosity minimal");
     
     await Task.CompletedTask;
   }
@@ -154,10 +127,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload uninstall maui",
-      $"Expected 'dotnet workload uninstall maui', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload uninstall maui");
     
     await Task.CompletedTask;
   }
@@ -169,10 +139,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload uninstall maui android ios",
-      $"Expected 'dotnet workload uninstall maui android ios', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload uninstall maui android ios");
     
     await Task.CompletedTask;
   }
@@ -184,10 +151,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload update",
-      $"Expected 'dotnet workload update', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload update");
     
     await Task.CompletedTask;
   }
@@ -209,10 +173,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload update --advertising-manifests-only --configfile nuget.config --disable-parallel --from-previous-sdk --include-previews --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity diagnostic",
-      $"Expected correct workload update command with options, got '{command}'"
-    );
+    command.ShouldBe("dotnet workload update --advertising-manifests-only --configfile nuget.config --disable-parallel --from-previous-sdk --include-previews --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity diagnostic");
     
     await Task.CompletedTask;
   }
@@ -224,10 +185,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload repair",
-      $"Expected 'dotnet workload repair', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload repair");
     
     await Task.CompletedTask;
   }
@@ -247,10 +205,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload repair --configfile nuget.config --disable-parallel --ignore-failed-sources --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity detailed",
-      $"Expected correct workload repair command with options, got '{command}'"
-    );
+    command.ShouldBe("dotnet workload repair --configfile nuget.config --disable-parallel --ignore-failed-sources --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity detailed");
     
     await Task.CompletedTask;
   }
@@ -262,10 +217,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload clean",
-      $"Expected 'dotnet workload clean', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload clean");
     
     await Task.CompletedTask;
   }
@@ -278,10 +230,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload clean --all",
-      $"Expected 'dotnet workload clean --all', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload clean --all");
     
     await Task.CompletedTask;
   }
@@ -293,10 +242,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload restore",
-      $"Expected 'dotnet workload restore', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload restore");
     
     await Task.CompletedTask;
   }
@@ -308,10 +254,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload restore MyApp.csproj",
-      $"Expected 'dotnet workload restore MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload restore MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -332,10 +275,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload restore MyApp.csproj --configfile nuget.config --disable-parallel --include-previews --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity normal --version 8.0.100",
-      $"Expected correct workload restore command with options, got '{command}'"
-    );
+    command.ShouldBe("dotnet workload restore MyApp.csproj --configfile nuget.config --disable-parallel --include-previews --interactive --no-cache --source https://api.nuget.org/v3/index.json --temp-dir /tmp --verbosity normal --version 8.0.100");
     
     await Task.CompletedTask;
   }
@@ -347,10 +287,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload config",
-      $"Expected 'dotnet workload config', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload config");
     
     await Task.CompletedTask;
   }
@@ -363,10 +300,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload config --update-mode workload-set",
-      $"Expected 'dotnet workload config --update-mode workload-set', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload config --update-mode workload-set");
     
     await Task.CompletedTask;
   }
@@ -379,10 +313,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload config --update-mode manifests",
-      $"Expected 'dotnet workload config --update-mode manifests', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload config --update-mode manifests");
     
     await Task.CompletedTask;
   }
@@ -395,10 +326,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload config --update-mode manifests",
-      $"Expected 'dotnet workload config --update-mode manifests', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload config --update-mode manifests");
     
     await Task.CompletedTask;
   }
@@ -413,10 +341,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload list",
-      $"Expected 'dotnet workload list', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload list");
     
     await Task.CompletedTask;
   }
@@ -430,10 +355,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload list --verbosity quiet",
-      $"Expected 'dotnet workload list --verbosity quiet', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload list --verbosity quiet");
     
     await Task.CompletedTask;
   }
@@ -447,10 +369,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload search maui --verbosity quiet",
-      $"Expected 'dotnet workload search maui --verbosity quiet', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload search maui --verbosity quiet");
     
     await Task.CompletedTask;
   }
@@ -463,10 +382,7 @@ internal sealed class DotNetWorkloadCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet workload --info",
-      $"Expected 'dotnet workload --info', got '{command}'"
-    );
+    command.ShouldBe("dotnet workload --info");
     
     await Task.CompletedTask;
   }

@@ -11,10 +11,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test",
-      $"Expected 'dotnet test', got '{command}'"
-    );
+    command.ShouldBe("dotnet test");
     
     await Task.CompletedTask;
   }
@@ -26,10 +23,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test MyApp.Tests.csproj",
-      $"Expected 'dotnet test MyApp.Tests.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet test MyApp.Tests.csproj");
     
     await Task.CompletedTask;
   }
@@ -46,10 +40,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test test.csproj --configuration Debug --framework net10.0 --filter Category=Unit --logger console --no-restore",
-      $"Expected correct test command with configuration options, got '{command}'"
-    );
+    command.ShouldBe("dotnet test test.csproj --configuration Debug --framework net10.0 --filter Category=Unit --logger console --no-restore");
     
     await Task.CompletedTask;
   }
@@ -74,10 +65,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --filter TestCategory=Integration --results-directory TestResults --logger trx --logger html --no-restore --no-build --blame --collect --property:Platform=AnyCPU",
-      $"Expected correct test command with advanced options, got '{command}'"
-    );
+    command.ShouldBe("dotnet test test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --filter TestCategory=Integration --results-directory TestResults --logger trx --logger html --no-restore --no-build --blame --collect --property:Platform=AnyCPU");
     
     await Task.CompletedTask;
   }
@@ -94,10 +82,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test test.csproj --settings test.runsettings --nologo",
-      $"Expected 'dotnet test test.csproj --settings test.runsettings --nologo', got '{command}'"
-    );
+    command.ShouldBe("dotnet test test.csproj --settings test.runsettings --nologo");
     
     await Task.CompletedTask;
   }
@@ -112,10 +97,7 @@ internal sealed class DotNetTestTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet test nonexistent.csproj --configuration Debug --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet test nonexistent.csproj --configuration Debug --no-restore");
     
     await Task.CompletedTask;
   }

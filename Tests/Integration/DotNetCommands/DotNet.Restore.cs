@@ -10,10 +10,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore",
-      $"Expected 'dotnet restore', got '{command}'"
-    );
+    command.ShouldBe("dotnet restore");
     
     await Task.CompletedTask;
   }
@@ -29,10 +26,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore test.csproj --runtime linux-x64 --verbosity minimal --packages ./packages --no-cache",
-      $"Expected correct restore command with configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet restore test.csproj --runtime linux-x64 --verbosity minimal --packages ./packages --no-cache");
     
     await Task.CompletedTask;
   }
@@ -51,10 +45,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore test.csproj --tl auto --source https://api.nuget.org/v3/index.json --source https://nuget.pkg.github.com/MyOrg/index.json --no-dependencies --interactive --property:RestoreNoCache=true --property:RestoreIgnoreFailedSources=true",
-      $"Expected correct restore command with sources and properties, got '{command}'"
-    );
+    command.ShouldBe("dotnet restore test.csproj --tl auto --source https://api.nuget.org/v3/index.json --source https://nuget.pkg.github.com/MyOrg/index.json --no-dependencies --interactive --property:RestoreNoCache=true --property:RestoreIgnoreFailedSources=true");
     
     await Task.CompletedTask;
   }
@@ -72,10 +63,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore test.csproj --lock-file-path ./packages.lock.json --locked-mode --force",
-      $"Expected correct restore command with lock file options, got '{command}'"
-    );
+    command.ShouldBe("dotnet restore test.csproj --lock-file-path ./packages.lock.json --locked-mode --force");
     
     await Task.CompletedTask;
   }
@@ -89,10 +77,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore test.csproj --runtime win-x64 --verbosity quiet --no-cache",
-      $"Expected correct restore command with overload, got '{command}'"
-    );
+    command.ShouldBe("dotnet restore test.csproj --runtime win-x64 --verbosity quiet --no-cache");
     
     await Task.CompletedTask;
   }
@@ -106,10 +91,7 @@ internal sealed class DotNetRestoreCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet restore nonexistent.csproj --no-cache",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet restore nonexistent.csproj --no-cache");
     
     await Task.CompletedTask;
   }

@@ -12,10 +12,7 @@ internal sealed class DotNetNuGetTests
     // DotNet.NuGet() alone doesn't build a valid command - needs a subcommand
     DotNetNuGetBuilder nugetBuilder = DotNet.NuGet();
     
-    AssertTrue(
-      nugetBuilder != null,
-      "DotNet.NuGet() should create a valid builder"
-    );
+    nugetBuilder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -30,10 +27,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget push package.nupkg --source https://api.nuget.org/v3/index.json --timeout 300 --api-key test-key",
-      $"Expected correct nuget push command, got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget push package.nupkg --source https://api.nuget.org/v3/index.json --timeout 300 --api-key test-key");
     
     await Task.CompletedTask;
   }
@@ -48,10 +42,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget delete MyPackage 1.0.0 --source https://api.nuget.org/v3/index.json --api-key test-key --interactive",
-      $"Expected correct nuget delete command, got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget delete MyPackage 1.0.0 --source https://api.nuget.org/v3/index.json --api-key test-key --interactive");
     
     await Task.CompletedTask;
   }
@@ -65,10 +56,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget list source --format Detailed --configfile nuget.config",
-      $"Expected correct nuget list sources command, got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget list source --format Detailed --configfile nuget.config");
     
     await Task.CompletedTask;
   }
@@ -83,10 +71,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget add source https://my-private-feed.com/v3/index.json --name MyPrivateFeed --username testuser --password testpass",
-      $"Expected correct nuget add source command, got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget add source https://my-private-feed.com/v3/index.json --name MyPrivateFeed --username testuser --password testpass");
     
     await Task.CompletedTask;
   }
@@ -98,25 +83,13 @@ internal sealed class DotNetNuGetTests
     string removeCommand = DotNet.NuGet().RemoveSource("MySource").Build().ToCommandString();
     string updateCommand = DotNet.NuGet().UpdateSource("MySource").WithSource("https://new-url.com").Build().ToCommandString();
     
-    AssertTrue(
-      enableCommand == "dotnet nuget enable source MySource",
-      $"Expected 'dotnet nuget enable source MySource', got '{enableCommand}'"
-    );
+    enableCommand.ShouldBe("dotnet nuget enable source MySource");
     
-    AssertTrue(
-      disableCommand == "dotnet nuget disable source MySource",
-      $"Expected 'dotnet nuget disable source MySource', got '{disableCommand}'"
-    );
+    disableCommand.ShouldBe("dotnet nuget disable source MySource");
     
-    AssertTrue(
-      removeCommand == "dotnet nuget remove source MySource",
-      $"Expected 'dotnet nuget remove source MySource', got '{removeCommand}'"
-    );
+    removeCommand.ShouldBe("dotnet nuget remove source MySource");
     
-    AssertTrue(
-      updateCommand == "dotnet nuget update source MySource --source https://new-url.com",
-      $"Expected 'dotnet nuget update source MySource --source https://new-url.com', got '{updateCommand}'"
-    );
+    updateCommand.ShouldBe("dotnet nuget update source MySource --source https://new-url.com");
     
     await Task.CompletedTask;
   }
@@ -126,15 +99,9 @@ internal sealed class DotNetNuGetTests
     string clearCommand = DotNet.NuGet().Locals().Clear(NuGetCacheType.HttpCache).Build().ToCommandString();
     string listCommand = DotNet.NuGet().Locals().List(NuGetCacheType.GlobalPackages).Build().ToCommandString();
     
-    AssertTrue(
-      clearCommand == "dotnet nuget locals http-cache --clear",
-      $"Expected 'dotnet nuget locals http-cache --clear', got '{clearCommand}'"
-    );
+    clearCommand.ShouldBe("dotnet nuget locals http-cache --clear");
     
-    AssertTrue(
-      listCommand == "dotnet nuget locals global-packages --list",
-      $"Expected 'dotnet nuget locals global-packages --list', got '{listCommand}'"
-    );
+    listCommand.ShouldBe("dotnet nuget locals global-packages --list");
     
     await Task.CompletedTask;
   }
@@ -148,10 +115,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget why --project MyApp.csproj --framework net10.0 Microsoft.Extensions.Logging",
-      $"Expected correct nuget why command, got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget why --project MyApp.csproj --framework net10.0 Microsoft.Extensions.Logging");
     
     await Task.CompletedTask;
   }
@@ -166,10 +130,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget list source",
-      $"Expected 'dotnet nuget list source', got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget list source");
     
     await Task.CompletedTask;
   }
@@ -183,10 +144,7 @@ internal sealed class DotNetNuGetTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet nuget list source --format Short",
-      $"Expected 'dotnet nuget list source --format Short', got '{command}'"
-    );
+    command.ShouldBe("dotnet nuget list source --format Short");
     
     await Task.CompletedTask;
   }

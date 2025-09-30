@@ -33,6 +33,12 @@ public static class Bash
   public static CommandOutput Cd(string path) =>
     FileSystem.Commands.SetLocation(path);
 
+  /// <summary>
+  /// Removes a file or directory (Commands version - returns CommandOutput).
+  /// </summary>
+  public static CommandOutput Rm(string path, bool recursive = false, bool force = false) =>
+    FileSystem.Commands.RemoveItem(path, recursive, force);
+
   // ===== Direct API Overloads for Advanced Usage =====
   // Note: These have different return types, so they can coexist with Commands versions
 
@@ -61,6 +67,12 @@ public static class Bash
   /// </summary>
   public static void CdDirect(string path) =>
     FileSystem.Direct.SetLocation(path);
+
+  /// <summary>
+  /// Removes a file or directory (Direct version - throws exceptions on failure).
+  /// </summary>
+  public static void RmDirect(string path, bool recursive = false, bool force = false) =>
+    FileSystem.Direct.RemoveItem(path, recursive, force);
 
   // ===== Future Text Operations (placeholders) =====
   

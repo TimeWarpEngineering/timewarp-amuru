@@ -14,10 +14,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish",
-      $"Expected 'dotnet publish', got '{command}'"
-    );
+    command.ShouldBe("dotnet publish");
     
     await Task.CompletedTask;
   }
@@ -29,10 +26,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish MyApp.csproj",
-      $"Expected 'dotnet publish MyApp.csproj', got '{command}'"
-    );
+    command.ShouldBe("dotnet publish MyApp.csproj");
     
     await Task.CompletedTask;
   }
@@ -49,10 +43,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./publish --no-restore",
-      $"Expected correct publish command with configuration options, got '{command}'"
-    );
+    command.ShouldBe("dotnet publish test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./publish --no-restore");
     
     await Task.CompletedTask;
   }
@@ -71,10 +62,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish test.csproj --configuration Release --runtime linux-x64 --nologo --self-contained --property:PublishReadyToRun=true --property:PublishSingleFile=true --property:PublishTrimmed=true",
-      $"Expected correct publish command with advanced deployment options, got '{command}'"
-    );
+    command.ShouldBe("dotnet publish test.csproj --configuration Release --runtime linux-x64 --nologo --self-contained --property:PublishReadyToRun=true --property:PublishSingleFile=true --property:PublishTrimmed=true");
     
     await Task.CompletedTask;
   }
@@ -91,10 +79,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish test.csproj --arch x64 --os linux",
-      $"Expected 'dotnet publish test.csproj --arch x64 --os linux', got '{command}'"
-    );
+    command.ShouldBe("dotnet publish test.csproj --arch x64 --os linux");
     
     await Task.CompletedTask;
   }
@@ -111,10 +96,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish test.csproj --configuration Release --verbosity minimal --source https://api.nuget.org/v3/index.json --property:PublishProfile=Production --property:EnvironmentName=Staging",
-      $"Expected correct publish command with MSBuild properties, got '{command}'"
-    );
+    command.ShouldBe("dotnet publish test.csproj --configuration Release --verbosity minimal --source https://api.nuget.org/v3/index.json --property:PublishProfile=Production --property:EnvironmentName=Staging");
     
     await Task.CompletedTask;
   }
@@ -129,10 +111,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish test.csproj --configuration Release --runtime win-x64 --no-build --no-self-contained",
-      $"Expected correct publish command with overload, got '{command}'"
-    );
+    command.ShouldBe("dotnet publish test.csproj --configuration Release --runtime win-x64 --no-build --no-self-contained");
     
     await Task.CompletedTask;
   }
@@ -148,10 +127,7 @@ internal sealed class DotNetPublishTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet publish nonexistent.csproj --configuration Release --runtime win-x64 --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
+    command.ShouldBe("dotnet publish nonexistent.csproj --configuration Release --runtime win-x64 --no-restore");
     
     await Task.CompletedTask;
   }

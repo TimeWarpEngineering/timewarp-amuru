@@ -12,10 +12,7 @@ internal sealed class DotNetDevCertsCommandTests
     // DotNet.DevCerts() alone doesn't build a valid command - needs a subcommand
     DotNetDevCertsBuilder devCertsBuilder = DotNet.DevCerts();
     
-    AssertTrue(
-      devCertsBuilder != null,
-      "DotNet.DevCerts() should create a valid builder"
-    );
+    devCertsBuilder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -26,10 +23,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
       
-    AssertTrue(
-      command == "dotnet dev-certs https",
-      $"Expected 'dotnet dev-certs https', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https");
     
     await Task.CompletedTask;
   }
@@ -42,10 +36,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --check",
-      $"Expected 'dotnet dev-certs https --check', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --check");
     
     await Task.CompletedTask;
   }
@@ -58,10 +49,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --clean",
-      $"Expected 'dotnet dev-certs https --clean', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --clean");
     
     await Task.CompletedTask;
   }
@@ -77,10 +65,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --export --export-path ./localhost.pfx --password testpassword --format Pfx",
-      $"Expected correct dev-certs export command, got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pfx --password testpassword --format Pfx");
     
     await Task.CompletedTask;
   }
@@ -93,10 +78,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --trust",
-      $"Expected 'dotnet dev-certs https --trust', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --trust");
     
     await Task.CompletedTask;
   }
@@ -111,10 +93,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --export --export-path ./localhost.pfx --no-password",
-      $"Expected correct dev-certs no-password command, got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pfx --no-password");
     
     await Task.CompletedTask;
   }
@@ -124,15 +103,9 @@ internal sealed class DotNetDevCertsCommandTests
     string verboseCommand = DotNet.DevCerts().Https().WithVerbose().Build().ToCommandString();
     string quietCommand = DotNet.DevCerts().Https().WithQuiet().Build().ToCommandString();
     
-    AssertTrue(
-      verboseCommand == "dotnet dev-certs https --verbose",
-      $"Expected 'dotnet dev-certs https --verbose', got '{verboseCommand}'"
-    );
+    verboseCommand.ShouldBe("dotnet dev-certs https --verbose");
     
-    AssertTrue(
-      quietCommand == "dotnet dev-certs https --quiet",
-      $"Expected 'dotnet dev-certs https --quiet', got '{quietCommand}'"
-    );
+    quietCommand.ShouldBe("dotnet dev-certs https --quiet");
     
     await Task.CompletedTask;
   }
@@ -148,10 +121,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --export --export-path ./localhost.pem --format Pem --no-password",
-      $"Expected correct dev-certs PEM format command, got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pem --format Pem --no-password");
     
     await Task.CompletedTask;
   }
@@ -167,10 +137,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --check",
-      $"Expected 'dotnet dev-certs https --check', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --check");
     
     await Task.CompletedTask;
   }
@@ -185,10 +152,7 @@ internal sealed class DotNetDevCertsCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet dev-certs https --check --quiet",
-      $"Expected 'dotnet dev-certs https --check --quiet', got '{command}'"
-    );
+    command.ShouldBe("dotnet dev-certs https --check --quiet");
     
     await Task.CompletedTask;
   }

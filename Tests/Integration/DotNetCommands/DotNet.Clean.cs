@@ -9,12 +9,9 @@ internal sealed class DotNetCleanCommandTests
     string command = DotNet.Clean()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean",
-      $"Expected 'dotnet clean', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean");
+
     await Task.CompletedTask;
   }
   
@@ -24,12 +21,9 @@ internal sealed class DotNetCleanCommandTests
       .WithProject("MyApp.csproj")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean MyApp.csproj",
-      $"Expected 'dotnet clean MyApp.csproj', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean MyApp.csproj");
+
     await Task.CompletedTask;
   }
 
@@ -43,12 +37,9 @@ internal sealed class DotNetCleanCommandTests
       .WithVerbosity("minimal")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean test.csproj --configuration Debug --framework net10.0 --output bin/Debug --verbosity minimal",
-      $"Expected correct clean command with configuration options, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean test.csproj --configuration Debug --framework net10.0 --output bin/Debug --verbosity minimal");
+
     await Task.CompletedTask;
   }
 
@@ -63,12 +54,9 @@ internal sealed class DotNetCleanCommandTests
       .WithProperty("CleanTargets", "All")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean test.csproj --configuration Release --runtime linux-x64 --nologo --property:Platform=AnyCPU --property:CleanTargets=All",
-      $"Expected correct clean command with runtime and properties, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean test.csproj --configuration Release --runtime linux-x64 --nologo --property:Platform=AnyCPU --property:CleanTargets=All");
+
     await Task.CompletedTask;
   }
 
@@ -82,12 +70,9 @@ internal sealed class DotNetCleanCommandTests
       .WithVerbosity("quiet")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean test.csproj --verbosity quiet",
-      $"Expected 'dotnet clean test.csproj --verbosity quiet', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean test.csproj --verbosity quiet");
+
     await Task.CompletedTask;
   }
 
@@ -98,12 +83,9 @@ internal sealed class DotNetCleanCommandTests
       .WithNoLogo()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet clean test.csproj --configuration Debug --nologo",
-      $"Expected 'dotnet clean test.csproj --configuration Debug --nologo', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet clean test.csproj --configuration Debug --nologo");
+
     await Task.CompletedTask;
   }
 
@@ -115,13 +97,10 @@ internal sealed class DotNetCleanCommandTests
       .WithConfiguration("Debug")
       .Build()
       .ToCommandString();
-    
+
     // The command string should be created correctly
-    AssertTrue(
-      command == "dotnet clean nonexistent.csproj --configuration Debug",
-      $"Expected correct command string even for non-existent projects, got '{command}'"
-    );
-    
+    command.ShouldBe("dotnet clean nonexistent.csproj --configuration Debug");
+
     await Task.CompletedTask;
   }
 }

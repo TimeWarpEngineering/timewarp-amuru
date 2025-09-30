@@ -9,12 +9,9 @@ internal sealed class DotNetBuildCommandTests
     string command = DotNet.Build()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build",
-      $"Expected 'dotnet build', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build");
+
     await Task.CompletedTask;
   }
   
@@ -24,12 +21,9 @@ internal sealed class DotNetBuildCommandTests
       .WithProject("MyApp.csproj")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build MyApp.csproj",
-      $"Expected 'dotnet build MyApp.csproj', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build MyApp.csproj");
+
     await Task.CompletedTask;
   }
 
@@ -43,12 +37,9 @@ internal sealed class DotNetBuildCommandTests
       .WithOutput("bin/Debug")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build test.csproj --configuration Debug --framework net10.0 --output bin/Debug --no-restore",
-      $"Expected 'dotnet build test.csproj --configuration Debug --framework net10.0 --output bin/Debug --no-restore', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build test.csproj --configuration Debug --framework net10.0 --output bin/Debug --no-restore");
+
     await Task.CompletedTask;
   }
 
@@ -66,12 +57,9 @@ internal sealed class DotNetBuildCommandTests
       .WithProperty("Platform", "AnyCPU")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --no-restore --no-dependencies --no-incremental --property:Platform=AnyCPU",
-      $"Expected correct build command with advanced options, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --no-restore --no-dependencies --no-incremental --property:Platform=AnyCPU");
+
     await Task.CompletedTask;
   }
 
@@ -86,12 +74,9 @@ internal sealed class DotNetBuildCommandTests
       .WithNoLogo()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build test.csproj --nologo",
-      $"Expected 'dotnet build test.csproj --nologo', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build test.csproj --nologo");
+
     await Task.CompletedTask;
   }
 
@@ -105,12 +90,9 @@ internal sealed class DotNetBuildCommandTests
       .WithProperty("RestoreIgnoreFailedSources", "true")
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build test.csproj --configuration Debug --property:RestoreNoCache=true --property:DisableImplicitNuGetFallbackFolder=true --property:RestoreIgnoreFailedSources=true",
-      $"Expected correct build command with MSBuild properties, got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build test.csproj --configuration Debug --property:RestoreNoCache=true --property:DisableImplicitNuGetFallbackFolder=true --property:RestoreIgnoreFailedSources=true");
+
     await Task.CompletedTask;
   }
 
@@ -121,12 +103,9 @@ internal sealed class DotNetBuildCommandTests
       .WithNoRestore()
       .Build()
       .ToCommandString();
-    
-    AssertTrue(
-      command == "dotnet build test.csproj --configuration Debug --no-restore",
-      $"Expected 'dotnet build test.csproj --configuration Debug --no-restore', got '{command}'"
-    );
-    
+
+    command.ShouldBe("dotnet build test.csproj --configuration Debug --no-restore");
+
     await Task.CompletedTask;
   }
 
@@ -139,13 +118,10 @@ internal sealed class DotNetBuildCommandTests
       .WithNoRestore()
       .Build()
       .ToCommandString();
-    
+
     // The command string should be created correctly
-    AssertTrue(
-      commandString == "dotnet build nonexistent.csproj --configuration Debug --no-restore",
-      $"Expected correct command string even for non-existent projects, got '{commandString}'"
-    );
-    
+    commandString.ShouldBe("dotnet build nonexistent.csproj --configuration Debug --no-restore");
+
     await Task.CompletedTask;
   }
 }

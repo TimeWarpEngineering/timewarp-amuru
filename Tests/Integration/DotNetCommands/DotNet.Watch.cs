@@ -12,10 +12,7 @@ internal sealed class DotNetWatchCommandTests
     // DotNet.Watch() alone doesn't build a valid command - needs a subcommand
     DotNetWatchBuilder watchBuilder = DotNet.Watch();
     
-    AssertTrue(
-      watchBuilder != null,
-      "DotNet.Watch() should create a valid builder"
-    );
+    watchBuilder.ShouldNotBeNull();
     
     await Task.CompletedTask;
   }
@@ -27,10 +24,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch run",
-      $"Expected 'dotnet watch run', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch run");
     
     await Task.CompletedTask;
   }
@@ -42,10 +36,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch test",
-      $"Expected 'dotnet watch test', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch test");
     
     await Task.CompletedTask;
   }
@@ -57,10 +48,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch build",
-      $"Expected 'dotnet watch build', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch build");
     
     await Task.CompletedTask;
   }
@@ -73,10 +61,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --project MyApp.csproj run",
-      $"Expected 'dotnet watch --project MyApp.csproj run', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --project MyApp.csproj run");
     
     await Task.CompletedTask;
   }
@@ -91,10 +76,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --quiet --verbose --list run",
-      $"Expected 'dotnet watch --quiet --verbose --list run', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --quiet --verbose --list run");
     
     await Task.CompletedTask;
   }
@@ -110,10 +92,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --no-restore --no-launch-profile --no-hot-reload --no-build run",
-      $"Expected correct watch command with no-options, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --no-restore --no-launch-profile --no-hot-reload --no-build run");
     
     await Task.CompletedTask;
   }
@@ -129,10 +108,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --include **/*.cs --include **/*.cshtml --exclude **/bin/** --exclude **/obj/** run",
-      $"Expected correct watch command with patterns, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --include **/*.cs --include **/*.cshtml --exclude **/bin/** --exclude **/obj/** run");
     
     await Task.CompletedTask;
   }
@@ -148,10 +124,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --framework net10.0 --configuration Release --runtime linux-x64 --verbosity detailed run",
-      $"Expected correct watch command with build configuration, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --framework net10.0 --configuration Release --runtime linux-x64 --verbosity detailed run");
     
     await Task.CompletedTask;
   }
@@ -166,10 +139,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --property Configuration=Debug --property Platform=x64 --launch-profile Development run",
-      $"Expected correct watch command with properties, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --property Configuration=Debug --property Platform=x64 --launch-profile Development run");
     
     await Task.CompletedTask;
   }
@@ -184,10 +154,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch run --environment Development --port 5000",
-      $"Expected correct watch command with arguments, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch run --environment Development --port 5000");
     
     await Task.CompletedTask;
   }
@@ -202,10 +169,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch run",
-      $"Expected 'dotnet watch run', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch run");
     
     await Task.CompletedTask;
   }
@@ -226,10 +190,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --project MyApp.csproj --no-restore --include **/*.cs --exclude **/bin/** --property DefineConstants=RELEASE --framework net10.0 --configuration Release --verbosity minimal run --environment Production",
-      $"Expected correct comprehensive watch command, got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --project MyApp.csproj --no-restore --include **/*.cs --exclude **/bin/** --property DefineConstants=RELEASE --framework net10.0 --configuration Release --verbosity minimal run --environment Production");
     
     await Task.CompletedTask;
   }
@@ -244,10 +205,7 @@ internal sealed class DotNetWatchCommandTests
       .Build()
       .ToCommandString();
     
-    AssertTrue(
-      command == "dotnet watch --project test.csproj --list run",
-      $"Expected 'dotnet watch --project test.csproj --list run', got '{command}'"
-    );
+    command.ShouldBe("dotnet watch --project test.csproj --list run");
     
     await Task.CompletedTask;
   }
