@@ -10,6 +10,7 @@ on:
       - 'Scripts/**'
       - '.github/workflows/**'
       - 'exe/**'
+      - 'Directory.Build.props'
   pull_request:
     branches:
       - master
@@ -19,8 +20,10 @@ on:
       - 'Scripts/**'
       - '.github/workflows/**'
       - 'exe/**'
+      - 'Directory.Build.props'
   release:
     types: [published] # Triggered when a release is published via GitHub Releases UI or gh CLI
+  workflow_dispatch: # Allow manual triggering
 
 # Required permissions for GitHub attestations and releases
 permissions:
