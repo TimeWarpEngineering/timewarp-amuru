@@ -7,9 +7,7 @@
 using TimeWarp.Nuru;
 using TimeWarp.Amuru;
 
-var builder = new NuruAppBuilder();
-
-builder.AddRoute("setup", async () =>
+static async Task<int> SetupSshKeysAsync()
 {
   string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
   string sshDir = Path.Combine(homeDir, ".ssh");
@@ -80,8 +78,28 @@ builder.AddRoute("setup", async () =>
     }
   }
 
-  // Test encryption/decryption
-  Console.WriteLine("\n🧪 Testing encryption/decryption...");
+  Console.WriteLine("\n✅ SSH key setup complete!");
+  Console.WriteLine($"   Use this key for encryption: {rsaPublicKey}");
+  Console.WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
+  Console.WriteLine($"\nRun '{System.Diagnostics.Process.GetCurrentProcess().ProcessName} test' to verify encryption/decryption works.");
+
+  return 0;
+}
+
+static async Task<int> TestEncryptionAsync()
+{
+  string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+  string sshDir = Path.Combine(homeDir, ".ssh");
+  string rsaPublicKey = Path.Combine(sshDir, "id_rsa_for_encryption.pub");
+  string rsaPrivateKeyPem = Path.Combine(sshDir, "id_rsa_for_encryption.pem");
+
+  if (!File.Exists(rsaPublicKey) || !File.Exists(rsaPrivateKeyPem))
+  {
+    Console.WriteLine("❌ Keys not found. Run setup first.");
+    return 1;
+  }
+
+  Console.WriteLine("🧪 Testing encryption/decryption...");
 
   const string testMessage = "Hello, World!";
 
@@ -123,12 +141,13 @@ builder.AddRoute("setup", async () =>
     return 1;
   }
 
-  Console.WriteLine("\n✅ SSH key setup complete!");
-  Console.WriteLine($"   Use this key for encryption: {rsaPublicKey}");
-  Console.WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
-
   return 0;
-}, "Setup SSH keys for encryption/decryption");
+}
+
+var builder = new NuruAppBuilder();
+
+builder.AddDefaultRoute(SetupSshKeysAsync, "Setup SSH keys for encryption/decryption");
+builder.AddRoute("test", TestEncryptionAsync, "Test encryption/decryption with existing keys");
 
 NuruApp app = builder.Build();
 return await app.RunAsync(args);
