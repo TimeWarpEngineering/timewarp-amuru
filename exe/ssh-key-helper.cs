@@ -1,10 +1,7 @@
 #!/usr/bin/dotnet --
 
 #:property PublishAot=false
-
-using System;
 using System.Diagnostics;
-using System.IO;
 
 // Helper script for SSH key operations
 string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
