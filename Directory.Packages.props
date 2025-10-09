@@ -12,5 +12,13 @@
     <PackageVersion Include="StreamJsonRpc" Version="2.23.32-alpha" />
     <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.12" />
     <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.9" />
+
+    <!-- Analyzers -->
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="4.14.1" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="4.14.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="4.14.0" />
+    
   </ItemGroup>
 </Project>
