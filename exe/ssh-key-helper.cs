@@ -6,6 +6,7 @@
 
 using TimeWarp.Nuru;
 using TimeWarp.Amuru;
+using static System.Console;
 
 static async Task<int> SetupSshKeysAsync()
 {
@@ -20,7 +21,7 @@ static async Task<int> SetupSshKeysAsync()
   // Check if we need to create RSA key
   if (!File.Exists(rsaPrivateKey))
   {
-    Console.WriteLine("🔑 Generating RSA key pair for encryption...");
+    WriteLine("🔑 Generating RSA key pair for encryption...");
 
     // Generate new RSA key pair specifically for encryption
     CommandOutput result = await Shell.Builder("ssh-keygen")
@@ -29,9 +30,9 @@ static async Task<int> SetupSshKeysAsync()
 
     if (result.Success)
     {
-      Console.WriteLine("✅ RSA key pair created:");
-      Console.WriteLine($"   Private: {rsaPrivateKey}");
-      Console.WriteLine($"   Public: {rsaPublicKey}");
+      WriteLine("✅ RSA key pair created:");
+      WriteLine($"   Private: {rsaPrivateKey}");
+      WriteLine($"   Public: {rsaPublicKey}");
 
       // Convert private key to PEM format
       CommandOutput pemResult = await Shell.Builder("bash")
@@ -40,48 +41,48 @@ static async Task<int> SetupSshKeysAsync()
 
       if (pemResult.Success)
       {
-        Console.WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
+        WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
       }
       else
       {
-        Console.WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
+        WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
         return 1;
       }
     }
     else
     {
-      Console.WriteLine($"❌ Failed to generate RSA key pair: {result.Stderr}");
+      WriteLine($"❌ Failed to generate RSA key pair: {result.Stderr}");
       return 1;
     }
   }
   else
   {
-    Console.WriteLine($"✅ RSA encryption key already exists: {rsaPrivateKey}");
+    WriteLine($"✅ RSA encryption key already exists: {rsaPrivateKey}");
 
     // Check if PEM version exists
     if (!File.Exists(rsaPrivateKeyPem))
     {
-      Console.WriteLine("🔑 Converting to PEM format...");
+      WriteLine("🔑 Converting to PEM format...");
       CommandOutput pemResult = await Shell.Builder("bash")
         .WithArguments("-c", $"ssh-keygen -p -m PEM -N '' -f {rsaPrivateKey} < /dev/null && cp {rsaPrivateKey} {rsaPrivateKeyPem}")
         .CaptureAsync();
 
       if (pemResult.Success)
       {
-        Console.WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
+        WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
       }
       else
       {
-        Console.WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
+        WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
         return 1;
       }
     }
   }
 
-  Console.WriteLine("\n✅ SSH key setup complete!");
-  Console.WriteLine($"   Use this key for encryption: {rsaPublicKey}");
-  Console.WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
-  Console.WriteLine($"\nRun '{System.Diagnostics.Process.GetCurrentProcess().ProcessName} test' to verify encryption/decryption works.");
+  WriteLine("\n✅ SSH key setup complete!");
+  WriteLine($"   Use this key for encryption: {rsaPublicKey}");
+  WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
+  WriteLine($"\nRun '{System.Diagnostics.Process.GetCurrentProcess().ProcessName} test' to verify encryption/decryption works.");
 
   return 0;
 }
@@ -95,11 +96,11 @@ static async Task<int> TestEncryptionAsync()
 
   if (!File.Exists(rsaPublicKey) || !File.Exists(rsaPrivateKeyPem))
   {
-    Console.WriteLine("❌ Keys not found. Run setup first.");
+    WriteLine("❌ Keys not found. Run setup first.");
     return 1;
   }
 
-  Console.WriteLine("🧪 Testing encryption/decryption...");
+  WriteLine("🧪 Testing encryption/decryption...");
 
   const string testMessage = "Hello, World!";
 
@@ -110,12 +111,12 @@ static async Task<int> TestEncryptionAsync()
 
   if (!encResult.Success || string.IsNullOrEmpty(encResult.Stdout))
   {
-    Console.WriteLine($"❌ Encryption failed: {encResult.Stderr}");
+    WriteLine($"❌ Encryption failed: {encResult.Stderr}");
     return 1;
   }
 
   string encrypted = encResult.Stdout.Trim();
-  Console.WriteLine("✅ Encryption successful");
+  WriteLine("✅ Encryption successful");
 
   // Test decrypt
   CommandOutput decResult = await Shell.Builder("bash")
@@ -124,20 +125,20 @@ static async Task<int> TestEncryptionAsync()
 
   if (!decResult.Success)
   {
-    Console.WriteLine($"❌ Decryption failed: {decResult.Stderr}");
+    WriteLine($"❌ Decryption failed: {decResult.Stderr}");
     return 1;
   }
 
   string decrypted = decResult.Stdout.Trim();
   if (decrypted == testMessage)
   {
-    Console.WriteLine("✅ Decryption successful");
-    Console.WriteLine($"   Original: {testMessage}");
-    Console.WriteLine($"   Decrypted: {decrypted}");
+    WriteLine("✅ Decryption successful");
+    WriteLine($"   Original: {testMessage}");
+    WriteLine($"   Decrypted: {decrypted}");
   }
   else
   {
-    Console.WriteLine($"❌ Decryption mismatch: expected '{testMessage}', got '{decrypted}'");
+    WriteLine($"❌ Decryption mismatch: expected '{testMessage}', got '{decrypted}'");
     return 1;
   }
 
