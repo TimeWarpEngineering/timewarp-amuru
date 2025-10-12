@@ -92,7 +92,7 @@ var runOutput = await Shell.Builder("dotnet", "run", "--project", "MyApp.csproj"
 
 ## Why This Matters for C# Scripts
 
-With the new shebang support (`#!/usr/bin/dotnet run`), C# can now compete with bash/PowerShell for system scripting. But we need better ergonomics than raw CliWrap.
+With the new shebang support (`#!/usr/bin/dotnet --`), C# can now compete with bash/PowerShell for system scripting. But we need better ergonomics than raw CliWrap.
 
 ## Next Steps (Future Phases)
 

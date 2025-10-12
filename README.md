@@ -45,9 +45,9 @@ If you find this project useful, please give it a star. Thanks!
 dotnet add package TimeWarp.Amuru
 ```
 
-Or reference in your C# script:
+Or reference in your C# runfile:
 ```csharp
-#:package TimeWarp.Amuru@1.0.0-beta.9
+#:package TimeWarp.Amuru@<latest-version>
 ```
 
 ### Optional: CLI Tools
@@ -62,7 +62,7 @@ The CLI tool includes various utilities like timestamp conversion, color generat
 ## Quick Start
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package TimeWarp.Amuru
 
 using TimeWarp.Amuru;

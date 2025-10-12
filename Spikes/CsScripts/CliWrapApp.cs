@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run --package CliWrap
+#!/usr/bin/dotnet -- --package CliWrap
 // FindPs1Files.cs
 using System;
 using System.Threading.Tasks;

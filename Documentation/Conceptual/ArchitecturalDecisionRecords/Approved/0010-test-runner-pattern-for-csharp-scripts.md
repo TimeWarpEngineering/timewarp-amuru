@@ -50,7 +50,7 @@ Chosen option: "Class-based tests with TestRunner pattern", because it provides 
 ### Test Script Structure
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 
 await RunTests<YourTestClass>();
 
@@ -103,7 +103,7 @@ internal sealed class YourTestClass
 ### Example Test File
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 
 await RunTests<CommandResultTests>();
 

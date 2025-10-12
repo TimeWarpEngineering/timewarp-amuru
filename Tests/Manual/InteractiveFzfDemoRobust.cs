@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 
 // MANUAL TEST: Robust interactive FZF tests with edge case handling
 

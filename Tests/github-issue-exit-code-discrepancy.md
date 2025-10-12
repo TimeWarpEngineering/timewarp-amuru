@@ -21,7 +21,7 @@ When using `WithValidation(CommandResultValidation.None)`, there is a critical d
 ## Minimal Reproduction Code
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package CliWrap
 
 using CliWrap;

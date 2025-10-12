@@ -1,28 +1,26 @@
 #!/usr/bin/dotnet --
 
 #:package TimeWarp.Multiavatar
-#:property TrimMode=partial
 #:property NoWarn=IL2104;IL3053
 
 using TimeWarp.Multiavatar;
 using TimeWarp.Nuru;
 using static System.Console;
 
-NuruAppBuilder builder = new();
+NuruApp app =
+  new NuruAppBuilder()
+  .AddAutoHelp()
+  .AddRoute
+  (
+    "{input|Text to generate avatar from (email, username, etc)} " +
+    "--output,-o? {file?|Save SVG to file instead of stdout} " +
+    "--no-env|Generate without environment circle " +
+    "--output-hash|Display hash calculation details instead of SVG",
+    GenerateAvatar,
+    "Generate unique, deterministic SVG avatars from any text input"
+  )
+  .Build();
 
-builder.AddAutoHelp();
-
-builder.AddRoute
-(
-  "{input|Text to generate avatar from (email, username, etc)} " +
-  "--output,-o {file?|Save SVG to file instead of stdout} " +
-  "--no-env|Generate without environment circle " +
-  "--output-hash|Display hash calculation details instead of SVG",
-  GenerateAvatar,
-  "Generate unique, deterministic SVG avatars from any text input"
-);
-
-NuruApp app = builder.Build();
 return await app.RunAsync(args);
 
 static void GenerateAvatar(string input, string? file, bool noEnv, bool outputHash)

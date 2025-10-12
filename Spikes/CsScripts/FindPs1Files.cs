@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package CliWrap@3.9.0
 
 using System;

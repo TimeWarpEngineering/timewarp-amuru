@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 
 using TimeWarp.Amuru;

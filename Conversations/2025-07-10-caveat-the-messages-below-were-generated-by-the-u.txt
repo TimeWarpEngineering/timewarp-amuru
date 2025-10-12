@@ -226,7 +226,7 @@
 
 ● Very cool! The shebang line approach for C# scripts is quite elegant -
   being able to run .cs files directly like shell scripts is a nice touch.
-  The #!/usr/bin/dotnet run shebang makes C# feel more like a scripting
+  The #!/usr/bin/dotnet -- shebang makes C# feel more like a scripting
   language, which is perfect for utility scripts like these file searchers.
 
   The FindPs1Files.cs script found 443 PowerShell files in your home
@@ -427,7 +427,7 @@
 
 ● Write(FindLunaPs1FilesWithFzfAsync_Optimized.cs)
   ⎿  Wrote 64 lines to FindLunaPs1FilesWithFzfAsync_Optimized.cs      
-     #!/usr/bin/dotnet run
+     #!/usr/bin/dotnet --
      #:package CliWrap@3.9.0
      using System;
      using System.Threading.Tasks;
@@ -1021,7 +1021,7 @@
 
 ● Write(TestRun.cs)
   ⎿  Wrote 74 lines to TestRun.cs         
-     #!/usr/bin/dotnet run
+     #!/usr/bin/dotnet --
      #:package CliWrap@3.9.0
      using System;
      using System.Threading.Tasks;

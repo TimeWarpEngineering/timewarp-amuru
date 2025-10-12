@@ -186,7 +186,7 @@ catch
 This class is designed to be used in C# scripts with the following pattern:
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package TimeWarp.Cli
 
 // Direct usage - Run is available globally
