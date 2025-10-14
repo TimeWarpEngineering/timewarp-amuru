@@ -48,6 +48,82 @@ This document explains the six distinct architectural layers and how they integr
 
 ---
 
+## Two Distinct Implementation Patterns
+
+**IMPORTANT**: Not all builders follow the same pattern. Understanding this distinction is crucial:
+
+### Pattern A: Native In-Process Operations
+
+**Starting Point**: Layer 1 (Direct API)
+
+**Examples**: FileSystem operations (`Cat`, `Ls`, `Pwd`), `Git.FindRoot()`
+
+**Flow**:
+```
+Layer 1 (Direct) → Layer 2 (Commands) → Layer 4 (Aliases) → Layer 5/6
+```
+
+**Characteristics**:
+- Pure C# implementations with NO external executables
+- Layer 1 is **REQUIRED** - contains the actual logic
+- Layer 2 wraps Layer 1 with CommandOutput
+- Layer 3 (Builder) is optional and rarely needed for simple operations
+
+**Current Implementations**:
+- ✅ FileSystem: `Direct.Cat()`, `Commands.Cat()`, Bash aliases
+- ✅ Git (partial): `Git.FindRoot()` is pure C# (Layer 1/2)
+
+### Pattern B: External Command Wrappers
+
+**Starting Point**: Layer 3 (Builder)
+
+**Examples**: `DotNet.Build()`, `Fzf.Builder()`, `Ghq.Builder()`, `Gwq.Builder()`
+
+**Flow**:
+```
+Layer 3 (Builder) → Layer 4 (Aliases) → Layer 5/6
+```
+
+**Characteristics**:
+- Wraps existing external commands (`dotnet`, `fzf`, `ghq`, `gwq`)
+- Layer 1 and Layer 2 are **NOT PRESENT** - not needed
+- Builder constructs arguments and calls `Shell.Builder()` to execute external command
+- Provides fluent, type-safe API over existing tools
+
+**Current Implementations**:
+- ✅ DotNet: `DotNet.Build()`, `DotNet.Test()`, etc. - wraps `dotnet` CLI
+- ✅ Fzf: `Fzf.Builder()` - wraps `fzf` interactive filter
+- ✅ Ghq: `Ghq.Builder()` - wraps `ghq` repository manager
+- ✅ Gwq: `Gwq.Builder()` - wraps `gwq` workspace manager
+
+### Pattern C: Hybrid Approach (Progressive Enhancement)
+
+**Starting Point**: Pattern B, then incrementally add Pattern A
+
+**Example**: Git (future vision)
+
+**Strategy**:
+1. Start with Layer 3 builder wrapping `git` command
+2. Identify hot paths or problematic operations
+3. Implement Layer 1/2 (Native) for those specific operations
+4. Builder uses native where available, external where not
+
+**Benefits**:
+- Start quickly (wrap existing tool)
+- Add native implementations incrementally
+- Maintain 100% compatibility via passthrough
+- Best of both worlds: performance + compatibility
+
+**Visual Example**:
+```
+Git.Builder()
+  .FindRoot()           → Native C# (Layer 1) ⚡ Fast
+  .Status()             → git status (external) 🔄 Compatible
+  .Commit("message")    → git commit (external) 🔄 Compatible
+```
+
+---
+
 ## Layer 1: Direct API (Low-Level)
 
 ### Purpose

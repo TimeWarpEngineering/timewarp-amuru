@@ -113,9 +113,394 @@ Consider progressive enhancement when:
 - Better error messages and diagnostics
 - Customize behavior for your needs
 
+## Two Distinct Patterns
+
+**IMPORTANT**: There are two distinct approaches depending on what you're building. Don't confuse them!
+
+### Pattern A: Native In-Process Operations
+
+**When to use**: Implementing NEW functionality that doesn't exist as an external command, OR replacing external command with pure C# for performance/control.
+
+**Example**: FileSystem operations (Cat, Ls, Pwd), Git.FindRoot
+
+**Layer Flow**:
+```
+Layer 1 (Direct) → Layer 2 (Commands) → Layer 4 (Aliases) → Layer 5 (Ganda) → Layer 6 (AOT)
+```
+
+**Characteristics**:
+- Pure C# in-process (no external executables)
+- MUST start with Layer 1 (Direct API)
+- Layer 1 is the foundation - everything else wraps it
+- Examples: `Direct.Cat()`, `Direct.FindRoot()`
+
+**Why Layer 1 required**: You're implementing the actual functionality in C#, so Direct API is where the logic lives.
+
+### Pattern B: External Command Wrappers
+
+**When to use**: Wrapping EXISTING external executables with fluent, type-safe API.
+
+**Example**: DotNet, Fzf, Ghq, Gwq
+
+**Layer Flow**:
+```
+Layer 3 (Builder) → Layer 4 (Aliases) → Layer 5 (Ganda) → Layer 6 (AOT)
+```
+
+**Characteristics**:
+- Wraps external commands (`dotnet`, `fzf`, `ghq`)
+- Start DIRECTLY at Layer 3 (Builder)
+- NO Layer 1 or Layer 2 needed
+- Builder constructs command-line arguments and executes via Shell
+- Examples: `DotNet.Build()`, `Fzf.Builder()`, `Ghq.Builder()`
+
+**Why NO Layer 1/2**: The external command already exists - you're just making it fluent and type-safe, not reimplementing it.
+
+### Pattern C: Hybrid Approach (Progressive Enhancement)
+
+**When to use**: Want to incrementally replace external command features with native implementations.
+
+**Example**: Git with native FindRoot but external for other operations
+
+**Layer Flow**:
+```
+Start: Layer 3 (Builder wrapping external git)
+      ↓
+Add:  Layers 1-2 for specific operations (native FindRoot)
+      ↓
+Result: Layer 6 (Enhanced git with catchall passthrough)
+```
+
+**Strategy**:
+1. Begin with Pattern B (Layer 3 builder wrapping `git`)
+2. Identify hot paths or problematic operations
+3. Add Pattern A (Layers 1-2) for those specific operations
+4. Builder uses native where available, external where not
+5. Eventually create Layer 6 (enhanced `git` binary with catchall)
+
+**Example**: Enhanced git that uses native C# for `FindRoot` (fast) but passes through to real git for `commit`, `push`, etc. (compatible).
+
+## Decision Tree
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ What are you building?                                      │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ↓
+        ┌─────────────────┴──────────────────┐
+        │                                     │
+        ↓                                     ↓
+  New Functionality                  Wrapping Existing Tool
+  (Not available elsewhere)          (External command exists)
+        │                                     │
+        ↓                                     ↓
+    Pattern A                             Pattern B
+  (Native In-Process)                 (External Wrapper)
+        │                                     │
+        ↓                                     ↓
+  Start Layer 1                         Start Layer 3
+  (Direct API)                          (Builder)
+  Pure C# implementation                Wraps external command
+        │                                     │
+  Example:                              Example:
+  - FileSystem.Cat()                    - DotNet.Build()
+  - Git.FindRoot()                      - Fzf.Builder()
+  - Grep with regex                     - Ghq.Builder()
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ Want to progressively replace external tool?                │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ↓
+                     Pattern C
+                  (Hybrid Approach)
+                          │
+                          ↓
+        Start with Pattern B (Layer 3 wrapper)
+                          ↓
+        Add Pattern A (Layers 1-2) for hot paths
+                          ↓
+        Create Layer 6 (Enhanced AOT with catchall)
+                          │
+                     Example:
+        Enhanced git with native FindRoot (fast)
+        + catchall to real git (compatible)
+```
+
+## Visual Flow Diagrams
+
+### Pattern A: Native In-Process Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Pattern A: Native In-Process Operations            │
+│ Example: FileSystem.Cat(), Git.FindRoot()          │
+└─────────────────────────────────────────────────────┘
+
+Implementation Flow:
+═══════════════════
+
+1. Layer 1: Direct API (Pure C#) ✅ REQUIRED
+   ┌─────────────────────────────────────┐
+   │ Direct.FindRoot()                   │
+   │                                     │
+   │ • Pure C# logic                     │
+   │ • Throws exceptions                 │
+   │ • Returns string                    │
+   │ • In-process execution              │
+   └─────────────────────────────────────┘
+              ↓ wraps with try/catch
+
+2. Layer 2: Commands API ✅ RECOMMENDED
+   ┌─────────────────────────────────────┐
+   │ Commands.FindRoot()                 │
+   │                                     │
+   │ • Calls Direct.FindRoot()           │
+   │ • Returns CommandOutput             │
+   │ • Exit codes instead of exceptions  │
+   │ • Shell-compatible                  │
+   └─────────────────────────────────────┘
+              ↓ expose with familiar names
+
+3. Layer 4: Bash Aliases (Optional)
+   ┌─────────────────────────────────────┐
+   │ Bash.GitRoot()                      │
+   │                                     │
+   │ • Friendly bash-style name          │
+   │ • Calls Direct or Commands          │
+   │ • Minimal verbosity                 │
+   └─────────────────────────────────────┘
+              ↓ expose as CLI command
+
+4. Layer 5: Ganda CLI (Optional)
+   ┌─────────────────────────────────────┐
+   │ timewarp git-root                   │
+   │                                     │
+   │ • CLI subcommand                    │
+   │ • Calls Direct.FindRoot()           │
+   │ • Global tool via NuGet             │
+   └─────────────────────────────────────┘
+              ↓ compile standalone
+
+5. Layer 6: AOT Executable (Optional)
+   ┌─────────────────────────────────────┐
+   │ Enhanced executable with native     │
+   │                                     │
+   │ • No .NET SDK required              │
+   │ • Native code via AOT               │
+   │ • Distributed via GitHub releases   │
+   └─────────────────────────────────────┘
+
+Usage Example:
+═════════════
+// C# - Direct API
+string root = Direct.FindRoot();  // Throws on error
+
+// C# - Commands API
+CommandOutput result = Commands.FindRoot();  // Exit code 0 or 1
+
+// C# - Bash Alias
+string root = GitRoot();  // Familiar name
+
+// CLI
+$ timewarp git-root
+/home/user/project
+
+// Enhanced standalone
+$ git find-root
+/home/user/project
+```
+
+### Pattern B: External Command Wrapper Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Pattern B: External Command Wrappers               │
+│ Example: DotNet.Build(), Fzf.Builder()             │
+└─────────────────────────────────────────────────────┘
+
+Implementation Flow:
+═══════════════════
+
+❌ NO Layer 1: Direct API (Not Needed)
+   ┌─────────────────────────────────────┐
+   │ External command already exists     │
+   │ • dotnet, fzf, ghq, gwq, etc.       │
+   │ • We're just wrapping it            │
+   │ • Not reimplementing functionality  │
+   └─────────────────────────────────────┘
+              ↓ start directly at Layer 3
+
+1. Layer 3: Strongly-Typed Builder ✅ START HERE
+   ┌─────────────────────────────────────┐
+   │ DotNet.Builder()                    │
+   │   .WithConfiguration("Release")     │
+   │   .Build()                          │
+   │                                     │
+   │ • Fluent API                        │
+   │ • Type-safe configuration           │
+   │ • Builds command-line arguments     │
+   │ • Calls Shell.Builder("dotnet", ...)│
+   └─────────────────────────────────────┘
+              ↓ expose with familiar names
+
+2. Layer 4: Bash Aliases (Optional)
+   ┌─────────────────────────────────────┐
+   │ Bash.DotnetBuild()                  │
+   │                                     │
+   │ • Calls DotNet.Builder().Build()    │
+   │ • Minimal verbosity                 │
+   └─────────────────────────────────────┘
+              ↓ expose as CLI command
+
+3. Layer 5: Ganda CLI (Optional)
+   ┌─────────────────────────────────────┐
+   │ timewarp dotnet-build               │
+   │                                     │
+   │ • CLI subcommand                    │
+   │ • Calls DotNet.Builder()            │
+   └─────────────────────────────────────┘
+              ↓ compile standalone
+
+4. Layer 6: AOT Executable (Optional)
+   ┌─────────────────────────────────────┐
+   │ Enhanced dotnet executable          │
+   │                                     │
+   │ • Adds fluent API wrapper           │
+   │ • Passes through to real dotnet     │
+   └─────────────────────────────────────┘
+
+Usage Example:
+═════════════
+// C# - Builder
+await DotNet.Builder()
+  .WithConfiguration("Release")
+  .Build()
+  .RunAsync();
+
+// C# - Bash Alias
+await DotnetBuild("Release");
+
+// CLI
+$ timewarp dotnet-build --configuration Release
+
+Key Insight:
+═══════════
+✅ Layer 3 is the ENTRY POINT for Pattern B
+❌ NO Layer 1 or Layer 2 needed
+⚡ External command does the work
+🎯 Builder just makes it type-safe and fluent
+```
+
+### Pattern C: Hybrid (Progressive Enhancement) Flow
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Pattern C: Hybrid Approach                         │
+│ Example: Git with native + external                │
+└─────────────────────────────────────────────────────┘
+
+Progressive Implementation:
+═══════════════════════════
+
+Phase 1: Start with Pattern B
+   ┌─────────────────────────────────────┐
+   │ Git.Builder()                       │
+   │   .WithArguments("status")          │
+   │   .RunAsync()                       │
+   │                                     │
+   │ • Wraps external git command        │
+   │ • All operations call git           │
+   └─────────────────────────────────────┘
+              ↓ identify hot paths
+
+Phase 2: Add Pattern A for specific operations
+   ┌─────────────────────────────────────┐
+   │ Layer 1 & 2: Native FindRoot        │
+   │                                     │
+   │ Direct.FindRoot() ✅ (pure C#)      │
+   │ Commands.FindRoot() ✅ (exit codes) │
+   │                                     │
+   │ • 100x faster than git rev-parse    │
+   │ • No process spawning               │
+   └─────────────────────────────────────┘
+              ↓ builder chooses implementation
+
+Phase 3: Builder uses hybrid approach
+   ┌─────────────────────────────────────┐
+   │ Git.Builder()                       │
+   │                                     │
+   │ FindRoot()     → Direct.FindRoot()  │
+   │   ⚡ Native C#                      │
+   │                                     │
+   │ Status()       → git status         │
+   │   🔄 External git                   │
+   │                                     │
+   │ Commit()       → git commit         │
+   │   🔄 External git                   │
+   └─────────────────────────────────────┘
+              ↓ create enhanced executable
+
+Phase 4: Enhanced git with catchall
+   ┌─────────────────────────────────────┐
+   │ Enhanced git executable             │
+   │                                     │
+   │ git find-root  → Direct.FindRoot()  │
+   │   ⚡ Native (fast)                  │
+   │                                     │
+   │ git status     → real git status    │
+   │   🔄 Passthrough (compatible)       │
+   │                                     │
+   │ git commit     → real git commit    │
+   │   🔄 Passthrough (compatible)       │
+   └─────────────────────────────────────┘
+
+Benefits:
+═════════
+✅ Start fast (Pattern B wrapper)
+✅ Add native when beneficial (Pattern A)
+✅ Maintain 100% compatibility (catchall)
+✅ Incremental migration (one operation at a time)
+✅ Best of both worlds (performance + compatibility)
+
+Migration Path:
+══════════════
+Time:  Week 1        Week 2         Week 3         Month 2
+       │             │              │              │
+       ↓             ↓              ↓              ↓
+Step:  Builder       Native         Hybrid         Enhanced AOT
+       (Pattern B)   (Pattern A)    Builder        (Layer 6)
+
+       Wrap git  →  Add FindRoot → Builder uses → Catchall
+       commands     in pure C#     both native     passthrough
+                                   and external    for rest
+```
+
+## When Layer 1 is Required vs Optional
+
+### Layer 1 REQUIRED (Pattern A)
+- ✅ Implementing new functionality in pure C#
+- ✅ Examples: FileSystem operations, Git.FindRoot, Text processing
+- ✅ Layer 1 (Direct) contains the actual implementation logic
+- ✅ Layer 2 (Commands) wraps Layer 1 with CommandOutput
+
+### Layer 1 NOT NEEDED (Pattern B)
+- ❌ Wrapping existing external commands
+- ❌ Examples: DotNet.Build(), Fzf.Builder(), Ghq.Builder()
+- ❌ External tool already implements the functionality
+- ❌ Builder just constructs arguments and calls `Shell.Builder()`
+
+### Layer 1 OPTIONAL (Pattern C)
+- 🔄 Start without Layer 1 (wrap external command)
+- 🔄 Add Layer 1 later for specific operations
+- 🔄 Mix native (fast) and external (compatible)
+- 🔄 Example: Git builder with native FindRoot
+
 ## Layer-by-Layer Guide
 
-### Layer 1: Direct API (Pure C#) - REQUIRED
+### Layer 1: Direct API (Pure C#) - Required for Pattern A Only
 
 **Purpose**: In-process C# implementations with native types and exceptions
 
