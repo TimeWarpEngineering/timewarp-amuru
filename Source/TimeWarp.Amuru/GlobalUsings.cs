@@ -10,4 +10,3 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using System.Threading;
-global using TimeWarp.Amuru.Interfaces;

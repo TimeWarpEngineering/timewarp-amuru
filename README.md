@@ -151,6 +151,84 @@ await DotNet.Test()
     .RunAsync();
 ```
 
+### Conditional Configuration
+
+The `When()` extension method allows you to apply configuration conditionally without breaking the fluent chain:
+
+```csharp
+// Without When() - breaks the fluent chain
+DotNetAddPackageBuilder builder = DotNet.AddPackage(packageName);
+if (version != null)
+{
+    builder = builder.WithVersion(version);
+}
+else
+{
+    builder = builder.WithPrerelease();
+}
+await builder.CaptureAsync();
+
+// With When() - keeps the fluent chain intact
+await DotNet.AddPackage(packageName)
+    .WithProject(projectFile)
+    .When(version != null, b => b.WithVersion(version!))
+    .When(version == null, b => b.WithPrerelease())
+    .CaptureAsync();
+
+// Works with all builders
+await Shell.Builder("git")
+    .WithArguments("push")
+    .When(force, b => b.WithArguments("--force"))
+    .When(dryRun, b => b.WithArguments("--dry-run"))
+    .When(workDir != null, b => b.WithWorkingDirectory(workDir!))
+    .RunAsync();
+```
+
+### Available Extension Methods
+
+All extension methods work on any builder that implements `ICommandBuilder<T>`:
+
+**`When(condition, configure)`** - Apply configuration when condition is true
+```csharp
+.When(version != null, b => b.WithVersion(version!))
+```
+
+**`WhenNotNull(value, configure)`** - Apply configuration when value is not null, passing the value
+```csharp
+.WhenNotNull(version, (b, v) => b.WithVersion(v))  // Cleaner than When!
+```
+
+**`Unless(condition, configure)`** - Apply configuration when condition is false
+```csharp
+.Unless(isProduction, b => b.WithVerbose())
+```
+
+**`Apply(configure)`** - Extract and reuse configuration logic
+```csharp
+static DotNetBuildBuilder AddProductionSettings(DotNetBuildBuilder b) =>
+  b.WithConfiguration("Release").WithNoRestore();
+
+await DotNet.Build()
+  .Apply(AddProductionSettings)
+  .RunAsync();
+```
+
+**`ForEach(items, configure)`** - Apply configuration for each item
+```csharp
+.ForEach(sources, (b, source) => b.WithSource(source))
+```
+
+**`Tap(action)`** - Side effects without modifying the builder (logging, debugging)
+```csharp
+.Tap(b => Console.WriteLine($"Building with config: {b}"))
+```
+
+These extensions:
+- Maintain type safety and IntelliSense support
+- Keep method chains fluent and readable
+- Work with all command builders (Shell, DotNet, Fzf, etc.)
+- Enable functional programming patterns
+
 ## Key Features
 
 - **Shell-Like Default**: `RunAsync()` streams to console just like bash/PowerShell
@@ -158,6 +236,7 @@ await DotNet.Test()
 - **Memory-Efficient Streaming**: `IAsyncEnumerable` for large data without buffering
 - **Complete Output Access**: CommandOutput with Stdout, Stderr, Combined, and ExitCode
 - **Fluent Interface**: Chain operations naturally with `.Pipe()` and builder methods
+- **Conditional Configuration**: `When()` extension for fluent conditional logic
 - **Async-First Design**: All operations support modern async/await patterns
 - **Smart Error Handling**: Commands throw on errors by default, with opt-in graceful degradation
 - **Pipeline Support**: Chain commands with Unix-like pipe semantics

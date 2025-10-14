@@ -1,4 +1,4 @@
-namespace TimeWarp.Amuru.Interfaces;
+namespace TimeWarp.Amuru;
 
 /// <summary>
 /// Interface for command builders to ensure consistency across all builder implementations.

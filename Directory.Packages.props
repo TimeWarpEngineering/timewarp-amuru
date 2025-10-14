@@ -1,7 +1,6 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
   </PropertyGroup>
   <ItemGroup>
     <!-- External packages -->
@@ -10,6 +9,7 @@
     <PackageVersion Include="ModelContextProtocol.Core" Version="0.3.0-preview.4" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="StreamJsonRpc" Version="2.23.32-alpha" />
+    <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0-beta.4" />
     <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.13" />
     <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.17" />
 

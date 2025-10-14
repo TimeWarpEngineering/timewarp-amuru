@@ -112,19 +112,12 @@ static async Task<int> CheckNuGetPackage(string packageName, string? version = n
         """);
 
       // Add the package to download it
-      DotNetAddPackageBuilder builder = DotNet.AddPackage(packageName)
-        .WithProject(projectFile);
+      CommandOutput downloadResult = await DotNet.AddPackage(packageName)
+        .WithProject(projectFile)
+        .WhenNotNull(version, (b, v) => b.WithVersion(v))
+        .Unless(version != null, b => b.WithPrerelease())
+        .CaptureAsync();
 
-      if (version != null)
-      {
-        builder = builder.WithVersion(version);
-      }
-      else
-      {
-        builder = builder.WithPrerelease();
-      }
-
-      CommandOutput downloadResult = await builder.CaptureAsync();
       if (!downloadResult.Success)
       {
         WriteLine("❌ Failed to download package from NuGet.org");
