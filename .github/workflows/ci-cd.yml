@@ -77,11 +77,19 @@ jobs:
           # Create output directory
           mkdir -p artifacts/${{ matrix.rid }}
 
-          # Build each executable
-          for script in multiavatar generate-avatar convert-timestamp generate-color ssh-key-helper; do
+          # Discover all .cs files in exe/ directory (excluding installer.cs and test files)
+          for script_path in exe/*.cs; do
+            script=$(basename "$script_path" .cs)
+
+            # Skip installer.cs (built separately) and test files
+            if [[ "$script" == "installer" ]] || [[ "$script" == *.Tests ]]; then
+              echo "Skipping $script (built separately or test file)"
+              continue
+            fi
+
             echo "Building $script for ${{ matrix.rid }}..."
 
-            dotnet publish exe/$script.cs -c Release -r ${{ matrix.rid }} \
+            dotnet publish "exe/$script.cs" -c Release -r ${{ matrix.rid }} \
               --self-contained -p:PublishSingleFile=true \
               -o artifacts/${{ matrix.rid }}
           done
