@@ -21,6 +21,7 @@ public static class CommandBuilderExtensions
   public static TBuilder When<TBuilder>(this TBuilder builder, bool condition, Func<TBuilder, TBuilder> configure)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(configure);
     return condition ? configure(builder) : builder;
   }
 #pragma warning restore CA1716
@@ -44,6 +45,7 @@ public static class CommandBuilderExtensions
     Func<TBuilder, TValue, TBuilder> configure)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(configure);
     return value is not null ? configure(builder, value) : builder;
   }
 
@@ -62,6 +64,7 @@ public static class CommandBuilderExtensions
   public static TBuilder Unless<TBuilder>(this TBuilder builder, bool condition, Func<TBuilder, TBuilder> configure)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(configure);
     return !condition ? configure(builder) : builder;
   }
 
@@ -79,6 +82,7 @@ public static class CommandBuilderExtensions
   public static TBuilder Apply<TBuilder>(this TBuilder builder, Func<TBuilder, TBuilder> configure)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(configure);
     return configure(builder);
   }
 
@@ -100,6 +104,9 @@ public static class CommandBuilderExtensions
     Func<TBuilder, TItem, TBuilder> configure)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(items);
+    ArgumentNullException.ThrowIfNull(configure);
+
     TBuilder result = builder;
     foreach (TItem item in items)
     {
@@ -123,6 +130,7 @@ public static class CommandBuilderExtensions
   public static TBuilder Tap<TBuilder>(this TBuilder builder, Action<TBuilder> action)
     where TBuilder : ICommandBuilder<TBuilder>
   {
+    ArgumentNullException.ThrowIfNull(action);
     action(builder);
     return builder;
   }
