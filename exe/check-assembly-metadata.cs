@@ -72,8 +72,9 @@ static async Task<int> CheckNuGetPackage(string packageName, string? version = n
   try
   {
     WriteLine("Finding package cache location...");
-    CommandOutput localsResult = await Shell.Builder("dotnet")
-      .WithArguments("nuget", "locals", "global-packages", "--list")
+    CommandOutput localsResult = await DotNet.NuGet()
+      .Locals()
+      .List(NuGetCacheType.GlobalPackages)
       .CaptureAsync();
 
     if (!localsResult.Success)
@@ -111,16 +112,16 @@ static async Task<int> CheckNuGetPackage(string packageName, string? version = n
         """);
 
       // Add the package to download it
-      RunBuilder builder = Shell.Builder("dotnet")
-        .WithArguments("add", projectFile, "package", packageName);
+      DotNetAddPackageBuilder builder = DotNet.AddPackage(packageName)
+        .WithProject(projectFile);
 
       if (version != null)
       {
-        builder = builder.WithArguments("--version", version);
+        builder = builder.WithVersion(version);
       }
       else
       {
-        builder = builder.WithArguments("--prerelease");
+        builder = builder.WithPrerelease();
       }
 
       CommandOutput downloadResult = await builder.CaptureAsync();
