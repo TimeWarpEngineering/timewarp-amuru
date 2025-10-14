@@ -26,7 +26,7 @@ return await app.RunAsync(args);
 
 static async Task<int> GenerateAvatar()
 {
-  string? gitRoot = FindGitRoot();
+  string? gitRoot = Git.FindRoot();
   if (gitRoot == null)
   {
     WriteLine("Error: Not in a git repository");
@@ -35,7 +35,13 @@ static async Task<int> GenerateAvatar()
 
   WriteLine($"Git repository root: {gitRoot}");
 
-  string repoName = await GetRepositoryNameAsync();
+  string? repoName = await Git.GetRepositoryNameAsync(gitRoot);
+  if (repoName == null)
+  {
+    WriteLine("Error: Could not determine repository name");
+    return 1;
+  }
+
   WriteLine($"Repository name: {repoName}");
 
   // Create assets directory if it doesn't exist
@@ -57,62 +63,4 @@ static async Task<int> GenerateAvatar()
   WriteLine($"Successfully generated avatar for '{repoName}'");
 
   return 0;
-}
-
-// Helper functions for git repository detection
-static string? FindGitRoot(string? startPath = null)
-{
-  string currentPath = startPath ?? Directory.GetCurrentDirectory();
-
-  while (!string.IsNullOrEmpty(currentPath))
-  {
-    string gitPath = Path.Combine(currentPath, ".git");
-
-    // Check if .git exists (either as directory or file for worktrees)
-    if (Directory.Exists(gitPath) || File.Exists(gitPath))
-    {
-      return currentPath;
-    }
-
-    DirectoryInfo? parent = Directory.GetParent(currentPath);
-    if (parent == null)
-    {
-      break;
-    }
-
-    currentPath = parent.FullName;
-  }
-
-  return null;
-}
-
-static async Task<string> GetRepositoryNameAsync()
-{
-  // Try to get from git remote using Shell.Builder
-  CommandOutput result =
-    await Shell.Builder("git")
-    .WithArguments("remote", "get-url", "origin")
-    .WithNoValidation() // Don't throw on failure
-    .CaptureAsync();
-
-  if (result.Success && !string.IsNullOrWhiteSpace(result.Stdout))
-  {
-    string output = result.Stdout.Trim();
-
-    // Extract repo name from URL
-    if (output.Contains("github.com", StringComparison.OrdinalIgnoreCase))
-    {
-      string repoName = output.Split('/').Last();
-      if (repoName.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
-      {
-        repoName = repoName[..^4]; // Remove ".git" suffix
-      }
-
-      return repoName;
-    }
-  }
-
-  // Fallback to directory name
-  string? gitRoot = FindGitRoot();
-  return gitRoot != null ? new DirectoryInfo(gitRoot).Name : "avatar";
 }
