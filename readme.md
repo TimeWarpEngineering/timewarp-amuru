@@ -66,6 +66,7 @@ The CLI tool includes various utilities like timestamp conversion, color generat
 #:package TimeWarp.Amuru
 
 using TimeWarp.Amuru;
+using static System.Console;
 
 // Default behavior - stream to console (like bash/PowerShell)
 await Shell.Builder("npm", "install").RunAsync();
@@ -74,28 +75,28 @@ await Shell.Builder("npm", "install").RunAsync();
 var result = await Shell.Builder("git", "status").CaptureAsync();
 if (result.Success)
 {
-    Console.WriteLine($"Git says: {result.Stdout}");
+    WriteLine($"Git says: {result.Stdout}");
 }
 
 // Stream large files without memory issues
 await foreach (var line in Shell.Builder("tail", "-f", "/var/log/app.log").StreamStdoutAsync())
 {
-    Console.WriteLine($"Log: {line}");
+    WriteLine($"Log: {line}");
 }
 
 // Chain commands with pipelines
 var result = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .CaptureAsync();
-Console.WriteLine($"Found {result.Lines.Length} async files");
+WriteLine($"Found {result.Lines.Length} async files");
 
 // Work with CommandOutput
 var output = await Shell.Builder("docker", "ps").CaptureAsync();
-Console.WriteLine($"Exit code: {output.ExitCode}");
-Console.WriteLine($"Success: {output.Success}");
-Console.WriteLine($"Stdout: {output.Stdout}");
-Console.WriteLine($"Stderr: {output.Stderr}");
-Console.WriteLine($"Combined: {output.Combined}");
+WriteLine($"Exit code: {output.ExitCode}");
+WriteLine($"Success: {output.Success}");
+WriteLine($"Stdout: {output.Stdout}");
+WriteLine($"Stderr: {output.Stderr}");
+WriteLine($"Combined: {output.Combined}");
 
 // Use the fluent builder API for complex commands
 var result = await Shell.Builder("git")
