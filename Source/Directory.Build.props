@@ -9,7 +9,7 @@
     <Authors>Steven T. Cramer</Authors>
     <RepositoryUrl>https://github.com/TimeWarpEngineering/timewarp-amuru</RepositoryUrl>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
-    <PackageIcon>Logo.png</PackageIcon>
+    <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
   </PropertyGroup>
 
@@ -23,6 +23,10 @@
 
   <ItemGroup>
     <PackageReference Include="TimeWarp.Build.Tasks" PrivateAssets="all" />
-</ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(RepositoryRoot)assets/logo.png" Pack="true" PackagePath="" />
+  </ItemGroup>
 
 </Project>

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>Logo.png</PackageIcon>
 
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
@@ -15,14 +14,13 @@
 
   <ItemGroup>
     <!-- Core TimeWarp.Amuru library -->
-    <ProjectReference Include="..\TimeWarp.Amuru\TimeWarp.Amuru.csproj" />
+    <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
 
     <!-- TimeWarp packages -->
     <PackageReference Include="TimeWarp.Multiavatar" />
     <PackageReference Include="TimeWarp.Nuru" />
 
     <!-- Shared assets -->
-    <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
