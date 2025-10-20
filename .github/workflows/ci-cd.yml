@@ -260,12 +260,27 @@ jobs:
           echo "sha=$SHA" >> $GITHUB_OUTPUT
           echo "Release tag ${{ github.event.release.tag_name }} points to commit $SHA"
 
+      - name: Find workflow run for commit
+        id: find-run
+        run: |
+          RUN_ID=$(gh api /repos/${{ github.repository }}/actions/runs \
+            -f event=push \
+            -f status=completed \
+            --jq ".workflow_runs[] | select(.head_sha == \"${{ steps.get-sha.outputs.sha }}\") | .id" \
+            | head -1)
+          echo "run-id=$RUN_ID" >> $GITHUB_OUTPUT
+          echo "Found workflow run ID: $RUN_ID for commit ${{ steps.get-sha.outputs.sha }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download executables artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: executables-${{ steps.get-sha.outputs.sha }}-*
           path: artifacts/executables
           merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.find-run.outputs.run-id }}
 
       - name: Download installer artifacts
         uses: actions/download-artifact@v4
@@ -273,12 +288,16 @@ jobs:
           pattern: installer-${{ steps.get-sha.outputs.sha }}-*
           path: artifacts/installer
           merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.find-run.outputs.run-id }}
 
       - name: Download package artifacts
         uses: actions/download-artifact@v4
         with:
           name: packages-${{ steps.get-sha.outputs.sha }}
           path: artifacts/packages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.find-run.outputs.run-id }}
 
       - name: Check if version already published
         run: |
