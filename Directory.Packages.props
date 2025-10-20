@@ -11,7 +11,7 @@
     <PackageVersion Include="StreamJsonRpc" Version="2.23.32-alpha" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
     <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.13" />
-    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.20" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.21" />
 
     <!-- Analyzers -->
     <PackageVersion Include="Roslynator.Analyzers" Version="4.14.1" />
