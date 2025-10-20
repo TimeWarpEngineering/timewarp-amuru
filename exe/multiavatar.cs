@@ -1,6 +1,7 @@
 #!/usr/bin/dotnet --
 
 #:package TimeWarp.Multiavatar
+#:package TimeWarp.Nuru
 #:property NoWarn=IL2104;IL3053
 
 using TimeWarp.Multiavatar;
