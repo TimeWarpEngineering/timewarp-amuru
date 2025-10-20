@@ -4,7 +4,6 @@
     <PackageId>TimeWarp.Amuru</PackageId>
     <Description>Fluent API for elegant C# scripting with pipeline support</Description>
     <PackageTags>cli;scripting;fluent;shell;pipeline;amuru</PackageTags>
-    <PackageIcon>Logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
@@ -16,8 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Assets\Logo.png" Pack="true" PackagePath="" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

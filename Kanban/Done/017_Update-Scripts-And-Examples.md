@@ -66,7 +66,7 @@ Update all example scripts and spikes to use the new API. Note that Scripts/ dir
 
 #### Default Script Pattern
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package TimeWarp.Amuru
 
 // Most common - just run and show output

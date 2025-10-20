@@ -45,9 +45,9 @@ If you find this project useful, please give it a star. Thanks!
 dotnet add package TimeWarp.Amuru
 ```
 
-Or reference in your C# script:
+Or reference in your C# runfile:
 ```csharp
-#:package TimeWarp.Amuru@1.0.0-beta.9
+#:package TimeWarp.Amuru@<latest-version>
 ```
 
 ### Optional: CLI Tools
@@ -62,10 +62,11 @@ The CLI tool includes various utilities like timestamp conversion, color generat
 ## Quick Start
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package TimeWarp.Amuru
 
 using TimeWarp.Amuru;
+using static System.Console;
 
 // Default behavior - stream to console (like bash/PowerShell)
 await Shell.Builder("npm", "install").RunAsync();
@@ -74,28 +75,28 @@ await Shell.Builder("npm", "install").RunAsync();
 var result = await Shell.Builder("git", "status").CaptureAsync();
 if (result.Success)
 {
-    Console.WriteLine($"Git says: {result.Stdout}");
+    WriteLine($"Git says: {result.Stdout}");
 }
 
 // Stream large files without memory issues
 await foreach (var line in Shell.Builder("tail", "-f", "/var/log/app.log").StreamStdoutAsync())
 {
-    Console.WriteLine($"Log: {line}");
+    WriteLine($"Log: {line}");
 }
 
 // Chain commands with pipelines
 var result = await Shell.Builder("find", ".", "-name", "*.cs")
     .Pipe("grep", "async")
     .CaptureAsync();
-Console.WriteLine($"Found {result.Lines.Length} async files");
+WriteLine($"Found {result.Lines.Length} async files");
 
 // Work with CommandOutput
 var output = await Shell.Builder("docker", "ps").CaptureAsync();
-Console.WriteLine($"Exit code: {output.ExitCode}");
-Console.WriteLine($"Success: {output.Success}");
-Console.WriteLine($"Stdout: {output.Stdout}");
-Console.WriteLine($"Stderr: {output.Stderr}");
-Console.WriteLine($"Combined: {output.Combined}");
+WriteLine($"Exit code: {output.ExitCode}");
+WriteLine($"Success: {output.Success}");
+WriteLine($"Stdout: {output.Stdout}");
+WriteLine($"Stderr: {output.Stderr}");
+WriteLine($"Combined: {output.Combined}");
 
 // Use the fluent builder API for complex commands
 var result = await Shell.Builder("git")
@@ -151,6 +152,84 @@ await DotNet.Test()
     .RunAsync();
 ```
 
+### Conditional Configuration
+
+The `When()` extension method allows you to apply configuration conditionally without breaking the fluent chain:
+
+```csharp
+// Without When() - breaks the fluent chain
+DotNetAddPackageBuilder builder = DotNet.AddPackage(packageName);
+if (version != null)
+{
+    builder = builder.WithVersion(version);
+}
+else
+{
+    builder = builder.WithPrerelease();
+}
+await builder.CaptureAsync();
+
+// With When() - keeps the fluent chain intact
+await DotNet.AddPackage(packageName)
+    .WithProject(projectFile)
+    .When(version != null, b => b.WithVersion(version!))
+    .When(version == null, b => b.WithPrerelease())
+    .CaptureAsync();
+
+// Works with all builders
+await Shell.Builder("git")
+    .WithArguments("push")
+    .When(force, b => b.WithArguments("--force"))
+    .When(dryRun, b => b.WithArguments("--dry-run"))
+    .When(workDir != null, b => b.WithWorkingDirectory(workDir!))
+    .RunAsync();
+```
+
+### Available Extension Methods
+
+All extension methods work on any builder that implements `ICommandBuilder<T>`:
+
+**`When(condition, configure)`** - Apply configuration when condition is true
+```csharp
+.When(version != null, b => b.WithVersion(version!))
+```
+
+**`WhenNotNull(value, configure)`** - Apply configuration when value is not null, passing the value
+```csharp
+.WhenNotNull(version, (b, v) => b.WithVersion(v))  // Cleaner than When!
+```
+
+**`Unless(condition, configure)`** - Apply configuration when condition is false
+```csharp
+.Unless(isProduction, b => b.WithVerbose())
+```
+
+**`Apply(configure)`** - Extract and reuse configuration logic
+```csharp
+static DotNetBuildBuilder AddProductionSettings(DotNetBuildBuilder b) =>
+  b.WithConfiguration("Release").WithNoRestore();
+
+await DotNet.Build()
+  .Apply(AddProductionSettings)
+  .RunAsync();
+```
+
+**`ForEach(items, configure)`** - Apply configuration for each item
+```csharp
+.ForEach(sources, (b, source) => b.WithSource(source))
+```
+
+**`Tap(action)`** - Side effects without modifying the builder (logging, debugging)
+```csharp
+.Tap(b => Console.WriteLine($"Building with config: {b}"))
+```
+
+These extensions:
+- Maintain type safety and IntelliSense support
+- Keep method chains fluent and readable
+- Work with all command builders (Shell, DotNet, Fzf, etc.)
+- Enable functional programming patterns
+
 ## Key Features
 
 - **Shell-Like Default**: `RunAsync()` streams to console just like bash/PowerShell
@@ -158,6 +237,7 @@ await DotNet.Test()
 - **Memory-Efficient Streaming**: `IAsyncEnumerable` for large data without buffering
 - **Complete Output Access**: CommandOutput with Stdout, Stderr, Combined, and ExitCode
 - **Fluent Interface**: Chain operations naturally with `.Pipe()` and builder methods
+- **Conditional Configuration**: `When()` extension for fluent conditional logic
 - **Async-First Design**: All operations support modern async/await patterns
 - **Smart Error Handling**: Commands throw on errors by default, with opt-in graceful degradation
 - **Pipeline Support**: Chain commands with Unix-like pipe semantics

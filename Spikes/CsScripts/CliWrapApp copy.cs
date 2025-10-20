@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 
 // find-and-filter.cs
 #:package CliWrap@3.9.0

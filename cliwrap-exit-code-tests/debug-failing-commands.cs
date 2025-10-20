@@ -1,4 +1,5 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
+
 #:property RestoreNoCache true
 #:property DisableImplicitNuGetFallbackFolder true
 

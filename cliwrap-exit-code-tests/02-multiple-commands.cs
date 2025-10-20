@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package CliWrap
 
 using CliWrap;

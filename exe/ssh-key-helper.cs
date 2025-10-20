@@ -1,158 +1,154 @@
 #!/usr/bin/dotnet --
 
 #:property PublishAot=false
+#:project ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:package TimeWarp.Nuru
 
-using System;
-using System.Diagnostics;
-using System.IO;
+using TimeWarp.Nuru;
+using TimeWarp.Amuru;
+using static System.Console;
 
-// Helper script for SSH key operations
-string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-string sshDir = Path.Combine(homeDir, ".ssh");
-string ed25519PrivateKey = Path.Combine(sshDir, "id_ed25519");
-string ed25519PublicKey = Path.Combine(sshDir, "id_ed25519.pub");
-string rsaPrivateKey = Path.Combine(sshDir, "id_rsa_for_encryption");
-string rsaPublicKey = Path.Combine(sshDir, "id_rsa_for_encryption.pub");
-string rsaPrivateKeyPem = Path.Combine(sshDir, "id_rsa_for_encryption.pem");
-
-// Check if we need to create RSA key
-if (!File.Exists(rsaPrivateKey))
+static async Task<int> SetupSshKeysAsync()
 {
-    Console.WriteLine("🔑 Generating RSA key pair for encryption...");
-    
+  string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+  string sshDir = Path.Combine(homeDir, ".ssh");
+  string ed25519PrivateKey = Path.Combine(sshDir, "id_ed25519");
+  string ed25519PublicKey = Path.Combine(sshDir, "id_ed25519.pub");
+  string rsaPrivateKey = Path.Combine(sshDir, "id_rsa_for_encryption");
+  string rsaPublicKey = Path.Combine(sshDir, "id_rsa_for_encryption.pub");
+  string rsaPrivateKeyPem = Path.Combine(sshDir, "id_rsa_for_encryption.pem");
+
+  // Check if we need to create RSA key
+  if (!File.Exists(rsaPrivateKey))
+  {
+    WriteLine("🔑 Generating RSA key pair for encryption...");
+
     // Generate new RSA key pair specifically for encryption
-    var genProcess = Process.Start(new ProcessStartInfo
+    CommandOutput result = await Shell.Builder("ssh-keygen")
+      .WithArguments("-t", "rsa", "-b", "4096", "-f", rsaPrivateKey, "-N", "", "-C", "encryption-key")
+      .CaptureAsync();
+
+    if (result.Success)
     {
-        FileName = "ssh-keygen",
-        Arguments = $"-t rsa -b 4096 -f {rsaPrivateKey} -N \"\" -C \"encryption-key\"",
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true
-    });
-    
-    genProcess?.WaitForExit();
-    
-    if (genProcess?.ExitCode == 0)
-    {
-        Console.WriteLine($"✅ RSA key pair created:");
-        Console.WriteLine($"   Private: {rsaPrivateKey}");
-        Console.WriteLine($"   Public: {rsaPublicKey}");
-        
-        // Convert private key to PEM format
-        var pemProcess = Process.Start(new ProcessStartInfo
-        {
-            FileName = "bash",
-            Arguments = $"-c \"ssh-keygen -p -m PEM -N '' -f {rsaPrivateKey} < /dev/null && cp {rsaPrivateKey} {rsaPrivateKeyPem}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        });
-        
-        pemProcess?.WaitForExit();
-        if (pemProcess?.ExitCode == 0)
-        {
-            Console.WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
-        }
+      WriteLine("✅ RSA key pair created:");
+      WriteLine($"   Private: {rsaPrivateKey}");
+      WriteLine($"   Public: {rsaPublicKey}");
+
+      // Convert private key to PEM format
+      CommandOutput pemResult = await Shell.Builder("bash")
+        .WithArguments("-c", $"ssh-keygen -p -m PEM -N '' -f {rsaPrivateKey} < /dev/null && cp {rsaPrivateKey} {rsaPrivateKeyPem}")
+        .CaptureAsync();
+
+      if (pemResult.Success)
+      {
+        WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
+      }
+      else
+      {
+        WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
+        return 1;
+      }
     }
     else
     {
-        Console.WriteLine("❌ Failed to generate RSA key pair");
-        return 1;
+      WriteLine($"❌ Failed to generate RSA key pair: {result.Stderr}");
+      return 1;
     }
-}
-else
-{
-    Console.WriteLine($"✅ RSA encryption key already exists: {rsaPrivateKey}");
-    
+  }
+  else
+  {
+    WriteLine($"✅ RSA encryption key already exists: {rsaPrivateKey}");
+
     // Check if PEM version exists
     if (!File.Exists(rsaPrivateKeyPem))
     {
-        Console.WriteLine("🔑 Converting to PEM format...");
-        var pemProcess = Process.Start(new ProcessStartInfo
-        {
-            FileName = "bash",
-            Arguments = $"-c \"ssh-keygen -p -m PEM -N '' -f {rsaPrivateKey} < /dev/null && cp {rsaPrivateKey} {rsaPrivateKeyPem}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        });
-        
-        pemProcess?.WaitForExit();
-        if (pemProcess?.ExitCode == 0)
-        {
-            Console.WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
-        }
-    }
-}
+      WriteLine("🔑 Converting to PEM format...");
+      CommandOutput pemResult = await Shell.Builder("bash")
+        .WithArguments("-c", $"ssh-keygen -p -m PEM -N '' -f {rsaPrivateKey} < /dev/null && cp {rsaPrivateKey} {rsaPrivateKeyPem}")
+        .CaptureAsync();
 
-// Test encryption/decryption
-Console.WriteLine("\n🧪 Testing encryption/decryption...");
-
-string testMessage = "Hello, World!";
-string? encrypted = null;
-string? decrypted = null;
-
-// Test encrypt
-var encProcess = Process.Start(new ProcessStartInfo
-{
-    FileName = "bash",
-    Arguments = $"-c \"echo '{testMessage}' | openssl pkeyutl -encrypt -pubin -inkey <(ssh-keygen -f {rsaPublicKey} -e -m PKCS8) | base64 -w 0\"",
-    UseShellExecute = false,
-    RedirectStandardOutput = true,
-    RedirectStandardError = true
-});
-
-if (encProcess != null)
-{
-    encrypted = encProcess.StandardOutput.ReadToEnd().Trim();
-    string error = encProcess.StandardError.ReadToEnd();
-    encProcess.WaitForExit();
-
-    if (encProcess.ExitCode == 0 && !string.IsNullOrEmpty(encrypted))
-    {
-        Console.WriteLine("✅ Encryption successful");
-    }
-    else
-    {
-        Console.WriteLine($"❌ Encryption failed: {error}");
+      if (pemResult.Success)
+      {
+        WriteLine($"✅ PEM key created: {rsaPrivateKeyPem}");
+      }
+      else
+      {
+        WriteLine($"❌ Failed to convert to PEM format: {pemResult.Stderr}");
         return 1;
+      }
     }
+  }
+
+  WriteLine("\n✅ SSH key setup complete!");
+  WriteLine($"   Use this key for encryption: {rsaPublicKey}");
+  WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
+  WriteLine($"\nRun '{System.Diagnostics.Process.GetCurrentProcess().ProcessName} test' to verify encryption/decryption works.");
+
+  return 0;
 }
 
-// Test decrypt
-if (!string.IsNullOrEmpty(encrypted))
+static async Task<int> TestEncryptionAsync()
 {
-    var decProcess = Process.Start(new ProcessStartInfo
-    {
-        FileName = "bash",
-        Arguments = $"-c \"echo '{encrypted}' | base64 -d | openssl pkeyutl -decrypt -inkey {rsaPrivateKeyPem}\"",
-        UseShellExecute = false,
-        RedirectStandardOutput = true,
-        RedirectStandardError = true
-    });
+  string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+  string sshDir = Path.Combine(homeDir, ".ssh");
+  string rsaPublicKey = Path.Combine(sshDir, "id_rsa_for_encryption.pub");
+  string rsaPrivateKeyPem = Path.Combine(sshDir, "id_rsa_for_encryption.pem");
 
-    if (decProcess != null)
-    {
-        decrypted = decProcess.StandardOutput.ReadToEnd().Trim();
-        string error = decProcess.StandardError.ReadToEnd();
-        decProcess.WaitForExit();
+  if (!File.Exists(rsaPublicKey) || !File.Exists(rsaPrivateKeyPem))
+  {
+    WriteLine("❌ Keys not found. Run setup first.");
+    return 1;
+  }
 
-        if (decProcess.ExitCode == 0 && decrypted == testMessage)
-        {
-            Console.WriteLine("✅ Decryption successful");
-            Console.WriteLine($"   Original: {testMessage}");
-            Console.WriteLine($"   Decrypted: {decrypted}");
-        }
-        else
-        {
-            Console.WriteLine($"❌ Decryption failed: {error}");
-            return 1;
-        }
-    }
+  WriteLine("🧪 Testing encryption/decryption...");
+
+  const string testMessage = "Hello, World!";
+
+  // Test encrypt
+  CommandOutput encResult = await Shell.Builder("bash")
+    .WithArguments("-c", $"echo '{testMessage}' | openssl pkeyutl -encrypt -pubin -inkey <(ssh-keygen -f {rsaPublicKey} -e -m PKCS8) | base64 -w 0")
+    .CaptureAsync();
+
+  if (!encResult.Success || string.IsNullOrEmpty(encResult.Stdout))
+  {
+    WriteLine($"❌ Encryption failed: {encResult.Stderr}");
+    return 1;
+  }
+
+  string encrypted = encResult.Stdout.Trim();
+  WriteLine("✅ Encryption successful");
+
+  // Test decrypt
+  CommandOutput decResult = await Shell.Builder("bash")
+    .WithArguments("-c", $"echo '{encrypted}' | base64 -d | openssl pkeyutl -decrypt -inkey {rsaPrivateKeyPem}")
+    .CaptureAsync();
+
+  if (!decResult.Success)
+  {
+    WriteLine($"❌ Decryption failed: {decResult.Stderr}");
+    return 1;
+  }
+
+  string decrypted = decResult.Stdout.Trim();
+  if (decrypted == testMessage)
+  {
+    WriteLine("✅ Decryption successful");
+    WriteLine($"   Original: {testMessage}");
+    WriteLine($"   Decrypted: {decrypted}");
+  }
+  else
+  {
+    WriteLine($"❌ Decryption mismatch: expected '{testMessage}', got '{decrypted}'");
+    return 1;
+  }
+
+  return 0;
 }
 
-Console.WriteLine("\n✅ SSH key setup complete!");
-Console.WriteLine($"   Use this key for encryption: {rsaPublicKey}");
-Console.WriteLine($"   Use this key for decryption: {rsaPrivateKeyPem}");
+var builder = new NuruAppBuilder();
 
-return 0;
+builder.AddDefaultRoute(SetupSshKeysAsync, "Setup SSH keys for encryption/decryption");
+builder.AddRoute("test", TestEncryptionAsync, "Test encryption/decryption with existing keys");
+
+NuruApp app = builder.Build();
+return await app.RunAsync(args);

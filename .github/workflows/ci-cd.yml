@@ -22,19 +22,20 @@ on:
       - 'exe/**'
       - 'Directory.Build.props'
   release:
-    types: [published] # Triggered when a release is published via GitHub Releases UI or gh CLI
-  workflow_dispatch: # Allow manual triggering
+    types: [published]
+  workflow_dispatch:
 
 # Required permissions for GitHub attestations and releases
 permissions:
-  contents: write  # Needed for creating releases
-  packages: write  # Needed for uploading packages
-  id-token: write  # Needed for attestations
-  attestations: write  # Needed for attestations
+  contents: write
+  packages: write
+  id-token: write
+  attestations: write
 
 jobs:
-  # First: Build all standalone executables
+  # Build all standalone executables (only on PR/push, not on release)
   build-executables:
+    if: github.event_name != 'release'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -42,15 +43,12 @@ jobs:
         include:
           - os: ubuntu-latest
             rid: linux-x64
-            archive_cmd: tar czf
             archive_ext: .tar.gz
           - os: windows-latest
             rid: win-x64
-            archive_cmd: Compress-Archive -Path
             archive_ext: .zip
           - os: macos-latest
             rid: osx-x64
-            archive_cmd: tar czf
             archive_ext: .tar.gz
     steps:
       - name: Checkout repository
@@ -77,11 +75,19 @@ jobs:
           # Create output directory
           mkdir -p artifacts/${{ matrix.rid }}
 
-          # Build each executable
-          for script in multiavatar generate-avatar convert-timestamp generate-color ssh-key-helper; do
+          # Discover all .cs files in exe/ directory (excluding installer.cs and test files)
+          for script_path in exe/*.cs; do
+            script=$(basename "$script_path" .cs)
+
+            # Skip installer.cs (built separately) and test files
+            if [[ "$script" == "installer" ]] || [[ "$script" == *.Tests ]]; then
+              echo "Skipping $script (built separately or test file)"
+              continue
+            fi
+
             echo "Building $script for ${{ matrix.rid }}..."
 
-            dotnet publish exe/$script.cs -c Release -r ${{ matrix.rid }} \
+            dotnet publish "exe/$script.cs" -c Release -r ${{ matrix.rid }} \
               --self-contained -p:PublishSingleFile=true \
               -o artifacts/${{ matrix.rid }}
           done
@@ -109,14 +115,16 @@ jobs:
       - name: Upload Executables
         uses: actions/upload-artifact@v4
         with:
-          name: Executables-${{ matrix.rid }}
+          name: executables-${{ github.sha }}-${{ matrix.rid }}
           if-no-files-found: error
+          retention-days: 90
           path: |
             artifacts/timewarp-utilities-${{ matrix.rid }}${{ matrix.archive_ext }}
 
-  # Second: Build the installer executable
+  # Build the installer executable (only on PR/push, not on release)
   build-installer:
-    needs: build-executables  # Ensure executables are built first
+    if: github.event_name != 'release'
+    needs: build-executables
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -177,19 +185,21 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: Installer-${{ matrix.rid }}
+          name: installer-${{ github.sha }}-${{ matrix.rid }}
           if-no-files-found: error
+          retention-days: 90
           path: artifacts/installer-${{ matrix.rid }}*
 
-  # Third: Build and publish NuGet packages
-  build-and-publish:
-    needs: [build-executables, build-installer]  # Depend on both executable builds
+  # Build and test NuGet packages (only on PR/push, not on release)
+  build-packages:
+    if: github.event_name != 'release'
+    needs: [build-executables, build-installer]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for MinVer to read all tags
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -212,17 +222,65 @@ jobs:
           echo "Building TimeWarp.Ganda..."
           dotnet build Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release
 
-          echo "Packing TimeWarp.Amuru..."
-          dotnet pack Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release --no-build
-
-          echo "Packing TimeWarp.Ganda..."
-          dotnet pack Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release --no-build
-
           echo "Running tests..."
           ./Tests/RunTests.cs
 
-      - name: Check if version already published (Releases only)
-        if: github.event_name == 'release'
+      - name: Upload NuGet Packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 90
+          path: |
+            artifacts/packages/TimeWarp.Amuru.*.nupkg
+            artifacts/packages/TimeWarp.Ganda.*.nupkg
+
+  # Publish to NuGet and upload release assets (only on release)
+  publish-release:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository (for version extraction)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Get commit SHA from release tag
+        id: get-sha
+        run: |
+          SHA=$(git rev-parse HEAD)
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "Release tag ${{ github.event.release.tag_name }} points to commit $SHA"
+
+      - name: Download executables artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: executables-${{ steps.get-sha.outputs.sha }}-*
+          path: artifacts/executables
+          merge-multiple: true
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installer-${{ steps.get-sha.outputs.sha }}-*
+          path: artifacts/installer
+          merge-multiple: true
+
+      - name: Download package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-${{ steps.get-sha.outputs.sha }}
+          path: artifacts/packages
+
+      - name: Check if version already published
         run: |
           VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
 
@@ -235,7 +293,6 @@ jobs:
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
           fi
 
-
           echo "Checking if TimeWarp.Ganda $VERSION is already published on NuGet.org..."
           if dotnet package search TimeWarp.Ganda --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
             echo "⚠️ WARNING: TimeWarp.Ganda $VERSION is already published to NuGet.org"
@@ -245,50 +302,28 @@ jobs:
             echo "✅ TimeWarp.Ganda $VERSION is not yet published on NuGet.org"
           fi
 
-      - name: Publish to NuGet.org (Releases only)
-        if: github.event_name == 'release'
+      - name: Publish to NuGet.org
         run: |
           VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
 
           echo "Publishing TimeWarp.Amuru $VERSION..."
-          dotnet nuget push "Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.$VERSION.nupkg" \
+          dotnet nuget push "artifacts/packages/TimeWarp.Amuru.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-
           echo "Publishing TimeWarp.Ganda $VERSION..."
-          dotnet nuget push "Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.$VERSION.nupkg" \
+          dotnet nuget push "artifacts/packages/TimeWarp.Ganda.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
         env:
           DOTNET_NUGET_SIGNATURE_VERIFICATION: false
 
-      - name: Upload NuGet Packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: Packages-${{ github.run_number }}
-          if-no-files-found: error
-          path: |
-            Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
-            Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.*.nupkg
-
-  # Fourth: Upload release assets (only on release)
-  upload-release-assets:
-    if: github.event_name == 'release'
-    needs: [build-and-publish]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Need write permission to upload release assets
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            Executables-*/*
-            Installer-*/*
-            Packages-*/*
+            artifacts/executables/*
+            artifacts/installer/*
+            artifacts/packages/*

@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 // Clean.cs - Clean build artifacts and local NuGet packages
 #pragma warning disable IDE0005 // Using directive is unnecessary
 #pragma warning restore IDE0005

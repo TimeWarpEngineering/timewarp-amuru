@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 
 // MANUAL TEST: Run this to test interactive FZF functionality
 // This demonstrates the new GetStringInteractiveAsync() and ExecuteInteractiveAsync() methods

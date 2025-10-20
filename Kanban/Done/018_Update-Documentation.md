@@ -65,7 +65,7 @@ Update all documentation to reflect the new API design, including README.md, CLA
 ## Quick Start
 
 ```csharp
-#!/usr/bin/dotnet run
+#!/usr/bin/dotnet --
 #:package TimeWarp.Amuru
 
 using TimeWarp.Amuru;
