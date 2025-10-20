@@ -263,11 +263,18 @@ jobs:
       - name: Find workflow run for commit
         id: find-run
         run: |
-          RUN_ID=$(gh api /repos/${{ github.repository }}/actions/runs \
+          RUN_ID=$(gh api /repos/${{ github.repository }}/actions/workflows/ci-cd.yml/runs \
             -f event=push \
             -f status=completed \
-            --jq ".workflow_runs[] | select(.head_sha == \"${{ steps.get-sha.outputs.sha }}\") | .id" \
+            -f branch=master \
+            --jq ".workflow_runs[] | select(.head_sha == \"${{ steps.get-sha.outputs.sha }}\" and .event == \"push\") | .id" \
             | head -1)
+
+          if [ -z "$RUN_ID" ]; then
+            echo "ERROR: Could not find workflow run for commit ${{ steps.get-sha.outputs.sha }}"
+            exit 1
+          fi
+
           echo "run-id=$RUN_ID" >> $GITHUB_OUTPUT
           echo "Found workflow run ID: $RUN_ID for commit ${{ steps.get-sha.outputs.sha }}"
         env:
