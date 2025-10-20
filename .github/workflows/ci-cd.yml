@@ -232,8 +232,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           path: |
-            Source/TimeWarp.Amuru/bin/Release/TimeWarp.Amuru.*.nupkg
-            Source/TimeWarp.Ganda/bin/Release/TimeWarp.Ganda.*.nupkg
+            artifacts/packages/TimeWarp.Amuru.*.nupkg
+            artifacts/packages/TimeWarp.Ganda.*.nupkg
 
   # Publish to NuGet and upload release assets (only on release)
   publish-release:
