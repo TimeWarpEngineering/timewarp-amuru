@@ -165,9 +165,27 @@ public static class Installer
       File.Delete(archivePath);
       Directory.Delete(Path.Combine(installDir, platform), true);
 
+      // Create symlinks on Unix-like systems
+      if (!OperatingSystem.IsWindows())
+      {
+        await CreateSymlinksAsync(installDir, utilitiesToInstall);
+      }
+
       WriteLine();
       WriteLine("Installation complete!");
-      WriteLine($"Make sure {installDir} is in your PATH.");
+
+      if (OperatingSystem.IsWindows())
+      {
+        WriteLine($"Utilities installed to: {installDir}");
+        WriteLine();
+        WriteLine("To use these utilities, add the following directory to your PATH:");
+        WriteLine($"  {installDir}");
+      }
+      else
+      {
+        WriteLine($"Utilities installed to: {installDir}");
+        WriteLine($"Symlinks created in: {GetSymlinkDirectory()}");
+      }
 
       return 0;
     }
@@ -189,12 +207,21 @@ public static class Installer
 
   private static string GetInstallDirectory()
   {
+    // All platforms use ~/.timewarp/bin/
+    return Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".timewarp",
+        "bin"
+    );
+  }
+
+  private static string GetSymlinkDirectory()
+  {
+    // Directory where we'll create symlinks (Unix) or note in instructions (Windows)
     if (OperatingSystem.IsWindows())
     {
-      return Path.Combine(
-          Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-          ".tools"
-      );
+      // Windows doesn't use symlinks, we'll update PATH instead
+      return GetInstallDirectory();
     }
 
     return Path.Combine(
@@ -276,6 +303,54 @@ public static class Installer
     else
     {
       throw new NotSupportedException($"Archive format not supported: {archivePath}");
+    }
+  }
+
+  private static async Task CreateSymlinksAsync(string installDir, string[] utilities)
+  {
+    string symlinkDir = GetSymlinkDirectory();
+
+    // Ensure symlink directory exists
+    if (!Directory.Exists(symlinkDir))
+    {
+      Directory.CreateDirectory(symlinkDir);
+      WriteLine($"Created symlink directory: {symlinkDir}");
+    }
+
+    WriteLine();
+    WriteLine("Creating symlinks...");
+
+    foreach (string utility in utilities)
+    {
+      string targetPath = Path.Combine(installDir, utility);
+      string symlinkPath = Path.Combine(symlinkDir, utility);
+
+      // Remove existing symlink if present
+      if (File.Exists(symlinkPath) || Directory.Exists(symlinkPath))
+      {
+        try
+        {
+          File.Delete(symlinkPath);
+        }
+        catch
+        {
+          // Ignore errors - might be a directory or permission issue
+        }
+      }
+
+      // Create symlink using ln -sf
+      CommandOutput result = await Shell.Builder("ln")
+        .WithArguments("-sf", targetPath, symlinkPath)
+        .CaptureAsync();
+
+      if (result.Success)
+      {
+        WriteLine($"✓ Created symlink: {utility}");
+      }
+      else
+      {
+        WriteLine($"⚠️  Failed to create symlink for {utility}");
+      }
     }
   }
 

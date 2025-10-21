@@ -63,6 +63,13 @@ internal static class Program
       "Download and install standalone utility executables to system PATH"
     );
 
+    builder.AddRoute
+    (
+      "list",
+      ListCommand,
+      "List all available utilities and their installation status"
+    );
+
     NuruApp app = builder.Build();
     return await app.RunAsync(args);
   }
@@ -268,5 +275,63 @@ internal static class Program
     WriteLine($"   Use this key for decryption: {privateKeyPath}");
 
     return 0;
+  }
+
+  private static void ListCommand()
+  {
+    string installDir = Path.Combine(
+      Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+      ".timewarp",
+      "bin"
+    );
+
+    WriteLine("TimeWarp Utilities:");
+    WriteLine($"Install directory: {installDir}");
+    WriteLine();
+
+    if (!Directory.Exists(installDir))
+    {
+      WriteLine("No utilities installed yet.");
+      WriteLine("Run 'timewarp install' to install utilities.");
+      return;
+    }
+
+    string[] executables = Directory.GetFiles(installDir)
+      .Where(f =>
+      {
+        string ext = Path.GetExtension(f);
+        return OperatingSystem.IsWindows()
+          ? ext.Equals(".exe", StringComparison.OrdinalIgnoreCase)
+          : string.IsNullOrEmpty(ext);
+      })
+      .Select(Path.GetFileNameWithoutExtension)
+      .Where(name => !string.IsNullOrEmpty(name))
+      .OrderBy(name => name)
+      .ToArray()!;
+
+    if (executables.Length == 0)
+    {
+      WriteLine("No utilities found in install directory.");
+      WriteLine("Run 'timewarp install' to install utilities.");
+    }
+    else
+    {
+      WriteLine($"Installed utilities ({executables.Length}):");
+      foreach (string utility in executables)
+      {
+        WriteLine($"  - {utility}");
+      }
+
+      if (!OperatingSystem.IsWindows())
+      {
+        string symlinkDir = Path.Combine(
+          Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+          ".local",
+          "bin"
+        );
+        WriteLine();
+        WriteLine($"Symlinks available in: {symlinkDir}");
+      }
+    }
   }
 }
