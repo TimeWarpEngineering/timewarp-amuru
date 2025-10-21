@@ -305,7 +305,7 @@ jobs:
 
       - name: Check if version already published
         run: |
-          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          VERSION=$(grep '<Version>' Source/Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
 
           echo "Checking if TimeWarp.Amuru $VERSION is already published on NuGet.org..."
           if dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
@@ -327,7 +327,7 @@ jobs:
 
       - name: Publish to NuGet.org
         run: |
-          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          VERSION=$(grep '<Version>' Source/Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
 
           echo "Publishing TimeWarp.Amuru $VERSION..."
           dotnet nuget push "artifacts/packages/TimeWarp.Amuru.$VERSION.nupkg" \
