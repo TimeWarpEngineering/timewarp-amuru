@@ -11,37 +11,37 @@ Migration Analysis: `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analys
 ## Checklist
 
 ### Directory Structure (kebab-case)
-- [ ] Create `source/timewarp-zana/` directory
-- [ ] Create `source/timewarp-ganda/` directory
-- [ ] Create `exe/` directory for private runfiles
-- [ ] Create `assets/` directory
-- [ ] Copy logo.png to assets/
+- [x] Create `source/timewarp-zana/` directory
+- [x] Create `source/timewarp-ganda/` directory
+- [x] Create `exe/` directory for private runfiles
+- [x] Create `assets/` directory
+- [x] Copy logo.png to assets/
 
 ### Documentation (copy from timewarp-flexbox)
-- [ ] Create `documentation/developer/standards/` directory structure
-- [ ] Copy `documentation/developer/standards/overview.md`
-- [ ] Copy `documentation/developer/standards/architectural-standards.md`
-- [ ] Copy `documentation/developer/standards/code-organization.md`
-- [ ] Copy `documentation/developer/standards/coding-practices.md`
-- [ ] Copy `documentation/developer/standards/csharp-coding.md`
-- [ ] Copy `documentation/developer/standards/documentation-standards.md`
-- [ ] Copy `documentation/developer/standards/enforcement.md`
-- [ ] Copy `documentation/developer/standards/file-naming.md`
-- [ ] Copy `documentation/developer/standards/git-commit-message-format.md`
-- [ ] Copy `documentation/developer/standards/git-workflow.md`
-- [ ] Copy `documentation/developer/standards/naming-conventions.md`
-- [ ] Copy `documentation/developer/standards/testing.md`
-- [ ] Copy `documentation/developer/standards/xml-documentation.md`
-- [ ] Update overview.md references from "TimeWarp.Flexbox" to "TimeWarp.Ganda"
+- [x] Create `documentation/developer/standards/` directory structure
+- [x] Copy `documentation/developer/standards/overview.md`
+- [x] Copy `documentation/developer/standards/architectural-standards.md`
+- [x] Copy `documentation/developer/standards/code-organization.md`
+- [x] Copy `documentation/developer/standards/coding-practices.md`
+- [x] Copy `documentation/developer/standards/csharp-coding.md`
+- [x] Copy `documentation/developer/standards/documentation-standards.md`
+- [x] Copy `documentation/developer/standards/enforcement.md`
+- [x] Copy `documentation/developer/standards/file-naming.md`
+- [x] Copy `documentation/developer/standards/git-commit-message-format.md`
+- [x] Copy `documentation/developer/standards/git-workflow.md`
+- [x] Copy `documentation/developer/standards/naming-conventions.md`
+- [x] Copy `documentation/developer/standards/testing.md`
+- [x] Copy `documentation/developer/standards/xml-documentation.md`
+- [x] Update overview.md references from "TimeWarp.Flexbox" to "TimeWarp.Ganda"
 
 ### Root Configuration Files
-- [ ] Create `Directory.Build.props` (root level)
-- [ ] Create `Directory.Packages.props` with package versions
-- [ ] Copy `.editorconfig` from flexbox or Amuru
-- [ ] Create `nuget.config` with NuGet.org + GitHub Packages sources
+- [x] Create `Directory.Build.props` (root level)
+- [x] Create `Directory.Packages.props` with package versions
+- [x] Copy `.editorconfig` from flexbox or Amuru
+- [x] Create `nuget.config` with NuGet.org + GitHub Packages sources
 
 ### Source Configuration
-- [ ] Create `source/Directory.Build.props` with package metadata
+- [x] Create `source/Directory.Build.props` with package metadata
 
 ## Notes
 
