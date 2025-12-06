@@ -9,5 +9,9 @@
 
     <!-- Suppress NuGet versioning warnings for standalone executables -->
     <NoWarn>$(NoWarn);NU5104</NoWarn>
+
+    <!-- Disable debug symbols for standalone executables -->
+    <DebugType>None</DebugType>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
 </Project>
