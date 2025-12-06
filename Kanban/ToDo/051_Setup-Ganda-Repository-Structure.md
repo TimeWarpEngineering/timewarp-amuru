@@ -2,7 +2,7 @@
 
 ## Description
 
-Create the initial directory structure and configuration files in the private `timewarp-ganda` repository. This establishes the foundation for the Zana (tools library) and Ganda (CLI) projects.
+Create the initial directory structure and configuration files in the private `timewarp-ganda` repository. This establishes the foundation for the Zana (tools library) and Ganda (CLI) projects. Follow kebab-case naming conventions from timewarp-flexbox.
 
 ## Parent
 
@@ -10,28 +10,49 @@ Migration Analysis: `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analys
 
 ## Checklist
 
-### Directory Structure
-- [ ] Create `Source/TimeWarp.Zana/` directory
-- [ ] Create `Source/TimeWarp.Ganda/` directory
+### Directory Structure (kebab-case)
+- [ ] Create `source/timewarp-zana/` directory
+- [ ] Create `source/timewarp-ganda/` directory
 - [ ] Create `exe/` directory for private runfiles
 - [ ] Create `assets/` directory
 - [ ] Copy logo.png to assets/
 
+### Documentation (copy from timewarp-flexbox)
+- [ ] Create `documentation/developer/standards/` directory structure
+- [ ] Copy `documentation/developer/standards/overview.md`
+- [ ] Copy `documentation/developer/standards/architectural-standards.md`
+- [ ] Copy `documentation/developer/standards/code-organization.md`
+- [ ] Copy `documentation/developer/standards/coding-practices.md`
+- [ ] Copy `documentation/developer/standards/csharp-coding.md`
+- [ ] Copy `documentation/developer/standards/documentation-standards.md`
+- [ ] Copy `documentation/developer/standards/enforcement.md`
+- [ ] Copy `documentation/developer/standards/file-naming.md`
+- [ ] Copy `documentation/developer/standards/git-commit-message-format.md`
+- [ ] Copy `documentation/developer/standards/git-workflow.md`
+- [ ] Copy `documentation/developer/standards/naming-conventions.md`
+- [ ] Copy `documentation/developer/standards/testing.md`
+- [ ] Copy `documentation/developer/standards/xml-documentation.md`
+- [ ] Update overview.md references from "TimeWarp.Flexbox" to "TimeWarp.Ganda"
+
 ### Root Configuration Files
 - [ ] Create `Directory.Build.props` (root level)
 - [ ] Create `Directory.Packages.props` with package versions
-- [ ] Copy `.editorconfig` from Amuru
+- [ ] Copy `.editorconfig` from flexbox or Amuru
 - [ ] Create `nuget.config` with NuGet.org + GitHub Packages sources
 
 ### Source Configuration
-- [ ] Create `Source/Directory.Build.props` with package metadata
+- [ ] Create `source/Directory.Build.props` with package metadata
 
 ## Notes
 
 Target location: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/timewarp-ganda/Cramer-2025-12-06-dev`
 
+Reference structure: `/home/steventcramer/worktrees/github.com/TimeWarpEngineering/timewarp-flexbox/Cramer-2025-11-21-dev`
+
 Package naming:
 - `TimeWarp.Zana` = "Tools" (in-process utilities)
 - `TimeWarp.Ganda` = "Shell" (CLI wrapper)
+
+Directory naming convention: **kebab-case** for all folders and files (except MSBuild files like `Directory.Build.props`)
 
 See analysis document for exact file contents.
