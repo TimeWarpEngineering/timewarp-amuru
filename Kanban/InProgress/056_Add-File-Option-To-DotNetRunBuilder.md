@@ -14,15 +14,15 @@ Add support for the `--file` option to the `DotNetRunBuilder` class in TimeWarp.
 ## Checklist
 
 ### Implementation
-- [ ] Add private `File` field to store file path
-- [ ] Add `WithFile(string filePath)` method
-- [ ] Add `--file` argument logic in Build() method
-- [ ] Verify the implementation follows existing patterns
-- [ ] Test the new functionality
+- [x] Add private `File` field to store file path
+- [x] Add `WithFile(string filePath)` method
+- [x] Add `--file` argument logic in Build() method
+- [x] Verify the implementation follows existing patterns
+- [x] Test the new functionality
 
 ### Documentation
-- [ ] Update XML documentation for the new method
-- [ ] Ensure method documentation follows existing style
+- [x] Update XML documentation for the new method
+- [x] Ensure method documentation follows existing style
 
 ## Notes
 

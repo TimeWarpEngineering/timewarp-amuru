@@ -21,6 +21,7 @@ public static partial class DotNet
 public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
 {
   private string? Project;
+  private string? File;
   private string? Configuration;
   private string? Framework;
   private string? Runtime;
@@ -48,6 +49,17 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   public DotNetRunBuilder WithProject(string project)
   {
     Project = project;
+    return this;
+  }
+
+  /// <summary>
+  /// Specifies the path to a file-based app to run.
+  /// </summary>
+  /// <param name="filePath">Path to the file-based app to run</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetRunBuilder WithFile(string filePath)
+  {
+    File = filePath;
     return this;
   }
 
@@ -295,6 +307,13 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
     {
       arguments.Add("--project");
       arguments.Add(Project);
+    }
+
+    // Add file if specified
+    if (!string.IsNullOrWhiteSpace(File))
+    {
+      arguments.Add("--file");
+      arguments.Add(File);
     }
 
     // Add configuration if specified
