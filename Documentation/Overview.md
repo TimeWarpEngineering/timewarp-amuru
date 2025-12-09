@@ -12,7 +12,9 @@ Technical documentation for developers using TimeWarp.Amuru in their projects.
   - [How to Use AppContext Extensions](Developer/HowToGuides/HowToUseAppContextExtensions.md)
 
 - **[Reference](Developer/Reference/)** - Detailed technical reference
-  - [Shell Commands Reference](Developer/Reference/ShellCommands.md) - Complete command reference for TimeWarp.Ganda
+  - [Shell Commands Reference](Developer/Reference/ShellCommands.md) - Complete shell command reference
+
+> **Note**: TimeWarp.Ganda CLI tool has moved to a [separate repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
 ### [Samples](../Samples/)
 Working code examples demonstrating library features:

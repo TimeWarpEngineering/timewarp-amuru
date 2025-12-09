@@ -53,11 +53,11 @@ Or reference in your C# runfile:
 ### Optional: CLI Tools
 
 ```bash
-# Global CLI tool with additional utilities
-dotnet tool install --global TimeWarp.Ganda
+# Global CLI tool with additional utilities (private package)
+dotnet tool install --global TimeWarp.Ganda --source https://nuget.pkg.github.com/TimeWarpEngineering/index.json
 ```
 
-The CLI tool includes various utilities like timestamp conversion, color generation, and more. See the [Tool Documentation](Source/TimeWarp.Ganda/README.md) for details.
+The CLI tool includes various utilities like timestamp conversion, color generation, and more. See the [Ganda repository](https://github.com/TimeWarpEngineering/timewarp-ganda) for details.
 
 ## Quick Start
 
@@ -490,7 +490,8 @@ This project is licensed under the [Unlicense](https://unlicense.org).
 ## Related Packages
 
 - **[TimeWarp.Multiavatar](https://www.nuget.org/packages/TimeWarp.Multiavatar/)** - Avatar generation library (see [documentation](Source/TimeWarp.Multiavatar/README.md))
-- **[TimeWarp.Ganda](https://www.nuget.org/packages/TimeWarp.Ganda/)** - Shell toolkit (CLI utilities collection)
+- **[TimeWarp.Ganda](https://github.com/TimeWarpEngineering/timewarp-ganda)** - Shell toolkit CLI (private, moved to separate repository)
+- **[TimeWarp.Zana](https://github.com/TimeWarpEngineering/timewarp-ganda)** - Private utilities library (in timewarp-ganda repo)
 
 ## Contributing
 

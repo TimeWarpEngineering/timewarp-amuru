@@ -26,10 +26,12 @@ This guide covers all methods for installing TimeWarp.Amuru components and stand
 dotnet add package TimeWarp.Amuru
 ```
 
-**For CLI utilities:**
+**For CLI utilities (private package):**
 ```bash
-dotnet tool install --global TimeWarp.Ganda
+dotnet tool install --global TimeWarp.Ganda --source https://nuget.pkg.github.com/TimeWarpEngineering/index.json
 ```
+
+> **Note**: TimeWarp.Ganda has moved to a [separate private repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
 **For standalone executables:**
 ```bash
@@ -84,12 +86,14 @@ The `#:package` directive is native to .NET 10 - no external tools required.
 
 ### TimeWarp.Ganda Global Tool
 
+> **Note**: TimeWarp.Ganda has moved to a [separate private repository](https://github.com/TimeWarpEngineering/timewarp-ganda) and is published to GitHub Packages.
+
 ```bash
-# Install globally
-dotnet tool install --global TimeWarp.Ganda
+# Install globally (from private feed)
+dotnet tool install --global TimeWarp.Ganda --source https://nuget.pkg.github.com/TimeWarpEngineering/index.json
 
 # Or update existing installation
-dotnet tool update --global TimeWarp.Ganda
+dotnet tool update --global TimeWarp.Ganda --source https://nuget.pkg.github.com/TimeWarpEngineering/index.json
 
 # Verify installation
 timewarp --version
@@ -98,7 +102,7 @@ timewarp --version
 The `timewarp` command provides various utilities:
 - `timewarp convert-timestamp` - Timestamp conversion
 - `timewarp generate-color` - Color generation
-- And more (see [TimeWarp.Ganda documentation](../../Source/TimeWarp.Ganda/README.md))
+- And more (see [TimeWarp.Ganda repository](https://github.com/TimeWarpEngineering/timewarp-ganda))
 
 ---
 
@@ -577,12 +581,13 @@ All executables in the `exe/` directory (except `installer.cs` and test files) a
 - `installer-win-x64.exe`
 - `installer-osx-x64`
 - `TimeWarp.Amuru.*.nupkg`
-- `TimeWarp.Ganda.*.nupkg`
+
+> **Note**: TimeWarp.Ganda packages are now published from the [timewarp-ganda repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
 ---
 
 ## See Also
 
 - [README.md](../../README.md) - Project overview and quick start
-- [TimeWarp.Ganda README](../../Source/TimeWarp.Ganda/README.md) - CLI tool documentation
+- [TimeWarp.Ganda Repository](https://github.com/TimeWarpEngineering/timewarp-ganda) - CLI tool documentation
 - [Architectural Layers](../Conceptual/ArchitecturalLayers.md) - Understanding the architecture
