@@ -13,15 +13,38 @@ Remove dead code and orphaned references from the CI/CD pipeline after the Ganda
 ## Checklist
 
 ### Cleanup
-- [ ] Remove Ganda project reference from `Scripts/Build.cs` (line 15)
-- [ ] Delete `.github/workflows/sync-configurable-files.yml` (references non-existent `Tools/FileSync/`)
-- [ ] Delete `exe/` directory (all 13 files exist in Ganda repo)
-- [ ] Replace `.github/workflows/ci-cd.yml` with simplified version
+- [x] Remove Ganda project reference from `Scripts/Build.cs` (line 15)
+- [x] Delete `.github/workflows/sync-configurable-files.yml` (references non-existent `Tools/FileSync/`)
+- [x] Delete `exe/` directory (all 13 files exist in Ganda repo)
+- [x] Replace `.github/workflows/ci-cd.yml` with simplified version
 
 ### Verification
-- [ ] Build succeeds: `dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj`
-- [ ] Tests pass: `./Tests/RunTests.cs`
-- [ ] No references to `exe/` in workflow paths
+- [x] Build succeeds: `dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj`
+- [x] Tests pass: `./Tests/RunTests.cs`
+- [x] No references to `exe/` in workflow paths
+
+## Results
+
+**Completed:** 2025-12-11
+
+**Changes Made:**
+- Simplified `ci-cd.yml` from 334 lines to ~130 lines
+- Deleted `sync-configurable-files.yml` workflow
+- Deleted entire `exe/` directory (13 files)
+- Removed `exe/` path triggers from CI workflow
+
+**Commit:** `0b19935` - "Remove dead code after Ganda/exe migration to timewarp-ganda repo"
+
+**Final Metrics:**
+
+| Metric | Before | After | Reduction |
+|--------|--------|-------|-----------|
+| `ci-cd.yml` lines | 334 | ~130 | 61% |
+| CI jobs | 4 | 2 | 50% |
+| Matrix builds | 6 | 1 | 83% |
+| `exe/` files | 13 | 0 | 100% |
+| Workflow files | 2 | 1 | 50% |
+| **Total lines removed** | - | - | **2,747** |
 
 ## Notes
 
@@ -46,16 +69,6 @@ Remove dead code and orphaned references from the CI/CD pipeline after the Ganda
 | `post.cs` | ✅ | ✅ |
 | `ssh-key-helper.cs` | ✅ | ✅ |
 | `update-master.cs` | ✅ | ✅ |
-
-**Impact Summary:**
-
-| Metric | Before | After |
-|--------|--------|-------|
-| `ci-cd.yml` lines | 334 | ~130 |
-| CI jobs | 4 | 2 |
-| Matrix builds | 6 (3 platforms × 2 jobs) | 1 |
-| `exe/` files | 13 | 0 |
-| Workflow files | 2 | 1 |
 
 **Related:**
 - Migration analysis: `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md`
