@@ -199,6 +199,11 @@ public class DotNetWorkloadInfoBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -237,6 +242,11 @@ public class DotNetWorkloadVersionBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -367,6 +377,11 @@ public class DotNetWorkloadInstallBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -424,6 +439,11 @@ public class DotNetWorkloadListBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -490,6 +510,11 @@ public class DotNetWorkloadSearchBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -532,6 +557,11 @@ public class DotNetWorkloadUninstallBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -741,6 +771,11 @@ public class DotNetWorkloadUpdateBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -917,6 +952,11 @@ public class DotNetWorkloadRepairBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -972,6 +1012,11 @@ public class DotNetWorkloadCleanBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -1174,6 +1219,11 @@ public class DotNetWorkloadRestoreBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -1251,6 +1301,11 @@ public class DotNetWorkloadConfigBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)

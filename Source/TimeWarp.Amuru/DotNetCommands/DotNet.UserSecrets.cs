@@ -167,6 +167,11 @@ public class DotNetUserSecretsInitBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -227,6 +232,11 @@ public class DotNetUserSecretsSetBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -285,6 +295,11 @@ public class DotNetUserSecretsRemoveBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -341,6 +356,11 @@ public class DotNetUserSecretsListBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -396,6 +416,11 @@ public class DotNetUserSecretsClearBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)

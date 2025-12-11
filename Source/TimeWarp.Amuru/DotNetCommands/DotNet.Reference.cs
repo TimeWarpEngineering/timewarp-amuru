@@ -171,6 +171,11 @@ public class DotNetReferenceAddBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -221,6 +226,11 @@ public class DotNetReferenceListBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -282,6 +292,11 @@ public class DotNetReferenceRemoveBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)

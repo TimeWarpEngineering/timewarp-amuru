@@ -338,6 +338,11 @@ public class DotNetNewBuilder : ICommandBuilder<DotNetNewBuilder>
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   /// <summary>
   /// Executes an interactive selection command and returns the selected value.
@@ -391,6 +396,11 @@ public class DotNetNewListBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -431,6 +441,11 @@ public class DotNetNewSearchBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
@@ -473,6 +488,11 @@ public class DotNetNewInstallBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -514,6 +534,11 @@ public class DotNetNewUninstallBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
@@ -552,6 +577,11 @@ public class DotNetNewUpdateBuilder
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)

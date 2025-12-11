@@ -18,9 +18,24 @@ public class CommandResult
   
   
   /// <summary>
-  /// Passes the command through to the terminal with full interactive control.
-  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
+  /// Passes the command through to the console by piping stdin/stdout/stderr streams.
+  /// This allows interactive commands like fzf to work with user input and terminal UI.
   /// </summary>
+  /// <remarks>
+  /// This method uses CliWrap's stream piping which does NOT preserve TTY characteristics.
+  /// For TUI applications like vim, nano, or edit that require a real TTY, use
+  /// <see cref="TtyPassthroughAsync"/> instead.
+  /// 
+  /// Use this method for:
+  /// - Interactive filter tools like fzf
+  /// - Simple interactive prompts
+  /// - Commands that don't check isatty()
+  /// 
+  /// Use TtyPassthroughAsync for:
+  /// - Full-screen TUI editors (vim, nano, edit)
+  /// - SSH sessions with terminal allocation
+  /// - Applications that call isatty() to verify terminal
+  /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
@@ -51,6 +66,95 @@ public class CommandResult
     // Return result with empty output strings (output went to console)
     return new ExecutionResult(
       result,
+      string.Empty,
+      string.Empty
+    );
+  }
+  
+  /// <summary>
+  /// Executes the command with true TTY passthrough for TUI applications.
+  /// Unlike PassthroughAsync which pipes Console streams, this method
+  /// uses Process.Start directly without any stream redirection, allowing
+  /// the child process to inherit the terminal's TTY characteristics.
+  /// </summary>
+  /// <remarks>
+  /// Use this method for TUI applications like vim, nano, edit, etc. that
+  /// require a real terminal (TTY) to function properly. These applications
+  /// check isatty() and fail when stdin/stdout/stderr are pipes.
+  /// 
+  /// Note: Output cannot be captured with this method since streams are
+  /// not redirected. Use PassthroughAsync for non-TUI interactive commands
+  /// where you want stream access.
+  /// </remarks>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    if (Command == null)
+    {
+      return new ExecutionResult(
+        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
+        string.Empty,
+        string.Empty
+      );
+    }
+
+    DateTimeOffset startTime = DateTimeOffset.Now;
+    
+    using var process = new System.Diagnostics.Process
+    {
+      StartInfo = new System.Diagnostics.ProcessStartInfo
+      {
+        FileName = Command.TargetFilePath,
+        Arguments = Command.Arguments,
+        WorkingDirectory = string.IsNullOrEmpty(Command.WorkingDirPath) 
+          ? null 
+          : Command.WorkingDirPath,
+        UseShellExecute = false,
+        // CRITICAL: Do NOT redirect any streams - this preserves TTY inheritance
+        RedirectStandardInput = false,
+        RedirectStandardOutput = false,
+        RedirectStandardError = false
+      }
+    };
+
+    // Apply environment variables if configured
+    if (Command.EnvironmentVariables.Count > 0)
+    {
+      foreach (KeyValuePair<string, string?> envVar in Command.EnvironmentVariables)
+      {
+        if (envVar.Value != null)
+        {
+          process.StartInfo.EnvironmentVariables[envVar.Key] = envVar.Value;
+        }
+        else
+        {
+          process.StartInfo.EnvironmentVariables.Remove(envVar.Key);
+        }
+      }
+    }
+
+    process.Start();
+    
+    // Register cancellation
+    await using CancellationTokenRegistration registration = cancellationToken.Register(() =>
+    {
+      try
+      {
+        process.Kill(entireProcessTree: true);
+      }
+      catch
+      {
+        // Process may have already exited
+      }
+    });
+    
+    await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+    
+    DateTimeOffset exitTime = DateTimeOffset.Now;
+
+    return new ExecutionResult(
+      new CliWrap.CommandResult(process.ExitCode, startTime, exitTime),
       string.Empty,
       string.Empty
     );

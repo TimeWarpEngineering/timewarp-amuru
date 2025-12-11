@@ -18,28 +18,37 @@ The current `PassthroughAsync` method uses CliWrap's stream piping which loses T
 ## Checklist
 
 ### Core Implementation
-- [ ] Add `TtyPassthroughAsync` to `CommandResult.cs`
-- [ ] Add `TtyPassthroughAsync` to `RunBuilder.cs`
-- [ ] Handle environment variables from CliWrap Command
-- [ ] Handle working directory from CliWrap Command
-- [ ] Implement cancellation token support with process kill
+- [x] Add `TtyPassthroughAsync` to `CommandResult.cs`
+- [x] Add `TtyPassthroughAsync` to `RunBuilder.cs`
+- [x] Handle environment variables from CliWrap Command
+- [x] Handle working directory from CliWrap Command
+- [x] Implement cancellation token support with process kill
 
 ### Builder Classes
-- [ ] Add method to all builder classes that have `PassthroughAsync`
-- [ ] Use `update-api-methods.sh` script pattern for consistency
+- [x] Add method to all builder classes that have `PassthroughAsync`
+- [x] DotNet.Base.cs
+- [x] DotNet.Build.cs
+- [x] DotNet.Clean.cs
+- [x] DotNet.Test.cs
+- [x] DotNet.Restore.cs
+- [x] DotNet.Run.cs
+- [x] And 21 other DotNet builder files (automated with perl script)
+- [x] Fzf.cs
+- [x] Ghq.cs
+- [x] Gwq.cs
 
 ### Tests
-- [ ] Create `CommandResult.TtyPassthrough.cs` integration test
-- [ ] Create `TtyEditorDemo.cs` manual test
-- [ ] Test exit code propagation
-- [ ] Test working directory support
-- [ ] Test environment variable support
-- [ ] Test cancellation behavior
+- [x] Create `CommandResult.TtyPassthrough.cs` integration test
+- [x] Create `TtyEditorDemo.cs` manual test
+- [x] Test exit code propagation
+- [x] Test working directory support
+- [x] Test environment variable support
+- [x] Test cancellation behavior
 
 ### Documentation
 - [ ] Update README.md with TtyPassthroughAsync usage
-- [ ] Clarify PassthroughAsync limitations in XML docs
-- [ ] Document when to use each method
+- [x] Clarify PassthroughAsync limitations in XML docs (in CommandResult.cs)
+- [x] Document when to use each method (in XML docs)
 
 ## Notes
 

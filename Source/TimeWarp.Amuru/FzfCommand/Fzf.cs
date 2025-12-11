@@ -116,6 +116,18 @@ public partial class FzfBuilder
   }
   
   /// <summary>
+  /// Executes the command with true TTY passthrough for TUI applications.
+  /// Unlike PassthroughAsync which pipes Console streams, this method
+  /// allows the child process to inherit the terminal's TTY characteristics.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
+  
+  /// <summary>
   /// Executes fzf interactively and returns the selected item(s).
   /// The fzf UI is displayed on the console, but the selection is captured and returned.
   /// </summary>
