@@ -1,3 +1,69 @@
+# GitHub Workflow Cleanup: Execution Commands
+
+## Executive Summary
+
+Based on your decisions, here are the exact commands and file changes needed to clean up the repository after the Ganda/exe migration. All 13 files in Amuru's `exe/` directory already exist in the Ganda repo (plus Ganda has additional files).
+
+## Exe Directory Comparison
+
+| File | In Amuru | In Ganda | Action |
+|------|----------|----------|--------|
+| `Directory.Build.props` | ✅ | ✅ | DELETE |
+| `check-assembly-metadata.cs` | ✅ | ✅ | DELETE |
+| `clear-runfile-cache.cs` | ✅ | ✅ | DELETE |
+| `convert-timestamp.cs` | ✅ | ✅ | DELETE |
+| `display-avatar.cs` | ✅ | ✅ | DELETE |
+| `generate-avatar.cs` | ✅ | ✅ | DELETE |
+| `generate-color.cs` | ✅ | ✅ | DELETE |
+| `github-report.cs` | ✅ | ✅ | DELETE |
+| `installer.cs` | ✅ | ✅ | DELETE |
+| `multiavatar.cs` | ✅ | ✅ | DELETE |
+| `post.cs` | ✅ | ✅ | DELETE |
+| `ssh-key-helper.cs` | ✅ | ✅ | DELETE |
+| `update-master.cs` | ✅ | ✅ | DELETE |
+
+**Ganda has additional files**: `dev-setup.cs`, `github-restore.cs`, `kanban.cs`, `repo-setup.cs`
+
+---
+
+## Commands to Execute
+
+### 1. Remove Ganda Reference from Scripts/Build.cs
+
+Edit `Scripts/Build.cs` line 12-16, change from:
+```csharp
+string[] projectsToBuild = [
+  "../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj",
+  "../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj",
+  "../Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj"
+];
+```
+
+To:
+```csharp
+string[] projectsToBuild = [
+  "../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj",
+  "../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj"
+];
+```
+
+### 2. Delete Sync Workflow
+
+```bash
+rm .github/workflows/sync-configurable-files.yml
+```
+
+### 3. Delete exe/ Directory
+
+```bash
+rm -rf exe/
+```
+
+### 4. Replace ci-cd.yml
+
+Replace `.github/workflows/ci-cd.yml` with:
+
+```yaml
 name: CI/CD Pipeline
 
 on:
@@ -122,11 +188,11 @@ jobs:
 
           echo "Checking if TimeWarp.Amuru $VERSION is already published on NuGet.org..."
           if dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
-            echo "WARNING: TimeWarp.Amuru $VERSION is already published to NuGet.org"
-            echo "This version cannot be republished. Please increment the version in Directory.Build.props"
+            echo "⚠️ WARNING: TimeWarp.Amuru $VERSION is already published to NuGet.org"
+            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
             exit 1
           else
-            echo "TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
+            echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
           fi
 
       - name: Publish to NuGet.org
@@ -146,3 +212,44 @@ jobs:
         with:
           files: |
             artifacts/packages/*
+```
+
+---
+
+## Summary of Changes
+
+| Action | Before | After | Reduction |
+|--------|--------|-------|-----------|
+| `ci-cd.yml` | 334 lines | ~130 lines | 61% |
+| Jobs | 4 (build-exe, build-installer, build-packages, publish) | 2 (build-and-test, publish-release) | 50% |
+| Matrix builds | 3 platforms × 2 jobs = 6 builds | 1 build | 83% |
+| `exe/` directory | 13 files | 0 files | 100% |
+| Workflow files | 2 | 1 | 50% |
+
+---
+
+## Files to Delete
+
+```
+.github/workflows/sync-configurable-files.yml
+exe/Directory.Build.props
+exe/check-assembly-metadata.cs
+exe/clear-runfile-cache.cs
+exe/convert-timestamp.cs
+exe/display-avatar.cs
+exe/generate-avatar.cs
+exe/generate-color.cs
+exe/github-report.cs
+exe/installer.cs
+exe/multiavatar.cs
+exe/post.cs
+exe/ssh-key-helper.cs
+exe/update-master.cs
+```
+
+## Files to Modify
+
+```
+Scripts/Build.cs           # Remove Ganda project reference
+.github/workflows/ci-cd.yml # Replace with simplified version
+```
