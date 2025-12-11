@@ -46,7 +46,7 @@ The current `PassthroughAsync` method uses CliWrap's stream piping which loses T
 - [x] Test cancellation behavior
 
 ### Documentation
-- [ ] Update README.md with TtyPassthroughAsync usage
+- [x] Update README.md with TtyPassthroughAsync usage
 - [x] Clarify PassthroughAsync limitations in XML docs (in CommandResult.cs)
 - [x] Document when to use each method (in XML docs)
 
@@ -90,3 +90,22 @@ using var process = new Process
 |--------|------|------------|---------------|
 | `PassthroughAsync` | CliWrap pipes | fzf, simple interactive | No |
 | `TtyPassthroughAsync` | Raw Process.Start | vim, nano, edit, ssh | Yes |
+
+## Results
+
+**Completed**: 2025-12-11
+
+### Summary
+- Added `TtyPassthroughAsync` method to `CommandResult.cs` and `RunBuilder.cs`
+- Propagated to 34 fluent builder files (DotNet commands, Fzf, Ghq, Gwq)
+- Created 9 automated integration tests
+- Created manual test for TUI editor verification
+- Updated XML documentation to clarify when to use each method
+- Updated README.md with usage examples and comparison table
+
+### Commits
+- `f10a5c4` - Add task 060: Implement TtyPassthroughAsync for TUI applications (Issue #39)
+- `b23b17a` - Add TtyPassthroughAsync for TUI applications (Issue #39)
+
+### Test Results
+All 42 test suites pass (100% success rate)

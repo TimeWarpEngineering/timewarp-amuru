@@ -123,10 +123,14 @@ var chosenFile = await Shell.Builder("find")
     .Pipe("fzf", "--preview", "head -20 {}")
     .SelectAsync();
 
-// Full interactive mode for editors, REPLs, etc.
+// Full interactive mode for stream-based tools (fzf, REPLs)
+await Shell.Builder("fzf")
+    .PassthroughAsync();
+
+// TUI applications (vim, nano, edit) need true TTY passthrough
 await Shell.Builder("vim")
     .WithArguments("myfile.txt")
-    .PassthroughAsync();
+    .TtyPassthroughAsync();
 ```
 
 ### DotNet Commands
@@ -247,7 +251,7 @@ These extensions:
 - **Cancellation Support**: Full CancellationToken support for timeouts and manual cancellation
 - **Cross-Platform**: Works on Windows, Linux, and macOS
 - **Command Builders**: Fluent builders for complex commands (DotNet, Fzf, Ghq, Gwq)
-- **Interactive Commands**: `PassthroughAsync()` for editors, `SelectAsync()` for selection tools
+- **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
 - **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
 
 ## Output Handling
@@ -267,10 +271,15 @@ var result = await Shell.Builder("git", "status").CaptureAsync();
 // Returns: CommandOutput with all streams
 // Console output: none (silent)
 
-// PassthroughAsync() - Full terminal control for interactive tools
-await Shell.Builder("vim", "file.txt").PassthroughAsync();
-// Returns: void
-// Console output: direct terminal passthrough
+// PassthroughAsync() - Stream-based interactive tools (fzf, REPLs)
+await Shell.Builder("fzf").PassthroughAsync();
+// Returns: ExecutionResult
+// Console output: piped through Console streams
+
+// TtyPassthroughAsync() - True TTY for TUI applications (vim, nano, edit)
+await Shell.Builder("vim", "file.txt").TtyPassthroughAsync();
+// Returns: ExecutionResult
+// Console output: inherits parent TTY (required for TUI apps)
 
 // SelectAsync() - Selection tools (shows UI, captures selection)
 var selected = await Fzf.Builder()
@@ -331,7 +340,8 @@ await foreach (var error in errorLines)
 |--------|---------------|----------|---------|------------------|
 | `RunAsync()` | ✅ Real-time | ❌ | Exit code | Default scripting (80%) |
 | `CaptureAsync()` | ❌ Silent | ✅ All streams | CommandOutput | Process output (15%) |
-| `PassthroughAsync()` | ✅ Direct | ❌ | void | Interactive tools (4%) |
+| `PassthroughAsync()` | ✅ Piped | ❌ | ExecutionResult | Stream-based interactive (3%) |
+| `TtyPassthroughAsync()` | ✅ TTY | ❌ | ExecutionResult | TUI apps (vim, nano) (1%) |
 | `SelectAsync()` | ✅ UI only | ✅ Selection | string | Selection tools (1%) |
 | `StreamStdoutAsync()` | ❌ | ✅ As stream | IAsyncEnumerable | Large data |
 
