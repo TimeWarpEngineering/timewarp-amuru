@@ -453,6 +453,11 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   /// <summary>
   /// Executes an interactive selection command and returns the selected value.

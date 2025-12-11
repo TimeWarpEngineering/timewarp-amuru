@@ -219,9 +219,6 @@ jobs:
           echo "Building TimeWarp.Amuru..."
           dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release
 
-          echo "Building TimeWarp.Ganda..."
-          dotnet build Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj --configuration Release
-
           echo "Running tests..."
           ./Tests/RunTests.cs
 
@@ -233,7 +230,6 @@ jobs:
           retention-days: 90
           path: |
             artifacts/packages/TimeWarp.Amuru.*.nupkg
-            artifacts/packages/TimeWarp.Ganda.*.nupkg
 
   # Publish to NuGet and upload release assets (only on release)
   publish-release:
@@ -316,27 +312,12 @@ jobs:
             echo "✅ TimeWarp.Amuru $VERSION is not yet published on NuGet.org"
           fi
 
-          echo "Checking if TimeWarp.Ganda $VERSION is already published on NuGet.org..."
-          if dotnet package search TimeWarp.Ganda --exact-match --prerelease --source https://api.nuget.org/v3/index.json | grep -q "$VERSION"; then
-            echo "⚠️ WARNING: TimeWarp.Ganda $VERSION is already published to NuGet.org"
-            echo "❌ This version cannot be republished. Please increment the version in Directory.Build.props"
-            exit 1
-          else
-            echo "✅ TimeWarp.Ganda $VERSION is not yet published on NuGet.org"
-          fi
-
       - name: Publish to NuGet.org
         run: |
           VERSION=$(grep '<Version>' Source/Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
 
           echo "Publishing TimeWarp.Amuru $VERSION..."
           dotnet nuget push "artifacts/packages/TimeWarp.Amuru.$VERSION.nupkg" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-          echo "Publishing TimeWarp.Ganda $VERSION..."
-          dotnet nuget push "artifacts/packages/TimeWarp.Ganda.$VERSION.nupkg" \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate

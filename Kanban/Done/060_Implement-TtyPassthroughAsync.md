@@ -1,0 +1,111 @@
+# Implement TtyPassthroughAsync for TUI Applications
+
+## Description
+
+Add a new `TtyPassthroughAsync` method to support TUI (Text User Interface) applications like `vim`, `nano`, `edit`, etc. that require a real TTY (terminal) to function properly.
+
+The current `PassthroughAsync` method uses CliWrap's stream piping which loses TTY characteristics. TUI applications check `isatty()` and fail with "Inappropriate ioctl for device" when stdin/stdout/stderr are pipes rather than TTYs.
+
+**GitHub Issue**: #39
+
+## Requirements
+
+- New method must use raw `Process.Start` without any stream redirection
+- Must preserve all builder configuration (working directory, environment variables)
+- Must support cancellation tokens
+- Must follow existing API patterns and graceful degradation
+
+## Checklist
+
+### Core Implementation
+- [x] Add `TtyPassthroughAsync` to `CommandResult.cs`
+- [x] Add `TtyPassthroughAsync` to `RunBuilder.cs`
+- [x] Handle environment variables from CliWrap Command
+- [x] Handle working directory from CliWrap Command
+- [x] Implement cancellation token support with process kill
+
+### Builder Classes
+- [x] Add method to all builder classes that have `PassthroughAsync`
+- [x] DotNet.Base.cs
+- [x] DotNet.Build.cs
+- [x] DotNet.Clean.cs
+- [x] DotNet.Test.cs
+- [x] DotNet.Restore.cs
+- [x] DotNet.Run.cs
+- [x] And 21 other DotNet builder files (automated with perl script)
+- [x] Fzf.cs
+- [x] Ghq.cs
+- [x] Gwq.cs
+
+### Tests
+- [x] Create `CommandResult.TtyPassthrough.cs` integration test
+- [x] Create `TtyEditorDemo.cs` manual test
+- [x] Test exit code propagation
+- [x] Test working directory support
+- [x] Test environment variable support
+- [x] Test cancellation behavior
+
+### Documentation
+- [x] Update README.md with TtyPassthroughAsync usage
+- [x] Clarify PassthroughAsync limitations in XML docs (in CommandResult.cs)
+- [x] Document when to use each method (in XML docs)
+
+## Notes
+
+### Analysis Document
+Full analysis available at: `.agent/workspace/2025-12-11T16-45-00_issue-39-tty-passthrough-analysis.md`
+
+### Key Implementation Detail
+```csharp
+using var process = new Process
+{
+    StartInfo = new ProcessStartInfo
+    {
+        FileName = Command.TargetFilePath,
+        Arguments = Command.Arguments,
+        WorkingDirectory = Command.WorkingDirPath,
+        UseShellExecute = false,
+        // CRITICAL: Do NOT redirect any streams - this preserves TTY inheritance
+        RedirectStandardInput = false,
+        RedirectStandardOutput = false,
+        RedirectStandardError = false
+    }
+};
+```
+
+### Why CliWrap Can't Help
+- `PipeTarget.Null` does NOT mean "inherit from parent"
+- Any pipe configuration causes stream redirection
+- CliWrap fundamentally cannot provide TTY passthrough
+- Reference: [CliWrap Issue #145](https://github.com/Tyrrrz/CliWrap/issues/145)
+
+### Use Cases
+- Opening config files in user's preferred editor
+- Interactive TUI tools that need full terminal control
+- SSH sessions with terminal allocation
+- Any application that calls `isatty()` to verify terminal
+
+### PassthroughAsync vs TtyPassthroughAsync
+| Method | Uses | Works With | TTY Preserved |
+|--------|------|------------|---------------|
+| `PassthroughAsync` | CliWrap pipes | fzf, simple interactive | No |
+| `TtyPassthroughAsync` | Raw Process.Start | vim, nano, edit, ssh | Yes |
+
+## Results
+
+**Completed**: 2025-12-11
+
+### Summary
+- Added `TtyPassthroughAsync` method to `CommandResult.cs` and `RunBuilder.cs`
+- Propagated to 34 fluent builder files (DotNet commands, Fzf, Ghq, Gwq)
+- Created 9 automated integration tests
+- Created manual test for TUI editor verification
+- Updated XML documentation to clarify when to use each method
+- Updated README.md with usage examples and comparison table
+
+### Commits
+- `f10a5c4` - Add task 060: Implement TtyPassthroughAsync for TUI applications (Issue #39)
+- `b23b17a` - Add TtyPassthroughAsync for TUI applications (Issue #39)
+
+### Test Results
+All 42 test suites pass (100% success rate)

@@ -21,6 +21,7 @@ public static partial class DotNet
 public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
 {
   private string? Project;
+  private string? File;
   private string? Configuration;
   private string? Framework;
   private string? Runtime;
@@ -48,6 +49,17 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   public DotNetRunBuilder WithProject(string project)
   {
     Project = project;
+    return this;
+  }
+
+  /// <summary>
+  /// Specifies the path to a file-based app to run.
+  /// </summary>
+  /// <param name="filePath">Path to the file-based app to run</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetRunBuilder WithFile(string filePath)
+  {
+    File = filePath;
     return this;
   }
 
@@ -297,6 +309,13 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
       arguments.Add(Project);
     }
 
+    // Add file if specified
+    if (!string.IsNullOrWhiteSpace(File))
+    {
+      arguments.Add("--file");
+      arguments.Add(File);
+    }
+
     // Add configuration if specified
     if (!string.IsNullOrWhiteSpace(Configuration))
     {
@@ -438,6 +457,18 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken);
+  }
+  
+  /// <summary>
+  /// Executes the command with true TTY passthrough for TUI applications.
+  /// Unlike PassthroughAsync which pipes Console streams, this method
+  /// allows the child process to inherit the terminal's TTY characteristics.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
   }
   
   /// <summary>

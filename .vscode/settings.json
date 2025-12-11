@@ -35,4 +35,5 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.remoteColor": "#e00bf5",
+  "timewarp.blurImagePath": "assets/timewarp-amuru-avatar.svg",
 }

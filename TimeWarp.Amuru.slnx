@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/Source/">
-    <Project Path="Source/TimeWarp.Ganda/TimeWarp.Ganda.csproj" />
     <Project Path="Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
   </Folder>
   <Folder Name="/Tests/">

@@ -368,6 +368,18 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   }
   
   /// <summary>
+  /// Executes the command with true TTY passthrough for TUI applications.
+  /// Unlike PassthroughAsync which pipes Console streams, this method
+  /// allows the child process to inherit the terminal's TTY characteristics.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
+  
+  /// <summary>
   /// Executes an interactive selection command and returns the selected value.
   /// The UI is rendered to the console (via stderr) while stdout is captured and returned.
   /// </summary>

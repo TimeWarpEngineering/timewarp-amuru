@@ -243,6 +243,11 @@ public class DotNetToolInstallBuilder
   {
     return await Build().PassthroughAsync(cancellationToken);
   }
+
+  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().TtyPassthroughAsync(cancellationToken);
+  }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
