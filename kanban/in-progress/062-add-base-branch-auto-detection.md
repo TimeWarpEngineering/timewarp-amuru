@@ -33,7 +33,7 @@ This doesn't work for repositories using `main` or `dev` as their default branch
 - [x] Add integration tests for new methods
 
 ### Documentation
-- [ ] Update API documentation for Git commands
+- [x] Update API documentation for Git commands
 
 ## Notes
 

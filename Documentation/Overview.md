@@ -13,6 +13,7 @@ Technical documentation for developers using TimeWarp.Amuru in their projects.
 
 - **[Reference](Developer/Reference/)** - Detailed technical reference
   - [Shell Commands Reference](Developer/Reference/ShellCommands.md) - Complete shell command reference
+  - [Git Commands Reference](Developer/Reference/GitCommands.md) - Git helper methods reference
 
 > **Note**: TimeWarp.Ganda CLI tool has moved to a [separate repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
