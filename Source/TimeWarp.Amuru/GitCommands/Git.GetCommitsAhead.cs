@@ -59,11 +59,26 @@ public static partial class Git
   }
 
   /// <summary>
-  /// Gets the number of commits the current branch is ahead of master.
-  /// Convenience method that calls GetCommitsAheadAsync with "master".
+  /// Gets the number of commits the current branch is ahead of the default branch (main/master/dev).
+  /// Auto-detects the default branch using GetDefaultBranchAsync, then counts commits.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>GitCommitCountResult containing success status, commit count, and any error message.</returns>
-  public static Task<GitCommitCountResult> GetCommitsAheadOfMasterAsync(CancellationToken cancellationToken = default)
-    => GetCommitsAheadAsync("master", cancellationToken);
+  /// <example>
+  /// GitCommitCountResult result = await Git.GetCommitsAheadOfDefaultBranchAsync();
+  /// if (result.Success)
+  /// {
+  ///   Console.WriteLine($"Commits ahead of default branch: {result.Count}");
+  /// }
+  /// </example>
+  public static async Task<GitCommitCountResult> GetCommitsAheadOfDefaultBranchAsync(CancellationToken cancellationToken = default)
+  {
+    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken);
+    if (!defaultBranchResult.Success || defaultBranchResult.BranchName is null)
+    {
+      return new GitCommitCountResult(false, 0, defaultBranchResult.ErrorMessage ?? "Failed to detect default branch");
+    }
+
+    return await GetCommitsAheadAsync(defaultBranchResult.BranchName, cancellationToken);
+  }
 }

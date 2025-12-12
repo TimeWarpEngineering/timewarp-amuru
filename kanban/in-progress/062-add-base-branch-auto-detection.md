@@ -23,14 +23,14 @@ This doesn't work for repositories using `main` or `dev` as their default branch
 ## Checklist
 
 ### Implementation
-- [ ] Implement `Git.GetDefaultBranchAsync()` - Auto-detect the default branch
+- [x] Implement `Git.GetDefaultBranchAsync()` - Auto-detect the default branch
   - Check `git symbolic-ref refs/remotes/origin/HEAD --short`
   - Fallback: check existence of common branch names (main, master, dev)
-- [ ] Implement `Git.UpdateDefaultBranchAsync()` - Update the detected default branch
-- [ ] Implement `Git.GetCommitsAheadOfDefaultBranchAsync()` - Get commits ahead of detected default branch
-- [ ] Mark `Git.UpdateMasterAsync()` as `[Obsolete("Use UpdateDefaultBranchAsync instead")]`
-- [ ] Mark `Git.GetCommitsAheadOfMasterAsync()` as `[Obsolete("Use GetCommitsAheadOfDefaultBranchAsync instead")]`
-- [ ] Add integration tests for new methods
+- [x] Implement `Git.UpdateDefaultBranchAsync()` - Update the detected default branch
+- [x] Implement `Git.GetCommitsAheadOfDefaultBranchAsync()` - Get commits ahead of detected default branch
+- [x] Remove `Git.UpdateMasterAsync()` (replaced by `UpdateDefaultBranchAsync`)
+- [x] Remove `Git.GetCommitsAheadOfMasterAsync()` (replaced by `GetCommitsAheadOfDefaultBranchAsync`)
+- [x] Add integration tests for new methods
 
 ### Documentation
 - [ ] Update API documentation for Git commands
