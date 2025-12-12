@@ -27,22 +27,21 @@ internal sealed class GitDefaultBranchTests
 
   public static async Task TestGetCommitsAheadOfDefaultBranchAsync_ReturnsValidCount()
   {
+    // Skip this test in CI environments where shallow clones or limited refs may cause failures
+    // The mock test (TestGetCommitsAheadOfDefaultBranchAsync_WithMock) verifies the actual logic
+    if (Environment.GetEnvironmentVariable("CI") is not null ||
+        Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null)
+    {
+      Console.WriteLine("Skipping real repository test in CI environment");
+      return;
+    }
+
     // Get commits ahead of default branch
     GitCommitCountResult result = await Git.GetCommitsAheadOfDefaultBranchAsync();
 
-    // In CI environments (like GitHub Actions), the checkout may be shallow or have limited refs,
-    // which can cause this test to fail. We accept either success or a specific failure.
-    if (result.Success)
-    {
-      result.Count.ShouldBeGreaterThanOrEqualTo(0, "Commit count should be non-negative");
-      result.ErrorMessage.ShouldBeNull("Should not have an error message on success");
-    }
-    else
-    {
-      // In CI, it's acceptable if this fails due to shallow clone or missing refs
-      // The mock tests verify the actual logic works correctly
-      result.ErrorMessage.ShouldNotBeNullOrWhiteSpace("Should have an error message explaining the failure");
-    }
+    result.Success.ShouldBeTrue("Should successfully count commits ahead of default branch");
+    result.Count.ShouldBeGreaterThanOrEqualTo(0, "Commit count should be non-negative");
+    result.ErrorMessage.ShouldBeNull("Should not have an error message on success");
   }
 
   public static async Task TestUpdateDefaultBranchAsync_DetectsDefaultBranch()
