@@ -66,11 +66,28 @@ public static partial class Git
   }
 
   /// <summary>
-  /// Updates the master branch from origin.
-  /// Convenience method that calls UpdateBranchAsync with "master".
+  /// Updates the default branch (main/master/dev) from origin.
+  /// Auto-detects the default branch using GetDefaultBranchAsync, then updates it.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>GitBranchUpdateResult containing success status, branch path, and any error message.</returns>
-  public static Task<GitBranchUpdateResult> UpdateMasterAsync(CancellationToken cancellationToken = default)
-    => UpdateBranchAsync("master", cancellationToken);
+  /// <example>
+  /// GitBranchUpdateResult result = await Git.UpdateDefaultBranchAsync();
+  /// if (result.Success)
+  /// {
+  ///   Console.WriteLine(result.BranchPath != null
+  ///     ? $"Updated default branch at: {result.BranchPath}"
+  ///     : "Updated default branch");
+  /// }
+  /// </example>
+  public static async Task<GitBranchUpdateResult> UpdateDefaultBranchAsync(CancellationToken cancellationToken = default)
+  {
+    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken);
+    if (!defaultBranchResult.Success || defaultBranchResult.BranchName is null)
+    {
+      return new GitBranchUpdateResult(false, null, defaultBranchResult.ErrorMessage ?? "Failed to detect default branch");
+    }
+
+    return await UpdateBranchAsync(defaultBranchResult.BranchName, cancellationToken);
+  }
 }
