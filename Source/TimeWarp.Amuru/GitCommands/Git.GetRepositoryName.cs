@@ -33,24 +33,61 @@ public static partial class Git
 
     if (result.Success && !string.IsNullOrWhiteSpace(result.Stdout))
     {
-      string output = result.Stdout.Trim();
-
-      // Extract repo name from URL
-      if (output.Contains("github.com", StringComparison.OrdinalIgnoreCase) ||
-          output.Contains("gitlab.com", StringComparison.OrdinalIgnoreCase) ||
-          output.Contains("bitbucket.org", StringComparison.OrdinalIgnoreCase))
+      string remoteUrl = result.Stdout.Trim();
+      string? repoName = ParseRepositoryNameFromUrl(remoteUrl);
+      if (repoName != null)
       {
-        string repoName = output.Split('/').Last();
-        if (repoName.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
-        {
-          repoName = repoName[..^4]; // Remove ".git" suffix
-        }
-
         return repoName;
       }
     }
 
     // Fallback to directory name
     return new DirectoryInfo(gitRoot).Name;
+  }
+
+  /// <summary>
+  /// Parses the repository name from a git remote URL.
+  /// Supports various URL formats:
+  /// - SSH: git@host:user/repo.git or git@host:repo.git
+  /// - HTTPS: https://host/user/repo.git or https://host/user/repo
+  /// - Git protocol: git://host/user/repo.git
+  /// </summary>
+  /// <param name="remoteUrl">The git remote URL to parse.</param>
+  /// <returns>The repository name, or null if it cannot be parsed.</returns>
+  private static string? ParseRepositoryNameFromUrl(string remoteUrl)
+  {
+    if (string.IsNullOrWhiteSpace(remoteUrl))
+    {
+      return null;
+    }
+
+    string repoName;
+
+    // Handle SSH format: git@host:path/to/repo.git or git@host:repo.git
+    if (remoteUrl.Contains('@', StringComparison.Ordinal) && remoteUrl.Contains(':', StringComparison.Ordinal) && !remoteUrl.Contains("://", StringComparison.Ordinal))
+    {
+      // Extract the path part after the colon
+      int colonIndex = remoteUrl.IndexOf(':', StringComparison.Ordinal);
+      string path = remoteUrl[(colonIndex + 1)..];
+      repoName = path.Split('/').Last();
+    }
+    // Handle HTTPS/Git protocol: https://host/path/to/repo.git or git://host/path/to/repo.git
+    else if (remoteUrl.Contains("://", StringComparison.Ordinal))
+    {
+      repoName = remoteUrl.Split('/').Last();
+    }
+    else
+    {
+      // Unknown format, try to get the last path segment
+      repoName = remoteUrl.Split('/', '\\').Last();
+    }
+
+    // Remove .git suffix if present
+    if (repoName.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+    {
+      repoName = repoName[..^4];
+    }
+
+    return string.IsNullOrWhiteSpace(repoName) ? null : repoName;
   }
 }
