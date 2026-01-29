@@ -1,6 +1,0 @@
-<Project>
-  <!-- Import parent Directory.Build.props but skip the test-specific settings -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
-  
-  <!-- This project doesn't need the test references -->
-</Project>

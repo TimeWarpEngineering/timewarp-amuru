@@ -10,8 +10,7 @@ WriteLine("Building TimeWarp.Amuru projects...");
 WriteLine($"Working from: {Directory.GetCurrentDirectory()}");
 
 string[] projectsToBuild = [
-  "../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj",
-  "../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj"
+  "../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj"
 ];
 
 try
