@@ -5,7 +5,7 @@
   <!-- Default package metadata (can be overridden in individual projects) -->
   <PropertyGroup Label="Package Metadata">
     <IsPackable>true</IsPackable>
-    <Version>1.0.0-beta.17</Version>
+    <Version>1.0.0-beta.18</Version>
     <Authors>Steven T. Cramer</Authors>
     <RepositoryUrl>https://github.com/TimeWarpEngineering/timewarp-amuru</RepositoryUrl>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
