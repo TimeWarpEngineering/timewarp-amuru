@@ -40,6 +40,7 @@ public static class TestHelpers
   /// </summary>
   public static void CleanupTempFiles(params string[] files)
   {
+    ArgumentNullException.ThrowIfNull(files);
     foreach (string file in files)
     {
       if (File.Exists(file))
@@ -54,6 +55,7 @@ public static class TestHelpers
   /// </summary>
   public static async Task WithTempFiles(int count, Func<List<string>, Task> testAction)
   {
+    ArgumentNullException.ThrowIfNull(testAction);
     List<string> tempFiles = await CreateExecutableTempFiles(count);
 
     try

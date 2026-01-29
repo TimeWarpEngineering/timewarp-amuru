@@ -17,6 +17,10 @@
     <PackageReference Include="Shouldly" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Shared test helpers compiled into all test files -->
+    <Compile Include="$(MSBuildThisFileDirectory)TestHelpers.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Global usings for all test projects -->
     <Using Include="System.Console" Static="true" />
     <Using Include="TimeWarp.Amuru.Testing.TestHelpers" Static="true" />
