@@ -1,17 +1,23 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using TimeWarp.Amuru.Testing;
-using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<GitDefaultBranchTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class GitDefaultBranchTests
+[TestTag("Git")]
+public class GitDefaultBranchTests
 {
-  public static async Task TestGetDefaultBranchAsync_ReturnsValidBranch()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<GitDefaultBranchTests>();
+
+  public static async Task Should_detect_default_branch_in_real_repository()
   {
     // This test runs in the actual repository, so it should detect the default branch
     GitDefaultBranchResult result = await Git.GetDefaultBranchAsync();
@@ -23,12 +29,15 @@ internal sealed class GitDefaultBranchTests
     // The branch should be one of the common names
     string[] expectedBranches = ["main", "master", "dev"];
     expectedBranches.ShouldContain(result.BranchName, $"Branch '{result.BranchName}' should be a common default branch name");
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetCommitsAheadOfDefaultBranchAsync_ReturnsValidCount()
+  [Skip("Requires full git history - skipped in CI environments")]
+  public static async Task Should_count_commits_ahead_of_default_branch()
   {
     // Skip this test in CI environments where shallow clones or limited refs may cause failures
-    // The mock test (TestGetCommitsAheadOfDefaultBranchAsync_WithMock) verifies the actual logic
+    // The mock test verifies the actual logic
     if (Environment.GetEnvironmentVariable("CI") is not null ||
         Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null)
     {
@@ -42,9 +51,11 @@ internal sealed class GitDefaultBranchTests
     result.Success.ShouldBeTrue("Should successfully count commits ahead of default branch");
     result.Count.ShouldBeGreaterThanOrEqualTo(0, "Commit count should be non-negative");
     result.ErrorMessage.ShouldBeNull("Should not have an error message on success");
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestUpdateDefaultBranchAsync_DetectsDefaultBranch()
+  public static async Task Should_detect_default_branch_as_prerequisite_for_update()
   {
     // First verify we can detect the default branch (prerequisite for update)
     GitDefaultBranchResult defaultBranch = await Git.GetDefaultBranchAsync();
@@ -56,9 +67,11 @@ internal sealed class GitDefaultBranchTests
 
     // Verify the branch name is valid
     defaultBranch.BranchName.ShouldNotBeNullOrWhiteSpace();
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetDefaultBranchAsync_WithMock_ReturnsConfiguredBranch()
+  public static async Task Should_return_configured_branch_from_mock()
   {
     using (CommandMock.Enable())
     {
@@ -72,9 +85,11 @@ internal sealed class GitDefaultBranchTests
       result.BranchName.ShouldBe("main");
       CommandMock.VerifyCalled("git", "symbolic-ref", "refs/remotes/origin/HEAD", "--short");
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetDefaultBranchAsync_WithMock_FallsBackToShowRef()
+  public static async Task Should_fallback_to_show_ref_when_symbolic_ref_fails()
   {
     using (CommandMock.Enable())
     {
@@ -91,9 +106,11 @@ internal sealed class GitDefaultBranchTests
       result.Success.ShouldBeTrue();
       result.BranchName.ShouldBe("main");
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetDefaultBranchAsync_WithMock_ChecksMasterIfMainNotFound()
+  public static async Task Should_check_master_when_main_not_found()
   {
     using (CommandMock.Enable())
     {
@@ -114,9 +131,11 @@ internal sealed class GitDefaultBranchTests
       result.Success.ShouldBeTrue();
       result.BranchName.ShouldBe("master");
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetDefaultBranchAsync_WithMock_ReturnsErrorWhenNoBranchFound()
+  public static async Task Should_return_error_when_no_default_branch_found()
   {
     using (CommandMock.Enable())
     {
@@ -139,9 +158,11 @@ internal sealed class GitDefaultBranchTests
       result.BranchName.ShouldBeNull();
       result.ErrorMessage.ShouldNotBeNullOrWhiteSpace();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetCommitsAheadOfDefaultBranchAsync_WithMock()
+  public static async Task Should_count_commits_with_mock()
   {
     using (CommandMock.Enable())
     {
@@ -159,5 +180,7 @@ internal sealed class GitDefaultBranchTests
       result.Count.ShouldBe(5);
       CommandMock.VerifyCalled("git", "rev-list", "--count", "main..HEAD");
     }
+
+    await Task.CompletedTask;
   }
 }
