@@ -108,13 +108,13 @@ async Task TestCommand(string[] args)
   Console.WriteLine("🧪 Running TimeWarp.Amuru Test Suite...");
 
   string scriptDir = GetScriptDirectory();
-  string testsDir = Path.Combine(scriptDir, "..", "..", "Tests");
+  string testsDir = Path.Combine(scriptDir, "..", "..", "Tests", "TimeWarp.Amuru");
   testsDir = Path.GetFullPath(testsDir);
-  string runTestsPath = Path.Combine(testsDir, "RunTests.cs");
+  string runTestsPath = Path.Combine(testsDir, "run-tests.cs");
 
   if (!File.Exists(runTestsPath))
   {
-    Console.WriteLine($"❌ RunTests.cs not found: {runTestsPath}");
+    Console.WriteLine($"❌ run-tests.cs not found: {runTestsPath}");
     Environment.Exit(1);
   }
 
@@ -124,7 +124,7 @@ async Task TestCommand(string[] args)
   try
   {
     Directory.SetCurrentDirectory(testsDir);
-    int exitCode = await RunProcessAsync("dotnet", $"-- {runTestsPath}");
+    int exitCode = await RunProcessAsync("dotnet", $"run {runTestsPath}");
 
     if (exitCode != 0)
     {

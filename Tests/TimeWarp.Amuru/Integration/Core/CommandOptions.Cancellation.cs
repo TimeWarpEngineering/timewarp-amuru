@@ -1,12 +1,9 @@
 #!/usr/bin/dotnet --
-#:package TimeWarp.Jaribu
-#:package TimeWarp.Amuru
 
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif
 
-using TimeWarp.Amuru;
 using Shouldly;
 
 namespace TimeWarp.Amuru.Tests;

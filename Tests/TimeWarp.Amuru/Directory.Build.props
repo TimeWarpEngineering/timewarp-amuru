@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
-
+        <PackageReference Include="TimeWarp.Jaribu" />
     <PackageReference Include="CliWrap" />
     <PackageReference Include="Shouldly" />
   </ItemGroup>
@@ -21,6 +21,7 @@
     <!-- Global usings for all test projects -->
     <Using Include="TimeWarp.Amuru" />
     <Using Include="TimeWarp.Amuru.Native.FileSystem" />
+    <Using Include="TimeWarp.Amuru.Testing" />
     <Using Include="System.Diagnostics" />
     <Using Include="System.Reflection" />
     <Using Include="System.Runtime.CompilerServices" />

@@ -1,7 +1,6 @@
 #!/usr/bin/dotnet --
 #:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 
-using TimeWarp.Amuru;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;

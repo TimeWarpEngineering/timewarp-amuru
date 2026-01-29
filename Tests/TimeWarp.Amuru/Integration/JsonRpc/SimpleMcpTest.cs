@@ -2,7 +2,6 @@
 #:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
 #:package ModelContextProtocol.Core
 
-using TimeWarp.Amuru;
 using System;
 using System.Threading.Tasks;
 using System.Text.Json;
