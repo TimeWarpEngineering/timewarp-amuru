@@ -1,6 +1,6 @@
 #!/usr/bin/dotnet --
-#:package TimeWarp.Jaribu@1.0.0-beta.8
-#:package TimeWarp.Amuru@1.0.0-beta.18
+#:package TimeWarp.Jaribu
+#:package TimeWarp.Amuru
 
 #if !JARIBU_MULTI
 return await RunAllTests();
