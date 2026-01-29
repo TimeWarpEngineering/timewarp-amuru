@@ -1,12 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
 
-await TestRunner.RunTests<RemoveItemTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class RemoveItemTests
+using TimeWarp.Amuru;
+
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Native")]
+public class RemoveItemTests
 {
-  public static async Task TestRemoveItemWithFile()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<RemoveItemTests>();
+
+  public static async Task Should_remove_file()
   {
     // Create a test file
     string testFile = Path.GetTempFileName();
@@ -20,9 +30,11 @@ internal sealed class RemoveItemTests
     result.Success.ShouldBeTrue();
     File.Exists(testFile).ShouldBeFalse();
     result.ExitCode.ShouldBe(0);
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRemoveItemWithDirectory()
+  public static async Task Should_remove_directory_recursively()
   {
     // Create a test directory with files
     string testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -37,9 +49,11 @@ internal sealed class RemoveItemTests
 
     result.Success.ShouldBeTrue();
     Directory.Exists(testDir).ShouldBeFalse();
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRemoveItemWithNonEmptyDirectoryFails()
+  public static async Task Should_fail_removing_non_empty_directory_without_recursive()
   {
     // Create a test directory with files
     string testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -58,9 +72,11 @@ internal sealed class RemoveItemTests
     {
       Directory.Delete(testDir, true);
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRemoveItemWithReadOnlyFile()
+  public static async Task Should_remove_read_only_file_with_force()
   {
     // Create a read-only test file
     string testFile = Path.GetTempFileName();
@@ -84,9 +100,11 @@ internal sealed class RemoveItemTests
         File.Delete(testFile);
       }
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRemoveItemWithMissingPath()
+  public static async Task Should_fail_removing_missing_path()
   {
     string nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 

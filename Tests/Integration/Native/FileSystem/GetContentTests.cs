@@ -1,12 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
 
-await TestRunner.RunTests<GetContentTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class GetContentTests
+using TimeWarp.Amuru;
+
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Native")]
+public class GetContentTests
 {
-  public static async Task TestGetContentWithExistingFile()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<GetContentTests>();
+
+  public static async Task Should_get_content_with_existing_file()
   {
     // Create a test file
     string testFile = Path.GetTempFileName();
@@ -26,9 +36,11 @@ internal sealed class GetContentTests
     {
       File.Delete(testFile);
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetContentWithMissingFile()
+  public static async Task Should_fail_get_content_with_missing_file()
   {
     string nonExistentFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
@@ -37,9 +49,11 @@ internal sealed class GetContentTests
     result.Success.ShouldBeFalse();
     result.Stderr.ShouldContain("No such file");
     result.ExitCode.ShouldBe(1);
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestDirectApiStreaming()
+  public static async Task Should_support_direct_api_streaming()
   {
     // Create a test file with multiple lines
     string testFile = Path.GetTempFileName();
@@ -68,9 +82,11 @@ internal sealed class GetContentTests
     {
       File.Delete(testFile);
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestDirectApiThrowsExceptions()
+  public static async Task Should_throw_exceptions_in_direct_api_for_missing_file()
   {
     string nonExistentFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
@@ -81,9 +97,11 @@ internal sealed class GetContentTests
         // Should not get here
       }
     });
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestBothApisCanCoexist()
+  public static async Task Should_allow_both_apis_to_coexist()
   {
     string testFile = Path.GetTempFileName();
     await File.WriteAllTextAsync(testFile, "coexist test");
@@ -110,5 +128,7 @@ internal sealed class GetContentTests
     {
       File.Delete(testFile);
     }
+
+    await Task.CompletedTask;
   }
 }

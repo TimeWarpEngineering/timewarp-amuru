@@ -1,12 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
 
-await TestRunner.RunTests<GetChildItemTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class GetChildItemTests
+using TimeWarp.Amuru;
+
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Native")]
+public class GetChildItemTests
 {
-  public static async Task TestGetChildItemWithValidDirectory()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<GetChildItemTests>();
+
+  public static async Task Should_get_child_items_with_valid_directory()
   {
     // Create a test directory with some files
     string testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -32,9 +42,11 @@ internal sealed class GetChildItemTests
     {
       Directory.Delete(testDir, true);
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetChildItemWithMissingDirectory()
+  public static async Task Should_fail_get_child_items_with_missing_directory()
   {
     string nonExistentDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
@@ -43,5 +55,7 @@ internal sealed class GetChildItemTests
     result.Success.ShouldBeFalse();
     result.Stderr.ShouldContain("No such file");
     result.ExitCode.ShouldBe(1);
+
+    await Task.CompletedTask;
   }
 }

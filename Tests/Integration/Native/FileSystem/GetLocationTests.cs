@@ -1,12 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
 
-await TestRunner.RunTests<GetLocationTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class GetLocationTests
+using TimeWarp.Amuru;
+
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Native")]
+public class GetLocationTests
 {
-  public static async Task TestGetLocation()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<GetLocationTests>();
+
+  public static async Task Should_get_location()
   {
     CommandOutput result = Commands.GetLocation();
 
@@ -17,7 +27,7 @@ internal sealed class GetLocationTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestSetLocation()
+  public static async Task Should_set_location()
   {
     string tempPath = Path.GetTempPath();
     CommandOutput result = Commands.SetLocation(tempPath);

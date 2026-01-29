@@ -1,12 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../../../Tests/TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
 
-await TestRunner.RunTests<AliasTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class AliasTests
+using TimeWarp.Amuru;
+
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Native")]
+public class AliasTests
 {
-  public static async Task TestCatAlias()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<AliasTests>();
+
+  public static async Task Should_support_cat_alias()
   {
     // Create a test file
     string testFile = Path.GetTempFileName();
@@ -23,9 +33,11 @@ internal sealed class AliasTests
     {
       File.Delete(testFile);
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestLsAlias()
+  public static async Task Should_support_ls_alias()
   {
     // Test Ls alias
     CommandOutput lsResult = Ls(Path.GetTempPath());
@@ -34,7 +46,7 @@ internal sealed class AliasTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestPwdAlias()
+  public static async Task Should_support_pwd_alias()
   {
     // Test Pwd alias
     CommandOutput pwdResult = Pwd();
@@ -44,7 +56,7 @@ internal sealed class AliasTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestCdAlias()
+  public static async Task Should_support_cd_alias()
   {
     string tempPath = Path.GetTempPath();
 
@@ -55,7 +67,7 @@ internal sealed class AliasTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRmAlias()
+  public static async Task Should_support_rm_alias()
   {
     // Create a test file
     string testFile = Path.GetTempFileName();
@@ -66,9 +78,11 @@ internal sealed class AliasTests
 
     result.Success.ShouldBeTrue();
     File.Exists(testFile).ShouldBeFalse();
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRmDirectAlias()
+  public static async Task Should_support_rm_direct_alias()
   {
     // Create a test file
     string testFile = Path.GetTempFileName();
