@@ -4,7 +4,6 @@
 return await RunAllTests();
 #endif
 
-using Shouldly;
 using System.Diagnostics;
 
 namespace TimeWarp.Amuru.Tests;

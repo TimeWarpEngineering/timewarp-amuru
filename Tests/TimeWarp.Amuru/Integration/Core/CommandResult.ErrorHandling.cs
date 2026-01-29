@@ -4,7 +4,6 @@
 return await RunAllTests();
 #endif
 
-using Shouldly;
 
 namespace TimeWarp.Amuru.Tests;
 
