@@ -68,7 +68,7 @@ internal sealed class TestClass { ... }
 To:
 ```csharp
 #!/usr/bin/dotnet --
-#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Jaribu
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif
@@ -92,15 +92,29 @@ All file system tests verified safe:
 - [x] Migrate all Core test files (10 files, 96 tests)
 - [x] Migrate all Native/FileSystem test files (5 files, 20 tests)
 - [x] Audit and verify all other test directories
-- [ ] Remove Test.Helpers from build scripts
-- [ ] Remove or deprecate Test.Helpers project
+- [x] Remove Test.Helpers from build scripts (Scripts/Build.cs)
+- [x] Remove Test.Helpers project (Tests/TimeWarp.Amuru.Test.Helpers/)
 - [ ] Verify all tests pass after migration
 
-## Next Steps
+## Results
 
-1. Update Scripts/Build.cs to remove Test.Helpers project
-2. Remove or archive Tests/TimeWarp.Amuru.Test.Helpers/ directory
-3. Run full test suite to verify all tests pass
+### Cleanups Completed
+1. ✅ Updated Scripts/Build.cs - removed Test.Helpers project reference
+2. ✅ Deleted Tests/TimeWarp.Amuru.Test.Helpers/ directory (5 files)
+   - TestRunner.cs
+   - TestHelpers.cs
+   - Asserts.cs
+   - Directory.Build.props
+   - TimeWarp.Amuru.Test.Helpers.csproj
+
+### Commits Made
+1. Add task 065 documentation
+2. Migrate Git.BareAndWorktree tests to Jaribu
+3. Migrate Git.DefaultBranch tests to Jaribu
+4. Migrate all Core test files to Jaribu (10 files)
+5. Migrate Native FileSystem tests to Jaribu (5 files)
+6. Fix package references for Central Package Management
+7. Remove Test.Helpers project and build references
 
 ## Notes
 
@@ -109,7 +123,7 @@ All file system tests verified safe:
 **Impact Resolved:**
 - ✓ No more duplicate infrastructure maintenance
 - ✓ Test.Helpers package no longer needs to be published
-- ✓ All tests now follow project conventions
+- ✓ All tests now follow project conventions (Jaribu)
 - ✓ Technical debt eliminated
 
 **References:**
