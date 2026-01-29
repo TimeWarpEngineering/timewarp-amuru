@@ -22,6 +22,50 @@ This is part of Task 055 in timewarp-ganda (replace ghq/gwq with native git comm
 
 ## Notes
 
+## Implementation Plan
+
+### File Structure
+
+Create 9 new source files in `Source/TimeWarp.Amuru/GitCommands/`:
+1. `Git.CloneBare.cs` - CloneBareAsync method
+2. `Git.FetchRefspec.cs` - ConfigureFetchRefspecAsync method
+3. `Git.RemoteHead.cs` - SetRemoteHeadAutoAsync method
+4. `Git.Fetch.cs` - FetchAsync method
+5. `Git.WorktreeList.cs` - WorktreeListPorcelainAsync method
+6. `Git.WorktreeAdd.cs` - WorktreeAddAsync method
+7. `Git.WorktreeAddNewBranch.cs` - WorktreeAddNewBranchAsync method
+8. `Git.WorktreeRemove.cs` - WorktreeRemoveAsync method
+9. `Git.WorktreePorcelainParser.cs` - Internal parsing utilities
+
+Create 1 test file:
+- `Tests/Integration/GitCommands/Git.BareAndWorktree.cs`
+
+### Result Types to Add
+
+1. `GitCloneResult` - (bool Success, string? Path, string? ErrorMessage)
+2. `GitWorktreeAddResult` - (bool Success, string? WorktreePath, string? ErrorMessage)
+3. `GitWorktreeRemoveResult` - (bool Success, string? ErrorMessage)
+4. `WorktreeEntry` - (string Path, string? HeadCommit, string? BranchRef, bool IsBare)
+
+### Implementation Pattern
+
+All methods follow existing patterns:
+- Use `Shell.Builder("git").WithArguments(...).WithNoValidation().CaptureAsync()`
+- Parse stdout/stderr appropriately
+- Return strongly-typed results
+- Support CancellationToken
+
+### Testing Pattern
+
+Use existing CommandMock pattern with Shouldly assertions.
+
+### Design Decisions
+
+1. Keep methods low-level - no path conventions
+2. Return raw porcelain string, provide internal parser for Zana to use
+3. Use simple ErrorMessage (not structured) - keeps API minimal
+4. Use existing file naming convention (Git.BareAndWorktree.cs not .Tests.cs)
+
 ### Related Work
 - **Task 055**: Replace ghq and gwq with native git commands in timewarp-ganda
 - **Consumer**: TimeWarp.Zana.GitRepoService and WorktreeService
@@ -30,16 +74,6 @@ This is part of Task 055 in timewarp-ganda (replace ghq/gwq with native git comm
 - All methods should be `async Task<T>` (async-only)
 - Keep low-level - no TimeWarp-specific path conventions here
 - Zana will handle the high-level workflows (`~/repos/`, `~/worktrees/` structures)
-
-### Porcelain Format Reference
-```
-worktree /path/to/worktree
-HEAD abc123def456...
-branch refs/heads/main
-
-worktree /path/to/bare/repo.git
-bare
-```
 
 ### Target Release
 - Version: 1.0.0-beta.18 (or next beta)
