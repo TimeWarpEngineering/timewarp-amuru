@@ -8,16 +8,16 @@ This is part of Task 055 in timewarp-ganda (replace ghq/gwq with native git comm
 
 ## Checklist
 
-- [ ] Add `CloneBareAsync(url, targetPath)` - Bare clone without configuration
-- [ ] Add `ConfigureFetchRefspecAsync(repoPath)` - Set `+refs/heads/*:refs/remotes/origin/*`
-- [ ] Add `SetRemoteHeadAutoAsync(repoPath)` - Run `git remote set-head origin --auto`
-- [ ] Add `FetchAsync(repoPath, remote)` - Fetch from remote
-- [ ] Add `WorktreeListPorcelainAsync(repoPath)` - Return raw porcelain output
-- [ ] Add `WorktreeAddAsync(repoPath, worktreePath, branch)` - Add worktree for existing branch
-- [ ] Add `WorktreeAddNewBranchAsync(repoPath, worktreePath, branch)` - Add worktree with `-b`
-- [ ] Add `WorktreeRemoveAsync(worktreePath)` - Remove worktree
-- [ ] Add unit tests for all new methods
-- [ ] Add porcelain parsing utilities (internal)
+- [x] Add `CloneBareAsync(url, targetPath)` - Bare clone without configuration
+- [x] Add `ConfigureFetchRefspecAsync(repoPath)` - Set `+refs/heads/*:refs/remotes/origin/*`
+- [x] Add `SetRemoteHeadAutoAsync(repoPath)` - Run `git remote set-head origin --auto`
+- [x] Add `FetchAsync(repoPath, remote)` - Fetch from remote
+- [x] Add `WorktreeListPorcelainAsync(repoPath)` - Return raw porcelain output
+- [x] Add `WorktreeAddAsync(repoPath, worktreePath, branch)` - Add worktree for existing branch
+- [x] Add `WorktreeAddNewBranchAsync(repoPath, worktreePath, branch)` - Add worktree with `-b`
+- [x] Add `WorktreeRemoveAsync(worktreePath)` - Remove worktree
+- [x] Add unit tests for all new methods
+- [x] Add porcelain parsing utilities (internal)
 - [ ] Update documentation
 
 ## Notes
@@ -78,3 +78,53 @@ Use existing CommandMock pattern with Shouldly assertions.
 ### Target Release
 - Version: 1.0.0-beta.18 (or next beta)
 - Repository: TimeWarpEngineering/timewarp-amuru
+
+## Results
+
+### Implementation Complete
+
+All 8 required git methods have been implemented in TimeWarp.Amuru:
+
+1. **CloneBareAsync(url, targetPath)** - Git.CloneBare.cs
+2. **ConfigureFetchRefspecAsync(repoPath)** - Git.FetchRefspec.cs
+3. **SetRemoteHeadAutoAsync(repoPath)** - Git.RemoteHead.cs
+4. **FetchAsync(repoPath, remote)** - Git.Fetch.cs
+5. **WorktreeListPorcelainAsync(repoPath)** - Git.WorktreeList.cs
+6. **WorktreeAddAsync(repoPath, worktreePath, branch)** - Git.WorktreeAdd.cs
+7. **WorktreeAddNewBranchAsync(repoPath, worktreePath, branch)** - Git.WorktreeAddNewBranch.cs
+8. **WorktreeRemoveAsync(worktreePath)** - Git.WorktreeRemove.cs
+
+### Files Created
+
+**Source Files (9):**
+- Source/TimeWarp.Amuru/GitCommands/Git.CloneBare.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.FetchRefspec.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.RemoteHead.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.Fetch.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.WorktreeList.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.WorktreeAdd.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.WorktreeAddNewBranch.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.WorktreeRemove.cs
+- Source/TimeWarp.Amuru/GitCommands/Git.WorktreePorcelainParser.cs
+
+**Test File (1):**
+- Tests/Integration/GitCommands/Git.BareAndWorktree.cs (15 tests)
+
+### New Result Types
+
+- GitCloneResult (bool Success, string? Path, string? ErrorMessage)
+- GitWorktreeAddResult (bool Success, string? WorktreePath, string? ErrorMessage)
+- GitWorktreeRemoveResult (bool Success, string? ErrorMessage)
+- WorktreeEntry (string Path, string? HeadCommit, string? BranchRef, bool IsBare)
+
+### Test Results
+
+- 15/15 tests passed
+- All methods tested with both success and failure scenarios
+- Porcelain parser tests cover multiple worktrees, bare repos, and edge cases
+
+### Key Decisions
+
+- Made WorktreePorcelainParser public (not internal) to enable testing
+- Added helper method to find main repository from worktree path
+- Used IReadOnlyList for parser return type to satisfy analyzer rules
