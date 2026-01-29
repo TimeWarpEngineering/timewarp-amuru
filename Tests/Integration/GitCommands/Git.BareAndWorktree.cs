@@ -1,18 +1,25 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using TimeWarp.Amuru.Testing;
-using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<GitBareAndWorktreeTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class GitBareAndWorktreeTests
+[TestTag("Git")]
+public class GitBareAndWorktreeTests
 {
-  // CloneBare tests
-  public static async Task TestCloneBareAsync_WithMock_Success()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<GitBareAndWorktreeTests>();
+
+  // ==================== CloneBareAsync Tests ====================
+
+  public static async Task Should_clone_bare_repository_successfully()
   {
     using (CommandMock.Enable())
     {
@@ -25,9 +32,11 @@ internal sealed class GitBareAndWorktreeTests
       result.Path.ShouldBe("/path/to/repo.git");
       result.ErrorMessage.ShouldBeNull();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCloneBareAsync_WithMock_Failure()
+  public static async Task Should_fail_clone_bare_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -40,10 +49,13 @@ internal sealed class GitBareAndWorktreeTests
       result.Path.ShouldBeNull();
       result.ErrorMessage.ShouldNotBeNullOrWhiteSpace();
     }
+
+    await Task.CompletedTask;
   }
 
-  // ConfigureFetchRefspec tests
-  public static async Task TestConfigureFetchRefspecAsync_WithMock_Success()
+  // ==================== ConfigureFetchRefspecAsync Tests ====================
+
+  public static async Task Should_configure_fetch_refspec_successfully()
   {
     using (CommandMock.Enable())
     {
@@ -54,9 +66,11 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeTrue();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestConfigureFetchRefspecAsync_WithMock_Failure()
+  public static async Task Should_fail_configure_fetch_refspec_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -67,10 +81,13 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeFalse();
     }
+
+    await Task.CompletedTask;
   }
 
-  // SetRemoteHeadAuto tests
-  public static async Task TestSetRemoteHeadAutoAsync_WithMock_Success()
+  // ==================== SetRemoteHeadAutoAsync Tests ====================
+
+  public static async Task Should_set_remote_head_auto_successfully()
   {
     using (CommandMock.Enable())
     {
@@ -81,9 +98,11 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeTrue();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestSetRemoteHeadAutoAsync_WithMock_Failure()
+  public static async Task Should_fail_set_remote_head_auto_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -94,10 +113,13 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeFalse();
     }
+
+    await Task.CompletedTask;
   }
 
-  // Fetch tests
-  public static async Task TestFetchAsync_WithMock_Success()
+  // ==================== FetchAsync Tests ====================
+
+  public static async Task Should_fetch_from_origin_successfully()
   {
     using (CommandMock.Enable())
     {
@@ -108,9 +130,11 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeTrue();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestFetchAsync_WithMock_CustomRemote()
+  public static async Task Should_fetch_from_custom_remote()
   {
     using (CommandMock.Enable())
     {
@@ -121,9 +145,11 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeTrue();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestFetchAsync_WithMock_Failure()
+  public static async Task Should_fail_fetch_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -134,10 +160,13 @@ internal sealed class GitBareAndWorktreeTests
 
       result.ShouldBeFalse();
     }
+
+    await Task.CompletedTask;
   }
 
-  // WorktreeList tests
-  public static async Task TestWorktreeListPorcelainAsync_WithMock_Success()
+  // ==================== WorktreeListPorcelainAsync Tests ====================
+
+  public static async Task Should_return_worktree_list_porcelain_output()
   {
     using (CommandMock.Enable())
     {
@@ -159,10 +188,13 @@ detached
       result.ShouldNotBeNullOrWhiteSpace();
       result.ShouldContain("worktree");
     }
+
+    await Task.CompletedTask;
   }
 
-  // WorktreeAdd tests
-  public static async Task TestWorktreeAddAsync_WithMock_Success()
+  // ==================== WorktreeAddAsync Tests ====================
+
+  public static async Task Should_add_worktree_for_existing_branch()
   {
     using (CommandMock.Enable())
     {
@@ -175,9 +207,11 @@ detached
       result.WorktreePath.ShouldBe("/path/to/worktree");
       result.ErrorMessage.ShouldBeNull();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestWorktreeAddAsync_WithMock_Failure()
+  public static async Task Should_fail_worktree_add_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -190,10 +224,13 @@ detached
       result.WorktreePath.ShouldBeNull();
       result.ErrorMessage.ShouldNotBeNullOrWhiteSpace();
     }
+
+    await Task.CompletedTask;
   }
 
-  // WorktreeAddNewBranch tests
-  public static async Task TestWorktreeAddNewBranchAsync_WithMock_Success()
+  // ==================== WorktreeAddNewBranchAsync Tests ====================
+
+  public static async Task Should_add_worktree_with_new_branch()
   {
     using (CommandMock.Enable())
     {
@@ -206,9 +243,11 @@ detached
       result.WorktreePath.ShouldBe("/path/to/worktree");
       result.ErrorMessage.ShouldBeNull();
     }
+
+    await Task.CompletedTask;
   }
 
-  public static async Task TestWorktreeAddNewBranchAsync_WithMock_Failure()
+  public static async Task Should_fail_worktree_add_new_branch_on_error()
   {
     using (CommandMock.Enable())
     {
@@ -221,32 +260,28 @@ detached
       result.WorktreePath.ShouldBeNull();
       result.ErrorMessage.ShouldNotBeNullOrWhiteSpace();
     }
+
+    await Task.CompletedTask;
   }
 
-  // WorktreeRemove tests
-  public static async Task TestWorktreeRemoveAsync_WithMock_Success()
+  // ==================== WorktreeRemoveAsync Tests ====================
+
+  public static async Task Should_report_error_when_cannot_find_main_repository()
   {
-    using (CommandMock.Enable())
-    {
-      // Mock the worktree remove command - it should succeed
-      CommandMock.Setup("git", "worktree", "remove", "/path/to/worktree")
-        .Returns("");
+    // WorktreeRemoveAsync tries to find the main repository from the worktree
+    // This will fail because the .git file doesn't exist
+    GitWorktreeRemoveResult result = await Git.WorktreeRemoveAsync("/path/to/worktree");
 
-      // Note: WorktreeRemoveAsync internally tries to find the main repository from the worktree
-      // This test is limited since we can't easily mock the filesystem
-      // The actual worktree removal would fail because the .git file doesn't exist
-      // But we can at least test the parsing logic works
-      GitWorktreeRemoveResult result = await Git.WorktreeRemoveAsync("/path/to/worktree");
+    result.Success.ShouldBeFalse();
+    result.ErrorMessage.ShouldNotBeNull();
+    result.ErrorMessage!.ShouldContain("Could not determine main repository");
 
-      // This will fail because the .git file doesn't exist (can't mock File.Exists)
-      result.Success.ShouldBeFalse();
-      result.ErrorMessage.ShouldNotBeNull();
-      result.ErrorMessage!.ShouldContain("Could not determine main repository");
-    }
+    await Task.CompletedTask;
   }
 
-  // WorktreePorcelainParser tests
-  public static void TestWorktreePorcelainParser_ParseWorktreeList_WithMultipleWorktrees()
+  // ==================== WorktreePorcelainParser Tests ====================
+
+  public static async Task Should_parse_multiple_worktrees_from_porcelain()
   {
     string porcelainOutput = @"worktree /home/user/project
 HEAD abcd1234567890abcdef1234567890abcdef12
@@ -283,23 +318,29 @@ bare
     worktrees[2].HeadCommit.ShouldBe("1234abcd56781234abcd56781234abcd5678");
     worktrees[2].BranchRef.ShouldBeNull();
     worktrees[2].IsBare.ShouldBeTrue();
+
+    await Task.CompletedTask;
   }
 
-  public static void TestWorktreePorcelainParser_ParseWorktreeList_EmptyInput()
+  public static async Task Should_return_empty_list_for_empty_porcelain()
   {
     IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList("");
 
     worktrees.ShouldBeEmpty();
+
+    await Task.CompletedTask;
   }
 
-  public static void TestWorktreePorcelainParser_ParseWorktreeList_WhitespaceOnly()
+  public static async Task Should_return_empty_list_for_whitespace_only_porcelain()
   {
     IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList("   \n\t  \n");
 
     worktrees.ShouldBeEmpty();
+
+    await Task.CompletedTask;
   }
 
-  public static void TestWorktreePorcelainParser_ParseWorktreeList_SingleWorktree()
+  public static async Task Should_parse_single_worktree_from_porcelain()
   {
     string porcelainOutput = @"worktree /home/user/single-project
 HEAD 1111111111111111111111111111111111111111
@@ -314,5 +355,7 @@ branch refs/heads/main
     worktrees[0].HeadCommit.ShouldBe("1111111111111111111111111111111111111111");
     worktrees[0].BranchRef.ShouldBe("refs/heads/main");
     worktrees[0].IsBare.ShouldBeFalse();
+
+    await Task.CompletedTask;
   }
 }
