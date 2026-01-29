@@ -10,9 +10,26 @@ Tests are using a custom `TimeWarp.Amuru.Test.Helpers` pattern instead of the pr
 
 **Files Following Wrong Pattern (need migration):**
 
-- `Tests/Integration/GitCommands/Git.BareAndWorktree.cs` (newly created - followed wrong pattern)
-- `Tests/Integration/GitCommands/Git.DefaultBranch.cs` (existing - uses custom TestRunner)
-- All other test files using Test.Helpers pattern
+### GitCommands (MIGRATED ✓)
+- [x] `Tests/Integration/GitCommands/Git.BareAndWorktree.cs`
+- [x] `Tests/Integration/GitCommands/Git.DefaultBranch.cs`
+
+### Core (PENDING - 10 files)
+- [ ] `Tests/Integration/Core/CommandExtensions.cs`
+- [ ] `Tests/Integration/Core/CommandOptions.Cancellation.cs`
+- [ ] `Tests/Integration/Core/CommandOptions.Configuration.cs`
+- [ ] `Tests/Integration/Core/CommandResult.ErrorHandling.cs`
+- [ ] `Tests/Integration/Core/CommandResult.Interactive.cs`
+- [ ] `Tests/Integration/Core/CommandResult.OutputFormats.cs`
+- [ ] `Tests/Integration/Core/CommandResult.Pipeline.cs`
+- [ ] `Tests/Integration/Core/CommandResult.TtyPassthrough.cs`
+- [ ] `Tests/Integration/Core/NewApiTests.cs`
+- [ ] `Tests/Integration/Core/RunBuilder.cs`
+
+### Other Directories (Need audit)
+- [ ] Check `Tests/Integration/GwqCommand/`
+- [ ] Check `Tests/Integration/GhqCommand/`
+- [ ] Check `Tests/Integration/DotNetCommands/`
 
 ## Jaribu Framework Requirements
 
@@ -24,11 +41,12 @@ Migrate tests to use proper Jaribu patterns:
 
 ## Checklist
 
-- [ ] Review jaribu skill documentation
-- [ ] Migrate `Tests/Integration/GitCommands/Git.BareAndWorktree.cs` to Jaribu pattern
-- [ ] Migrate `Tests/Integration/GitCommands/Git.DefaultBranch.cs` to Jaribu pattern
-- [ ] Audit all test files for Test.Helpers pattern usage
-- [ ] Migrate any remaining test files using custom pattern
+- [x] Review jaribu skill documentation
+- [x] Add TimeWarp.Jaribu@1.0.0-beta.8 to Directory.Packages.props
+- [x] Migrate `Tests/Integration/GitCommands/Git.BareAndWorktree.cs` to Jaribu pattern
+- [x] Migrate `Tests/Integration/GitCommands/Git.DefaultBranch.cs` to Jaribu pattern
+- [ ] Migrate Core test files (10 files - see list below)
+- [ ] Migrate remaining test files using custom pattern
 - [ ] Remove or deprecate Test.Helpers project
 - [ ] Stop publishing Test.Helpers NuGet package
 - [ ] Verify all tests pass after migration
