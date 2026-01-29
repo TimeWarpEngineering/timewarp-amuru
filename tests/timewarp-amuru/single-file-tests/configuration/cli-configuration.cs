@@ -1,245 +1,223 @@
 #!/usr/bin/dotnet --
 
+#region Purpose
+// Tests for CliConfiguration - validates command path overrides and configuration management
+#endregion
+
+#region Design
+// Naming convention: SUT_Action_Given_Should_Result
+// CliConfiguration provides static methods to override command paths for testing/mocking
+#endregion
+
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif
 
-namespace TimeWarp.Amuru.Tests;
-
-[TestTag("Configuration")]
-public class ConfigurationTests
+namespace CliConfiguration_
 {
-  [ModuleInitializer]
-  internal static void Register() => RegisterTests<ConfigurationTests>();
-
-  // Helper to create executable temp files
-  private static async Task<string> CreateExecutableTempFile()
+  [TestTag("Configuration")]
+  public class Configuration_Given_
   {
-    string tempFile = Path.GetTempFileName();
+    [ModuleInitializer]
+    internal static void Register() => RegisterTests<Configuration_Given_>();
 
-    if (!OperatingSystem.IsWindows())
+    // Helper to create executable temp files
+    private static async Task<string> CreateExecutableTempFile()
     {
-      await Shell.Builder("chmod").WithArguments("+x", tempFile).RunAsync();
-    }
+      string tempFile = Path.GetTempFileName();
 
-    return tempFile;
-  }
-
-  // Helper to create multiple executable temp files
-  private static async Task<List<string>> CreateExecutableTempFiles(int count)
-  {
-    List<string> files = new();
-
-    for (int i = 0; i < count; i++)
-    {
-      files.Add(await CreateExecutableTempFile());
-    }
-
-    return files;
-  }
-
-  // Helper to cleanup temp files
-  private static void CleanupTempFiles(params string[] files)
-  {
-    foreach (string file in files)
-    {
-      if (File.Exists(file))
-      {
-        File.Delete(file);
-      }
-    }
-  }
-
-  // Helper to run a test with temp files
-  private static async Task WithTempFiles(int count, Func<List<string>, Task> testAction)
-  {
-    List<string> tempFiles = await CreateExecutableTempFiles(count);
-
-    try
-    {
-      await testAction(tempFiles);
-    }
-    finally
-    {
-      CleanupTempFiles(tempFiles.ToArray());
-    }
-  }
-
-  public static async Task Should_set_command_path()
-  {
-    await WithTempFiles(1, async files =>
-    {
-      string tempFile = files[0];
-
-      // Set a custom path
-      CliConfiguration.SetCommandPath("fzf", tempFile);
-
-      CliConfiguration.HasCustomPath("fzf").ShouldBeTrue("Configuration should have custom path for fzf");
-
-      // Create and build a command - it should use the custom path
-      CommandResult command = Fzf.Builder()
-        .FromInput("test1", "test2")
-        .Build();
-
-      command.ShouldNotBeNull("Fzf command with custom path should build correctly");
-
-      // Cleanup config
-      CliConfiguration.ClearCommandPath("fzf");
-    });
-
-    await Task.CompletedTask;
-  }
-
-  public static async Task Should_clear_command_path()
-  {
-    await WithTempFiles(1, async files =>
-    {
-      string tempFile = files[0];
-
-      CliConfiguration.SetCommandPath("git", tempFile);
-
-      CliConfiguration.HasCustomPath("git").ShouldBeTrue("Configuration should have custom path for git");
-
-      // Clear the path
-      CliConfiguration.ClearCommandPath("git");
-
-      CliConfiguration.HasCustomPath("git").ShouldBeFalse("Configuration should not have custom path after clearing");
-    });
-
-    await Task.CompletedTask;
-  }
-
-  public static async Task Should_reset_all_configuration()
-  {
-    await WithTempFiles(3, async files =>
-    {
-      // Setup multiple custom paths
-      CliConfiguration.SetCommandPath("fzf", files[0]);
-      CliConfiguration.SetCommandPath("git", files[1]);
-      CliConfiguration.SetCommandPath("gh", files[2]);
-
-      CliConfiguration.AllCommandPaths.Count.ShouldBeGreaterThanOrEqualTo(3, "Configuration should have at least 3 custom paths");
-
-      // Reset all
-      CliConfiguration.Reset();
-
-      CliConfiguration.AllCommandPaths.Count.ShouldBe(0, "Configuration should have no custom paths after reset");
-    });
-
-    await Task.CompletedTask;
-  }
-
-  public static async Task Should_get_all_command_paths()
-  {
-    // Clear any existing configuration
-    CliConfiguration.Reset();
-
-    await WithTempFiles(2, async files =>
-    {
-      // Setup
-      CliConfiguration.SetCommandPath("cmd1", files[0]);
-      CliConfiguration.SetCommandPath("cmd2", files[1]);
-
-      IReadOnlyDictionary<string, string> paths = CliConfiguration.AllCommandPaths;
-
-      paths.Count.ShouldBe(2, "Should have exactly 2 custom paths");
-      paths.ShouldContainKey("cmd1");
-      paths["cmd1"].ShouldBe(files[0], "Should have correct path for cmd1");
-      paths.ShouldContainKey("cmd2");
-      paths["cmd2"].ShouldBe(files[1], "Should have correct path for cmd2");
-
-      // Cleanup config
-      CliConfiguration.Reset();
-    });
-
-    await Task.CompletedTask;
-  }
-
-  public static async Task Should_execute_command_with_mock_path()
-  {
-    // Create a temporary mock executable
-    string tempDir = Path.Combine(Path.GetTempPath(), $"timewarp-cli-test-{Guid.NewGuid()}");
-    Directory.CreateDirectory(tempDir);
-    string mockEcho = Path.Combine(tempDir, "echo");
-
-    try
-    {
-      // Create a simple mock echo script
-      await File.WriteAllTextAsync(mockEcho, "#!/bin/bash\necho \"MOCK OUTPUT\"");
-
-      // Make it executable (Unix-like systems)
       if (!OperatingSystem.IsWindows())
       {
-        await Shell.Builder("chmod").WithArguments("+x", mockEcho).RunAsync();
+        await Shell.Builder("chmod").WithArguments("+x", tempFile).RunAsync();
       }
 
-      // Configure the mock path
-      CliConfiguration.SetCommandPath("echo", mockEcho);
-
-      // Test that Run uses the mock
-      CommandOutput output = await Shell.Builder("echo").WithArguments("test").CaptureAsync();
-      string result = output.Stdout;
-
-      result.Trim().ShouldBe("MOCK OUTPUT");
+      return tempFile;
     }
-    finally
+
+    // Helper to create multiple executable temp files
+    private static async Task<List<string>> CreateExecutableTempFiles(int count)
     {
-      // Cleanup
-      CliConfiguration.ClearCommandPath("echo");
-      if (Directory.Exists(tempDir))
+      List<string> files = [];
+
+      for (int i = 0; i < count; i++)
       {
-        Directory.Delete(tempDir, true);
+        files.Add(await CreateExecutableTempFile());
       }
+
+      return files;
     }
-  }
 
-  public static async Task Should_be_thread_safe()
-  {
-    // Clear any existing configuration
-    CliConfiguration.Reset();
-
-    await WithTempFiles(10, async files =>
+    // Helper to cleanup temp files
+    private static void CleanupTempFiles(params string[] files)
     {
-      // Run multiple threads setting and clearing paths
-      List<Task> tasks = new();
-
-      for (int i = 0; i < 10; i++)
+      foreach (string file in files)
       {
-        int index = i;
-        string file = files[index];
-        tasks.Add(Task.Run(() =>
+        if (File.Exists(file))
         {
-          for (int j = 0; j < 100; j++)
-          {
-            CliConfiguration.SetCommandPath($"cmd{index}", file);
-            CliConfiguration.HasCustomPath($"cmd{index}");
-            CliConfiguration.ClearCommandPath($"cmd{index}");
-          }
-        }));
+          File.Delete(file);
+        }
       }
+    }
 
-      await Task.WhenAll(tasks);
+    // Helper to run a test with temp files
+    private static async Task WithTempFiles(int count, Func<List<string>, Task> testAction)
+    {
+      List<string> tempFiles = await CreateExecutableTempFiles(count);
 
-      // Should complete without exceptions - if we got here, no exceptions were thrown
-      true.ShouldBeTrue("Thread safety test completed without exceptions");
+      try
+      {
+        await testAction(tempFiles);
+      }
+      finally
+      {
+        CleanupTempFiles([.. tempFiles]);
+      }
+    }
 
-      // Cleanup config
+    public static async Task ValidPath_Should_SetCustomPath()
+    {
+      await WithTempFiles(1, async files =>
+      {
+        string tempFile = files[0];
+
+        CliConfiguration.SetCommandPath("fzf", tempFile);
+
+        CliConfiguration.HasCustomPath("fzf").ShouldBeTrue();
+
+        CommandResult command = Fzf.Builder()
+          .FromInput("test1", "test2")
+          .Build();
+
+        command.ShouldNotBeNull();
+
+        CliConfiguration.ClearCommandPath("fzf");
+      });
+    }
+
+    public static async Task ClearCommandPath_Should_RemoveCustomPath()
+    {
+      await WithTempFiles(1, async files =>
+      {
+        string tempFile = files[0];
+
+        CliConfiguration.SetCommandPath("git", tempFile);
+        CliConfiguration.HasCustomPath("git").ShouldBeTrue();
+
+        CliConfiguration.ClearCommandPath("git");
+
+        CliConfiguration.HasCustomPath("git").ShouldBeFalse();
+      });
+    }
+
+    public static async Task Reset_Should_ClearAllPaths()
+    {
+      await WithTempFiles(3, async files =>
+      {
+        CliConfiguration.SetCommandPath("fzf", files[0]);
+        CliConfiguration.SetCommandPath("git", files[1]);
+        CliConfiguration.SetCommandPath("gh", files[2]);
+
+        CliConfiguration.AllCommandPaths.Count.ShouldBeGreaterThanOrEqualTo(3);
+
+        CliConfiguration.Reset();
+
+        CliConfiguration.AllCommandPaths.Count.ShouldBe(0);
+      });
+    }
+
+    public static async Task AllCommandPaths_Should_ReturnDictionary()
+    {
       CliConfiguration.Reset();
-    });
 
-    await Task.CompletedTask;
-  }
+      await WithTempFiles(2, async files =>
+      {
+        CliConfiguration.SetCommandPath("cmd1", files[0]);
+        CliConfiguration.SetCommandPath("cmd2", files[1]);
 
-  public static async Task Should_handle_null_arguments()
-  {
-    // Test null command
-    Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath(null!, "/path"))
-      .Message.ShouldContain("command");
+        IReadOnlyDictionary<string, string> paths = CliConfiguration.AllCommandPaths;
 
-    // Test null path
-    Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath("cmd", null!))
-      .Message.ShouldContain("path");
+        paths.Count.ShouldBe(2);
+        paths.ShouldContainKey("cmd1");
+        paths["cmd1"].ShouldBe(files[0]);
+        paths.ShouldContainKey("cmd2");
+        paths["cmd2"].ShouldBe(files[1]);
 
-    await Task.CompletedTask;
+        CliConfiguration.Reset();
+      });
+    }
+
+    public static async Task MockPath_Should_BeUsedByShellBuilder()
+    {
+      string tempDir = Path.Combine(Path.GetTempPath(), $"timewarp-cli-test-{Guid.NewGuid()}");
+      Directory.CreateDirectory(tempDir);
+      string mockEcho = Path.Combine(tempDir, "echo");
+
+      try
+      {
+        await File.WriteAllTextAsync(mockEcho, "#!/bin/bash\necho \"MOCK OUTPUT\"");
+
+        if (!OperatingSystem.IsWindows())
+        {
+          await Shell.Builder("chmod").WithArguments("+x", mockEcho).RunAsync();
+        }
+
+        CliConfiguration.SetCommandPath("echo", mockEcho);
+
+        CommandOutput output = await Shell.Builder("echo").WithArguments("test").CaptureAsync();
+
+        output.Stdout.Trim().ShouldBe("MOCK OUTPUT");
+      }
+      finally
+      {
+        CliConfiguration.ClearCommandPath("echo");
+        if (Directory.Exists(tempDir))
+        {
+          Directory.Delete(tempDir, true);
+        }
+      }
+    }
+
+    public static async Task ConcurrentAccess_Should_NotThrow()
+    {
+      CliConfiguration.Reset();
+
+      await WithTempFiles(10, async files =>
+      {
+        List<Task> tasks = [];
+
+        for (int i = 0; i < 10; i++)
+        {
+          int index = i;
+          string file = files[index];
+          tasks.Add(Task.Run(() =>
+          {
+            for (int j = 0; j < 100; j++)
+            {
+              CliConfiguration.SetCommandPath($"cmd{index}", file);
+              CliConfiguration.HasCustomPath($"cmd{index}");
+              CliConfiguration.ClearCommandPath($"cmd{index}");
+            }
+          }));
+        }
+
+        await Task.WhenAll(tasks);
+
+        // If we got here, no exceptions were thrown
+        true.ShouldBeTrue();
+
+        CliConfiguration.Reset();
+      });
+    }
+
+    public static async Task NullArguments_Should_ThrowArgumentNullException()
+    {
+      Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath(null!, "/path"))
+        .Message.ShouldContain("command");
+
+      Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath("cmd", null!))
+        .Message.ShouldContain("path");
+
+      await Task.CompletedTask;
+    }
   }
 }
