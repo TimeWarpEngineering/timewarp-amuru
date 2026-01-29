@@ -1,17 +1,23 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<PipelineTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class PipelineTests
+[TestTag("Core")]
+public class CommandResultPipelineTests
 {
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<CommandResultPipelineTests>();
 
-  public static async Task TestBasicPipeline()
+  public static async Task Should_execute_basic_pipeline()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("hello\nworld\ntest")
       .Pipe("grep", "world")
@@ -19,9 +25,10 @@ internal sealed class PipelineTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("world");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestMultiStagePipeline()
+  public static async Task Should_execute_multi_stage_pipeline()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("line1\nline2\nline3\nline4")
       .Pipe("grep", "line")
@@ -30,9 +37,10 @@ internal sealed class PipelineTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("4");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithGetLinesAsync()
+  public static async Task Should_execute_pipeline_with_get_lines_async()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("apple\nbanana\ncherry")
       .Pipe("grep", "a")
@@ -42,9 +50,10 @@ internal sealed class PipelineTests
     lines.Length.ShouldBe(2);
     lines[0].ShouldBe("apple");
     lines[1].ShouldBe("banana");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithExecuteAsync()
+  public static async Task Should_execute_pipeline_with_execute_async()
   {
     await Shell.Builder("echo").WithArguments("test")
       .Pipe("grep", "test")
@@ -52,18 +61,20 @@ internal sealed class PipelineTests
 
     // Test passes if no exception is thrown
     true.ShouldBeTrue();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithFailedFirstCommandThrows()
+  public static async Task Should_throw_when_first_pipeline_command_fails()
   {
     await Should.ThrowAsync<Exception>(async () =>
       await Shell.Builder("nonexistentcommand12345").WithNoValidation()
         .Pipe("grep", "anything")
         .CaptureAsync()
     );
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithFailedSecondCommandThrows()
+  public static async Task Should_throw_when_second_pipeline_command_fails()
   {
     string[] echoArgs = { "test" };
     await Should.ThrowAsync<Exception>(async () =>
@@ -71,9 +82,10 @@ internal sealed class PipelineTests
         .Pipe("nonexistentcommand12345")
         .CaptureAsync()
     );
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRealWorldPipelineFindAndFilter()
+  public static async Task Should_execute_real_world_find_and_filter_pipeline()
   {
     CommandOutput output = await Shell.Builder("find").WithArguments(".", "-name", "*.cs", "-type", "f")
       .Pipe("head", "-5")
@@ -82,9 +94,10 @@ internal sealed class PipelineTests
 
     files.Length.ShouldBeLessThanOrEqualTo(5);
     files.All(f => f.EndsWith(".cs", StringComparison.Ordinal)).ShouldBeTrue();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestComplexPipelineChaining()
+  public static async Task Should_execute_complex_pipeline_chaining()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("The quick brown fox jumps over the lazy dog")
       .Pipe("tr", " ", "\n")
@@ -94,9 +107,10 @@ internal sealed class PipelineTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("4");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipeWithNoArguments()
+  public static async Task Should_pipe_with_no_arguments()
   {
     // Test that Pipe works without arguments (using new optional parameter)
     CommandOutput output = await Shell.Builder("echo").WithArguments("zebra\napple\nbanana")
@@ -109,5 +123,6 @@ internal sealed class PipelineTests
 
     lines.Length.ShouldBe(3);
     lines[0].Trim().ShouldBe("apple");
+    await Task.CompletedTask;
   }
 }

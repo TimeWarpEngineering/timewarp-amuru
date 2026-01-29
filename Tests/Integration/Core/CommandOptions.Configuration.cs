@@ -1,15 +1,22 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<ConfigurationTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class ConfigurationTests
+[TestTag("Core")]
+public class CommandOptionsConfigurationTests
 {
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<CommandOptionsConfigurationTests>();
+
   // Arrays to avoid CA1861
   static readonly string[] TestArray = { "test" };
   static readonly string[] MultiEnvTestArray = { "multi-env-test" };
@@ -17,7 +24,7 @@ internal sealed class ConfigurationTests
   static readonly string[] FluentTestArray = { "fluent_test" };
   static readonly string[] LineTestArray = { "line1\nline2\nline3" };
 
-  public static async Task TestWorkingDirectoryConfiguration()
+  public static async Task Should_configure_working_directory()
   {
     // Create a temporary directory for testing
     string tempDir = Path.GetTempPath();
@@ -51,9 +58,10 @@ internal sealed class ConfigurationTests
         Directory.Delete(testDir, true);
       }
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestEnvironmentVariableConfiguration()
+  public static async Task Should_configure_environment_variable()
   {
     CommandOptions options = new CommandOptions()
       .WithEnvironmentVariable("TEST_VAR", "test_value_123");
@@ -78,9 +86,10 @@ internal sealed class ConfigurationTests
     {
       result.Trim().ShouldContain("test_value_123");
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestMultipleEnvironmentVariables()
+  public static async Task Should_configure_multiple_environment_variables()
   {
     Dictionary<string, string?> envVars = new()
     {
@@ -93,9 +102,10 @@ internal sealed class ConfigurationTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("multi-env-test");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCombinedConfiguration()
+  public static async Task Should_configure_combined_options()
   {
     string tempDir = Path.GetTempPath();
     CommandOptions options = new CommandOptions()
@@ -106,9 +116,10 @@ internal sealed class ConfigurationTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("combined_test");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestFluentConfigurationChaining()
+  public static async Task Should_support_fluent_configuration_chaining()
   {
     CommandOptions options = new CommandOptions()
       .WithWorkingDirectory(Path.GetTempPath())
@@ -119,17 +130,19 @@ internal sealed class ConfigurationTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("fluent_test");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestBackwardCompatibility()
+  public static async Task Should_maintain_backward_compatibility()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("backward_compatibility_test").CaptureAsync();
     string result = output.Stdout;
 
     result.Trim().ShouldBe("backward_compatibility_test");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestConfigurationWithPipeline()
+  public static async Task Should_configure_with_pipeline()
   {
     CommandOptions options = new CommandOptions()
       .WithEnvironmentVariable("PIPELINE_TEST", "pipeline_value");
@@ -140,6 +153,6 @@ internal sealed class ConfigurationTests
     string[] result = output.GetLines();
 
     result.Length.ShouldBeGreaterThanOrEqualTo(2);
+    await Task.CompletedTask;
   }
-
 }

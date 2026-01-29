@@ -1,16 +1,23 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<CancellationTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class CancellationTests
+[TestTag("Core")]
+public class CommandOptionsCancellationTests
 {
-  public static async Task TestQuickCommandWithCancellationToken()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<CommandOptionsCancellationTests>();
+
+  public static async Task Should_execute_quick_command_with_cancellation_token()
   {
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(10)); // Long timeout, command should complete
@@ -19,9 +26,10 @@ internal sealed class CancellationTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("Hello World");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestAlreadyCancelledToken()
+  public static async Task Should_handle_already_cancelled_token()
   {
     using var cts = new CancellationTokenSource();
     await cts.CancelAsync(); // Cancel immediately
@@ -38,9 +46,10 @@ internal sealed class CancellationTests
       // This is also acceptable behavior - either empty result or exception
       true.ShouldBeTrue();
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestGetLinesAsyncWithCancellationToken()
+  public static async Task Should_get_lines_async_with_cancellation_token()
   {
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -52,9 +61,10 @@ internal sealed class CancellationTests
     lines[0].ShouldBe("line1");
     lines[1].ShouldBe("line2");
     lines[2].ShouldBe("line3");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestExecuteAsyncWithCancellationToken()
+  public static async Task Should_execute_async_with_cancellation_token()
   {
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -62,9 +72,10 @@ internal sealed class CancellationTests
     int exitCode = await Shell.Builder("echo").WithArguments("execute test").RunAsync(cts.Token);
 
     exitCode.ShouldBe(0);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestTimeoutCancellation()
+  public static async Task Should_handle_timeout_cancellation()
   {
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromMilliseconds(100)); // Very short timeout
@@ -87,9 +98,10 @@ internal sealed class CancellationTests
       // Expected behavior - timeout cancelled the command
       true.ShouldBeTrue();
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithCancellation()
+  public static async Task Should_handle_pipeline_with_cancellation()
   {
     using var cts = new CancellationTokenSource();
     cts.CancelAfter(TimeSpan.FromSeconds(5));
@@ -101,13 +113,15 @@ internal sealed class CancellationTests
 
     result.ShouldNotBeNullOrEmpty();
     result.ShouldContain("line");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestDefaultCancellationTokenBehavior()
+  public static async Task Should_handle_default_cancellation_token_behavior()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("default token test").CaptureAsync();
     string result = output.Stdout;
 
     result.Trim().ShouldBe("default token test");
+    await Task.CompletedTask;
   }
 }

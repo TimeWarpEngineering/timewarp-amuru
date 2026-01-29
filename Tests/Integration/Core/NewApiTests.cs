@@ -1,35 +1,43 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using TimeWarp.Amuru.Testing;
-using CliWrap;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<NewApiTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class NewApiTests
+[TestTag("Core")]
+public class NewApiTests
 {
-  public static async Task TestRunAsyncPrintsToConsole()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<NewApiTests>();
+
+  public static async Task Should_run_async_print_to_console()
   {
     // RunAsync should stream output directly to console
     // We can't easily test console output, but we can verify it doesn't throw
     int exitCode = await Shell.Builder("echo").WithArguments("Hello World").RunAsync();
 
     exitCode.ShouldBe(0);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCaptureAsyncReturnsCommandOutput()
+  public static async Task Should_capture_async_return_command_output()
   {
     CommandOutput output = await Shell.Builder("echo").WithArguments("Hello World").CaptureAsync();
 
     output.Stdout.Trim().ShouldBe("Hello World");
     output.Success.ShouldBeTrue();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCaptureAsyncSeparatesStdoutAndStderr()
+  public static async Task Should_capture_async_separate_stdout_and_stderr()
   {
     // Use sh to write to both stdout and stderr
     CommandOutput output = await Shell.Builder("sh")
@@ -38,9 +46,10 @@ internal sealed class NewApiTests
 
     output.Stdout.ShouldContain("stdout text");
     output.Stderr.ShouldContain("stderr text");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCaptureAsyncCombinedOutput()
+  public static async Task Should_capture_async_combined_output()
   {
     CommandOutput output = await Shell.Builder("sh")
       .WithArguments("-c", "echo 'first' && echo 'error' >&2 && echo 'second'")
@@ -49,9 +58,10 @@ internal sealed class NewApiTests
     output.Combined.ShouldContain("first");
     output.Combined.ShouldContain("error");
     output.Combined.ShouldContain("second");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestStreamAsyncYieldsOutputLines()
+  public static async Task Should_stream_async_yield_output_lines()
   {
     List<OutputLine> lines = new();
 
@@ -65,9 +75,10 @@ internal sealed class NewApiTests
     lines.Count.ShouldBeGreaterThanOrEqualTo(3);
     lines.Any(l => l.Text.Contains("line1", StringComparison.Ordinal) && !l.IsError).ShouldBeTrue();
     lines.Any(l => l.Text.Contains("error", StringComparison.Ordinal) && l.IsError).ShouldBeTrue();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestStreamStdoutAsyncOnlyYieldsStdout()
+  public static async Task Should_stream_stdout_async_only_yield_stdout()
   {
     List<string> lines = new();
 
@@ -81,9 +92,10 @@ internal sealed class NewApiTests
     lines.Count.ShouldBe(2);
     lines[0].ShouldContain("stdout1");
     lines[1].ShouldContain("stdout2");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestStreamStderrAsyncOnlyYieldsStderr()
+  public static async Task Should_stream_stderr_async_only_yield_stderr()
   {
     List<string> lines = new();
 
@@ -97,9 +109,10 @@ internal sealed class NewApiTests
     lines.Count.ShouldBe(2);
     lines[0].ShouldContain("stderr1");
     lines[1].ShouldContain("stderr2");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPassthroughAsyncExecutesInteractively()
+  public static async Task Should_passthrough_async_execute_interactively()
   {
     // PassthroughAsync connects stdin/stdout/stderr to console
     // We can't test interactive behavior easily, just verify it doesn't throw
@@ -108,9 +121,10 @@ internal sealed class NewApiTests
       .PassthroughAsync();
 
     result.ExitCode.ShouldBe(0);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestSelectAsyncReturnsSelection()
+  public static async Task Should_select_async_return_selection()
   {
     // SelectAsync would normally show interactive UI
     // For testing, we'll use echo as it doesn't require interaction
@@ -119,9 +133,10 @@ internal sealed class NewApiTests
       .SelectAsync();
 
     result.Trim().ShouldBe("selected item");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCaptureAsyncWithExitCode()
+  public static async Task Should_capture_async_with_exit_code()
   {
     // Use false command which always returns exit code 1
     CommandOutput output = await Shell.Builder("sh")
@@ -131,9 +146,10 @@ internal sealed class NewApiTests
 
     output.ExitCode.ShouldBe(42);
     output.Success.ShouldBeFalse();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestStreamAsyncWithCancellation()
+  public static async Task Should_stream_async_with_cancellation()
   {
     using CancellationTokenSource cts = new();
     List<OutputLine> lines = new();
@@ -161,9 +177,10 @@ internal sealed class NewApiTests
 
     lines.Count.ShouldBeGreaterThanOrEqualTo(2);
     lines.Count.ShouldBeLessThan(5);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCommandOutputLazyProperties()
+  public static async Task Should_have_lazy_properties_on_command_output()
   {
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("test")
@@ -178,9 +195,10 @@ internal sealed class NewApiTests
     // Should be same instance (computed once)
     stdout1.ShouldBeSameAs(stdout2);
     combined1.ShouldBeSameAs(combined2);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCommandMockBasicUsage()
+  public static async Task Should_mock_command_basic_usage()
   {
     using (CommandMock.Enable())
     {
@@ -194,9 +212,10 @@ internal sealed class NewApiTests
       output.Stdout.ShouldContain("On branch main");
       CommandMock.VerifyCalled("git", "status");
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCommandMockWithError()
+  public static async Task Should_mock_command_with_error()
   {
     using (CommandMock.Enable())
     {
@@ -211,9 +230,10 @@ internal sealed class NewApiTests
       output.Stderr.ShouldContain("Permission denied");
       output.ExitCode.ShouldBe(128);
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestCommandMockIsolation()
+  public static async Task Should_mock_command_isolation()
   {
     // First mock scope
     using (CommandMock.Enable())
@@ -243,5 +263,6 @@ internal sealed class NewApiTests
       // test1 should not be mocked in this scope
       CommandMock.CallCount("echo", "test1").ShouldBe(0);
     }
+    await Task.CompletedTask;
   }
 }

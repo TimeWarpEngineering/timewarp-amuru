@@ -1,20 +1,25 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using TimeWarp.Amuru.Testing;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
+using System.Diagnostics;
 
-// MANUAL TEST: This test requires interactive terminal and cannot run in CI
-// Run manually to verify interactive functionality works correctly
+namespace TimeWarp.Amuru.Tests;
 
-await RunTests<CommandResultInteractiveTests>();
-
-internal sealed class CommandResultInteractiveTests
+[TestTag("Core")]
+public class CommandResultInteractiveTests
 {
-  public static async Task TestGetStringInteractiveAsyncWithMockFzf()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<CommandResultInteractiveTests>();
+
+  public static async Task Should_get_string_interactive_async_with_mock_fzf()
   {
     // Since we can't run interactive commands in CI/automated tests,
     // we'll use a mock that simulates FZF behavior
@@ -38,9 +43,10 @@ internal sealed class CommandResultInteractiveTests
       CliConfiguration.Reset();
       File.Delete(mockFzfPath);
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestPipelineWithInteractiveSelection()
+  public static async Task Should_handle_pipeline_with_interactive_selection()
   {
     string mockFzfPath = CreateMockFzf();
 
@@ -61,9 +67,10 @@ internal sealed class CommandResultInteractiveTests
       CliConfiguration.Reset();
       File.Delete(mockFzfPath);
     }
+    await Task.CompletedTask;
   }
 
-  public static async Task TestExecuteInteractiveAsync()
+  public static async Task Should_execute_interactive_async()
   {
     // Test with a simple echo command (non-interactive but safe)
     ExecutionResult result = await Shell.Builder("echo")
@@ -74,9 +81,10 @@ internal sealed class CommandResultInteractiveTests
 
     // Output strings should be empty since output went to console
     result.StandardOutput.ShouldBeNullOrEmpty();
+    await Task.CompletedTask;
   }
 
-  public static async Task TestInteractiveMethodsWithNullCommand()
+  public static async Task Should_handle_interactive_methods_with_null_command()
   {
     // Test graceful degradation with empty command
     CommandResult nullCommand = Shell.Builder("").Build();
@@ -86,6 +94,7 @@ internal sealed class CommandResultInteractiveTests
 
     ExecutionResult execResult = await nullCommand.PassthroughAsync();
     execResult.ExitCode.ShouldBe(0);
+    await Task.CompletedTask;
   }
 
   private static string CreateMockFzf()

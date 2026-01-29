@@ -1,16 +1,23 @@
 #!/usr/bin/dotnet --
-#:project ../../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
-#:project ../../TimeWarp.Amuru.Test.Helpers/TimeWarp.Amuru.Test.Helpers.csproj
+#:package TimeWarp.Jaribu@1.0.0-beta.8
+#:package TimeWarp.Amuru@1.0.0-beta.18
+
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
 using TimeWarp.Amuru;
 using Shouldly;
-using static TimeWarp.Amuru.Test.Helpers.TestRunner;
 
-await RunTests<RunBuilderTests>();
+namespace TimeWarp.Amuru.Tests;
 
-internal sealed class RunBuilderTests
+[TestTag("Core")]
+public class RunBuilderTests
 {
-  public static async Task TestBasicRunBuilderCommandString()
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<RunBuilderTests>();
+
+  public static async Task Should_build_basic_command_string()
   {
     string command = Shell.Builder("echo")
       .WithArguments("Hello", "World")
@@ -22,7 +29,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestBasicRunBuilder()
+  public static async Task Should_build_basic_command()
   {
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("Hello", "World")
@@ -30,9 +37,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("Hello World");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithMultipleWithArgumentsCommandString()
+  public static async Task Should_build_with_multiple_WithArguments_command_string()
   {
     string command = Shell.Builder("echo")
       .WithArguments("arg1")
@@ -45,7 +53,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithMultipleWithArguments()
+  public static async Task Should_build_with_multiple_WithArguments()
   {
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("arg1")
@@ -54,9 +62,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("arg1 arg2 arg3");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithEnvironmentVariableCommandString()
+  public static async Task Should_build_with_environment_variable_command_string()
   {
     // Note: Environment variables don't appear in ToCommandString()
     string command = Shell.Builder("printenv")
@@ -70,7 +79,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithEnvironmentVariable()
+  public static async Task Should_build_with_environment_variable()
   {
     CommandOutput output = await Shell.Builder("printenv")
       .WithEnvironmentVariable("TEST_VAR", "test_value")
@@ -79,9 +88,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("test_value");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithNoValidation()
+  public static async Task Should_build_with_no_validation()
   {
     // This would normally throw because 'false' exits with code 1
     int exitCode = await Shell.Builder("false")
@@ -89,9 +99,10 @@ internal sealed class RunBuilderTests
       .RunAsync();
 
     exitCode.ShouldBe(1);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderGetLinesAsync()
+  public static async Task Should_get_lines_async()
   {
     CommandOutput output = await Shell.Builder("printf")
       .WithArguments("line1\\nline2\\nline3")
@@ -102,9 +113,10 @@ internal sealed class RunBuilderTests
     lines[0].ShouldBe("line1");
     lines[1].ShouldBe("line2");
     lines[2].ShouldBe("line3");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithWorkingDirectoryCommandString()
+  public static async Task Should_build_with_working_directory_command_string()
   {
     // Note: Working directory doesn't appear in ToCommandString()
     string command = Shell.Builder("pwd")
@@ -117,7 +129,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithWorkingDirectory()
+  public static async Task Should_build_with_working_directory()
   {
     string tempDir = Path.GetTempPath();
     CommandOutput output = await Shell.Builder("pwd")
@@ -126,9 +138,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe(tempDir.TrimEnd('/'));
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderPipelineCommandString()
+  public static async Task Should_build_pipeline_command_string()
   {
     string command = Shell.Builder("echo")
       .WithArguments("Hello\nWorld\nTest")
@@ -141,7 +154,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderPipeline()
+  public static async Task Should_build_pipeline()
   {
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("Hello\nWorld\nTest")
@@ -151,9 +164,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("World");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderExecuteAsync()
+  public static async Task Should_execute_async()
   {
     CommandOutput output = await Shell.Builder("echo")
       .WithArguments("test output")
@@ -161,9 +175,10 @@ internal sealed class RunBuilderTests
 
     output.Success.ShouldBeTrue();
     output.Stdout.Trim().ShouldBe("test output");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderChaining()
+  public static async Task Should_support_chaining()
   {
     // Test that all methods can be chained fluently
     CommandOutput output = await Shell.Builder("bash")
@@ -175,9 +190,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("Hello World");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithStandardInput()
+  public static async Task Should_build_with_standard_input()
   {
     CommandOutput output = await Shell.Builder("grep")
       .WithArguments("World")
@@ -186,9 +202,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("Hello World");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithStandardInputLines()
+  public static async Task Should_build_with_standard_input_lines()
   {
     CommandOutput output = await Shell.Builder("wc")
       .WithArguments("-l")
@@ -197,9 +214,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Trim().ShouldBe("5");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithStandardInputPipeline()
+  public static async Task Should_build_with_standard_input_pipeline()
   {
     CommandOutput output = await Shell.Builder("cat")
       .WithStandardInput("apple\nbanana\ncherry\ndate")
@@ -211,9 +229,10 @@ internal sealed class RunBuilderTests
     result.Length.ShouldBe(2);
     result[0].ShouldBe("apple");
     result[1].ShouldBe("banana");
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithEmptyStandardInput()
+  public static async Task Should_build_with_empty_standard_input()
   {
     CommandOutput output = await Shell.Builder("cat")
       .WithStandardInput("")
@@ -221,9 +240,10 @@ internal sealed class RunBuilderTests
     string result = output.Stdout;
 
     result.Length.ShouldBe(0);
+    await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithComplexArgumentsCommandString()
+  public static async Task Should_build_with_complex_arguments_command_string()
   {
     string command = Shell.Builder("git")
       .WithArguments("log", "--oneline", "--author=\"John Doe\"", "--grep=fix")
@@ -235,7 +255,7 @@ internal sealed class RunBuilderTests
     await Task.CompletedTask;
   }
 
-  public static async Task TestRunBuilderWithNoValidationCommandString()
+  public static async Task Should_build_with_no_validation_command_string()
   {
     string command = Shell.Builder("false")
       .WithNoValidation()
