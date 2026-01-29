@@ -1,9 +1,17 @@
 #!/usr/bin/dotnet --
 
-await RunTests<ConfigurationTests>();
+#if !JARIBU_MULTI
+return await RunAllTests();
+#endif
 
-internal sealed class ConfigurationTests
+namespace TimeWarp.Amuru.Tests;
+
+[TestTag("Configuration")]
+public class ConfigurationTests
 {
+  [ModuleInitializer]
+  internal static void Register() => RegisterTests<ConfigurationTests>();
+
   // Helper to create executable temp files
   private static async Task<string> CreateExecutableTempFile()
   {
@@ -20,7 +28,7 @@ internal sealed class ConfigurationTests
   // Helper to create multiple executable temp files
   private static async Task<List<string>> CreateExecutableTempFiles(int count)
   {
-    var files = new List<string>();
+    List<string> files = new();
 
     for (int i = 0; i < count; i++)
     {
@@ -56,7 +64,8 @@ internal sealed class ConfigurationTests
       CleanupTempFiles(tempFiles.ToArray());
     }
   }
-  public static async Task TestSetCommandPath()
+
+  public static async Task Should_set_command_path()
   {
     await WithTempFiles(1, async files =>
     {
@@ -77,9 +86,11 @@ internal sealed class ConfigurationTests
       // Cleanup config
       CliConfiguration.ClearCommandPath("fzf");
     });
+
+    await Task.CompletedTask;
   }
-  
-  public static async Task TestClearCommandPath()
+
+  public static async Task Should_clear_command_path()
   {
     await WithTempFiles(1, async files =>
     {
@@ -94,9 +105,11 @@ internal sealed class ConfigurationTests
 
       CliConfiguration.HasCustomPath("git").ShouldBeFalse("Configuration should not have custom path after clearing");
     });
+
+    await Task.CompletedTask;
   }
-  
-  public static async Task TestReset()
+
+  public static async Task Should_reset_all_configuration()
   {
     await WithTempFiles(3, async files =>
     {
@@ -112,9 +125,11 @@ internal sealed class ConfigurationTests
 
       CliConfiguration.AllCommandPaths.Count.ShouldBe(0, "Configuration should have no custom paths after reset");
     });
+
+    await Task.CompletedTask;
   }
-  
-  public static async Task TestGetAllCommandPaths()
+
+  public static async Task Should_get_all_command_paths()
   {
     // Clear any existing configuration
     CliConfiguration.Reset();
@@ -136,9 +151,11 @@ internal sealed class ConfigurationTests
       // Cleanup config
       CliConfiguration.Reset();
     });
+
+    await Task.CompletedTask;
   }
-  
-  public static async Task TestCommandExecutionWithMockPath()
+
+  public static async Task Should_execute_command_with_mock_path()
   {
     // Create a temporary mock executable
     string tempDir = Path.Combine(Path.GetTempPath(), $"timewarp-cli-test-{Guid.NewGuid()}");
@@ -175,8 +192,8 @@ internal sealed class ConfigurationTests
       }
     }
   }
-  
-  public static async Task TestThreadSafety()
+
+  public static async Task Should_be_thread_safe()
   {
     // Clear any existing configuration
     CliConfiguration.Reset();
@@ -209,9 +226,11 @@ internal sealed class ConfigurationTests
       // Cleanup config
       CliConfiguration.Reset();
     });
+
+    await Task.CompletedTask;
   }
-  
-  public static async Task TestNullArgumentHandling()
+
+  public static async Task Should_handle_null_arguments()
   {
     // Test null command
     Should.Throw<ArgumentNullException>(() => CliConfiguration.SetCommandPath(null!, "/path"))
