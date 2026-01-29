@@ -5,7 +5,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <!-- Disable specific analyzer warnings for test projects -->
-    <NoWarn>$(NoWarn);CA1812;CS1998;CS8652;CA2252;CA1707</NoWarn>
+    <NoWarn>$(NoWarn);CA1812;CS1998;CS8652;CA2252;CA1707;CA1052;CA1515</NoWarn>
     <!-- CS8652: Feature 'extensions' is in Preview -->
     <!-- CA2252: Using preview features -->
   </PropertyGroup>
@@ -16,7 +16,6 @@
     <PackageReference Include="CliWrap" />
     <PackageReference Include="Shouldly" />
   </ItemGroup>
-
   <ItemGroup>
     <!-- Global usings for all test projects -->
     <Using Include="System.Console" Static="true" />

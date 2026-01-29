@@ -1,0 +1,15 @@
+<Project>
+  <!-- Import parent Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!-- Enable Jaribu multi-mode test registration -->
+    <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
+  </PropertyGroup>
+
+    <ItemGroup>
+    <!-- Include all test files for multi-mode compilation -->
+    <Compile Include="../runfiles/core/*.cs" />
+  </ItemGroup>
+
+</Project>
