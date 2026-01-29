@@ -3,7 +3,7 @@ namespace TimeWarp.Amuru;
 /// <summary>
 /// Fluent builder for configuring generic command execution.
 /// </summary>
-public class RunBuilder : ICommandBuilder<RunBuilder>
+public class ShellBuilder : ICommandBuilder<ShellBuilder>
 {
   private readonly string Executable;
   private readonly List<string> Arguments = new();
@@ -14,7 +14,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// Initializes a new instance of the RunBuilder class.
   /// </summary>
   /// <param name="executable">The executable or command to run</param>
-  public RunBuilder(string executable)
+  public ShellBuilder(string executable)
   {
     Executable = executable ?? throw new ArgumentNullException(nameof(executable));
   }
@@ -24,7 +24,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// </summary>
   /// <param name="arguments">Arguments to add to the command</param>
   /// <returns>The builder instance for method chaining</returns>
-  public RunBuilder WithArguments(params string[] arguments)
+  public ShellBuilder WithArguments(params string[] arguments)
   {
     if (arguments != null)
     {
@@ -39,7 +39,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// </summary>
   /// <param name="directory">The working directory path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public RunBuilder WithWorkingDirectory(string directory)
+  public ShellBuilder WithWorkingDirectory(string directory)
   {
     Options = Options.WithWorkingDirectory(directory);
     return this;
@@ -51,7 +51,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// <param name="key">The environment variable name</param>
   /// <param name="value">The environment variable value</param>
   /// <returns>The builder instance for method chaining</returns>
-  public RunBuilder WithEnvironmentVariable(string key, string? value)
+  public ShellBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
     return this;
@@ -61,7 +61,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public RunBuilder WithNoValidation()
+  public ShellBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
     return this;
@@ -72,7 +72,7 @@ public class RunBuilder : ICommandBuilder<RunBuilder>
   /// </summary>
   /// <param name="input">The text to provide as standard input</param>
   /// <returns>The builder instance for method chaining</returns>
-  public RunBuilder WithStandardInput(string input)
+  public ShellBuilder WithStandardInput(string input)
   {
     StandardInput = input ?? throw new ArgumentNullException(nameof(input));
     return this;
