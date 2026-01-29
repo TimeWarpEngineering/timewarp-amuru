@@ -1,0 +1,30 @@
+<Project>
+  <!-- Prevent importing parent Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="false" />
+
+  <!-- Disable Central Package Management for runfiles in tools directory -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <CentralPackageManagementEnabled>false</CentralPackageManagementEnabled>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+  </PropertyGroup>
+
+  <!-- Define package versions for tools directory (local CPM) -->
+  <ItemGroup>
+    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.21" />
+  </ItemGroup>
+
+  <!-- Clear any inherited analyzer packages -->
+  <ItemGroup>
+    <PackageReference Remove="Roslynator.Analyzers" />
+    <PackageReference Remove="Roslynator.CodeAnalysis.Analyzers" />
+    <PackageReference Remove="Roslynator.Formatting.Analyzers" />
+    <PackageReference Remove="Microsoft.CodeAnalysis.NetAnalyzers" />
+    <PackageReference Remove="Microsoft.CodeAnalysis.CSharp.CodeStyle" />
+  </ItemGroup>
+</Project>
