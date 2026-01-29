@@ -40,17 +40,5 @@ namespace CliConfiguration_
         File.Delete(tempFile);
       }
     }
-
-    private static async Task<string> CreateExecutableTempFile()
-    {
-      string tempFile = Path.GetTempFileName();
-
-      if (!OperatingSystem.IsWindows())
-      {
-        await Shell.Builder("chmod").WithArguments("+x", tempFile).RunAsync();
-      }
-
-      return tempFile;
-    }
   }
 }
