@@ -9,8 +9,6 @@
 // FzfBuilder provides fluent API for fzf command, SelectAsync runs interactive selection
 #endregion
 
-using System.Diagnostics;
-
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif

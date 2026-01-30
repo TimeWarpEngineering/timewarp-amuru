@@ -5,11 +5,20 @@
   <PropertyGroup>
     <!-- Enable Jaribu multi-mode test registration -->
     <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
+    <!-- Suppress IDE0161 for multi-file compilation (block-scoped namespaces in test files) -->
+    <NoWarn>$(NoWarn);IDE0161</NoWarn>
   </PropertyGroup>
 
     <ItemGroup>
     <!-- Include all test files for multi-mode compilation -->
-    <Compile Include="../runfiles/core/*.cs" />
+    <Compile Include="../single-file-tests/core/*.cs" />
+    <Compile Include="../single-file-tests/configuration/*.cs" />
+    <Compile Include="../single-file-tests/dot-net-commands/*.cs" />
+    <Compile Include="../single-file-tests/git-commands/*.cs" />
+    <Compile Include="../single-file-tests/script-support/*.cs" />
+    <Compile Include="../single-file-tests/fzf-command/*.cs" />
+    <Compile Include="../single-file-tests/native/file-system/*.cs" />
+    <!-- Note: json-rpc tests excluded - they require ModelContextProtocol.Core package -->
   </ItemGroup>
 
 </Project>

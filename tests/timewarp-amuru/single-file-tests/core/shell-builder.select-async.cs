@@ -9,8 +9,6 @@
 // SelectAsync captures stdout while rendering UI to stderr (for tools like fzf)
 #endregion
 
-using System.Diagnostics;
-
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif
