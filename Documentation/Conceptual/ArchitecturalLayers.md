@@ -85,7 +85,7 @@ Layer 3 (Builder) → Layer 4 (Aliases) → Layer 5/6
 ```
 
 **Characteristics**:
-- Wraps existing external commands (`dotnet`, `fzf`, `ghq`, `gwq`)
+- Wraps existing external commands (`dotnet`, `fzf`)
 - Layer 1 and Layer 2 are **NOT PRESENT** - not needed
 - Builder constructs arguments and calls `Shell.Builder()` to execute external command
 - Provides fluent, type-safe API over existing tools
@@ -93,8 +93,6 @@ Layer 3 (Builder) → Layer 4 (Aliases) → Layer 5/6
 **Current Implementations**:
 - ✅ DotNet: `DotNet.Build()`, `DotNet.Test()`, etc. - wraps `dotnet` CLI
 - ✅ Fzf: `Fzf.Builder()` - wraps `fzf` interactive filter
-- ✅ Ghq: `Ghq.Builder()` - wraps `ghq` repository manager
-- ✅ Gwq: `Gwq.Builder()` - wraps `gwq` workspace manager
 
 ### Pattern C: Hybrid Approach (Progressive Enhancement)
 

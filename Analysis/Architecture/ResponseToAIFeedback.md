@@ -66,7 +66,7 @@ Thank you for the comprehensive analysis. Your assessment accurately captures ou
 - Namespaces prevent actual conflicts
 - `Shell.TryNativeFirst()` adds unnecessary complexity
 - Users should explicitly choose Native vs External
-- The ghq pattern you mention is exactly what BuilderExtensibility.md documents
+- The builder wrapper pattern is documented in BuilderExtensibility.md
 
 **Action**: Add more hybrid examples but avoid auto-fallback magic
 
@@ -103,7 +103,7 @@ Thank you for the comprehensive analysis. Your assessment accurately captures ou
 1. **Better Documentation** - Decision trees, more examples
 2. **Clear Error Semantics** - Document per API style
 3. **Emphasize Direct for Large Data** - Update examples
-4. **More Hybrid Examples** - Show the ghq pattern clearly
+4. **More Hybrid Examples** - Show builder wrapper patterns clearly
 
 ## Philosophy Check
 

@@ -148,11 +148,11 @@ Layer 3 (Builder) → Layer 4 (Aliases) → Layer 5 (Ganda) → Layer 6 (AOT)
 ```
 
 **Characteristics**:
-- Wraps external commands (`dotnet`, `fzf`, `ghq`)
+- Wraps external commands (`dotnet`, `fzf`)
 - Start DIRECTLY at Layer 3 (Builder)
 - NO Layer 1 or Layer 2 needed
 - Builder constructs command-line arguments and executes via Shell
-- Examples: `DotNet.Build()`, `Fzf.Builder()`, `Ghq.Builder()`
+- Examples: `DotNet.Build()`, `Fzf.Builder()`
 
 **Why NO Layer 1/2**: The external command already exists - you're just making it fluent and type-safe, not reimplementing it.
 
@@ -327,7 +327,7 @@ Implementation Flow:
 ❌ NO Layer 1: Direct API (Not Needed)
    ┌─────────────────────────────────────┐
    │ External command already exists     │
-   │ • dotnet, fzf, ghq, gwq, etc.       │
+   │ • dotnet, fzf, etc.                 │
    │ • We're just wrapping it            │
    │ • Not reimplementing functionality  │
    └─────────────────────────────────────┘
