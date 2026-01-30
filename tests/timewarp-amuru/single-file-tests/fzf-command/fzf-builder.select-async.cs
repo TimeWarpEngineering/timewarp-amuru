@@ -15,7 +15,7 @@ return await RunAllTests();
 
 namespace FzfBuilder_
 {
-  [TestTag("Core")]
+  [TestTag("FzfCommand")]
   public class SelectAsync_Given_
   {
     [ModuleInitializer]
