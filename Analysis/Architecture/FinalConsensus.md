@@ -56,7 +56,7 @@ After extensive analysis and review by multiple AIs, we have reached consensus o
 1. **Implement Namespace-Based Native** - Start with File operations
 2. **Document Decision Trees** - When to use Commands vs Direct
 3. **Create ADRs** - Formalize major decisions
-4. **Add Hybrid Examples** - Show ghq-style patterns
+4. **Add Hybrid Examples** - Show builder wrapper patterns
 
 ### Documentation Improvements
 1. **Native.Overview.md** - Interactive getting started guide

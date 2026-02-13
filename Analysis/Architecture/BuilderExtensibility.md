@@ -53,48 +53,6 @@ public static class Commands
 }
 ```
 
-### Example: Ghq/Gwq Pattern
-
-```csharp
-public static class Ghq
-{
-    // Override specific commands with native implementations
-    public static CommandOutput List()
-    {
-        // Native implementation - read from ~/.ghq directly
-        var ghqRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ghq");
-        var repos = Directory.GetDirectories(ghqRoot, ".git", SearchOption.AllDirectories)
-            .Select(d => Path.GetDirectoryName(d))
-            .Select(d => d.Replace(ghqRoot, "").TrimStart(Path.DirectorySeparatorChar));
-        
-        return new CommandOutput(string.Join("\n", repos), "", 0);
-    }
-    
-    // Delegate complex operations to external
-    public static async Task<CommandOutput> Get(string repo)
-    {
-        // This is too complex to reimplement - use external
-        return await Shell.Builder("ghq", "get", repo).CaptureAsync();
-    }
-    
-    // Hybrid: Try native first, fall back to external
-    public static CommandOutput Root()
-    {
-        // Try to read from config file first (faster)
-        var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".config/ghq/config.yaml");
-        if (File.Exists(configPath))
-        {
-            // Parse YAML and return root
-            var yaml = File.ReadAllText(configPath);
-            // ... parse and return
-        }
-        
-        // Fall back to external command
-        return Shell.Builder("ghq", "root").CaptureSync();
-    }
-}
-```
-
 ## Creating Custom Builders
 
 ### Basic Pattern

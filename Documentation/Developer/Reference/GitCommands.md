@@ -40,6 +40,52 @@ else
 }
 ```
 
+### BranchExistsAsync
+
+Checks if a branch exists in the repository.
+
+**Signature:**
+```csharp
+public static async Task<bool> BranchExistsAsync(
+    string repoPath,
+    string branchName,
+    CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `repoPath` | string | (required) | The path to the repository |
+| `branchName` | string | (required) | The branch name to check |
+| `cancellationToken` | CancellationToken | default | Cancellation token |
+
+**Returns:** `bool`
+- `true` - The branch exists in the repository
+- `false` - The branch does not exist or the check failed
+
+**Behavior:**
+- Uses `git show-ref --verify refs/heads/{branchName}` to verify branch existence
+- Returns `true` only if the command succeeds (exit code 0)
+- Returns `false` for non-existent branches, invalid paths, or any git error
+- Works with any valid git repository path
+
+**Example:**
+```csharp
+// Check if main branch exists
+bool hasMain = await Git.BranchExistsAsync("/path/to/repo", "main");
+if (hasMain)
+{
+    Console.WriteLine("Repository has a main branch");
+}
+
+// Check feature branch before creating
+bool hasFeature = await Git.BranchExistsAsync("/path/to/repo", "feature/new-ui");
+if (!hasFeature)
+{
+    Console.WriteLine("Feature branch does not exist, safe to create");
+}
+```
+
 ## Branch Updates
 
 ### UpdateBranchAsync

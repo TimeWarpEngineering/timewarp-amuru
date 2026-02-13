@@ -5,16 +5,16 @@ on:
     branches: [master]
     paths:
       - 'Source/**'
-      - 'Tests/**'
-      - 'Scripts/**'
+      - 'tests/**'
+      - 'scripts/**'
       - '.github/workflows/**'
       - 'Directory.Build.props'
   pull_request:
     branches: [master]
     paths:
       - 'Source/**'
-      - 'Tests/**'
-      - 'Scripts/**'
+      - 'tests/**'
+      - 'scripts/**'
       - '.github/workflows/**'
       - 'Directory.Build.props'
   release:
@@ -43,20 +43,15 @@ jobs:
           dotnet-version: '10.0.x'
           dotnet-quality: 'preview'
 
-      - name: Make scripts executable
+      - name: Install dev CLI
         run: |
-          chmod +x Scripts/Build.cs
-          chmod +x Scripts/Clean.cs
-          chmod +x Tests/RunTests.cs
-          find Tests/Integration -name "*.cs" -type f -exec chmod +x {} \;
+          dotnet run tools/dev-cli/dev.cs -- self-install
 
-      - name: Build and Test
-        run: |
-          echo "Building TimeWarp.Amuru..."
-          dotnet build Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj --configuration Release
+      - name: Build
+        run: ./bin/dev build
 
-          echo "Running tests..."
-          ./Tests/RunTests.cs
+      - name: Test
+        run: ./bin/dev test
 
       - name: Upload NuGet Packages
         uses: actions/upload-artifact@v4
