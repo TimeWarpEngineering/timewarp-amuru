@@ -17,6 +17,7 @@
 
     <!-- AOT Support - disable for dev build -->
     <PublishAot>false</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
 
     <!-- Nuru interceptors for source-generated commands -->
     <InterceptorsNamespaces>$(InterceptorsNamespaces);TimeWarp.Nuru.Generated</InterceptorsNamespaces>
