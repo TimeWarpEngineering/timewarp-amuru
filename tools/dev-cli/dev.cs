@@ -108,7 +108,7 @@ async Task TestCommand(string[] args)
   Console.WriteLine("🧪 Running TimeWarp.Amuru Test Suite...");
 
   string scriptDir = GetScriptDirectory();
-  string testsDir = Path.Combine(scriptDir, "..", "..", "Tests", "TimeWarp.Amuru");
+  string testsDir = Path.Combine(scriptDir, "..", "..", "tests", "timewarp-amuru", "multi-file-runners");
   testsDir = Path.GetFullPath(testsDir);
   string runTestsPath = Path.Combine(testsDir, "run-tests.cs");
 
