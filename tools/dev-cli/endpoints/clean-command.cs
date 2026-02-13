@@ -9,7 +9,7 @@ public sealed class CleanCommand : ICommand<Unit>
 {
   public sealed class Handler : ICommandHandler<CleanCommand, Unit>
   {
-    public async ValueTask<Unit> Handle(CleanCommand command, CancellationToken ct)
+    public async ValueTask<Unit> Handle(CleanCommand command, CancellationToken cancellationToken)
     {
       Console.WriteLine("🧹 Cleaning build artifacts...");
 

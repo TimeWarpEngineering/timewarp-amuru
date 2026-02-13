@@ -9,7 +9,7 @@ public sealed class TestCommand : ICommand<Unit>
 {
   public sealed class Handler : ICommandHandler<TestCommand, Unit>
   {
-    public async ValueTask<Unit> Handle(TestCommand command, CancellationToken ct)
+    public async ValueTask<Unit> Handle(TestCommand command, CancellationToken cancellationToken)
     {
       Console.WriteLine("🧪 Running TimeWarp.Amuru Test Suite...");
 

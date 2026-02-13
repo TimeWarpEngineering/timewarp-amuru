@@ -9,7 +9,7 @@ public sealed class SelfInstallCommand : ICommand<Unit>
 {
   public sealed class Handler : ICommandHandler<SelfInstallCommand, Unit>
   {
-    public async ValueTask<Unit> Handle(SelfInstallCommand command, CancellationToken ct)
+    public async ValueTask<Unit> Handle(SelfInstallCommand command, CancellationToken cancellationToken)
     {
       Console.WriteLine("🔨 Self-installing dev CLI...");
 

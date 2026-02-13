@@ -11,7 +11,7 @@ public sealed class CheckVersionQuery : IQuery<Unit>
 {
   public sealed class Handler : IQueryHandler<CheckVersionQuery, Unit>
   {
-    public async ValueTask<Unit> Handle(CheckVersionQuery query, CancellationToken ct)
+    public async ValueTask<Unit> Handle(CheckVersionQuery query, CancellationToken cancellationToken)
     {
       Console.WriteLine("🔍 Checking if version exists on NuGet.org...");
 
@@ -72,9 +72,9 @@ public sealed class CheckVersionQuery : IQuery<Unit>
         };
 
         process.Start();
-        output = await process.StandardOutput.ReadToEndAsync(ct);
-        error = await process.StandardError.ReadToEndAsync(ct);
-        await process.WaitForExitAsync(ct);
+        output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+        error = await process.StandardError.ReadToEndAsync(cancellationToken);
+        await process.WaitForExitAsync(cancellationToken);
         exitCode = process.ExitCode;
       }
       catch (Exception ex)

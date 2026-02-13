@@ -1,22 +1,63 @@
 <Project>
-  <!-- Import repository structure from msbuild -->
-  <Import Project="$(MSBuildThisFileDirectory)../../msbuild/repository.props" />
-  
-  <!-- Import tools/ Directory.Build.props for its relaxed analyzer settings -->
-  <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props" />
+  <!-- Import parent Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Suppress warnings that don't apply to CLI tools -->
+    <!-- CA1031: Catch general exception types - OK for CLI error handling -->
+    <!-- CA1303: Literal strings - OK for CLI output -->
+    <!-- CA1508: Dead code analysis false positive -->
+    <!-- CA1515: Internal types in exe projects are fine -->
+    <!-- CA1849: Sync WriteLine is fine for CLI output -->
+    <!-- CA2007: ConfigureAwait not needed in top-level console apps -->
+    <!-- CA2016: CancellationToken forwarding - will address where needed -->
+    <!-- CA2000: Dispose on app builder - handled by framework -->
+    <!-- RCS1046: Async suffix - private methods don't need it -->
+    <NoWarn>$(NoWarn);CA1031;CA1303;CA1508;CA1515;CA1849;CA2007;CA2016;CA2000;RCS1046;CA1034;IDE0065</NoWarn>
+
+    <!-- AOT Support - disable for dev build -->
+    <PublishAot>false</PublishAot>
+
+    <!-- Nuru interceptors for source-generated commands -->
     <InterceptorsNamespaces>$(InterceptorsNamespaces);TimeWarp.Nuru.Generated</InterceptorsNamespaces>
-    <AssemblyName>dev</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="obj/**/*;bin/**/*;dev.cs" />
+    <!-- Global usings for dev-cli -->
+    <Using Include="System" />
+    <Using Include="System.IO" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Threading" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Runtime.CompilerServices" />
+    <Using Include="System.Text.Json" />
+    <Using Include="System.Xml.Linq" />
+
+    <Using Include="TimeWarp.Nuru" />
+    <Using Include="TimeWarp.Nuru.Unit" Static="true" />
+    <Using Include="TimeWarp.Amuru" />
+    <Using Include="TimeWarp.Terminal" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+
+    <Using Include="System.Console" Static="true" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="TimeWarp.Nuru" />
+    <!-- Include endpoint and service files in compilation -->
+    <Compile Include="endpoints/**/*.cs" />
+    <Compile Include="services/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Project references -->
     <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Package references -->
+    <PackageReference Include="TimeWarp.Nuru" />
+  </ItemGroup>
+
 </Project>
