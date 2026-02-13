@@ -13,20 +13,43 @@ Update the TimeWarp.Nuru package dependency and migrate from the fluent DSL patt
 - Use `.DiscoverEndpoints()` for source generator discovery
 - Define commands as classes with handler interfaces
 
-## Checklist
+## Implementation Plan
 
-- [ ] Update package version to 3.0.0-beta.47 in Directory.Packages.props
-- [ ] Review current route definitions in source files
-- [ ] Create endpoint classes for each existing route:
-  - `[NuruRoute]` attribute for route pattern
-  - `[Parameter]` for positional arguments
-  - `[Option]` for named options
-  - Nested Handler class implementing `ICommandHandler<T, TResult>` or `IQueryHandler<T, TResult>`
-- [ ] Add `.DiscoverEndpoints()` call to NuruApp builder
-- [ ] Remove fluent DSL `.Map()` calls
-- [ ] Update Program.cs to use new endpoint pattern
-- [ ] Test all commands work correctly
+### Step 1: Update Package Versions
+- [ ] Update Directory.Packages.props:
+  - TimeWarp.Nuru: 2.1.0-beta.44 → 3.0.0-beta.47
+  - Add any required analyzers/source generators
+  - Update TimeWarp.Nuru.Mcp to match (if present)
+
+### Step 2: Explore Nuru Repo Structure
+- [ ] Reference TimeWarp.Nuru examples for endpoint class patterns
+- [ ] Identify standard endpoint file organization
+
+### Step 3: Create Endpoint Classes
+Create endpoint classes for each dev.cs command:
+- [ ] BuildCommand (ICommand<Unit>) - maps to `build` command
+- [ ] TestCommand (ICommand<Unit>) - maps to `test` command
+- [ ] CleanCommand (ICommand<Unit>) - maps to `clean` command
+- [ ] SelfInstallCommand (ICommand<Unit>) - maps to `self-install` command
+- [ ] CheckVersionQuery (IQuery<Unit>) - maps to `--version` option
+- [ ] HelpQuery (IQuery<Unit>) - maps to `--help` option
+
+Each endpoint class will have:
+- [NuruRoute("pattern")] attribute
+- [Parameter]/[Option] properties as needed
+- Nested Handler class implementing appropriate interface
+
+### Step 4: Update dev.cs
+- [ ] Replace switch/case with NuruApp builder
+- [ ] Add .DiscoverEndpoints() call
+- [ ] Remove manual argument parsing
+
+### Step 5: Add to Solution
+- [ ] Add tools/dev-cli/dev-cli.csproj to the .sln file
+
+### Step 6: Build and Test
 - [ ] Verify build succeeds
+- [ ] Test all commands work correctly
 - [ ] Commit changes
 
 ## Notes
