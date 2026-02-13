@@ -1,0 +1,14 @@
+<Project>
+  <!-- Repository path definitions - can be imported standalone without build configuration -->
+  <PropertyGroup Label="Repository Structure">
+    <RepositoryName>timewarp-amuru</RepositoryName>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)../</RepositoryRoot>
+    <SolutionFile>$(RepositoryRoot)TimeWarp.Amuru.sln</SolutionFile>
+    <SourceDirectory>$(RepositoryRoot)Source/</SourceDirectory>
+    <TestsDirectory>$(RepositoryRoot)Tests/</TestsDirectory>
+    <SamplesDirectory>$(RepositoryRoot)Samples/</SamplesDirectory>
+    <ArtifactsDirectory>$(RepositoryRoot)artifacts/</ArtifactsDirectory>
+    <PackagesDirectory>$(ArtifactsDirectory)packages/</PackagesDirectory>
+    <LocalNuGetCache>$(RepositoryRoot)LocalNuGetCache/</LocalNuGetCache>
+  </PropertyGroup>
+</Project>
