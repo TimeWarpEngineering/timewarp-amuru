@@ -6,15 +6,15 @@ Add a `check-version` command to the dev-cli tool that checks if the current pac
 
 ## Checklist
 
-- [ ] Add `case "check-version":` entry in the switch statement in `tools/dev-cli/dev.cs`
-- [ ] Implement `CheckVersionCommand(string[] args)` method that:
+- [x] Add `case "check-version":` entry in the switch statement in `tools/dev-cli/dev.cs`
+- [x] Implement `CheckVersionCommand(string[] args)` method that:
   - Extracts version from `Source/Directory.Build.props`
   - Runs `dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json`
   - Reports whether version exists on NuGet.org
   - Returns appropriate exit code (0 if not published, 1 if already published)
-- [ ] Update `ShowHelp()` to include the new command
-- [ ] Update `OutputCapabilities()` JSON to include the command
-- [ ] Add `--capabilities` flag support for the command
+- [x] Update `ShowHelp()` to include the new command
+- [x] Update `OutputCapabilities()` JSON to include the command
+- [x] Add `--capabilities` flag support for the command
 
 ## Notes
 
@@ -52,3 +52,30 @@ Add a `check-version` command to the dev-cli tool that checks if the current pac
 - 0: Version not yet on NuGet.org ✅
 - 1: Version already published ❌
 - 2: Error reading version or running search
+
+## Results
+
+**Implementation Summary:**
+Successfully added `check-version` command to the dev-cli tool.
+
+**Files Changed:**
+- `tools/dev-cli/dev.cs` - Added CheckVersionCommand method, switch case, help text, and capabilities JSON entry
+
+**Key Implementation Details:**
+- Command reads version from `Source/Directory.Build.props` using XDocument XML parsing
+- Executes `dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json`
+- Parses search output to detect if version exists on NuGet.org
+- Returns appropriate exit codes:
+  - 0: Version not published (safe to publish) ✅
+  - 1: Version already exists (would fail CI/CD) ❌
+  - 2: Error occurred during check
+
+**Testing:**
+- Command tested successfully: `./tools/dev-cli/dev.cs check-version`
+- Verified correct exit code (1) for version 1.0.0-beta.18 which exists on NuGet.org
+- Help text and --capabilities JSON properly updated
+
+**Decisions Made:**
+- Implemented inline in dev.cs (not separate file) to match existing command structure pattern
+- Used robust XML parsing instead of regex for version extraction
+- Added multiple detection strategies for parsing search output
