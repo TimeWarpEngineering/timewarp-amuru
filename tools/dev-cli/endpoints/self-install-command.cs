@@ -1,52 +1,110 @@
-using TimeWarp.Amuru;
-using TimeWarp.Nuru;
-using static DevCli.ProcessHelpers;
+// ═══════════════════════════════════════════════════════════════════════════════
+// SELF-INSTALL COMMAND
+// ═══════════════════════════════════════════════════════════════════════════════
+// AOT compiles and installs the dev CLI to ./bin for fast execution.
 
 namespace DevCli.Endpoints;
 
-[NuruRoute("self-install", Description = "AOT compile this CLI to ./bin/dev")]
-public sealed class SelfInstallCommand : ICommand<Unit>
+using System.Runtime.InteropServices;
+using TimeWarp.Amuru;
+using TimeWarp.Nuru;
+
+/// <summary>
+/// AOT compile and install dev CLI to ./bin directory.
+/// </summary>
+[NuruRoute("self-install", Description = "AOT compile and install dev CLI to ./bin")]
+internal sealed class SelfInstallCommand : ICommand<Unit>
 {
-  public sealed class Handler : ICommandHandler<SelfInstallCommand, Unit>
+  [Option("verbose", "v", Description = "Verbose output")]
+  public bool Verbose { get; set; }
+
+  internal sealed class Handler : ICommandHandler<SelfInstallCommand, Unit>
   {
-    public async ValueTask<Unit> Handle(SelfInstallCommand command, CancellationToken cancellationToken)
+    private readonly ITerminal Terminal;
+
+    public Handler(ITerminal terminal)
     {
-      Console.WriteLine("🔨 Self-installing dev CLI...");
+      Terminal = terminal;
+    }
 
+    public async ValueTask<Unit> Handle(SelfInstallCommand command, CancellationToken ct)
+    {
+      // Get repo root using Git.FindRoot
       string? repoRoot = Git.FindRoot();
-      if (repoRoot == null)
+
+      if (repoRoot is null)
       {
-        Console.WriteLine("❌ Not in a git repository");
-        Environment.Exit(1);
+        throw new InvalidOperationException("Could not find git repository root (.git not found)");
       }
 
-      string binDir = Path.Combine(repoRoot, "bin");
-      string devPath = Path.Combine(binDir, "dev");
-      string projectPath = Path.Combine(repoRoot, "tools", "dev-cli", "dev-cli.csproj");
+      string devCliSource = Path.Combine(repoRoot, "tools", "dev-cli", "dev.cs");
+      string outputPath = Path.Combine(repoRoot, "bin");
+      string rid = GetRuntimeIdentifier();
 
-      Directory.CreateDirectory(binDir);
+      Terminal.WriteLine("Installing dev CLI as AOT binary...");
+      Terminal.WriteLine($"Source: {devCliSource}");
+      Terminal.WriteLine($"Output: {outputPath}/dev");
+      Terminal.WriteLine($"Runtime: {rid}");
 
-      if (File.Exists(devPath))
+      // Ensure bin directory exists
+      Directory.CreateDirectory(outputPath);
+
+      // Build the AOT binary
+      CommandResult publishResult = DotNet.Publish()
+        .WithProject(devCliSource)
+        .WithConfiguration("Release")
+        .WithRuntime(rid)
+        .WithSelfContained()
+        .WithOutput(outputPath)
+        .Build();
+
+      if (command.Verbose)
       {
-        File.Delete(devPath);
+        Terminal.WriteLine($"\nRunning: {publishResult.ToCommandString()}");
       }
 
-      // Publish as single-file (AOT disabled due to trim warnings in dependencies)
-      Console.WriteLine("Publishing dev-cli...");
-      int exitCode = await RunProcessAsync("dotnet", $"publish \"{projectPath}\" -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o \"{binDir}\"");
+      int exitCode = await publishResult.RunAsync();
 
       if (exitCode != 0)
       {
-        Console.WriteLine($"❌ AOT publish failed with exit code {exitCode}");
-        Environment.Exit(1);
+        throw new InvalidOperationException("AOT compilation failed!");
       }
 
-      await RunProcessAsync("chmod", $"+x \"{devPath}\"");
+      // Verify the binary was created
+      string binaryName = rid.StartsWith("win", StringComparison.OrdinalIgnoreCase) ? "dev.exe" : "dev";
+      string binaryPath = Path.Combine(outputPath, binaryName);
 
-      Console.WriteLine($"✅ dev CLI installed to: {devPath}");
-      Console.WriteLine("\nYou can now use: ./bin/dev <command>");
+      if (File.Exists(binaryPath))
+      {
+        FileInfo info = new(binaryPath);
+        Terminal.WriteLine($"\n✅ AOT binary installed: {binaryPath}");
+        Terminal.WriteLine($"   Size: {info.Length / 1024.0 / 1024.0:F1} MB");
+        Terminal.WriteLine("\nRun 'direnv allow' to add ./bin to PATH, then use: dev <command>");
+      }
+      else
+      {
+        throw new InvalidOperationException($"Binary not found at expected location: {binaryPath}");
+      }
 
       return Unit.Value;
+    }
+
+    private static string GetRuntimeIdentifier()
+    {
+      if (OperatingSystem.IsWindows())
+      {
+        return Environment.Is64BitOperatingSystem ? "win-x64" : "win-x86";
+      }
+      else if (OperatingSystem.IsMacOS())
+      {
+        return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+      }
+      else if (OperatingSystem.IsLinux())
+      {
+        return RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "linux-arm64" : "linux-x64";
+      }
+
+      return "linux-x64";
     }
   }
 }
