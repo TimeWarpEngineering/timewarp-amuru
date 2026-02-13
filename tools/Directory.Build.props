@@ -1,30 +1,24 @@
 <Project>
-  <!-- Prevent importing parent Directory.Build.props -->
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="false" />
+  <!-- Import parent Directory.Build.props for CPM and shared settings -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
-  <!-- Disable Central Package Management for runfiles in tools directory -->
+  <!-- Relaxed settings for tools directory - still get analysis but don't fail on warnings -->
   <PropertyGroup>
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <CentralPackageManagementEnabled>false</CentralPackageManagementEnabled>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <!-- IDE0007 conflicts with project standard (explicit types), IDE0008 enforces explicit types -->
+    <NoWarn>$(NoWarn);IDE0007</NoWarn>
   </PropertyGroup>
 
-  <!-- Define package versions for tools directory (local CPM) -->
+  <!-- Keep analyzers but suppress specific conflicting rules -->
   <ItemGroup>
-    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.44" />
-  </ItemGroup>
-
-  <!-- Clear any inherited analyzer packages -->
-  <ItemGroup>
+    <!-- Remove Roslynator only (too aggressive for tools), keep Microsoft analyzers -->
     <PackageReference Remove="Roslynator.Analyzers" />
     <PackageReference Remove="Roslynator.CodeAnalysis.Analyzers" />
     <PackageReference Remove="Roslynator.Formatting.Analyzers" />
-    <PackageReference Remove="Microsoft.CodeAnalysis.NetAnalyzers" />
-    <PackageReference Remove="Microsoft.CodeAnalysis.CSharp.CodeStyle" />
   </ItemGroup>
 </Project>

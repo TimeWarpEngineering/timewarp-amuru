@@ -12,7 +12,7 @@
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
     <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.13" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.8" />
-    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.44" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="3.0.0-beta.47" />
 
     <!-- Analyzers -->
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
