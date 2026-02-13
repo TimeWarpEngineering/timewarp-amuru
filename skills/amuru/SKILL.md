@@ -47,6 +47,21 @@ Amuru is in beta - refer to source for current API:
 
 ## Package
 
+Add to your C# script:
+
 ```csharp
-#:package TimeWarp.Amuru@1.0.0-beta.18
+#:package TimeWarp.Amuru
+```
+
+Or via Central Package Management in `Directory.Packages.props`:
+
+```xml
+<PackageVersion Include="TimeWarp.Amuru" Version="..." />
+```
+
+The agent will resolve the version automatically. If you need to find available versions:
+
+```bash
+# List latest releases
+dotnet package search TimeWarp.Amuru --exact-match --take 5 --prerelease
 ```
