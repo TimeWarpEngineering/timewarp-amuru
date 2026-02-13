@@ -78,3 +78,50 @@ public sealed class GreetCommand : ICommand<Unit>
   }
 }
 ```
+
+## Results
+
+**Successfully completed TimeWarp.Nuru migration from 2.1.0-beta.44 to 3.0.0-beta.47**
+
+### What was implemented:
+
+1. **Package Update** - Updated Directory.Packages.props to TimeWarp.Nuru 3.0.0-beta.47
+
+2. **Project Structure Created** - New organized structure for dev-cli:
+   - `tools/dev-cli/dev-cli.csproj` - Project file with TimeWarp.Nuru and TimeWarp.Amuru references
+   - `tools/dev-cli/Directory.Build.props` - Build configuration for endpoint discovery
+   - `tools/dev-cli/services/process-helpers.cs` - Shared process execution utilities
+   - `tools/dev-cli/endpoints/` - Directory containing all endpoint classes
+
+3. **Endpoint Classes Created** (8 total):
+   - `build-command.cs` - ICommand<Unit> for building the project
+   - `test-command.cs` - ICommand<Unit> for running tests
+   - `clean-command.cs` - ICommand<Unit> for cleaning artifacts
+   - `self-install-command.cs` - ICommand<Unit> for AOT compilation
+   - `check-version-query.cs` - IQuery<Unit> for version checking
+   - `capabilities-query.cs` - IQuery<Unit> for AI agent discovery
+   - `help-query.cs` - IQuery<Unit> for help display
+   - `default-query.cs` - IQuery<Unit> for default (empty) route
+
+4. **dev.cs Simplified** - Reduced from 380 lines of Fluent DSL to 7 lines using DiscoverEndpoints()
+
+5. **Smart Path Resolution** - All endpoints use TimeWarp.Amuru.Git.FindRoot() for robust repository root detection
+
+### Files Changed:
+- Directory.Packages.props (version bump)
+- tools/dev-cli/dev.cs (complete rewrite)
+- tools/dev-cli/dev-cli.csproj (new)
+- tools/dev-cli/Directory.Build.props (new)
+- tools/dev-cli/services/process-helpers.cs (new)
+- tools/dev-cli/endpoints/*.cs (8 new files)
+
+### Key Decisions:
+- Used Git.FindRoot() instead of manual path calculations for robustness
+- Kept ProcessHelpers as shared utilities rather than DI services
+- Organized endpoints into separate files following Nuru best practices
+- Project uses centralized package management (warning about duplicates is expected for runfile directives)
+
+### Test Results:
+- Build: ✅ Successful
+- Help command: ✅ Working
+- All 8 endpoints discovered and registered

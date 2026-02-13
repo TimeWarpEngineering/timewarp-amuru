@@ -9,4 +9,9 @@
   <ItemGroup>
     <Compile Include="**/*.cs" Exclude="obj/**/*;bin/**/*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TimeWarp.Nuru" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
+  </ItemGroup>
 </Project>

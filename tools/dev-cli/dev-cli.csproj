@@ -4,10 +4,5 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <InterceptorsNamespaces>$(InterceptorsNamespaces);TimeWarp.Nuru.Generated</InterceptorsNamespaces>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="TimeWarp.Nuru" />
-    <ProjectReference Include="../../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
-  </ItemGroup>
 </Project>
