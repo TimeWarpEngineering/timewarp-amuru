@@ -31,3 +31,24 @@ Add a `check-version` command to the dev-cli tool that checks if the current pac
 **Exit codes:**
 - 0 = Version not yet published (safe to publish)
 - 1 = Version already exists on NuGet.org (would fail CI/CD)
+
+## Implementation Plan
+
+1. Create `tools/dev-cli/commands/check-version-command.cs` with the `CheckVersionCommand` method
+2. Modify `tools/dev-cli/dev.cs` to:
+   - Add `case "check-version":` in the switch statement
+   - Reference the command from the commands folder
+   - Add to `ShowHelp()` output
+   - Add to `OutputCapabilities()` JSON
+
+**Command behavior:**
+- Read version from `Source/Directory.Build.props` (XML parsing to extract <Version> value)
+- Execute: `dotnet package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json`
+- Parse output to check if version exists
+- Print status message with appropriate emoji
+- Return exit code: 0 = version not published (safe), 1 = version already exists (would fail CI/CD)
+
+**Exit codes:**
+- 0: Version not yet on NuGet.org ✅
+- 1: Version already published ❌
+- 2: Error reading version or running search
