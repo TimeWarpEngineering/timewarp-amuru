@@ -15,9 +15,10 @@
     <!-- RCS1046: Async suffix - private methods don't need it -->
     <NoWarn>$(NoWarn);CA1031;CA1303;CA1508;CA1515;CA1849;CA2007;CA2016;CA2000;RCS1046;CA1034;IDE0065</NoWarn>
 
-    <!-- AOT Support - disable for dev build -->
-    <PublishAot>false</PublishAot>
+    <!-- AOT Support - enable only during publish, not build -->
+    <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
     <!-- Nuru interceptors for source-generated commands -->
     <InterceptorsNamespaces>$(InterceptorsNamespaces);TimeWarp.Nuru.Generated</InterceptorsNamespaces>
