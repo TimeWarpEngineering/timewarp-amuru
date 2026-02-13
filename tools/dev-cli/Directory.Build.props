@@ -1,5 +1,5 @@
 <Project>
-  <!-- Import repository structure from msbuild (skip tools/ which blocks parent import) -->
+  <!-- Import repository structure from msbuild -->
   <Import Project="$(MSBuildThisFileDirectory)../../msbuild/repository.props" />
   
   <!-- Import tools/ Directory.Build.props for its relaxed analyzer settings -->
@@ -8,10 +8,11 @@
   <PropertyGroup>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);TimeWarp.Nuru.Generated</InterceptorsNamespaces>
+    <AssemblyName>dev</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**/*.cs" Exclude="obj/**/*;bin/**/*" />
+    <Compile Include="**/*.cs" Exclude="obj/**/*;bin/**/*;dev.cs" />
   </ItemGroup>
 
   <ItemGroup>
