@@ -16,7 +16,7 @@
 
   <!-- Define package versions for tools directory (local CPM) -->
   <ItemGroup>
-    <PackageVersion Include="TimeWarp.Nuru" Version="2.1.0-beta.44" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="3.0.0-beta.47" />
   </ItemGroup>
 
   <!-- Clear any inherited analyzer packages -->
