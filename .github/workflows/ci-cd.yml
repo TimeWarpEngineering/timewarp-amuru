@@ -45,8 +45,8 @@ jobs:
 
       - name: Make scripts executable
         run: |
-          chmod +x scripts/build.cs
-          chmod +x scripts/clean.cs
+          chmod +x Scripts/build.cs
+          chmod +x Scripts/clean.cs
           chmod +x tests/timewarp-amuru/multi-file-runners/run-tests.cs
           find tests/timewarp-amuru/single-file-tests -name "*.cs" -type f -exec chmod +x {} \;
 
