@@ -8,6 +8,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Xml.Linq;
 
 string command = args.Length > 0 ? args[0] : "help";
 
@@ -24,6 +25,9 @@ switch (command)
     break;
   case "self-install":
     await SelfInstallCommand(args);
+    break;
+  case "check-version":
+    await CheckVersionCommand(args);
     break;
   case "--capabilities":
     OutputCapabilities();
@@ -43,10 +47,11 @@ void ShowHelp()
   Console.WriteLine("Usage: dev <command>");
   Console.WriteLine("");
   Console.WriteLine("Commands:");
-  Console.WriteLine("  build        Build the TimeWarp.Amuru project");
-  Console.WriteLine("  test         Run the integration test suite");
-  Console.WriteLine("  clean        Clean build artifacts and caches");
-  Console.WriteLine("  self-install AOT compile this CLI to ./bin/dev");
+  Console.WriteLine("  build         Build the TimeWarp.Amuru project");
+  Console.WriteLine("  test          Run the integration test suite");
+  Console.WriteLine("  clean         Clean build artifacts and caches");
+  Console.WriteLine("  self-install  AOT compile this CLI to ./bin/dev");
+  Console.WriteLine("  check-version Check if current version exists on NuGet.org");
   Console.WriteLine("  --capabilities Output JSON for AI agent discovery");
   Console.WriteLine("");
 }
@@ -69,7 +74,8 @@ void OutputCapabilities()
         },
         { "pattern": "test", "description": "Run the integration test suite", "options": [] },
         { "pattern": "clean", "description": "Clean build artifacts and caches", "options": [] },
-        { "pattern": "self-install", "description": "AOT compile this CLI to ./bin/dev", "options": [] }
+        { "pattern": "self-install", "description": "AOT compile this CLI to ./bin/dev", "options": [] },
+        { "pattern": "check-version", "description": "Check if current version exists on NuGet.org", "options": [] }
       ]
     }
     """);
@@ -255,6 +261,117 @@ async Task<int> RunProcessAsync(string fileName, string arguments)
   if (!string.IsNullOrEmpty(error)) Console.Error.WriteLine(error);
 
   return process.ExitCode;
+}
+
+async Task CheckVersionCommand(string[] args)
+{
+  Console.WriteLine("🔍 Checking if version exists on NuGet.org...");
+
+  string scriptDir = GetScriptDirectory();
+  string repoRoot = Path.GetFullPath(Path.Combine(scriptDir, "..", ".."));
+
+  string buildPropsPath = Path.Combine(repoRoot, "Source", "Directory.Build.props");
+
+  if (!File.Exists(buildPropsPath))
+  {
+    Console.WriteLine($"❌ Directory.Build.props not found: {buildPropsPath}");
+    Environment.Exit(2);
+    return;
+  }
+
+  string version;
+  try
+  {
+    XDocument doc = XDocument.Load(buildPropsPath);
+    version = doc.Descendants("Version").FirstOrDefault()?.Value ?? "";
+
+    if (string.IsNullOrWhiteSpace(version))
+    {
+      Console.WriteLine("❌ No <Version> element found in Directory.Build.props");
+      Environment.Exit(2);
+      return;
+    }
+  }
+  catch (Exception ex)
+  {
+    Console.WriteLine($"❌ Error parsing Directory.Build.props: {ex.Message}");
+    Environment.Exit(2);
+    return;
+  }
+
+  Console.WriteLine($"📦 Current version: {version}");
+
+  string arguments = "package search TimeWarp.Amuru --exact-match --prerelease --source https://api.nuget.org/v3/index.json";
+  string output = "";
+  string error = "";
+  int exitCode = 0;
+
+  try
+  {
+    using Process process = new();
+    process.StartInfo = new ProcessStartInfo
+    {
+      FileName = "dotnet",
+      Arguments = arguments,
+      UseShellExecute = false,
+      RedirectStandardOutput = true,
+      RedirectStandardError = true,
+      CreateNoWindow = true
+    };
+
+    process.Start();
+    output = await process.StandardOutput.ReadToEndAsync();
+    error = await process.StandardError.ReadToEndAsync();
+    await process.WaitForExitAsync();
+    exitCode = process.ExitCode;
+  }
+  catch (Exception ex)
+  {
+    Console.WriteLine($"❌ Error running dotnet package search: {ex.Message}");
+    Environment.Exit(2);
+    return;
+  }
+
+  if (exitCode != 0)
+  {
+    Console.WriteLine($"⚠️  dotnet package search failed with exit code {exitCode}");
+    if (!string.IsNullOrEmpty(error))
+    {
+      Console.Error.WriteLine(error);
+    }
+    Environment.Exit(2);
+    return;
+  }
+
+  bool versionExists = output.Contains($"| TimeWarp.Amuru | {version}", StringComparison.OrdinalIgnoreCase) ||
+                       output.Contains($"| {version} |", StringComparison.OrdinalIgnoreCase);
+
+  if (!versionExists)
+  {
+    string[] lines = output.Split('\n');
+    foreach (string line in lines)
+    {
+      if (line.Contains("TimeWarp.Amuru", StringComparison.OrdinalIgnoreCase) &&
+          line.Contains(version, StringComparison.OrdinalIgnoreCase))
+      {
+        versionExists = true;
+        break;
+      }
+    }
+  }
+
+  if (versionExists)
+  {
+    Console.WriteLine($"❌ TimeWarp.Amuru {version} is already published on NuGet.org");
+    Console.WriteLine("   This version cannot be published again.");
+    Environment.Exit(1);
+  }
+  else
+  {
+    Console.WriteLine($"✅ TimeWarp.Amuru {version} is NOT on NuGet.org");
+    Console.WriteLine("   Safe to publish!");
+    Environment.Exit(0);
+  }
 }
 
 string GetScriptDirectory([CallerFilePath] string scriptPath = "")
