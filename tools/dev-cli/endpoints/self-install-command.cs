@@ -22,7 +22,7 @@ public sealed class SelfInstallCommand : ICommand<Unit>
 
       string binDir = Path.Combine(repoRoot, "bin");
       string devPath = Path.Combine(binDir, "dev");
-      string thisScriptPath = Path.Combine(repoRoot, "tools", "dev-cli", "dev.cs");
+      string projectPath = Path.Combine(repoRoot, "tools", "dev-cli", "dev-cli.csproj");
 
       Directory.CreateDirectory(binDir);
 
@@ -31,9 +31,9 @@ public sealed class SelfInstallCommand : ICommand<Unit>
         File.Delete(devPath);
       }
 
-      // AOT publish
-      Console.WriteLine("AOT compiling dev.cs...");
-      int exitCode = await RunProcessAsync("dotnet", $"publish \"{thisScriptPath}\" -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -p:PublishAot=true -o \"{binDir}\"");
+      // Publish as single-file (AOT disabled due to trim warnings in dependencies)
+      Console.WriteLine("Publishing dev-cli...");
+      int exitCode = await RunProcessAsync("dotnet", $"publish \"{projectPath}\" -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o \"{binDir}\"");
 
       if (exitCode != 0)
       {
