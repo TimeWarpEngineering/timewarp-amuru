@@ -3,17 +3,19 @@
 Update the TimeWarp.Nuru package dependency and migrate from the fluent DSL pattern to the new class-based Endpoints API.
 
 ## Current State
-- Current version: 3.0.0-beta.28 (latest)
+- Current version: 2.1.0-beta.44
 - Using fluent DSL with `.Map()` calls
+- Need to upgrade to 3.x series for Endpoints API support
 
 ## Target State
+- Version: 3.0.0-beta.47 (latest as of 2026-02-13)
 - Use class-based Endpoints with `[NuruRoute]` attributes
 - Use `.DiscoverEndpoints()` for source generator discovery
 - Define commands as classes with handler interfaces
 
 ## Checklist
 
-- [ ] Verify current version is 3.0.0-beta.28 or later
+- [ ] Update package version to 3.0.0-beta.47 in Directory.Packages.props
 - [ ] Review current route definitions in source files
 - [ ] Create endpoint classes for each existing route:
   - `[NuruRoute]` attribute for route pattern
