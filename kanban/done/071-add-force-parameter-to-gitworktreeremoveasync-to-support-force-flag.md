@@ -55,3 +55,13 @@ await Shell.Builder("git")
     .WithArguments(args.ToArray())
     // ...
 ```
+
+## Results
+
+- Added `bool force = false` parameter to `WorktreeRemoveAsync` method signature (after `worktreePath`, before `CancellationToken`)
+- Arguments built dynamically using `List<string>` with target-typed new — `--force` inserted between `remove` and `worktreePath` when `force` is true
+- Updated XML documentation: added `<param name="force">` and extended `<example>` block showing force usage
+- Fixed `var dir` → `DirectoryInfo dir = new()` per C# coding conventions
+- Committed in: `7b799ba feat: add force parameter to Git.WorktreeRemoveAsync`
+
+**File changed:** `Source/TimeWarp.Amuru/GitCommands/Git.WorktreeRemove.cs`
