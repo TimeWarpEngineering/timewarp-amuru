@@ -17,6 +17,7 @@ public static partial class Git
   /// The worktree path must be a valid worktree linked to the repository.
   /// </summary>
   /// <param name="worktreePath">The path to the worktree to remove.</param>
+  /// <param name="force">If true, forces removal of the worktree even if it has uncommitted changes.</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>GitWorktreeRemoveResult containing success status and any error message.</returns>
   /// <example>
@@ -25,20 +26,36 @@ public static partial class Git
   /// {
   ///   Console.WriteLine("Worktree removed successfully");
   /// }
+  ///
+  /// // Force removal even with uncommitted changes
+  /// GitWorktreeRemoveResult forceResult = await Git.WorktreeRemoveAsync("/path/to/worktree", force: true);
   /// </example>
-  public static async Task<GitWorktreeRemoveResult> WorktreeRemoveAsync(string worktreePath, CancellationToken cancellationToken = default)
+  public static async Task<GitWorktreeRemoveResult> WorktreeRemoveAsync(string worktreePath, bool force = false, CancellationToken cancellationToken = default)
   {
     // We need to run the command from the main repository, not the worktree
     // First, find the main repository by looking for the git directory reference
     string? mainRepoPath = FindMainRepositoryFromWorktree(worktreePath);
-    
+
     if (string.IsNullOrWhiteSpace(mainRepoPath))
     {
       return new GitWorktreeRemoveResult(false, "Could not determine main repository path from worktree");
     }
 
+    List<string> arguments = new()
+    {
+      "worktree",
+      "remove"
+    };
+
+    if (force)
+    {
+      arguments.Add("--force");
+    }
+
+    arguments.Add(worktreePath);
+
     CommandOutput result = await Shell.Builder("git")
-      .WithArguments("worktree", "remove", worktreePath)
+      .WithArguments(arguments.ToArray())
       .WithWorkingDirectory(mainRepoPath)
       .WithNoValidation()
       .CaptureAsync(cancellationToken);
@@ -61,7 +78,7 @@ public static partial class Git
   private static string? FindMainRepositoryFromWorktree(string worktreePath)
   {
     string gitFilePath = Path.Combine(worktreePath, ".git");
-    
+
     if (!File.Exists(gitFilePath))
     {
       return null;
@@ -77,7 +94,7 @@ public static partial class Git
           string gitdir = line["gitdir: ".Length..].Trim();
           // The gitdir points to something like /path/to/repo.git/worktrees/worktree-name
           // We need to go up to find the main repo
-          var dir = new DirectoryInfo(gitdir);
+          DirectoryInfo dir = new(gitdir);
           // Go up past worktrees and the worktree name directory
           if (dir.Parent?.Parent != null)
           {
