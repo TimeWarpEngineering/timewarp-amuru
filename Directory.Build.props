@@ -1,30 +1,23 @@
-<Project>
+﻿<Project>
   <!-- Import repository structure definitions -->
   <Import Project="$(MSBuildThisFileDirectory)msbuild/repository.props" />
-
   <!-- Repository-specific additions not in repository.props -->
   <PropertyGroup Label="Custom Repository Variables">
     <LocalNuGetFeed>$(PackagesDirectory)</LocalNuGetFeed>
   </PropertyGroup>
-
   <!-- MSBuild and NuGet behavior configuration -->
   <PropertyGroup Label="MSBuild/NuGet Configuration">
     <!-- Enable Central Package Management -->
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-
     <!-- Enable package generation on build -->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-
     <!-- Output packages to our local feed directory -->
     <PackageOutputPath>$(LocalNuGetFeed)</PackageOutputPath>
-
     <!-- Use local packages directory instead of global cache -->
     <RestorePackagesPath>$(LocalNuGetCache)</RestorePackagesPath>
-
     <!-- Suppress .NET preview SDK message -->
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
-
   <!-- Default language and framework settings for all projects -->
   <PropertyGroup Label="Project Defaults">
     <TargetFramework>net10.0</TargetFramework>
@@ -32,35 +25,27 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <!-- Code quality, analyzers, and warning configuration -->
   <PropertyGroup Label="Code Quality and Analysis">
     <!-- Treat all warnings as errors -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningLevel>5</WarningLevel>
-
     <!-- Enable code style enforcement during build -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-
     <!-- Enable all analyzers with latest rules -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisMode>All</AnalysisMode>
     <AnalysisLevel>latest-all</AnalysisLevel>
-
     <!-- Report analyzer diagnostics in build output -->
     <ReportAnalyzer>true</ReportAnalyzer>
-
     <!-- Fail build on analyzer warnings (consistent with TreatWarningsAsErrors) -->
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-
     <!-- Disable CA1303 for console utilities -->
-    <!-- TEMPORARY: Suppress CA1062 and CA1031 - new analyzer rules from updated packages.
+    <!-- TEMPORARY: Suppress CA1062, CA1031, RS0030 - new analyzer rules from updated packages.
          TODO: Remove these suppressions and fix the underlying issues.
          See task 074 checklist for tracking. -->
-    <NoWarn>$(NoWarn);CA1303;CA1062;CA1031</NoWarn>
-
+    <NoWarn>$(NoWarn);CA1303;CA1062;CA1031;RS0030</NoWarn>
   </PropertyGroup>
-
   <!-- Code analyzers applied to all projects -->
   <ItemGroup Label="Code Analyzers">
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
@@ -69,5 +54,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" PrivateAssets="all" />
   </ItemGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
 </Project>

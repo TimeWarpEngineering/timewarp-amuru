@@ -41,8 +41,10 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 
 - [ ] Remove temporary CA1062 suppression from `Directory.Build.props`
 - [ ] Remove temporary CA1031 suppression from `Directory.Build.props`
+- [ ] Remove temporary RS0030 suppression from `Directory.Build.props`
 - [ ] Fix CA1062: Validate parameters are non-null before using them
 - [ ] Fix CA1031: Catch more specific exception types (not general `Exception`)
+- [ ] Fix RS0030: Migrate from `System.Console` to `TimeWarp.Terminal.ITerminal`
 
 ## Notes
 
