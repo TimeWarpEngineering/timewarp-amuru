@@ -17,9 +17,10 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 
 ### Manual Audit Findings
 
-- [ ] Remove `Blockcore.Nostr.Client` from `Directory.Packages.props` (unused, planned for TimeWarp.Kijamii)
-- [ ] Remove `TimeWarp.Multiavatar` from `Directory.Packages.props` (extracted to own repo per task 032)
-- [ ] Verify no other unused packages remain
+- [x] Remove `Blockcore.Nostr.Client` from `Directory.Packages.props` (unused, planned for TimeWarp.Kijamii)
+- [x] Remove `TimeWarp.Multiavatar` from `Directory.Packages.props` (extracted to own repo per task 032)
+- [x] Verify no other unused packages remain
+- [x] Update outdated NuGet packages (TimeWarp.Nuru, analyzers, ModelContextProtocol.Core)
 
 ### File Naming Conventions
 
