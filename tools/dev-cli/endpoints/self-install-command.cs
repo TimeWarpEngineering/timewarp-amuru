@@ -19,9 +19,6 @@ using TimeWarp.Nuru;
 [NuruRoute("self-install", Description = "AOT compile and install dev CLI to ./bin")]
 internal sealed class SelfInstallCommand : ICommand<Unit>
 {
-  [Option("verbose", "v", Description = "Verbose output")]
-  public bool Verbose { get; set; }
-
   internal sealed class Handler : ICommandHandler<SelfInstallCommand, Unit>
   {
     private readonly ITerminal Terminal;
@@ -38,7 +35,9 @@ internal sealed class SelfInstallCommand : ICommand<Unit>
 
       if (repoRoot is null)
       {
-        throw new InvalidOperationException("Could not find git repository root (.git not found)");
+        Terminal.WriteLine("ERROR: Could not find git repository root (.git not found)");
+        Environment.ExitCode = 1;
+        return Unit.Value;
       }
 
       string devCliSource = Path.Combine(repoRoot, "tools", "dev-cli", "dev.cs");
@@ -53,25 +52,23 @@ internal sealed class SelfInstallCommand : ICommand<Unit>
       // Ensure bin directory exists
       Directory.CreateDirectory(outputPath);
 
-      // Build the AOT binary
-      CommandResult publishResult = DotNet.Publish()
-        .WithProject(devCliSource)
-        .WithConfiguration("Release")
-        .WithRuntime(rid)
-        .WithSelfContained()
+      Terminal.WriteLine("Publishing dev CLI...");
+
+      CommandOutput result = await DotNet.Publish(devCliSource)
         .WithOutput(outputPath)
-        .Build();
+        .WithNoValidation()
+        .CaptureAsync();
 
-      if (command.Verbose)
+      if (!result.Success)
       {
-        Terminal.WriteLine($"\nRunning: {publishResult.ToCommandString()}");
-      }
-
-      int exitCode = await publishResult.RunAsync();
-
-      if (exitCode != 0)
-      {
-        throw new InvalidOperationException("AOT compilation failed!");
+        Terminal.WriteLine("=== BUILD FAILED ===");
+        Terminal.WriteLine($"Exit code: {result.ExitCode}");
+        Terminal.WriteLine("=== STDOUT ===");
+        Terminal.WriteLine(result.Stdout);
+        Terminal.WriteLine("=== STDERR ===");
+        Terminal.WriteLine(result.Stderr);
+        Environment.ExitCode = 1;
+        return Unit.Value;
       }
 
       // Verify the binary was created
@@ -81,13 +78,13 @@ internal sealed class SelfInstallCommand : ICommand<Unit>
       if (File.Exists(binaryPath))
       {
         FileInfo info = new(binaryPath);
-        Terminal.WriteLine($"\n✅ AOT binary installed: {binaryPath}");
-        Terminal.WriteLine($"   Size: {info.Length / 1024.0 / 1024.0:F1} MB");
-        Terminal.WriteLine("\nRun 'direnv allow' to add ./bin to PATH, then use: dev <command>");
+        Terminal.WriteLine($"Successfully installed dev CLI to {outputPath}");
+        Terminal.WriteLine($"Size: {info.Length / 1024.0 / 1024.0:F1} MB");
       }
       else
       {
-        throw new InvalidOperationException($"Binary not found at expected location: {binaryPath}");
+        Terminal.WriteLine($"ERROR: Binary not found at {binaryPath}");
+        Environment.ExitCode = 1;
       }
 
       return Unit.Value;

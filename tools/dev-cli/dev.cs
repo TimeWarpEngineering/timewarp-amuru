@@ -5,6 +5,8 @@
 using TimeWarp.Nuru;
 
 NuruApp app = NuruApp.CreateBuilder()
+  .WithName("dev")
+  .WithDescription("Development CLI for timewarp-amuru")
   .DiscoverEndpoints()
   .Build();
 
