@@ -11,9 +11,9 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 - [x] Create `BannedSymbols.txt` in repository root
 - [x] Add banned symbols configuration to `Directory.Build.props`
 - [x] Add banned symbols configuration to `source/Directory.Build.props` (if needed)
-- [ ] Fix dev-cli capabilities JSON parsing failure (upstream bug in TimeWarp.Nuru - trailing commas in JSON)
+- [x] Fix dev-cli capabilities JSON parsing failure (was Nuru JSON trailing comma bug - fixed by updating Nuru)
 - [x] Add `#region Purpose` to source files missing it (7 files in tools/dev-cli)
-- [ ] Run `ganda repo audit` to verify all checks pass (blocked by Nuru JSON bug)
+- [x] Run `ganda repo audit` to verify all checks pass - **ALL 9 CHECKS PASS**
 
 ### Manual Audit Findings
 
@@ -51,7 +51,9 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 ### Current Audit Status (2026-03-16)
 
 ```
-Passed: 8 | Failed: 1
+Passed: 9 | Failed: 0
+
+✅ Repository baseline is compliant.
 
 PASS: baseline-envrc
 PASS: baseline-bin-dev
@@ -61,26 +63,8 @@ PASS: baseline-source-directory-build-props
 PASS: baseline-msbuild-repository-props
 PASS: baseline-directory-packages-props
 PASS: baseline-region-annotations
-FAIL: baseline-dev-cli-capabilities (Nuru JSON trailing comma bug)
+PASS: baseline-dev-cli-capabilities
 ```
-
-### Nuru JSON Bug
-
-`TimeWarp.Nuru 3.0.0-beta.62` outputs invalid JSON with trailing commas in the `--capabilities` output. This is an upstream bug that cannot be fixed in this repository.
-
-Example of invalid output:
-```json
-{
-  "commands": [
-    { "pattern": "build", ... },  // <-- trailing comma
-  ]
-}
-```
-
-**Options:**
-1. File bug on TimeWarp.Nuru repository
-2. Update `ganda repo audit` to use lenient JSON parsing
-3. Skip this check temporarily
 
 ### Unused Packages Analysis
 
