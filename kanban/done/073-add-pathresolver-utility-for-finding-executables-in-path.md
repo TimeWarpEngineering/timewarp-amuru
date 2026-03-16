@@ -124,3 +124,23 @@ string[] extensions = Environment.GetEnvironmentVariable("PATHEXT")?.Split(';')
 
 - GitHub Issue: https://github.com/TimeWarpEngineering/timewarp-amuru/issues/50
 - Consumer: nuru-search (needs to disambiguate multiple CLIs with same name)
+
+## Results
+
+- Created `PathResolver` static class in `Source/TimeWarp.Amuru/Native/PathResolver.cs`
+- Two methods:
+  - `ResolveExecutable(string name)` → `string?` (first match or null)
+  - `ResolveAllExecutables(string name)` → `IReadOnlyList<string>` (all matches in PATH order)
+- Cross-platform support:
+  - Unix: PATH separator `:`, case-sensitive, no extensions
+  - Windows: PATH separator `;`, case-insensitive, PATHEXT extensions
+- Edge cases handled: empty PATH, relative paths, symlinks, path separators in name
+- Added `global using System.Runtime.InteropServices;` to GlobalUsings.cs
+- 8 unit tests in `tests/.../native/path-resolver.cs`
+- All 355 tests passed
+- Committed in: `1f4ff0a feat: add PathResolver utility for finding executables in PATH (closes #50)`
+
+**Files created/modified:**
+- `Source/TimeWarp.Amuru/Native/PathResolver.cs` (new)
+- `Source/TimeWarp.Amuru/GlobalUsings.cs` (added global using)
+- `tests/timewarp-amuru/single-file-tests/native/path-resolver.cs` (new)
