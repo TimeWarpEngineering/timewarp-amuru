@@ -28,7 +28,7 @@ try
         StartInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = "clean ../Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj",
+            Arguments = "clean ../source/TimeWarp.Amuru/TimeWarp.Amuru.csproj",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,

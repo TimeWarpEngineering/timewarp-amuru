@@ -23,7 +23,7 @@ public sealed class BuildCommand : ICommand<Unit>
         Environment.Exit(1);
       }
 
-      string projectPath = Path.Combine(repoRoot, "Source", "TimeWarp.Amuru", "TimeWarp.Amuru.csproj");
+      string projectPath = Path.Combine(repoRoot, "source", "TimeWarp.Amuru", "TimeWarp.Amuru.csproj");
 
       if (!File.Exists(projectPath))
       {

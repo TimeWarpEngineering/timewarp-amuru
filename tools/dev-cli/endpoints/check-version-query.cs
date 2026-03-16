@@ -22,7 +22,7 @@ public sealed class CheckVersionQuery : IQuery<Unit>
         Environment.Exit(2);
       }
 
-      string buildPropsPath = Path.Combine(repoRoot, "Source", "Directory.Build.props");
+      string buildPropsPath = Path.Combine(repoRoot, "source", "Directory.Build.props");
 
       if (!File.Exists(buildPropsPath))
       {

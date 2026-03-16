@@ -24,8 +24,10 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 
 ### File Naming Conventions
 
-- [ ] Audit all files for kebab-case naming compliance
-- [ ] Rename any files not following kebab-case convention
+- [x] Rename `Source/` directory to `source/` (kebab-case)
+- [x] Update all references to `Source/` in code files
+- [ ] Audit remaining files for kebab-case naming compliance
+- [ ] Rename any other files not following kebab-case convention
 - [ ] Update any references to renamed files
 
 ### Verification
@@ -34,6 +36,13 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 - [ ] Run `./Scripts/Build.cs` - build should succeed
 - [ ] Run `./Tests/RunTests.cs` - all tests should pass
 - [ ] Commit changes with message: "chore: clean up audit findings and enforce conventions"
+
+### Analyzer Fixes (Post-Cleanup)
+
+- [ ] Remove temporary CA1062 suppression from `Directory.Build.props`
+- [ ] Remove temporary CA1031 suppression from `Directory.Build.props`
+- [ ] Fix CA1062: Validate parameters are non-null before using them
+- [ ] Fix CA1031: Catch more specific exception types (not general `Exception`)
 
 ## Notes
 
