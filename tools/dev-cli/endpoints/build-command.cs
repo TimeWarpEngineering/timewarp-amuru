@@ -1,3 +1,7 @@
+#region Purpose
+// Build command - builds the TimeWarp.Amuru project
+#endregion
+
 using TimeWarp.Amuru;
 using TimeWarp.Nuru;
 using static DevCli.ProcessHelpers;

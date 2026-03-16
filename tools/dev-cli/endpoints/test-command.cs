@@ -1,3 +1,7 @@
+#region Purpose
+// Test command - runs the integration test suite
+#endregion
+
 using TimeWarp.Amuru;
 using TimeWarp.Nuru;
 using static DevCli.ProcessHelpers;

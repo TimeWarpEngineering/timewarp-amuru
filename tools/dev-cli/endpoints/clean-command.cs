@@ -1,3 +1,7 @@
+#region Purpose
+// Clean command - removes build artifacts and local NuGet caches
+#endregion
+
 using TimeWarp.Amuru;
 using TimeWarp.Nuru;
 using static DevCli.ProcessHelpers;

@@ -1,4 +1,8 @@
 #!/usr/bin/dotnet --
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 
 #:property RestoreNoCache true
 #:property DisableImplicitNuGetFallbackFolder true

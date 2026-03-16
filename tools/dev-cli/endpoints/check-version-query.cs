@@ -1,3 +1,7 @@
+#region Purpose
+// Check-version query - verifies if current version exists on NuGet.org
+#endregion
+
 using System.Diagnostics;
 using System.Xml.Linq;
 using TimeWarp.Amuru;

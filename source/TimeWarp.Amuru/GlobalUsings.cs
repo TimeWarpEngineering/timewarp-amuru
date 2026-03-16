@@ -1,3 +1,7 @@
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 global using CliWrap;
 global using CliWrap.Buffered;
 global using CliWrap.EventStream;

@@ -1,3 +1,7 @@
+#region Purpose
+// Helper methods for running external processes asynchronously
+#endregion
+
 using System.Diagnostics;
 
 namespace DevCli;

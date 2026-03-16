@@ -1,4 +1,8 @@
 #!/usr/bin/dotnet --
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 
 // app.cs
 using System;

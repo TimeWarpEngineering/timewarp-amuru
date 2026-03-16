@@ -1,3 +1,7 @@
+#region Purpose
+// Self-install command - AOT compiles and installs dev CLI to ./bin
+#endregion
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SELF-INSTALL COMMAND
 // ═══════════════════════════════════════════════════════════════════════════════

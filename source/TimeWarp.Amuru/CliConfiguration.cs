@@ -1,3 +1,7 @@
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 namespace TimeWarp.Amuru;
 
 using System.Threading;

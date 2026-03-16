@@ -1,3 +1,7 @@
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 using System;
 using System.Threading.Tasks;
 using CliWrap;

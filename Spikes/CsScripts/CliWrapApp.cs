@@ -1,4 +1,8 @@
 #!/usr/bin/dotnet -- --package CliWrap
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 // FindPs1Files.cs
 using System;
 using System.Threading.Tasks;

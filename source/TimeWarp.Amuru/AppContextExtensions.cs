@@ -1,3 +1,7 @@
+#region Purpose
+// TODO: Add purpose description
+#endregion
+
 namespace TimeWarp.Amuru;
 
 #pragma warning disable CA1034 // Nested types should not be visible
