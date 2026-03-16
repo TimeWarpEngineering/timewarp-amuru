@@ -4,13 +4,11 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- External packages -->
-    <PackageVersion Include="Blockcore.Nostr.Client" Version="2.0.1" />
     <PackageVersion Include="CliWrap" Version="3.10.0" />
     <PackageVersion Include="ModelContextProtocol.Core" Version="0.3.0-preview.4" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="StreamJsonRpc" Version="2.24.84" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
-    <PackageVersion Include="TimeWarp.Multiavatar" Version="1.0.0-beta.13" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.8" />
     <PackageVersion Include="TimeWarp.Nuru" Version="3.0.0-beta.47" />
 
