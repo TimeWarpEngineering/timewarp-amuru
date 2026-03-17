@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
     <PackageReference Include="TimeWarp.Jaribu" />
+    <PackageReference Include="TimeWarp.Terminal" />
     <PackageReference Include="CliWrap" />
     <PackageReference Include="Shouldly" />
   </ItemGroup>
@@ -34,5 +35,6 @@
     <Using Include="TimeWarp.Amuru.Native.Aliases.Bash" Static="true" />
     <Using Include="TimeWarp.Jaribu" />
     <Using Include="TimeWarp.Jaribu.TestRunner" Static="true" />
+    <Using Include="TimeWarp.Terminal" />
   </ItemGroup>
 </Project>
