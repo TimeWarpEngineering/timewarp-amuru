@@ -1,5 +1,5 @@
 #!/usr/bin/dotnet --
-#:project ../../source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:project ../../source/time-warp-amuru/time-warp-amuru.csproj
 #:package StreamJsonRpc
 
 using TimeWarp.Amuru;

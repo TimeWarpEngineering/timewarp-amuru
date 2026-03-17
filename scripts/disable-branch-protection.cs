@@ -1,5 +1,5 @@
 #!/usr/bin/dotnet --
-#:project ../source/TimeWarp.Amuru/TimeWarp.Amuru.csproj
+#:project ../source/time-warp-amuru/time-warp-amuru.csproj
 #:property LangVersion=preview
 #:property EnablePreviewFeatures=true
 
