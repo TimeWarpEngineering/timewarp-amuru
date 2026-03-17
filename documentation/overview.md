@@ -17,7 +17,7 @@ Technical documentation for developers using TimeWarp.Amuru in their projects.
 
 > **Note**: TimeWarp.Ganda CLI tool has moved to a [separate repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
-### [Samples](../Samples/)
+### [Samples](../samples/)
 Working code examples demonstrating library features:
 - `AppContextExtensionsExample.cs` - Using AppContext extensions in scripts
 - `ScriptContextExample.cs` - Directory management with ScriptContext

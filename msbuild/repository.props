@@ -6,7 +6,7 @@
     <SolutionFile>$(RepositoryRoot)timewarp-amuru.slnx</SolutionFile>
     <SourceDirectory>$(RepositoryRoot)source/</SourceDirectory>
     <TestsDirectory>$(RepositoryRoot)Tests/</TestsDirectory>
-    <SamplesDirectory>$(RepositoryRoot)Samples/</SamplesDirectory>
+    <SamplesDirectory>$(RepositoryRoot)samples/</SamplesDirectory>
     <ArtifactsDirectory>$(RepositoryRoot)artifacts/</ArtifactsDirectory>
     <PackagesDirectory>$(ArtifactsDirectory)packages/</PackagesDirectory>
   </PropertyGroup>
