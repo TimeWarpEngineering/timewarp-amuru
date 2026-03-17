@@ -417,9 +417,6 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Local NuGet package cache
-LocalNuGetCache/
-
 # Scratch workspace for experimental scripts
 /Scratch/
 .idea/.idea.TimeWarp.Amuru/.idea/.gitignore

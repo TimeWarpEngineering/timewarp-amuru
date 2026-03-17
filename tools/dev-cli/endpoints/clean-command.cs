@@ -58,22 +58,6 @@ public sealed class CleanCommand : ICommand<Unit>
         Console.WriteLine($"🗑️  Removed bin directory: {binDir}");
       }
 
-      // Clean caches
-      string[] cacheDirs = new[]
-      {
-        Path.Combine(repoRoot, "LocalNuGetCache", "timewarp.amuru"),
-        Path.Combine(repoRoot, "Tests", "LocalNuGetCache", "timewarp.amuru")
-      };
-
-      foreach (string cacheDir in cacheDirs)
-      {
-        if (Directory.Exists(cacheDir))
-        {
-          Directory.Delete(cacheDir, true);
-          Console.WriteLine($"🗑️  Removed cache: {cacheDir}");
-        }
-      }
-
       Console.WriteLine("✅ Cleanup completed!");
 
       return Unit.Value;

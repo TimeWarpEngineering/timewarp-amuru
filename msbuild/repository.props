@@ -9,6 +9,5 @@
     <SamplesDirectory>$(RepositoryRoot)Samples/</SamplesDirectory>
     <ArtifactsDirectory>$(RepositoryRoot)artifacts/</ArtifactsDirectory>
     <PackagesDirectory>$(ArtifactsDirectory)packages/</PackagesDirectory>
-    <LocalNuGetCache>$(RepositoryRoot)LocalNuGetCache/</LocalNuGetCache>
   </PropertyGroup>
 </Project>

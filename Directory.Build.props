@@ -13,8 +13,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <!-- Output packages to our local feed directory -->
     <PackageOutputPath>$(LocalNuGetFeed)</PackageOutputPath>
-    <!-- Use local packages directory instead of global cache -->
-    <RestorePackagesPath>$(LocalNuGetCache)</RestorePackagesPath>
     <!-- Suppress .NET preview SDK message -->
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
