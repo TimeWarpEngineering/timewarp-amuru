@@ -15,24 +15,24 @@ We're refactoring dev-cli to use shared endpoints from TimeWarp.Nuru. The shared
 
 ## Checklist
 
-- [ ] Create `IRepoCleanService` interface
-- [ ] Create `RepoCleanService` implementation
+- [x] Create `IRepoCleanService` interface
+- [x] Create `RepoCleanService` implementation
   - Delete all `obj` directories recursively
   - Delete all `bin` directories recursively except root `./bin`
   - Selectively clean root `./bin` (preserve `dev` and `dev.exe`)
   - Handle locked files with warnings
-- [ ] Create `IRepoCheckVersionService` interface
-- [ ] Create `RepoCheckVersionService` implementation
+- [x] Create `IRepoCheckVersionService` interface
+- [x] Create `RepoCheckVersionService` implementation
   - Two strategies: `git-tag` and `nuget-search`
   - Read version from `source/Directory.Build.props`
   - `git-tag`: Compare against resolved git tag
   - `nuget-search`: Check NuGet for existing published versions
   - Read default strategy from repo config
-- [ ] Move `IRepoConfigService` from ganda
-- [ ] Move `RepoConfigService` from ganda
-- [ ] Move `RepoConfig` models from ganda
-- [ ] Register services in DI
-- [ ] Add unit tests
+- [x] Move `IRepoConfigService` from ganda
+- [x] Move `RepoConfigService` from ganda
+- [x] Move `RepoConfig` models from ganda
+- [x] Register services in DI
+- [x] Add unit tests
 - [ ] Publish new version of TimeWarp.Amuru
 
 ## Notes
@@ -156,3 +156,71 @@ services.AddSingleton<IRepoCheckVersionService, RepoCheckVersionService>();
 
 1. Should we preserve `ganda.jsonc` config file name? → Keep for backward compatibility
 2. Should `RepoCheckVersionService` throw exceptions or return error results? → Return result with error info
+
+## Results
+
+### What was implemented
+
+Added four services to TimeWarp.Amuru for dev-cli shared endpoints:
+
+1. **IRepoCleanService** - Cleans bin/obj directories
+   - Deletes all `obj` directories recursively
+   - Deletes all `bin` directories recursively except root `./bin`
+   - Selectively cleans root `./bin` (preserves `dev`, `dev.exe`)
+   - Handles locked files with warnings
+
+2. **IRepoCheckVersionService** - Version checking with two strategies
+   - `git-tag`: Compare against resolved git tag
+   - `nuget-search`: Check NuGet for existing published versions
+   - Reads version from `source/Directory.Build.props`
+
+3. **IRepoConfigService** - Per-repo configuration
+   - Config path: `.timewarp/ganda.jsonc`
+   - AOT-compatible JSON serialization via source generators
+
+4. **INuGetPackageService** - NuGet package operations
+   - Uses `dotnet package search` CLI command
+   - Returns latest version for a package
+
+### Files Changed
+
+**New Files (source/TimeWarp.Amuru/):**
+- `NuGet/NuGetModels.cs`
+- `NuGet/INuGetPackageService.cs`
+- `NuGet/NuGetPackageService.cs`
+- `Repo/IRepoCleanService.cs`
+- `Repo/RepoCleanService.cs`
+- `Repo/IRepoConfigService.cs`
+- `Repo/RepoConfigService.cs`
+- `Repo/RepoConfig.cs`
+- `Repo/RepoConfigJsonContext.cs`
+- `Repo/IRepoCheckVersionService.cs`
+- `Repo/RepoCheckVersionService.cs`
+
+**New Files (tests/):**
+- `single-file-tests/repo-services/nuget-package-service.cs`
+- `single-file-tests/repo-services/repo-config-service.cs`
+- `single-file-tests/repo-services/repo-clean-service.cs`
+- `single-file-tests/repo-services/repo-check-version-service.cs`
+
+**Updated Files:**
+- `Directory.Packages.props` - Added TimeWarp.Terminal
+- `source/TimeWarp.Amuru/TimeWarp.Amuru.csproj` - Added TimeWarp.Terminal
+- `source/TimeWarp.Amuru/GlobalUsings.cs` - Added System.Xml.Linq, TimeWarp.Terminal
+- `tests/timewarp-amuru/Directory.Build.props` - Added TimeWarp.Terminal
+
+### Key Decisions
+
+1. Services call `Git.FindRoot()` internally - no repoRoot parameter needed
+2. INuGetPackageService moved to Amuru (from ganda)
+3. No DI helper in Amuru - consumers register services directly
+4. Config path uses `.timewarp/ganda.jsonc` for backward compatibility
+5. AOT-compatible JSON serialization via source-generated contexts
+
+### Test Outcomes
+
+All 13 tests passed:
+- repo-config-service.cs: 3/3 ✓
+- nuget-package-service.cs: 4/4 ✓
+- repo-clean-service.cs: 3/3 ✓
+- repo-check-version-service.cs: 3/3 ✓
