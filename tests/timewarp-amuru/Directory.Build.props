@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
+    <ProjectReference Include="$(SourceDirectory)time-warp-amuru/time-warp-amuru.csproj" />
     <PackageReference Include="TimeWarp.Jaribu" />
     <PackageReference Include="TimeWarp.Terminal" />
     <PackageReference Include="CliWrap" />
