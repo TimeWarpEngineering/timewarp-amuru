@@ -1,3 +1,4 @@
+#!/usr/bin/dotnet --
 #region Purpose
 // Dev CLI entry point - discovers and runs Nuru endpoints
 #endregion
