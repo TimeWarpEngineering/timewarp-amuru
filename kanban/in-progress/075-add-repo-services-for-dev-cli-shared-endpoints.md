@@ -87,3 +87,72 @@ public record RepoCheckVersionConfig
 
 - ganda task #117: Refactor dev-cli shared endpoints to TimeWarp.Nuru
 - TimeWarp.Nuru issue: Add shared dev-cli endpoints
+
+## Implementation Plan
+
+### Key Decisions
+
+1. **repoRoot**: Services call `Git.FindRoot()` internally - no parameter needed
+2. **INuGetPackageService**: Move interface and implementation to Amuru
+3. **DI Registration**: No helper in Amuru - consumers register services directly
+
+### File Structure
+
+```
+source/TimeWarp.Amuru/
+├── Repo/
+│   ├── IRepoCleanService.cs           (NEW)
+│   ├── RepoCleanService.cs            (NEW)
+│   ├── IRepoCheckVersionService.cs    (NEW)
+│   ├── RepoCheckVersionService.cs     (NEW)
+│   ├── IRepoConfigService.cs          (NEW)
+│   ├── RepoConfigService.cs           (NEW)
+│   ├── RepoConfig.cs                  (NEW - models)
+│   └── RepoConfigJsonContext.cs       (NEW - source-generated JSON)
+├── NuGet/
+│   ├── INuGetPackageService.cs        (NEW - moved from ganda)
+│   ├── NuGetPackageService.cs         (NEW - moved from ganda)
+│   ├── NuGetModels.cs                 (NEW)
+│   └── NuGetJsonContext.cs            (NEW - source-generated JSON)
+├── GlobalUsings.cs                     (UPDATE)
+└── TimeWarp.Amuru.csproj              (UPDATE)
+```
+
+### Implementation Steps
+
+1. Update project dependencies (add TimeWarp.Terminal)
+2. Update GlobalUsings.cs (add System.Xml.Linq, TimeWarp.Terminal)
+3. Create NuGet service (moved from ganda)
+4. Create IRepoCleanService interface
+5. Create RepoCleanService implementation
+6. Create IRepoConfigService interface
+7. Create RepoConfigService implementation
+8. Create RepoConfig models
+9. Create RepoConfigJsonContext
+10. Create IRepoCheckVersionService interface
+11. Create RepoCheckVersionService implementation
+12. Add tests in `tests/timewarp-amuru/single-file-tests/repo-services/`
+
+### Dependencies
+
+| Service | Dependencies |
+|---------|--------------|
+| `IRepoCleanService` | `ITerminal`, `Git` (static) |
+| `IRepoConfigService` | `Git` (static), `File` I/O |
+| `INuGetPackageService` | `Shell` (static) |
+| `IRepoCheckVersionService` | `ITerminal`, `INuGetPackageService`, `IRepoConfigService`, `Git` (static) |
+
+### Consumer DI Registration
+
+```csharp
+services.AddSingleton<ITerminal>(TimeWarpTerminal.Default);
+services.AddSingleton<INuGetPackageService, NuGetPackageService>();
+services.AddSingleton<IRepoConfigService, RepoConfigService>();
+services.AddSingleton<IRepoCleanService, RepoCleanService>();
+services.AddSingleton<IRepoCheckVersionService, RepoCheckVersionService>();
+```
+
+### Open Questions
+
+1. Should we preserve `ganda.jsonc` config file name? → Keep for backward compatibility
+2. Should `RepoCheckVersionService` throw exceptions or return error results? → Return result with error info
