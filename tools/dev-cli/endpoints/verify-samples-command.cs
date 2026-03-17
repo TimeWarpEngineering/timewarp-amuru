@@ -1,9 +1,12 @@
 #region Purpose
-// Verifies that any code samples in the repository compile
+// Verifies that all code samples in the repository compile
 #endregion
 #region Design
-// Stub command for sample verification
+// Finds all .cs files in samples/ directory and compiles each one
+// Uses dotnet build to verify compilation without running
 #endregion
+
+using static DevCli.ProcessHelpers;
 
 namespace DevCli.Commands;
 
@@ -19,12 +22,65 @@ internal sealed class VerifySamplesCommand : ICommand<Unit>
       Terminal = terminal;
     }
 
-    public ValueTask<Unit> Handle(VerifySamplesCommand command, CancellationToken ct)
+    public async ValueTask<Unit> Handle(VerifySamplesCommand command, CancellationToken ct)
     {
       Terminal.WriteLine("Verifying samples...");
-      // TODO: Implement sample verification logic specific to this repo
-      Terminal.WriteLine("Samples verified successfully!");
-      return ValueTask.FromResult(Value);
+
+      string? repoRoot = Git.FindRoot();
+      if (repoRoot == null)
+      {
+        Terminal.WriteErrorLine("❌ Not in a git repository");
+        Environment.ExitCode = 1;
+        return Value;
+      }
+
+      string samplesDir = Path.Combine(repoRoot, "samples");
+      if (!Directory.Exists(samplesDir))
+      {
+        Terminal.WriteErrorLine($"❌ Samples directory not found: {samplesDir}");
+        Environment.ExitCode = 1;
+        return Value;
+      }
+
+      string[] sampleFiles = Directory.GetFiles(samplesDir, "*.cs", SearchOption.AllDirectories);
+      if (sampleFiles.Length == 0)
+      {
+        Terminal.WriteLine("No sample files found.");
+        return Value;
+      }
+
+      Terminal.WriteLine($"Found {sampleFiles.Length} sample file(s)");
+
+      int failedCount = 0;
+      foreach (string sampleFile in sampleFiles)
+      {
+        string relativePath = Path.GetRelativePath(repoRoot, sampleFile);
+        Terminal.WriteLine($"  Compiling: {relativePath}");
+
+        int exitCode = await RunProcessAsync("dotnet", $"build \"{sampleFile}\" -c Release --verbosity minimal");
+
+        if (exitCode != 0)
+        {
+          Terminal.WriteErrorLine($"    ❌ Failed: {relativePath}");
+          failedCount++;
+        }
+        else
+        {
+          Terminal.WriteLine($"    ✅ Success: {relativePath}");
+        }
+      }
+
+      if (failedCount > 0)
+      {
+        Terminal.WriteErrorLine($"\n❌ {failedCount} sample(s) failed to compile");
+        Environment.ExitCode = 1;
+      }
+      else
+      {
+        Terminal.WriteLine($"\n✅ All {sampleFiles.Length} sample(s) verified successfully!");
+      }
+
+      return Value;
     }
   }
 }
