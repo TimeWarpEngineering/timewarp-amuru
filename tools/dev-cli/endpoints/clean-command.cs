@@ -25,7 +25,7 @@ public sealed class CleanCommand : ICommand<Unit>
       }
 
       // Clean the project
-      string projectPath = Path.Combine(repoRoot, "source", "time-warp-amuru", "time-warp-amuru.csproj");
+      string projectPath = Path.Combine(repoRoot, "source", "timewarp-amuru", "timewarp-amuru.csproj");
 
       if (File.Exists(projectPath))
       {
