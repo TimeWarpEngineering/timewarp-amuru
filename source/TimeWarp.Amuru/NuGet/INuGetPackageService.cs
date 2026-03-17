@@ -10,7 +10,7 @@ namespace TimeWarp.Amuru;
 public interface INuGetPackageService
 {
   /// <summary>
-  /// Searches for a package on NuGet and returns all available versions.
+  /// Searches for a package on NuGet and returns the latest version.
   /// </summary>
   /// <param name="packageId">The package ID to search for</param>
   /// <param name="cancellationToken">Cancellation token</param>

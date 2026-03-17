@@ -9,17 +9,6 @@ namespace TimeWarp.Amuru;
 /// </summary>
 public sealed class RepoConfigService : IRepoConfigService
 {
-  private static readonly JsonSerializerOptions ReadOptions = new()
-  {
-    ReadCommentHandling = JsonCommentHandling.Skip,
-    PropertyNameCaseInsensitive = true
-  };
-
-  private static readonly JsonSerializerOptions WriteOptions = new()
-  {
-    WriteIndented = true
-  };
-
   private readonly string ConfigDirectory;
   private RepoConfig? CachedConfig;
 
@@ -52,7 +41,7 @@ public sealed class RepoConfigService : IRepoConfigService
 
     string json = await File.ReadAllTextAsync(ConfigPath, cancellationToken);
 
-    RepoConfig? config = JsonSerializer.Deserialize<RepoConfig>(json, ReadOptions);
+    RepoConfig? config = JsonSerializer.Deserialize(json, RepoConfigJsonContext.Default.RepoConfig);
     CachedConfig = config ?? new RepoConfig();
     return CachedConfig;
   }
@@ -66,7 +55,7 @@ public sealed class RepoConfigService : IRepoConfigService
       Directory.CreateDirectory(ConfigDirectory);
     }
 
-    string json = JsonSerializer.Serialize(config, WriteOptions);
+    string json = JsonSerializer.Serialize(config, RepoConfigJsonContext.Default.RepoConfig);
     await File.WriteAllTextAsync(ConfigPath, json, cancellationToken);
     CachedConfig = config;
   }
