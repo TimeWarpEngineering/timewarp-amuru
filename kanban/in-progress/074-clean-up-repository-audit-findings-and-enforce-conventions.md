@@ -21,6 +21,8 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 - [x] Remove `TimeWarp.Multiavatar` from `Directory.Packages.props` (extracted to own repo per task 032)
 - [x] Verify no other unused packages remain
 - [x] Update outdated NuGet packages (TimeWarp.Nuru, analyzers, ModelContextProtocol.Core)
+- [x] Fix Jaribu/Terminal binary compatibility issue (updated Jaribu to 1.0.0-beta.12)
+- [x] Delete `scripts/` directory (branch protection utilities no longer needed)
 
 ### File Naming Conventions
 
@@ -33,8 +35,8 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 ### Verification
 
 - [x] Run `ganda repo audit` - all checks should pass - **ALL 9 CHECKS PASS**
-- [x] Run `./Scripts/Build.cs` - build should succeed - **0 warnings, 0 errors**
-- [x] Run `./Tests/RunTests.cs` - all tests should pass - **355 passed, 1 skipped**
+- [x] Run `./bin/dev build` - build should succeed - **0 warnings, 0 errors**
+- [x] Run `./bin/dev test` - all tests should pass - **355 passed, 1 skipped**
 
 ### Analyzer Fixes (Post-Cleanup)
 
@@ -85,6 +87,16 @@ This repository uses **kebab-case** for file naming:
 
 - Task 032: Extract TimeWarp.Multiavatar to Own Repository (done)
 - Task 033: Extract Kijamii to Own Repo (to-do) - mentions removing Blockcore.Nostr.Client
+
+### Jaribu/Terminal Compatibility Fix
+
+**Issue:** `dev test` crashed with `MissingMethodException` for `TerminalTableExtensions.WriteTable`.
+
+**Root Cause:** `TimeWarp.Jaribu 1.0.0-beta.8` expected `void WriteTable(...)` but `TimeWarp.Terminal 1.0.0-beta.7` returns `ITerminal`.
+
+**Fix:** Updated `TimeWarp.Jaribu` to `1.0.0-beta.12` which is binary-compatible.
+
+**Diagnosis:** `.agent/workspace/2026-03-18T01-25-00_diagnosis-dev-test-missingmethod-timewarp-terminal.md`
 
 ### BannedSymbols.txt Template
 
