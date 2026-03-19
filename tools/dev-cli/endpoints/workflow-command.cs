@@ -16,8 +16,8 @@ using DevCli.Endpoints;
 
 namespace DevCli.Commands;
 
-[NuruRoute("ci", Description = "Run full CI/CD pipeline")]
-internal sealed class CiCommand : ICommand<Unit>
+[NuruRoute("workflow", Description = "Run full CI/CD pipeline")]
+internal sealed class WorkflowCommand : ICommand<Unit>
 {
   [Option("mode", "m", Description = "CI mode: pr, merge, or release (auto-detected from GITHUB_EVENT_NAME if not specified)")]
   public string? Mode { get; set; }
@@ -25,7 +25,7 @@ internal sealed class CiCommand : ICommand<Unit>
   [Option("api-key", Description = "NuGet API key for publishing (from OIDC Trusted Publishing)")]
   public string? ApiKey { get; set; }
 
-  internal sealed class Handler : ICommandHandler<CiCommand, Unit>
+  internal sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
   {
     private readonly ITerminal Terminal;
 
@@ -34,7 +34,7 @@ internal sealed class CiCommand : ICommand<Unit>
       Terminal = terminal;
     }
 
-    public async ValueTask<Unit> Handle(CiCommand command, CancellationToken ct)
+    public async ValueTask<Unit> Handle(WorkflowCommand command, CancellationToken ct)
     {
       CiMode mode = DetermineMode(command.Mode);
 
