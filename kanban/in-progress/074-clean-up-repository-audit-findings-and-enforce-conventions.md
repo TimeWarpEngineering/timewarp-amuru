@@ -28,9 +28,22 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 
 - [x] Rename `Source/` directory to `source/` (kebab-case)
 - [x] Update all references to `Source/` in code files
-- [ ] Audit remaining files for kebab-case naming compliance
-- [ ] Rename any other files not following kebab-case convention
-- [ ] Update any references to renamed files
+- [x] Audit remaining files for kebab-case naming compliance
+- [x] Rename any other files not following kebab-case convention
+- [x] Update any references to renamed files
+
+**Files renamed to kebab-case:**
+- `LICENSE` → `license`
+- `Overview.md` → `overview.md`
+- `CommandExtensions.md` → `command-extensions.md`
+- `CommandResult.md` → `command-result.md`
+- `DotNet.md` → `dot-net.md`
+- `timeWarp-ecosystem-architecture.md` → `timewarp-ecosystem-architecture.md`
+- `Multiavatar-timewarp-flow.png` → `multiavatar-timewarp-flow.png`
+- `Multiavatar-timewarp-flow.svg` → `multiavatar-timewarp-flow.svg`
+- `Multiavatar-timewarp-flow-white.png` → `multiavatar-timewarp-flow-white.png`
+- Deleted `scripts/` directory
+- Deleted `update-api-methods.sh` (obsolete migration script)
 
 ### Verification
 
