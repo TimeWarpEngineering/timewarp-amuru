@@ -22,7 +22,11 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 - [x] Verify no other unused packages remain
 - [x] Update outdated NuGet packages (TimeWarp.Nuru, analyzers, ModelContextProtocol.Core)
 - [x] Fix Jaribu/Terminal binary compatibility issue (updated Jaribu to 1.0.0-beta.12)
+- [x] Update TimeWarp.Terminal to 1.0.0-beta.10
 - [x] Delete `scripts/` directory (branch protection utilities no longer needed)
+- [x] Delete `update-api-methods.sh` (obsolete migration script)
+- [x] Rename `ci` command to `workflow` command (match required dev-cli commands)
+- [x] Rename `ci-cd.yml` to `workflow.yml`
 
 ### File Naming Conventions
 
@@ -62,22 +66,27 @@ Address all failing checks from `ganda repo audit` and perform manual audits to 
 
 ## Notes
 
-### Current Audit Status (2026-03-16)
+### Current Audit Status (2026-03-18)
 
 ```
-Passed: 9 | Failed: 0
+Passed: 14 | Failed: 0
 
 ✅ Repository baseline is compliant.
 
-PASS: baseline-envrc
-PASS: baseline-bin-dev
-PASS: baseline-banned-symbols
-PASS: baseline-banned-api-analyzers
-PASS: baseline-source-directory-build-props
-PASS: baseline-msbuild-repository-props
-PASS: baseline-directory-packages-props
-PASS: baseline-region-annotations
-PASS: baseline-dev-cli-capabilities
+PASS: envrc
+PASS: bin-dev
+PASS: banned-symbols
+PASS: banned-api-analyzers
+PASS: source-directory-build-props
+PASS: msbuild-repository-props
+PASS: directory-packages-props
+PASS: region-annotations
+PASS: dev-cli-capabilities
+PASS: cpm-consistency
+PASS: runfile-project-directives
+PASS: repository-root-resolution
+PASS: assembly-metadata
+PASS: workflow-file
 ```
 
 ### Unused Packages Analysis
