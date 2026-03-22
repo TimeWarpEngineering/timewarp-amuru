@@ -484,8 +484,8 @@ See our [Architectural Decision Records](Documentation/Conceptual/ArchitecturalD
 ## Documentation
 
 - **[Migration Guide](Analysis/MigrationGuide.md)** - Guide for migrating from older versions
-- **[CommandExtensions.md](Source/TimeWarp.Amuru/CommandExtensions.md)** - Static API documentation
-- **[CommandResult.md](Source/TimeWarp.Amuru/CommandResult.md)** - Fluent interface documentation
+- **[command-extensions.md](source/timewarp-amuru/command-extensions.md)** - Static API documentation
+- **[command-result.md](source/timewarp-amuru/command-result.md)** - Fluent interface documentation
 - **[Architectural Decisions](Documentation/Conceptual/ArchitecturalDecisionRecords/Overview.md)** - Design rationale and decisions
 
 ## Example Scripts

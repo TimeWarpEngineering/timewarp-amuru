@@ -1,8 +1,0 @@
-<Solution>
-  <Folder Name="/Source/">
-    <Project Path="Source/TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
-  </Folder>
-  <Folder Name="/Tools/">
-    <Project Path="tools/dev-cli/dev-cli.csproj" />
-  </Folder>
-</Solution>

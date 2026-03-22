@@ -54,7 +54,7 @@
 
   <ItemGroup>
     <!-- Project references -->
-    <ProjectReference Include="$(SourceDirectory)TimeWarp.Amuru/TimeWarp.Amuru.csproj" />
+    <ProjectReference Include="$(SourceDirectory)timewarp-amuru/timewarp-amuru.csproj" />
   </ItemGroup>
 
   <ItemGroup>

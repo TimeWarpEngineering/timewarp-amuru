@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>TimeWarp.Amuru</PackageId>
+    <Description>Fluent API for elegant C# scripting with pipeline support</Description>
+    <PackageTags>cli;scripting;fluent;shell;pipeline;amuru</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CliWrap" />
+    <PackageReference Include="StreamJsonRpc" />
+    <PackageReference Include="TimeWarp.Terminal" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

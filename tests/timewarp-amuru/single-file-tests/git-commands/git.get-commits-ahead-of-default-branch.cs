@@ -31,7 +31,7 @@ namespace Git_
       if (Environment.GetEnvironmentVariable("CI") is not null ||
           Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null)
       {
-        Console.WriteLine("Skipping real repository test in CI environment");
+        await TimeWarpTerminal.Default.WriteLineAsync("Skipping real repository test in CI environment");
         return;
       }
 
