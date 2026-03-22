@@ -15,12 +15,12 @@ public sealed class TestCommand : ICommand<Unit>
   {
     public async ValueTask<Unit> Handle(TestCommand command, CancellationToken cancellationToken)
     {
-      Console.WriteLine("🧪 Running TimeWarp.Amuru Test Suite...");
+      await TimeWarpTerminal.Default.WriteLineAsync("🧪 Running TimeWarp.Amuru Test Suite...");
 
       string? repoRoot = Git.FindRoot();
       if (repoRoot == null)
       {
-        Console.WriteLine("❌ Not in a git repository");
+        await TimeWarpTerminal.Default.WriteLineAsync("❌ Not in a git repository");
         Environment.Exit(1);
       }
 
@@ -29,11 +29,11 @@ public sealed class TestCommand : ICommand<Unit>
 
       if (!File.Exists(runTestsPath))
       {
-        Console.WriteLine($"❌ run-tests.cs not found: {runTestsPath}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"❌ run-tests.cs not found: {runTestsPath}");
         Environment.Exit(1);
       }
 
-      Console.WriteLine($"Working from: {testsDir}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"Working from: {testsDir}");
 
       string originalDirectory = Directory.GetCurrentDirectory();
       try
@@ -43,11 +43,11 @@ public sealed class TestCommand : ICommand<Unit>
 
         if (exitCode != 0)
         {
-          Console.WriteLine($"❌ Tests failed with exit code {exitCode}");
+          await TimeWarpTerminal.Default.WriteLineAsync($"❌ Tests failed with exit code {exitCode}");
           Environment.Exit(1);
         }
 
-        Console.WriteLine("✅ All tests passed!");
+        await TimeWarpTerminal.Default.WriteLineAsync("✅ All tests passed!");
       }
       finally
       {

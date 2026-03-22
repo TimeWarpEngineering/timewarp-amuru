@@ -18,12 +18,12 @@ public sealed class BuildCommand : ICommand<Unit>
       bool verbose = false;
       string verbosity = verbose ? "normal" : "minimal";
 
-      Console.WriteLine("Building TimeWarp.Amuru...");
+      await TimeWarpTerminal.Default.WriteLineAsync("Building TimeWarp.Amuru...");
 
       string? repoRoot = Git.FindRoot();
       if (repoRoot == null)
       {
-        Console.WriteLine("❌ Not in a git repository");
+        await TimeWarpTerminal.Default.WriteLineAsync("❌ Not in a git repository");
         Environment.Exit(1);
       }
 
@@ -31,7 +31,7 @@ public sealed class BuildCommand : ICommand<Unit>
 
       if (!File.Exists(projectPath))
       {
-        Console.WriteLine($"❌ Project not found: {projectPath}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"❌ Project not found: {projectPath}");
         Environment.Exit(1);
       }
 
@@ -39,11 +39,11 @@ public sealed class BuildCommand : ICommand<Unit>
 
       if (exitCode != 0)
       {
-        Console.WriteLine($"❌ Build failed with exit code {exitCode}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"❌ Build failed with exit code {exitCode}");
         Environment.Exit(1);
       }
 
-      Console.WriteLine("✅ Build completed successfully!");
+      await TimeWarpTerminal.Default.WriteLineAsync("✅ Build completed successfully!");
 
       return Unit.Value;
     }

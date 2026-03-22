@@ -26,8 +26,8 @@ public static class ProcessHelpers
     string error = await process.StandardError.ReadToEndAsync();
     await process.WaitForExitAsync();
 
-    if (!string.IsNullOrEmpty(output)) Console.WriteLine(output);
-    if (!string.IsNullOrEmpty(error)) Console.Error.WriteLine(error);
+    if (!string.IsNullOrEmpty(output)) await TimeWarpTerminal.Default.WriteLineAsync(output);
+    if (!string.IsNullOrEmpty(error)) await TimeWarpTerminal.Default.WriteErrorLineAsync(error);
 
     return process.ExitCode;
   }

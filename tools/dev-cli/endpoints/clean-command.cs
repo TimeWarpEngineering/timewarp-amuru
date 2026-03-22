@@ -15,12 +15,12 @@ public sealed class CleanCommand : ICommand<Unit>
   {
     public async ValueTask<Unit> Handle(CleanCommand command, CancellationToken cancellationToken)
     {
-      Console.WriteLine("🧹 Cleaning build artifacts...");
+      await TimeWarpTerminal.Default.WriteLineAsync("🧹 Cleaning build artifacts...");
 
       string? repoRoot = Git.FindRoot();
       if (repoRoot == null)
       {
-        Console.WriteLine("❌ Not in a git repository");
+        await TimeWarpTerminal.Default.WriteLineAsync("❌ Not in a git repository");
         Environment.Exit(1);
       }
 
@@ -29,7 +29,7 @@ public sealed class CleanCommand : ICommand<Unit>
 
       if (File.Exists(projectPath))
       {
-        Console.WriteLine("Cleaning project...");
+        await TimeWarpTerminal.Default.WriteLineAsync("Cleaning project...");
         await RunProcessAsync("dotnet", $"clean \"{projectPath}\"");
       }
 
@@ -40,13 +40,13 @@ public sealed class CleanCommand : ICommand<Unit>
         foreach (string dir in Directory.GetDirectories(localFeedPath, "timewarp.amuru", SearchOption.AllDirectories))
         {
           Directory.Delete(dir, true);
-          Console.WriteLine($"🗑️  Removed: {dir}");
+          await TimeWarpTerminal.Default.WriteLineAsync($"🗑️  Removed: {dir}");
         }
 
         foreach (string file in Directory.GetFiles(localFeedPath, "TimeWarp.Amuru.*.nupkg", SearchOption.AllDirectories))
         {
           File.Delete(file);
-          Console.WriteLine($"🗑️  Removed: {file}");
+          await TimeWarpTerminal.Default.WriteLineAsync($"🗑️  Removed: {file}");
         }
       }
 
@@ -55,10 +55,10 @@ public sealed class CleanCommand : ICommand<Unit>
       if (Directory.Exists(binDir))
       {
         Directory.Delete(binDir, true);
-        Console.WriteLine($"🗑️  Removed bin directory: {binDir}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"🗑️  Removed bin directory: {binDir}");
       }
 
-      Console.WriteLine("✅ Cleanup completed!");
+      await TimeWarpTerminal.Default.WriteLineAsync("✅ Cleanup completed!");
 
       return Unit.Value;
     }
