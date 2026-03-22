@@ -53,10 +53,10 @@ public class CommandResult
       );
     }
     
-    // Open console streams
-    await using Stream stdIn = Console.OpenStandardInput();
-    await using Stream stdOut = Console.OpenStandardOutput();
-    await using Stream stdErr = Console.OpenStandardError();
+    // Open console streams for interactive piping
+    await using Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
+    await using Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
+    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
     
     // Configure command with console pipes
     Command interactiveCommand = Command
@@ -189,7 +189,7 @@ public class CommandResult
     
     // Use StringBuilder to capture output
     StringBuilder outputBuilder = new();
-    await using Stream stdErr = Console.OpenStandardError();
+    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
     
     // Configure command:
     // - stdout is captured (for the result)
@@ -296,25 +296,25 @@ public class CommandResult
           throw setupData.Exception;
         }
         
-        // Write mock output to console to simulate RunAsync behavior
+        // Write mock output to terminal to simulate RunAsync behavior
         if (!string.IsNullOrEmpty(setupData.Stdout))
         {
-          await Console.Out.WriteLineAsync(setupData.Stdout);
+          await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
         }
         
         if (!string.IsNullOrEmpty(setupData.Stderr))
         {
-          await Console.Error.WriteLineAsync(setupData.Stderr);
+          await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
         }
         
         return setupData.ExitCode;
       }
     }
 
-    // Stream to console using CliWrap's pipe targets
+    // Stream to terminal using CliWrap's pipe targets
     Command consoleCommand = Command
-      .WithStandardOutputPipe(PipeTarget.ToDelegate(Console.WriteLine))
-      .WithStandardErrorPipe(PipeTarget.ToDelegate(Console.Error.WriteLine));
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
     CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken);
     return result.ExitCode;
@@ -353,15 +353,15 @@ public class CommandResult
           throw setupData.Exception;
         }
         
-        // Write to console for RunAndCapture behavior
+        // Write to terminal for RunAndCapture behavior
         if (!string.IsNullOrEmpty(setupData.Stdout))
         {
-          await Console.Out.WriteLineAsync(setupData.Stdout);
+          await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
         }
         
         if (!string.IsNullOrEmpty(setupData.Stderr))
         {
-          await Console.Error.WriteLineAsync(setupData.Stderr);
+          await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
         }
         
         return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
@@ -372,14 +372,14 @@ public class CommandResult
     StringBuilder stdOutBuilder = new();
     StringBuilder stdErrBuilder = new();
     
-    // Create pipe targets that both stream to console AND capture
+    // Create pipe targets that both stream to terminal AND capture
     var stdOutTarget = PipeTarget.Merge(
-      PipeTarget.ToDelegate(Console.WriteLine),
+      PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)),
       PipeTarget.ToStringBuilder(stdOutBuilder)
     );
     
     var stdErrTarget = PipeTarget.Merge(
-      PipeTarget.ToDelegate(Console.Error.WriteLine),
+      PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)),
       PipeTarget.ToStringBuilder(stdErrBuilder)
     );
     

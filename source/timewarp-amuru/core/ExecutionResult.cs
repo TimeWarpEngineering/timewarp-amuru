@@ -62,24 +62,21 @@ public class ExecutionResult
   }
   
   /// <summary>
-  /// Writes the execution result to the console with appropriate formatting and colors.
+  /// Writes the execution result to the terminal with appropriate formatting and colors.
   /// </summary>
   public void WriteToConsole()
   {
-    Console.ForegroundColor = IsSuccess ? ConsoleColor.Green : ConsoleColor.Red;
-    Console.WriteLine($"[{(IsSuccess ? "SUCCESS" : "FAILED")}] Exit Code: {ExitCode}");
-    Console.ResetColor();
+    string status = IsSuccess ? "SUCCESS".Green() : "FAILED".Red();
+    TimeWarpTerminal.Default.WriteLine($"[{status}] Exit Code: {ExitCode}");
     
     if (!string.IsNullOrEmpty(StandardOutput))
     {
-      Console.WriteLine(StandardOutput);
+      TimeWarpTerminal.Default.WriteLine(StandardOutput);
     }
     
     if (!string.IsNullOrEmpty(StandardError))
     {
-      Console.ForegroundColor = ConsoleColor.Yellow;
-      Console.Error.WriteLine(StandardError);
-      Console.ResetColor();
+      TimeWarpTerminal.Default.WriteErrorLine(StandardError.Yellow());
     }
   }
 }

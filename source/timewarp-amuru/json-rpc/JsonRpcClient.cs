@@ -92,7 +92,7 @@ internal sealed class JsonRpcClient : IJsonRpcClient
     string? line;
     while (!cancellationToken.IsCancellationRequested && (line = await reader.ReadLineAsync(cancellationToken)) != null)
     {
-      await Console.Error.WriteLineAsync($"[MCP stderr]: {line}");
+      await TimeWarpTerminal.Default.WriteErrorLineAsync($"[MCP stderr]: {line}");
     }
   }
 

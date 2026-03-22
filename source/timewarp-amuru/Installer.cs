@@ -5,7 +5,6 @@
 namespace TimeWarp.Amuru;
 
 using System.Reflection;
-using static System.Console;
 
 /// <summary>
 /// Provides utility installation functionality for TimeWarp command-line tools
@@ -31,8 +30,8 @@ public static class Installer
     // Get the version of the current assembly
     string version = GetCurrentVersion();
 
-    WriteLine($"Installing TimeWarp utilities v{version}...");
-    WriteLine();
+    await TimeWarpTerminal.Default.WriteLineAsync($"Installing TimeWarp utilities v{version}...");
+    await TimeWarpTerminal.Default.WriteLineAsync();
 
     // Determine platform
     string platform = GetPlatform();
@@ -45,16 +44,16 @@ public static class Installer
     if (!Directory.Exists(installDir))
     {
       Directory.CreateDirectory(installDir);
-      WriteLine($"Created installation directory: {installDir}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"Created installation directory: {installDir}");
     }
 
     // Check for gh CLI availability
     bool hasGhCli = await CheckGhCliAsync();
     if (!hasGhCli)
     {
-      WriteLine("⚠️  GitHub CLI (gh) not found. Attestation verification will be skipped.");
-      WriteLine("   For enhanced security, install gh: https://cli.github.com");
-      WriteLine();
+      await TimeWarpTerminal.Default.WriteLineAsync("⚠️  GitHub CLI (gh) not found. Attestation verification will be skipped.");
+      await TimeWarpTerminal.Default.WriteLineAsync("   For enhanced security, install gh: https://cli.github.com");
+      await TimeWarpTerminal.Default.WriteLineAsync();
     }
 
     try
@@ -63,36 +62,36 @@ public static class Installer
       string archiveUrl = $"https://github.com/{GitHubOwner}/{GitHubRepo}/releases/download/v{version}/timewarp-utilities-{platform}{archiveExt}";
       string archivePath = Path.Combine(Path.GetTempPath(), $"timewarp-utilities-{platform}{archiveExt}");
 
-      WriteLine("Downloading utilities from GitHub releases...");
-      WriteLine($"  URL: {archiveUrl}");
+      await TimeWarpTerminal.Default.WriteLineAsync("Downloading utilities from GitHub releases...");
+      await TimeWarpTerminal.Default.WriteLineAsync($"  URL: {archiveUrl}");
 
       await DownloadFileAsync(archiveUrl, archivePath);
-      WriteLine($"✓ Downloaded to {archivePath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"✓ Downloaded to {archivePath}");
 
       // Verify with gh attestation if available
       if (hasGhCli)
       {
-        WriteLine("Verifying attestation with GitHub CLI...");
+        await TimeWarpTerminal.Default.WriteLineAsync("Verifying attestation with GitHub CLI...");
         bool verified = await VerifyAttestationAsync(archivePath);
         if (!verified)
         {
-          WriteLine("⚠️  Attestation verification failed.");
-          Write("Continue without verification? [y/N]: ");
-          string? response = ReadLine();
+          await TimeWarpTerminal.Default.WriteLineAsync("⚠️  Attestation verification failed.");
+          TimeWarpTerminal.Default.Write("Continue without verification? [y/N]: ");
+          string? response = TimeWarpTerminal.Default.ReadLine();
           if (response?.ToLowerInvariant() != "y")
           {
-            WriteLine("Installation cancelled.");
+            await TimeWarpTerminal.Default.WriteLineAsync("Installation cancelled.");
             return 1;
           }
         }
         else
         {
-          WriteLine("✓ Attestation verified successfully");
+          await TimeWarpTerminal.Default.WriteLineAsync("✓ Attestation verified successfully");
         }
       }
 
       // Extract archive
-      WriteLine("Extracting utilities...");
+      await TimeWarpTerminal.Default.WriteLineAsync("Extracting utilities...");
       await ExtractArchiveAsync(archivePath, installDir);
 
       // Discover all executables in the extracted archive
@@ -114,10 +113,10 @@ public static class Installer
 
         if (missingUtilities.Length > 0)
         {
-          WriteLine($"⚠️  Warning: The following utilities were not found in the archive:");
+          await TimeWarpTerminal.Default.WriteLineAsync($"⚠️  Warning: The following utilities were not found in the archive:");
           foreach (string missing in missingUtilities)
           {
-            WriteLine($"   - {missing}");
+            await TimeWarpTerminal.Default.WriteLineAsync($"   - {missing}");
           }
         }
 
@@ -162,11 +161,11 @@ public static class Installer
           }
 
           File.Move(sourcePath, destPath);
-          WriteLine($"✓ Installed {utility} to {destPath}");
+          await TimeWarpTerminal.Default.WriteLineAsync($"✓ Installed {utility} to {destPath}");
         }
         else
         {
-          WriteLine($"⚠️  {utility} not found in archive");
+          await TimeWarpTerminal.Default.WriteLineAsync($"⚠️  {utility} not found in archive");
         }
       }
 
@@ -180,27 +179,27 @@ public static class Installer
         await CreateSymlinksAsync(installDir, utilitiesToInstall);
       }
 
-      WriteLine();
-      WriteLine("Installation complete!");
+      await TimeWarpTerminal.Default.WriteLineAsync();
+      await TimeWarpTerminal.Default.WriteLineAsync("Installation complete!");
 
       if (OperatingSystem.IsWindows())
       {
-        WriteLine($"Utilities installed to: {installDir}");
-        WriteLine();
-        WriteLine("To use these utilities, add the following directory to your PATH:");
-        WriteLine($"  {installDir}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"Utilities installed to: {installDir}");
+        await TimeWarpTerminal.Default.WriteLineAsync();
+        await TimeWarpTerminal.Default.WriteLineAsync("To use these utilities, add the following directory to your PATH:");
+        await TimeWarpTerminal.Default.WriteLineAsync($"  {installDir}");
       }
       else
       {
-        WriteLine($"Utilities installed to: {installDir}");
-        WriteLine($"Symlinks created in: {GetSymlinkDirectory()}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"Utilities installed to: {installDir}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"Symlinks created in: {GetSymlinkDirectory()}");
       }
 
       return 0;
     }
     catch (Exception ex)
     {
-      WriteLine($"❌ Installation failed: {ex.Message}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Installation failed: {ex.Message}");
       return 1;
     }
   }
@@ -338,11 +337,11 @@ public static class Installer
     if (!Directory.Exists(symlinkDir))
     {
       Directory.CreateDirectory(symlinkDir);
-      WriteLine($"Created symlink directory: {symlinkDir}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"Created symlink directory: {symlinkDir}");
     }
 
-    WriteLine();
-    WriteLine("Creating symlinks...");
+    await TimeWarpTerminal.Default.WriteLineAsync();
+    await TimeWarpTerminal.Default.WriteLineAsync("Creating symlinks...");
 
     foreach (string utility in utilities)
     {
@@ -369,11 +368,11 @@ public static class Installer
 
       if (result.Success)
       {
-        WriteLine($"✓ Created symlink: {utility}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"✓ Created symlink: {utility}");
       }
       else
       {
-        WriteLine($"⚠️  Failed to create symlink for {utility}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"⚠️  Failed to create symlink for {utility}");
       }
     }
   }

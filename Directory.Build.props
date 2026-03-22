@@ -39,10 +39,7 @@
     <!-- Fail build on analyzer warnings (consistent with TreatWarningsAsErrors) -->
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
     <!-- Disable CA1303 for console utilities -->
-    <!-- TEMPORARY: Suppress RS0030 - new analyzer rules from updated packages.
-         TODO: Remove these suppressions and fix the underlying issues.
-         See task 074 checklist for tracking. -->
-    <NoWarn>$(NoWarn);CA1303;RS0030</NoWarn>
+    <NoWarn>$(NoWarn);CA1303</NoWarn>
   </PropertyGroup>
   <!-- Code analyzers applied to all projects -->
   <ItemGroup Label="Code Analyzers">

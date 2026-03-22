@@ -44,7 +44,7 @@ public static class SshKeyHelper
     // Check if key already exists
     if (File.Exists(privateKeyPath))
     {
-      Console.WriteLine($"SSH key already exists: {privateKeyPath}");
+      TimeWarpTerminal.Default.WriteLine($"SSH key already exists: {privateKeyPath}");
       return true;
     }
 
@@ -66,21 +66,21 @@ public static class SshKeyHelper
 
       if (process.ExitCode == 0)
       {
-        Console.WriteLine($"✅ SSH key pair generated successfully:");
-        Console.WriteLine($"   Private key: {privateKeyPath}");
-        Console.WriteLine($"   Public key: {publicKeyPath}");
+        TimeWarpTerminal.Default.WriteLine($"✅ SSH key pair generated successfully:");
+        TimeWarpTerminal.Default.WriteLine($"   Private key: {privateKeyPath}");
+        TimeWarpTerminal.Default.WriteLine($"   Public key: {publicKeyPath}");
         return true;
       }
       else
       {
-        Console.WriteLine("❌ Failed to generate SSH key pair");
+        TimeWarpTerminal.Default.WriteLine("❌ Failed to generate SSH key pair");
         return false;
       }
 #pragma warning restore CA1416
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"❌ Error generating SSH key pair: {ex.Message}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Error generating SSH key pair: {ex.Message}");
       return false;
     }
   }
@@ -99,7 +99,7 @@ public static class SshKeyHelper
   {
     if (!File.Exists(privateKeyPath))
     {
-      Console.WriteLine($"❌ Private key file not found: {privateKeyPath}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Private key file not found: {privateKeyPath}");
       return null;
     }
 
@@ -127,14 +127,14 @@ public static class SshKeyHelper
       }
       else
       {
-        Console.WriteLine($"❌ Failed to extract public key: {error}");
+        TimeWarpTerminal.Default.WriteLine($"❌ Failed to extract public key: {error}");
         return null;
       }
 #pragma warning restore CA1416
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"❌ Error extracting public key: {ex.Message}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Error extracting public key: {ex.Message}");
       return null;
     }
   }
@@ -153,7 +153,7 @@ public static class SshKeyHelper
   {
     if (!File.Exists(keyPath))
     {
-      Console.WriteLine($"❌ Key file not found: {keyPath}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Key file not found: {keyPath}");
       return false;
     }
 
@@ -175,19 +175,19 @@ public static class SshKeyHelper
 
       if (process.ExitCode == 0)
       {
-        Console.WriteLine($"✅ SSH key is valid: {keyPath}");
+        TimeWarpTerminal.Default.WriteLine($"✅ SSH key is valid: {keyPath}");
         return true;
       }
       else
       {
-        Console.WriteLine($"❌ SSH key is invalid: {keyPath}");
+        TimeWarpTerminal.Default.WriteLine($"❌ SSH key is invalid: {keyPath}");
         return false;
       }
 #pragma warning restore CA1416
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"❌ Error validating SSH key: {ex.Message}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Error validating SSH key: {ex.Message}");
       return false;
     }
   }
@@ -208,7 +208,7 @@ public static class SshKeyHelper
   {
     if (!File.Exists(privateKeyPath))
     {
-      Console.WriteLine($"❌ Private key file not found: {privateKeyPath}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Private key file not found: {privateKeyPath}");
       return false;
     }
 
@@ -247,19 +247,19 @@ public static class SshKeyHelper
 
       if (process.ExitCode == 0)
       {
-        Console.WriteLine($"✅ Passphrase changed successfully for: {privateKeyPath}");
+        TimeWarpTerminal.Default.WriteLine($"✅ Passphrase changed successfully for: {privateKeyPath}");
         return true;
       }
       else
       {
-        Console.WriteLine($"❌ Failed to change passphrase for: {privateKeyPath}");
+        TimeWarpTerminal.Default.WriteLine($"❌ Failed to change passphrase for: {privateKeyPath}");
         return false;
       }
 #pragma warning restore CA1416
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"❌ Error changing passphrase: {ex.Message}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Error changing passphrase: {ex.Message}");
       return false;
     }
   }
@@ -280,7 +280,7 @@ public static class SshKeyHelper
   {
     if (!File.Exists(inputPath))
     {
-      Console.WriteLine($"❌ Input key file not found: {inputPath}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Input key file not found: {inputPath}");
       return false;
     }
 
@@ -304,19 +304,19 @@ public static class SshKeyHelper
       {
         // Copy the converted key to output path
         File.Copy(inputPath, outputPath, true);
-        Console.WriteLine($"✅ Key converted to {targetFormat} format: {outputPath}");
+        TimeWarpTerminal.Default.WriteLine($"✅ Key converted to {targetFormat} format: {outputPath}");
         return true;
       }
       else
       {
-        Console.WriteLine($"❌ Failed to convert key format");
+        TimeWarpTerminal.Default.WriteLine($"❌ Failed to convert key format");
         return false;
       }
 #pragma warning restore CA1416
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"❌ Error converting key format: {ex.Message}");
+      TimeWarpTerminal.Default.WriteLine($"❌ Error converting key format: {ex.Message}");
       return false;
     }
   }

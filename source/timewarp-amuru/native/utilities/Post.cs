@@ -6,12 +6,12 @@ namespace TimeWarp.Amuru.Native.Utilities;
 
 /// <summary>
 /// Utility for posting content to social media platforms.
-/// Supports posting markdown content to Nostr and X (Twitter).
+/// Supports posting markdown content to Nostr and X.
 /// </summary>
 public static class Post
 {
   /// <summary>
-  /// Posts content to all platforms (Nostr and X/Twitter).
+  /// Posts content to all platforms (Nostr and X).
   /// </summary>
   /// <param name="content">The content to post</param>
   /// <returns>True if all posts were successful, false otherwise</returns>
@@ -42,12 +42,12 @@ public static class Post
 
     // This is a placeholder implementation
     // In a real implementation, this would use Nostr libraries or HTTP calls
-    Console.WriteLine($"📡 Would post to Nostr: {content.Substring(0, Math.Min(50, content.Length))}...");
+    TimeWarpTerminal.Default.WriteLine($"📡 Would post to Nostr: {content.Substring(0, Math.Min(50, content.Length))}...");
     return true;
   }
 
   /// <summary>
-  /// Posts content to X (Twitter).
+  /// Posts content to X.
   /// </summary>
   /// <param name="content">The content to post</param>
   /// <returns>True if the post was successful, false otherwise</returns>
@@ -60,7 +60,7 @@ public static class Post
 
     // This is a placeholder implementation
     // In a real implementation, this would use Twitter API v2
-    Console.WriteLine($"🐦 Would post to X: {content.Substring(0, Math.Min(50, content.Length))}...");
+    TimeWarpTerminal.Default.WriteLine($"🐦 Would post to X: {content.Substring(0, Math.Min(50, content.Length))}...");
     return true;
   }
 
@@ -114,7 +114,7 @@ public static class Post
   }
 
   /// <summary>
-  /// Posts content from a markdown file to X (Twitter) only.
+  /// Posts content from a markdown file to X only.
   /// </summary>
   /// <param name="filePath">The path to the markdown file</param>
   /// <returns>True if the post was successful, false otherwise</returns>
