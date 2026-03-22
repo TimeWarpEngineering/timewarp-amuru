@@ -12,8 +12,8 @@ using StreamJsonRpc;
 // Example: Using JSON-RPC with AOT compilation
 // TimeWarp.Amuru requires a formatter for AOT compatibility
 
-Console.WriteLine("JSON-RPC AOT Example");
-Console.WriteLine("====================\n");
+await TimeWarpTerminal.Default.WriteLineAsync("JSON-RPC AOT Example");
+await TimeWarpTerminal.Default.WriteLineAsync("====================\n");
 
 // Step 1: Create JsonSerializerOptions for your protocol
 // For a real application, use JsonSourceGenerationOptions and JsonSerializable attributes
@@ -42,7 +42,7 @@ await using IJsonRpcClient client = await Shell.Builder("your-jsonrpc-server")
     .WithTimeout(TimeSpan.FromSeconds(30))
     .StartAsync();
 
-Console.WriteLine("✓ JSON-RPC client created with AOT-compatible formatter");
+await TimeWarpTerminal.Default.WriteLineAsync("✓ JSON-RPC client created with AOT-compatible formatter");
 
 // Step 4: Use the client
 // var response = await client.SendRequestAsync<MyResponseType>("method", parameters);
@@ -62,8 +62,8 @@ Then use it:
 var formatter = new SystemTextJsonFormatter(MyProtocolJsonContext.Default);
 */
 
-Console.WriteLine("\n📝 Key Points:");
-Console.WriteLine("- Formatter is REQUIRED (no default for AOT compatibility)");
-Console.WriteLine("- Use SystemTextJsonFormatter, not JsonMessageFormatter");
-Console.WriteLine("- For full AOT, use JsonSerializerContext with source generation");
-Console.WriteLine("- Newtonsoft.Json is not supported (not AOT-compatible)");
+await TimeWarpTerminal.Default.WriteLineAsync("\n📝 Key Points:");
+await TimeWarpTerminal.Default.WriteLineAsync("- Formatter is REQUIRED (no default for AOT compatibility)");
+await TimeWarpTerminal.Default.WriteLineAsync("- Use SystemTextJsonFormatter, not JsonMessageFormatter");
+await TimeWarpTerminal.Default.WriteLineAsync("- For full AOT, use JsonSerializerContext with source generation");
+await TimeWarpTerminal.Default.WriteLineAsync("- Newtonsoft.Json is not supported (not AOT-compatible)");
