@@ -6,6 +6,7 @@
 // Example demonstrating AppContext extensions for .NET 10 file-based apps
 
 using TimeWarp.Amuru;
+using TimeWarp.Terminal;
 
 await TimeWarpTerminal.Default.WriteLineAsync("=== AppContext Extensions Example ===\n");
 

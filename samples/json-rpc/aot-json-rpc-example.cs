@@ -3,6 +3,7 @@
 #:package StreamJsonRpc
 
 using TimeWarp.Amuru;
+using TimeWarp.Terminal;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;

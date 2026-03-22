@@ -6,6 +6,7 @@
 // Example demonstrating ScriptContext usage
 
 using TimeWarp.Amuru;
+using TimeWarp.Terminal;
 
 await TimeWarpTerminal.Default.WriteLineAsync("=== ScriptContext Example ===\n");
 
