@@ -17,6 +17,7 @@ public static class FzfExtensions
   /// <returns>A CommandResult with Fzf selection</returns>
   public static CommandResult SelectWithFzf(this CommandResult command, Action<FzfBuilder>? configure = null)
   {
+    ArgumentNullException.ThrowIfNull(command);
     FzfBuilder fzfBuilder = new();
     configure?.Invoke(fzfBuilder);
     

@@ -322,6 +322,7 @@ public class DotNetPublishBuilder : ICommandBuilder<DotNetPublishBuilder>
   /// <returns>The builder instance for method chaining</returns>
   public DotNetPublishBuilder WithProperties(Dictionary<string, string> properties)
   {
+    ArgumentNullException.ThrowIfNull(properties);
     foreach (KeyValuePair<string, string> kvp in properties)
     {
       Properties[kvp.Key] = kvp.Value;

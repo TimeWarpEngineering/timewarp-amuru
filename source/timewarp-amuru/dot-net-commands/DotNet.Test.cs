@@ -269,6 +269,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   /// <returns>The builder instance for method chaining</returns>
   public DotNetTestBuilder WithProperties(Dictionary<string, string> properties)
   {
+    ArgumentNullException.ThrowIfNull(properties);
     foreach (KeyValuePair<string, string> kvp in properties)
     {
       Properties[kvp.Key] = kvp.Value;

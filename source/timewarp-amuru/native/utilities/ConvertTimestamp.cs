@@ -63,6 +63,7 @@ public static class ConvertTimestamp
   /// <returns>The Unix timestamp in seconds</returns>
   public static long ToUnix(DateTime date, TimeZoneInfo timeZone)
   {
+    ArgumentNullException.ThrowIfNull(timeZone);
     var dateTimeOffset = new DateTimeOffset(date, timeZone.GetUtcOffset(date));
     return dateTimeOffset.ToUnixTimeSeconds();
   }

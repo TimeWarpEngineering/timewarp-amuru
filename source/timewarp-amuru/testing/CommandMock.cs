@@ -64,6 +64,8 @@ public static class CommandMock
   /// <exception cref="InvalidOperationException">If the command was not called</exception>
   public static void VerifyCalled(string executable, params string[] arguments)
   {
+    ArgumentNullException.ThrowIfNull(arguments);
+    
     MockState? state = CurrentMockState.Value;
     if (state == null)
     {
