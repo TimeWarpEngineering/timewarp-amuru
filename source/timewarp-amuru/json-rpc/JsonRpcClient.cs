@@ -125,6 +125,11 @@ internal sealed class JsonRpcClient : IJsonRpcClient
   }
 
   /// <inheritdoc />
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "IDisposableAsync teardown path: cleanup failures should be silently ignored to allow disposal to complete."
+  )]
   public async ValueTask DisposeAsync()
   {
     // Dispose JsonRpc first (it will dispose the handler and formatter)

@@ -13,6 +13,11 @@ public static partial class Commands
   /// <param name="recursive">If true, removes directories and their contents recursively</param>
   /// <param name="force">If true, removes read-only files</param>
   /// <returns>CommandOutput indicating success or failure</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI command wrapper: unexpected failures should return error CommandOutput, not throw."
+  )]
   public static CommandOutput RemoveItem(string path, bool recursive = false, bool force = false)
   {
     try

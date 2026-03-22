@@ -20,6 +20,11 @@ public static class Installer
   /// </summary>
   /// <param name="specificUtilities">Optional array of specific utilities to install. If null, installs all from archive.</param>
   /// <returns>Exit code (0 for success, non-zero for error)</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI installer: top-level installation method should report errors and exit gracefully, not throw."
+  )]
   public static async Task<int> InstallUtilitiesAsync(string[]? specificUtilities = null)
   {
 
@@ -235,6 +240,11 @@ public static class Installer
     );
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI installer: gh CLI availability check should return false on any failure, not throw."
+  )]
   private static async Task<bool> CheckGhCliAsync()
   {
     try
@@ -251,6 +261,11 @@ public static class Installer
     }
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI installer: attestation verification should return false on any failure, not throw."
+  )]
   private static async Task<bool> VerifyAttestationAsync(string filePath)
   {
     try
@@ -310,6 +325,11 @@ public static class Installer
     }
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI installer: best-effort symlink creation should ignore errors and continue, not throw."
+  )]
   private static async Task CreateSymlinksAsync(string installDir, string[] utilities)
   {
     string symlinkDir = GetSymlinkDirectory();

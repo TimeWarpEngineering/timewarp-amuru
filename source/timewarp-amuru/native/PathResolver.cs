@@ -140,6 +140,11 @@ public static class PathResolver
       .ToArray();
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "PATH probing should be resilient; malformed or inaccessible path entries are intentionally skipped during executable resolution."
+  )]
   private static string? SearchDirectory(string directory, string name, string[] extensions)
   {
     // Handle relative paths

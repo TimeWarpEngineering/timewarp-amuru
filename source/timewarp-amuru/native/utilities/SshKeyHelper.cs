@@ -21,6 +21,11 @@ public static class SshKeyHelper
   /// <param name="comment">Optional comment for the key</param>
   /// <param name="outputPath">Optional output path (defaults to ~/.ssh)</param>
   /// <returns>True if the key was generated successfully, false otherwise</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return false, not throw."
+  )]
   public static bool GenerateKeyPair(
     string keyType = "ed25519",
     int keySize = 4096,
@@ -85,6 +90,11 @@ public static class SshKeyHelper
   /// </summary>
   /// <param name="privateKeyPath">Path to the private key file</param>
   /// <returns>The public key content, or null if extraction failed</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return null, not throw."
+  )]
   public static string? GetPublicKey(string privateKeyPath)
   {
     if (!File.Exists(privateKeyPath))
@@ -134,6 +144,11 @@ public static class SshKeyHelper
   /// </summary>
   /// <param name="keyPath">Path to the SSH key file</param>
   /// <returns>True if the key is valid, false otherwise</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return false, not throw."
+  )]
   public static bool ValidateKey(string keyPath)
   {
     if (!File.Exists(keyPath))
@@ -184,6 +199,11 @@ public static class SshKeyHelper
   /// <param name="oldPassphrase">The current passphrase (optional)</param>
   /// <param name="newPassphrase">The new passphrase (optional)</param>
   /// <returns>True if the passphrase was changed successfully, false otherwise</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return false, not throw."
+  )]
   public static bool ChangePassphrase(string privateKeyPath, string? oldPassphrase = null, string? newPassphrase = null)
   {
     if (!File.Exists(privateKeyPath))
@@ -251,6 +271,11 @@ public static class SshKeyHelper
   /// <param name="outputPath">Path to the output key file</param>
   /// <param name="targetFormat">Target format (PEM, PKCS8, etc.)</param>
   /// <returns>True if the conversion was successful, false otherwise</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return false, not throw."
+  )]
   public static bool ConvertKeyFormat(string inputPath, string outputPath, string targetFormat = "PEM")
   {
     if (!File.Exists(inputPath))
@@ -319,6 +344,11 @@ public static class SshKeyHelper
   /// </summary>
   /// <param name="keyPath">Path to the SSH key file</param>
   /// <returns>Information about the key, or null if the key is invalid</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: external process (ssh-keygen) execution failures should return null, not throw."
+  )]
   internal static SshKeyInfo? GetKeyInfo(string keyPath)
   {
     if (!File.Exists(keyPath))

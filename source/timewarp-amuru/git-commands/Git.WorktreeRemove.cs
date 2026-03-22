@@ -79,6 +79,11 @@ public static partial class Git
   /// <summary>
   /// Helper method to find the main repository path from a worktree path.
   /// </summary>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI utility: worktree discovery failures should return null, not throw."
+  )]
   private static string? FindMainRepositoryFromWorktree(string worktreePath)
   {
     string gitFilePath = Path.Combine(worktreePath, ".git");

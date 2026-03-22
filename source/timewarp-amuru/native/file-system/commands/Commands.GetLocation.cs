@@ -12,22 +12,11 @@ public static partial class Commands
   /// <returns>CommandOutput with current directory in stdout</returns>
   public static CommandOutput GetLocation()
   {
-    try
-    {
-      return new CommandOutput(
-        Direct.GetLocation(),
-        string.Empty,
-        0
-      );
-    }
-    catch (Exception ex)
-    {
-      return new CommandOutput(
-        string.Empty,
-        $"GetLocation: {ex.Message}",
-        1
-      );
-    }
+    return new CommandOutput(
+      Direct.GetLocation(),
+      string.Empty,
+      0
+    );
   }
 
   /// <summary>

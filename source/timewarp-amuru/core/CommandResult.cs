@@ -92,6 +92,11 @@ public class CommandResult
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI boundary: cancellation/teardown race can throw during process kill; failures are intentionally ignored to preserve graceful shutdown."
+  )]
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
@@ -170,6 +175,11 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The selected value from the interactive command</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI boundary: interactive selection should degrade gracefully and return empty result on unexpected runtime failures."
+  )]
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     if (Command == null)
@@ -202,6 +212,11 @@ public class CommandResult
     return outputBuilder.ToString().TrimEnd('\n', '\r');
   }
   
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI composition boundary: invalid or unavailable pipeline commands intentionally degrade to NullCommandResult instead of throwing."
+  )]
   public CommandResult Pipe
   (
     string executable,

@@ -16,6 +16,11 @@ public static partial class Commands
   /// </summary>
   /// <param name="path">Path to the file to read</param>
   /// <returns>CommandOutput with file content in stdout, or error in stderr</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI command wrapper: unexpected failures should return error CommandOutput, not throw."
+  )]
   public static CommandOutput GetContent(string path)
   {
     try

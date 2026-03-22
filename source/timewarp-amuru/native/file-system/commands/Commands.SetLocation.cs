@@ -11,6 +11,11 @@ public static partial class Commands
   /// </summary>
   /// <param name="path">The new working directory path</param>
   /// <returns>CommandOutput indicating success or failure</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI command wrapper: unexpected failures should return error CommandOutput, not throw."
+  )]
   public static CommandOutput SetLocation(string path)
   {
     try

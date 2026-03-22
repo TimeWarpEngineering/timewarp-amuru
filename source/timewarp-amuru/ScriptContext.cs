@@ -69,6 +69,11 @@ public sealed class ScriptContext : IDisposable
     Current?.Cleanup();
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "Process-exit/unhandled-exception cleanup path is best-effort; failures must not throw during teardown."
+  )]
   private void Cleanup()
   {
     try

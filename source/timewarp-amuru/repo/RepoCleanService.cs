@@ -43,6 +43,11 @@ public sealed class RepoCleanService : IRepoCleanService
     return new CleanResult(objDirectoriesDeleted, binDirectoriesDeleted, rootBinFilesCleaned);
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI cleanup operation: directory enumeration failures should be reported as warnings and allow cleanup to continue."
+  )]
   private int DeleteDirectories(string repoRoot, string directoryName)
   {
     int count = 0;
@@ -76,6 +81,11 @@ public sealed class RepoCleanService : IRepoCleanService
     return count;
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI cleanup operation: directory enumeration failures should be reported as warnings and allow cleanup to continue."
+  )]
   private int DeleteBinDirectories(string repoRoot)
   {
     int count = 0;
@@ -115,6 +125,11 @@ public sealed class RepoCleanService : IRepoCleanService
     return count;
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI cleanup operation: file/directory enumeration failures should be reported as warnings and allow cleanup to continue."
+  )]
   private int CleanRootBinDirectory(string repoRoot)
   {
     string rootBinPath = Path.Combine(repoRoot, "bin");

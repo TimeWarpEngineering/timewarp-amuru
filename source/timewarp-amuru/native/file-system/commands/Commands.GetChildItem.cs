@@ -11,6 +11,11 @@ public static partial class Commands
   /// </summary>
   /// <param name="path">Path to the directory to list</param>
   /// <returns>CommandOutput with directory listing in stdout, or error in stderr</returns>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "CLI command wrapper: unexpected failures should return error CommandOutput, not throw."
+  )]
   public static CommandOutput GetChildItem(string path = ".")
   {
     try

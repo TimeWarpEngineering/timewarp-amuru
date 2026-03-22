@@ -42,7 +42,7 @@
     <!-- TEMPORARY: Suppress CA1062, CA1031, RS0030 - new analyzer rules from updated packages.
          TODO: Remove these suppressions and fix the underlying issues.
          See task 074 checklist for tracking. -->
-    <NoWarn>$(NoWarn);CA1303;CA1062;CA1031;RS0030</NoWarn>
+    <NoWarn>$(NoWarn);CA1303;CA1062;RS0030</NoWarn>
   </PropertyGroup>
   <!-- Code analyzers applied to all projects -->
   <ItemGroup Label="Code Analyzers">
