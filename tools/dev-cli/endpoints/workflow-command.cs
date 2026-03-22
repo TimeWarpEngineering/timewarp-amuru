@@ -152,7 +152,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 3/4: Check Version");
       Terminal.WriteLine("===============================================================================");
-      CheckVersionCommand.Handler checkVersionHandler = new();
+      CheckVersionCommand.Handler checkVersionHandler = new(Terminal);
       await checkVersionHandler.Handle(new CheckVersionCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
