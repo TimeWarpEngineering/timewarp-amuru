@@ -43,6 +43,9 @@ jobs:
         with:
           dotnet-version: '10.0.201'
 
+      - name: Install ganda CLI
+        run: dotnet tool install --global TimeWarp.Ganda --prerelease
+
       - name: NuGet login (OIDC Trusted Publishing)
         if: github.event_name == 'release'
         id: nuget-login
