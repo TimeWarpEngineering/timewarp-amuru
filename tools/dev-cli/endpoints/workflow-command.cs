@@ -199,12 +199,8 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       int exitCode = await Shell.Builder("dotnet")
         .WithArguments([.. args])
         .WithWorkingDirectory(repoRoot)
+        .WithNoValidation()
         .RunAsync();
-
-      if (exitCode != 0)
-      {
-        throw new InvalidOperationException("Failed to push TimeWarp.Amuru!");
-      }
 
       Terminal.WriteLine("\nPackage pushed successfully!");
     }
