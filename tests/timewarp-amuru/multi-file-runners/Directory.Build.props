@@ -18,6 +18,7 @@
     <Compile Include="../single-file-tests/script-support/*.cs" />
     <Compile Include="../single-file-tests/fzf-command/*.cs" />
     <Compile Include="../single-file-tests/native/file-system/*.cs" />
+    <!-- Note: repo-services tests excluded - they require being run from within a git repo -->
     <!-- Note: json-rpc tests excluded - they require ModelContextProtocol.Core package -->
   </ItemGroup>
 

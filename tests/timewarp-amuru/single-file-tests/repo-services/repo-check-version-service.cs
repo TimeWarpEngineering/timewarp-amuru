@@ -4,6 +4,8 @@
 // Tests for RepoCheckVersionService - validates version checking operations
 #endregion
 
+using System.Xml.Linq;
+
 #if !JARIBU_MULTI
 return await RunAllTests();
 #endif
@@ -70,6 +72,80 @@ namespace Repo_Services
       CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
 
       result.Version.ShouldNotBeEmpty();
+    }
+
+    public static async Task CheckAsync_WhenGitTagExists_ShouldReturnIsNewVersionFalse()
+    {
+      string? repoRoot = Git.FindRoot();
+      repoRoot.ShouldNotBeNull();
+
+      string version = ReadVersionFromBuildProps(repoRoot);
+      string expectedTag = $"v{version}";
+
+      using TestTerminal terminal = new();
+      MockNuGetPackageService nuGetService = new();
+      MockRepoConfigService configService = new();
+
+      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "tag", "-l", expectedTag)
+          .Returns(expectedTag);
+
+        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+
+        result.IsNewVersion.ShouldBeFalse();
+        result.Version.ShouldBe(version);
+        result.ResolvedTag.ShouldBe(expectedTag);
+        CommandMock.VerifyCalled("git", "tag", "-l", expectedTag);
+      }
+    }
+
+    public static async Task CheckAsync_WhenGitTagDoesNotExist_ShouldReturnIsNewVersionTrue()
+    {
+      string? repoRoot = Git.FindRoot();
+      repoRoot.ShouldNotBeNull();
+
+      string version = ReadVersionFromBuildProps(repoRoot);
+      string expectedTag = $"v{version}";
+
+      using TestTerminal terminal = new();
+      MockNuGetPackageService nuGetService = new();
+      MockRepoConfigService configService = new();
+
+      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "tag", "-l", expectedTag)
+          .Returns("");
+
+        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+
+        result.IsNewVersion.ShouldBeTrue();
+        result.Version.ShouldBe(version);
+        result.ResolvedTag.ShouldBeNull();
+        CommandMock.VerifyCalled("git", "tag", "-l", expectedTag);
+      }
+    }
+
+    private static string ReadVersionFromBuildProps(string repoRoot)
+    {
+      string propsPath = Path.Combine(repoRoot, "source", "Directory.Build.props");
+      var doc = XDocument.Load(propsPath);
+      XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
+
+      XElement? versionElement = doc.Descendants(ns + "Version").FirstOrDefault();
+      if (versionElement == null)
+      {
+        versionElement = doc.Descendants("Version").FirstOrDefault();
+      }
+
+      string? version = versionElement?.Value;
+      version.ShouldNotBeNull();
+      version.ShouldNotBeEmpty();
+      return version;
     }
 
     private sealed class MockNuGetPackageService : INuGetPackageService

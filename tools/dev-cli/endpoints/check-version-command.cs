@@ -72,15 +72,17 @@ internal sealed class CheckVersionCommand : ICommand<Unit>
 
       if (string.IsNullOrEmpty(gitTag))
       {
-        // Fall back to git describe
+        // Check if the exact tag v{sourceVersion} exists rather than finding the nearest ancestor tag.
+        // git tag -l always returns exit code 0; an empty stdout means the tag does not exist.
+        string expectedTag = $"v{sourceVersion}";
         CommandOutput result = await Shell.Builder("git")
-          .WithArguments("describe", "--tags", "--abbrev=0")
+          .WithArguments("tag", "-l", expectedTag)
           .CaptureAsync(ct);
-        
-        gitTag = result.Stdout.Trim();
-        if (!string.IsNullOrEmpty(gitTag) && gitTag.StartsWith('v'))
+
+        string tagOutput = result.Stdout.Trim();
+        if (!string.IsNullOrEmpty(tagOutput))
         {
-          gitTag = gitTag[1..];
+          gitTag = tagOutput.StartsWith('v') ? tagOutput[1..] : tagOutput;
         }
       }
 

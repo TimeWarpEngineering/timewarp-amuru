@@ -104,13 +104,17 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 
     if (string.IsNullOrEmpty(resolvedTag))
     {
+      // Check if the exact tag v{version} exists rather than finding the nearest ancestor tag.
+      // git tag -l always returns exit code 0; an empty stdout means the tag does not exist.
+      string expectedTag = $"v{version}";
       CommandOutput result = await Shell.Builder("git")
-        .WithArguments("describe", "--tags", "--abbrev=0")
+        .WithArguments("tag", "-l", expectedTag)
         .CaptureAsync(cancellationToken);
 
-      if (result.ExitCode == 0)
+      string tagOutput = result.Stdout.Trim();
+      if (!string.IsNullOrEmpty(tagOutput))
       {
-        resolvedTag = result.Stdout.Trim();
+        resolvedTag = tagOutput;
       }
     }
 
