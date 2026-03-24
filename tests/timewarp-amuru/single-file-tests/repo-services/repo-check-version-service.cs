@@ -133,7 +133,7 @@ namespace Repo_Services
     private static string ReadVersionFromBuildProps(string repoRoot)
     {
       string propsPath = Path.Combine(repoRoot, "source", "Directory.Build.props");
-      var doc = XDocument.Load(propsPath);
+      XDocument doc = XDocument.Load(propsPath);
       XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
 
       XElement? versionElement = doc.Descendants(ns + "Version").FirstOrDefault();
