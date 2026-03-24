@@ -152,14 +152,39 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 3/4: Check Version");
       Terminal.WriteLine("===============================================================================");
+      NuGetPackageService nuGetPackageService = new();
+      RepoConfigService repoConfigService = new();
+      RepoCheckVersionService repoCheckVersionService = new(nuGetPackageService, repoConfigService);
+
+      CheckVersionResult checkResult = await repoCheckVersionService.CheckAsync(cancellationToken: CancellationToken.None);
+
       CheckVersionCommand.Handler checkVersionHandler = new(Terminal);
       await checkVersionHandler.Handle(new CheckVersionCommand(), CancellationToken.None);
+
+      if (!checkResult.IsNewVersion)
+      {
+        Terminal.WriteErrorLine("");
+        Terminal.WriteErrorLine("===============================================================================");
+        Terminal.WriteErrorLine("  Pipeline FAILED - Version is not new, cannot release");
+        Terminal.WriteErrorLine("===============================================================================");
+        Environment.ExitCode = 1;
+        return;
+      }
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 4/4: Push to NuGet");
       Terminal.WriteLine("===============================================================================");
       await PushPackageAsync(repoRoot, apiKey);
+
+      if (Environment.ExitCode != 0)
+      {
+        Terminal.WriteErrorLine("");
+        Terminal.WriteErrorLine("===============================================================================");
+        Terminal.WriteErrorLine("  Pipeline FAILED - Package push failed");
+        Terminal.WriteErrorLine("===============================================================================");
+        return;
+      }
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
@@ -189,7 +214,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
       Terminal.WriteLine($"Pushing TimeWarp.Amuru.{version}.nupkg...");
 
-      List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--skip-duplicate"];
+      List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json"];
 
       if (!string.IsNullOrEmpty(apiKey))
       {
@@ -202,7 +227,14 @@ internal sealed class WorkflowCommand : ICommand<Unit>
         .WithNoValidation()
         .RunAsync();
 
-      Terminal.WriteLine("\nPackage pushed successfully!");
+      if (exitCode != 0)
+      {
+        Terminal.WriteErrorLine($"\n❌ NuGet push failed with exit code {exitCode}");
+        Environment.ExitCode = 1;
+        return;
+      }
+
+      Terminal.WriteLine("\n✅ Package pushed successfully!");
     }
   }
 }
