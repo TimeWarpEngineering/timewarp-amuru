@@ -172,7 +172,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
         if
         (
           latestNuGetVersion == null ||
-          string.Compare(latestVersion, latestNuGetVersion, StringComparison.OrdinalIgnoreCase) > 0
+          NuGetPackageService.CompareVersions(latestVersion, latestNuGetVersion) > 0
         )
         {
           latestNuGetVersion = latestVersion;

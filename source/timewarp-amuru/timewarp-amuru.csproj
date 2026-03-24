@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" />
+    <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="StreamJsonRpc" />
     <PackageReference Include="TimeWarp.Terminal" />
   </ItemGroup>
