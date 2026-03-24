@@ -11,7 +11,7 @@
     <PackageVersion Include="StreamJsonRpc" Version="2.24.84" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.12" />
-    <PackageVersion Include="TimeWarp.Nuru" Version="3.0.0-beta.63" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="3.0.0-beta.67" />
     <PackageVersion Include="TimeWarp.Terminal" Version="1.0.0-beta.12" />
 
     <!-- Analyzers -->
