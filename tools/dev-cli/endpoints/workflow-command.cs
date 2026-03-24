@@ -207,7 +207,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
       Terminal.WriteLine($"Pushing TimeWarp.Amuru.{version}.nupkg...");
 
-      List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json"];
+      List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--no-symbols"];
 
       if (!string.IsNullOrEmpty(apiKey))
       {
