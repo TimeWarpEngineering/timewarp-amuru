@@ -76,3 +76,23 @@ dev check-version
 1. `dotnet build` to verify compilation
 2. `./Tests/RunTests.cs` to run all tests
 3. `./tools/dev-cli/dev.cs check-version` to verify dev CLI behavior
+
+## Results
+
+### What was implemented
+Fixed the check-version git-tag strategy to use exact tag lookup (`git tag -l "v{version}"`) instead of `git describe --tags --abbrev=0`. The old approach found the nearest ancestor tag reachable from HEAD, which gave wrong results on feature branches. The new approach checks if the exact version tag exists globally, regardless of commit ancestry.
+
+### Files changed
+- `source/timewarp-amuru/repo/RepoCheckVersionService.cs` — Replaced `git describe` with `git tag -l` in `CheckGitTagVersionAsync`
+- `tools/dev-cli/endpoints/check-version-command.cs` — Same fix applied to duplicated logic in dev CLI
+- `tests/timewarp-amuru/single-file-tests/repo-services/repo-check-version-service.cs` — Added 2 new test methods with CommandMock
+- `tests/timewarp-amuru/multi-file-runners/Directory.Build.props` — Added comment noting repo-services test exclusion
+
+### Key decisions
+- `git tag -l` always returns exit code 0; empty stdout = no match, non-empty = match
+- Kept existing `GITHUB_REF_NAME` env var check and explicit `tag` parameter paths unchanged
+- Both service and dev CLI endpoint had duplicated logic; both were fixed
+
+### Test results
+- 5/5 repo-check-version-service tests passed (including 2 new tests)
+- Library build succeeded with 0 warnings, 0 errors
