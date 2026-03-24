@@ -9,8 +9,8 @@
 // Auto-detects mode from GITHUB_EVENT_NAME or accepts explicit --mode flag.
 //
 // Modes:
-//   pr/merge:  clean -> build -> verify-samples -> test
-//   release:   clean -> build -> check-version -> push
+//   pr/merge:  clean -> build -> verify-samples -> test -> check-version
+//   release:   clean -> build -> push
 
 using DevCli.Endpoints;
 
@@ -86,35 +86,51 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
     private async Task RunPrWorkflowAsync()
     {
-      Terminal.WriteLine("Pipeline: clean -> build -> verify-samples -> test");
+      Terminal.WriteLine("Pipeline: clean -> build -> verify-samples -> test -> check-version");
       Terminal.WriteLine("");
 
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 1/4: Clean");
+      Terminal.WriteLine("  Step 1/5: Clean");
       Terminal.WriteLine("===============================================================================");
       CleanCommand.Handler cleanHandler = new();
       await cleanHandler.Handle(new CleanCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 2/4: Build");
+      Terminal.WriteLine("  Step 2/5: Build");
       Terminal.WriteLine("===============================================================================");
       BuildCommand.Handler buildHandler = new();
       await buildHandler.Handle(new BuildCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 3/4: Verify Samples");
+      Terminal.WriteLine("  Step 3/5: Verify Samples");
       Terminal.WriteLine("===============================================================================");
       VerifySamplesCommand.Handler verifySamplesHandler = new(Terminal);
       await verifySamplesHandler.Handle(new VerifySamplesCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 4/4: Test");
+      Terminal.WriteLine("  Step 4/5: Test");
       Terminal.WriteLine("===============================================================================");
       TestCommand.Handler testHandler = new();
       await testHandler.Handle(new TestCommand(), CancellationToken.None);
+
+      Terminal.WriteLine("");
+      Terminal.WriteLine("===============================================================================");
+      Terminal.WriteLine("  Step 5/5: Check Version");
+      Terminal.WriteLine("===============================================================================");
+      CheckVersionCommand.Handler checkVersionHandler = new(Terminal);
+      await checkVersionHandler.Handle(new CheckVersionCommand(), CancellationToken.None);
+
+      if (Environment.ExitCode != 0)
+      {
+        Terminal.WriteErrorLine("");
+        Terminal.WriteErrorLine("===============================================================================");
+        Terminal.WriteErrorLine("  Pipeline FAILED - Version check failed");
+        Terminal.WriteErrorLine("===============================================================================");
+        return;
+      }
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
@@ -124,7 +140,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
     private async Task RunReleaseWorkflowAsync(string? apiKey)
     {
-      Terminal.WriteLine("Pipeline: clean -> build -> check-version -> push");
+      Terminal.WriteLine("Pipeline: clean -> build -> push");
       Terminal.WriteLine("");
 
       string? repoRoot = Git.FindRoot();
@@ -136,44 +152,21 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       }
 
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 1/4: Clean");
+      Terminal.WriteLine("  Step 1/3: Clean");
       Terminal.WriteLine("===============================================================================");
       CleanCommand.Handler cleanHandler = new();
       await cleanHandler.Handle(new CleanCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 2/4: Build");
+      Terminal.WriteLine("  Step 2/3: Build");
       Terminal.WriteLine("===============================================================================");
       BuildCommand.Handler buildHandler = new();
       await buildHandler.Handle(new BuildCommand(), CancellationToken.None);
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 3/4: Check Version");
-      Terminal.WriteLine("===============================================================================");
-      NuGetPackageService nuGetPackageService = new();
-      RepoConfigService repoConfigService = new();
-      RepoCheckVersionService repoCheckVersionService = new(nuGetPackageService, repoConfigService);
-
-      CheckVersionResult checkResult = await repoCheckVersionService.CheckAsync(cancellationToken: CancellationToken.None);
-
-      CheckVersionCommand.Handler checkVersionHandler = new(Terminal);
-      await checkVersionHandler.Handle(new CheckVersionCommand(), CancellationToken.None);
-
-      if (!checkResult.IsNewVersion)
-      {
-        Terminal.WriteErrorLine("");
-        Terminal.WriteErrorLine("===============================================================================");
-        Terminal.WriteErrorLine("  Pipeline FAILED - Version is not new, cannot release");
-        Terminal.WriteErrorLine("===============================================================================");
-        Environment.ExitCode = 1;
-        return;
-      }
-
-      Terminal.WriteLine("");
-      Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 4/4: Push to NuGet");
+      Terminal.WriteLine("  Step 3/3: Push to NuGet");
       Terminal.WriteLine("===============================================================================");
       await PushPackageAsync(repoRoot, apiKey);
 
