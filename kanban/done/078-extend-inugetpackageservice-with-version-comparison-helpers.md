@@ -41,48 +41,48 @@ public interface INuGetPackageService
 ## Checklist
 
 ### Setup
-- [ ] Add `NuGet.Versioning` package reference to Amuru
-- [ ] Publish dev-cli with AOT to validate `NuGet.Versioning` compatibility
-- [ ] Address any AOT warnings/errors if they arise
+- [x] Add `NuGet.Versioning` package reference to Amuru
+- [x] Publish dev-cli with AOT to validate `NuGet.Versioning` compatibility
+- [x] Address any AOT warnings/errors if they arise
 
 ### Design
-- [ ] Create `PackageVersionInfo` class in `NuGetModels.cs`
-- [ ] Add new method signatures to `INuGetPackageService`
-- [ ] Design `GetUpdateType` return values: "major", "minor", "patch", "stable", or "none"
+- [x] Create `PackageVersionInfo` class in `NuGetModels.cs`
+- [x] Add new method signatures to `INuGetPackageService`
+- [x] Design `GetUpdateType` return values: "major", "minor", "patch", "stable", or "none"
 
 ### Implementation
-- [ ] Implement `GetLatestVersionsAsync` - calls `SearchAsync` and extracts latest stable/prerelease from versions list
-- [ ] Implement `ParseVersion` - wraps `NuGetVersion.TryParse()`, handles leading 'v', returns normalized string or null
-- [ ] Implement `CompareVersions` - wraps `NuGetVersion.CompareTo()`, returns -1, 0, or 1
-- [ ] Implement `GetUpdateType` - uses `Major`/`Minor`/`Patch`/`IsPrerelease` to determine update type
-- [ ] Update `NuGetPackageService` with all new method implementations
+- [x] Implement `GetLatestVersionsAsync` - calls `SearchAsync` and extracts latest stable/prerelease from versions list
+- [x] Implement `ParseVersion` - wraps `NuGetVersion.TryParse()`, handles leading 'v', returns normalized string or null
+- [x] Implement `CompareVersions` - wraps `NuGetVersion.CompareTo()`, returns -1, 0, or 1
+- [x] Implement `GetUpdateType` - uses `Major`/`Minor`/`Patch`/`IsPrerelease` to determine update type
+- [x] Update `NuGetPackageService` with all new method implementations
 
 ### Testing
-- [ ] Add unit tests for `ParseVersion` with various inputs:
-  - [ ] Standard semver: "1.2.3"
-  - [ ] With leading 'v': "v1.2.3"
-  - [ ] Prerelease: "1.2.3-beta.1"
-  - [ ] Invalid versions should return null
-- [ ] Add unit tests for `CompareVersions`:
-  - [ ] Major version differences
-  - [ ] Minor version differences
-  - [ ] Patch version differences
-  - [ ] Prerelease vs stable comparison
-- [ ] Add unit tests for `GetUpdateType`:
-  - [ ] Major update detection
-  - [ ] Minor update detection
-  - [ ] Patch update detection
-  - [ ] Prerelease detection
-  - [ ] No update (same version)
-- [ ] Add integration tests for `GetLatestVersionsAsync` with real packages
+- [x] Add unit tests for `ParseVersion` with various inputs:
+  - [x] Standard semver: "1.2.3"
+  - [x] With leading 'v': "v1.2.3"
+  - [x] Prerelease: "1.2.3-beta.1"
+  - [x] Invalid versions should return null
+- [x] Add unit tests for `CompareVersions`:
+  - [x] Major version differences
+  - [x] Minor version differences
+  - [x] Patch version differences
+  - [x] Prerelease vs stable comparison
+- [x] Add unit tests for `GetUpdateType`:
+  - [x] Major update detection
+  - [x] Minor update detection
+  - [x] Patch update detection
+  - [x] Prerelease detection
+  - [x] No update (same version)
+- [x] Add integration tests for `GetLatestVersionsAsync` with real packages
 
 ### Documentation
-- [ ] Add XML documentation for all new methods
-- [ ] Update `NuGetModels.cs` with documentation for `PackageVersionInfo`
-- [ ] Add usage examples in comments
+- [x] Add XML documentation for all new methods
+- [x] Update `NuGetModels.cs` with documentation for `PackageVersionInfo`
+- [x] Add usage examples in comments
 
 ### Refactoring
-- [ ] Update `RepoCheckVersionService.CheckNuGetVersionAsync` to use new methods
+- [x] Update `RepoCheckVersionService.CheckNuGetVersionAsync` to use new methods
   - Currently uses `string.Compare` which is not semantically correct
   - Should use `CompareVersions` for proper semantic comparison
 
@@ -171,3 +171,33 @@ The current `dotnet package search --exact-match --format json` may only return 
 7. Add tests
 8. Refactor RepoCheckVersionService
 9. Add documentation
+
+## Results
+
+**What was implemented:**
+- Added `NuGet.Versioning` 6.11.0 package reference
+- Added `PackageVersionInfo` record to `NuGetModels.cs`
+- Extended `INuGetPackageService` with 4 new methods:
+  - `GetLatestVersionsAsync` - returns latest stable and prerelease versions
+  - `ParseVersion` - normalizes version strings (strips 'v' prefix, normalizes format)
+  - `CompareVersions` - semantic version comparison using NuGetVersion
+  - `GetUpdateType` - returns "major", "minor", "patch", "stable", or "none"
+- Refactored `RepoCheckVersionService.CheckNuGetVersionAsync` to use `CompareVersions` instead of `string.Compare`
+- Added 22 new tests (26 total, all passing)
+
+**Files changed:**
+| File | Changes |
+|------|---------|
+| `Directory.Packages.props` | Added NuGet.Versioning 6.11.0 |
+| `source/timewarp-amuru/timewarp-amuru.csproj` | Added PackageReference |
+| `source/timewarp-amuru/nu-get/NuGetModels.cs` | Added PackageVersionInfo record |
+| `source/timewarp-amuru/nu-get/INuGetPackageService.cs` | Added 4 new method signatures |
+| `source/timewarp-amuru/nu-get/NuGetPackageService.cs` | Implemented all new methods |
+| `source/timewarp-amuru/repo/RepoCheckVersionService.cs` | Use CompareVersions |
+| `tests/.../nuget-package-service.cs` | Added 22 tests |
+
+**Key decisions:**
+- AOT compatibility verified - NuGet.Versioning 6.11.0 works with AOT
+- `SearchAsync` still only returns single version (dotnet CLI limitation noted in plan as risk)
+
+**Test results:** 26/26 passed
