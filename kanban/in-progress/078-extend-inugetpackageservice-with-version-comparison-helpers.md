@@ -125,3 +125,49 @@ Ganda's `repo check-version` command needs to:
 - Discovered during migration from ganda's local `INuGetPackageService` to Amuru's version
 - Ganda's local implementation had these methods using `NuGet.Versioning` internally
 - Moving to Amuru keeps all NuGet-related logic in one place
+
+## Implementation Plan
+
+### Phase 1: Setup & AOT Validation
+1. Add NuGet.Versioning package reference to Directory.Packages.props and timewarp-amuru.csproj
+2. Validate AOT compatibility by publishing dev-cli
+
+### Phase 2: Design - Data Models
+1. Add PackageVersionInfo record to NuGetModels.cs
+
+### Phase 3: Design - Interface Updates
+1. Update INuGetPackageService with 4 new method signatures
+
+### Phase 4: Implementation - SearchAsync Enhancement
+1. Verify if dotnet package search returns all versions
+2. May need to use NuGet API directly if not
+
+### Phase 5: Implementation - New Methods
+1. ParseVersion - wraps NuGetVersion.TryParse(), handles leading 'v'
+2. CompareVersions - wraps NuGetVersion.CompareTo()
+3. GetUpdateType - determines "major", "minor", "patch", "stable", or "none"
+4. GetLatestVersionsAsync - extracts latest stable/prerelease from versions
+
+### Phase 6: Testing
+1. Unit tests for ParseVersion, CompareVersions, GetUpdateType
+2. Integration tests for GetLatestVersionsAsync
+
+### Phase 7: Refactoring
+1. Update RepoCheckVersionService to use CompareVersions
+
+### Phase 8: Documentation
+1. Add XML documentation for all new methods
+
+### Risk: SearchAsync Version Discovery
+The current `dotnet package search --exact-match --format json` may only return the latest version. May need to query NuGet API directly: `https://api.nuget.org/v3-flatcontainer/{packageId}/index.json`
+
+### Execution Order
+1. Add NuGet.Versioning package, validate AOT
+2. Add PackageVersionInfo record
+3. Update INuGetPackageService interface
+4. Implement ParseVersion, CompareVersions, GetUpdateType
+5. Update SearchAsync to return all versions
+6. Implement GetLatestVersionsAsync
+7. Add tests
+8. Refactor RepoCheckVersionService
+9. Add documentation
