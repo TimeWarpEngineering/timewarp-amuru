@@ -75,7 +75,9 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     string buildPropsPath = buildPropsFiles[0];
     string xml = await File.ReadAllTextAsync(buildPropsPath, cancellationToken);
 
-    var doc = XDocument.Parse(xml);
+#pragma warning disable IDE0007
+    XDocument doc = XDocument.Parse(xml);
+#pragma warning restore IDE0007
     XNamespace ns = "http://schemas.microsoft.com/developer/msbuild/2003";
 
     XElement? versionElement = doc.Descendants(ns + "Version").FirstOrDefault();
@@ -150,7 +152,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     string packagesValue = package ?? config.CheckVersion?.Packages ?? string.Empty;
     if (string.IsNullOrWhiteSpace(packagesValue))
     {
-      return new CheckVersionResult(false, version, string.Empty, null, null, null, null);
+      return new CheckVersionResult(false, version, "nuget-search", null, null, null, null);
     }
 
     string[] packages = packagesValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
