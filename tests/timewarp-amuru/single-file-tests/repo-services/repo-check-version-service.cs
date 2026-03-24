@@ -20,11 +20,10 @@ namespace Repo_Services
 
     public static async Task Constructor_WithValidDependencies_ShouldSucceed()
     {
-      using TestTerminal terminal = new();
       MockNuGetPackageService nuGetService = new();
       MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService, configService);
       service.ShouldNotBeNull();
 
       await Task.CompletedTask;
@@ -32,11 +31,10 @@ namespace Repo_Services
 
     public static async Task CheckAsync_WhenNotInGitRepo_ShouldReturnFalse()
     {
-      using TestTerminal terminal = new();
       MockNuGetPackageService nuGetService = new();
       MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService, configService);
 
       string tempDir = Path.Combine(Path.GetTempPath(), $"not-a-repo-{Guid.NewGuid()}");
       Directory.CreateDirectory(tempDir);
@@ -49,7 +47,11 @@ namespace Repo_Services
 
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBeEmpty();
-        terminal.ErrorOutput.ShouldContain("Not in a git repository");
+        result.Strategy.ShouldBeEmpty();
+        result.LatestReleaseTag.ShouldBeNull();
+        result.LatestNuGetVersion.ShouldBeNull();
+        result.CheckedPackages.ShouldBeNull();
+        result.AlreadyPublishedPackages.ShouldBeNull();
       }
       finally
       {
@@ -60,18 +62,26 @@ namespace Repo_Services
 
     public static async Task CheckAsync_WithGitTagStrategy_ShouldCompareVersions()
     {
-      using TestTerminal terminal = new();
       MockNuGetPackageService nuGetService = new();
       MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService, configService);
 
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
 
-      CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "tag", "--sort=-v:refname")
+          .Returns("v999.0.0\nv1.0.0");
 
-      result.Version.ShouldNotBeEmpty();
+        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+
+        result.Version.ShouldNotBeEmpty();
+        result.Strategy.ShouldBe("git-tag");
+        result.LatestReleaseTag.ShouldBe("v999.0.0");
+        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
+      }
     }
 
     public static async Task CheckAsync_WhenGitTagExists_ShouldReturnIsNewVersionFalse()
@@ -82,23 +92,26 @@ namespace Repo_Services
       string version = ReadVersionFromBuildProps(repoRoot);
       string expectedTag = $"v{version}";
 
-      using TestTerminal terminal = new();
       MockNuGetPackageService nuGetService = new();
       MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService, configService);
 
       using (CommandMock.Enable())
       {
-        CommandMock.Setup("git", "tag", "-l", expectedTag)
+        CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns(expectedTag);
 
         CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
 
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBe(version);
-        result.ResolvedTag.ShouldBe(expectedTag);
-        CommandMock.VerifyCalled("git", "tag", "-l", expectedTag);
+        result.Strategy.ShouldBe("git-tag");
+        result.LatestReleaseTag.ShouldBe(expectedTag);
+        result.LatestNuGetVersion.ShouldBeNull();
+        result.CheckedPackages.ShouldBeNull();
+        result.AlreadyPublishedPackages.ShouldBeNull();
+        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
       }
     }
 
@@ -108,25 +121,26 @@ namespace Repo_Services
       repoRoot.ShouldNotBeNull();
 
       string version = ReadVersionFromBuildProps(repoRoot);
-      string expectedTag = $"v{version}";
-
-      using TestTerminal terminal = new();
       MockNuGetPackageService nuGetService = new();
       MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(terminal, nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService, configService);
 
       using (CommandMock.Enable())
       {
-        CommandMock.Setup("git", "tag", "-l", expectedTag)
-          .Returns("");
+        CommandMock.Setup("git", "tag", "--sort=-v:refname")
+          .Returns("v0.0.1");
 
         CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
 
         result.IsNewVersion.ShouldBeTrue();
         result.Version.ShouldBe(version);
-        result.ResolvedTag.ShouldBeNull();
-        CommandMock.VerifyCalled("git", "tag", "-l", expectedTag);
+        result.Strategy.ShouldBe("git-tag");
+        result.LatestReleaseTag.ShouldBe("v0.0.1");
+        result.LatestNuGetVersion.ShouldBeNull();
+        result.CheckedPackages.ShouldBeNull();
+        result.AlreadyPublishedPackages.ShouldBeNull();
+        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
       }
     }
 

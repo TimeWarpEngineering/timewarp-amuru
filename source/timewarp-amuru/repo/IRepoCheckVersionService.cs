@@ -11,7 +11,10 @@ public sealed record CheckVersionResult
 (
   bool IsNewVersion,
   string Version,
-  string? ResolvedTag,
+  string Strategy,
+  string? LatestReleaseTag,
+  string? LatestNuGetVersion,
+  IReadOnlyList<string>? CheckedPackages,
   IReadOnlyList<string>? AlreadyPublishedPackages
 );
 
