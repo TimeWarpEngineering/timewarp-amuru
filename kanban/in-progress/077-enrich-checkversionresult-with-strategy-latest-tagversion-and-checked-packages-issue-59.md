@@ -51,3 +51,31 @@ The `CheckVersionResult` record needs additional fields so consuming CLIs can di
 - Strategy is non-nullable string; error paths use `string.Empty`
 - Service becomes pure data — no terminal dependency
 - CLI endpoint handles all display formatting
+
+## Results
+
+### What was implemented
+- Enriched `CheckVersionResult` record with 4 new fields: `Strategy`, `LatestReleaseTag`, `LatestNuGetVersion`, `CheckedPackages`
+- Removed `ResolvedTag` field (replaced by `LatestReleaseTag` with broader semantics — returns globally latest tag)
+- Removed `ITerminal` dependency from `RepoCheckVersionService` — service is now pure data, no terminal writes
+- Added `GetLatestGitTagAsync` helper using `git tag --sort=-v:refname` for latest tag discovery
+- Updated nuget-search strategy to track checked packages and latest NuGet version
+- Refactored `check-version-command.cs` CLI endpoint to delegate logic to service and handle all display formatting
+- Added strategy-specific CLI output matching the issue specification format
+
+### Files changed
+1. `source/timewarp-amuru/repo/IRepoCheckVersionService.cs` — Updated record definition
+2. `source/timewarp-amuru/repo/RepoCheckVersionService.cs` — Removed terminal dependency, added latest tag lookup, populated new fields
+3. `tools/dev-cli/endpoints/check-version-command.cs` — Refactored to use service + rich display
+4. `tests/timewarp-amuru/single-file-tests/repo-services/repo-check-version-service.cs` — Updated tests, added nuget-search tests, added ConfigurableMockNuGetPackageService
+
+### Key decisions
+- Used `IReadOnlyList<string>?` instead of `List<string>?` for immutable result collections
+- `LatestReleaseTag` replaces `ResolvedTag` with different semantics: returns globally latest tag from `git tag --sort=-v:refname`
+- Strategy is non-nullable string; error paths use `string.Empty` for pre-strategy failures, strategy name for strategy-specific failures
+- Added `#pragma warning disable IDE0007` for explicit type declarations where repo analyzer enforces `var`
+
+### Test results
+- 7/7 tests passing (5 original + 2 new nuget-search strategy tests)
+- Library build: ✅ 0 warnings, 0 errors
+- CLI build: ✅ passing
