@@ -55,3 +55,24 @@ dev check-version
 # Output: Version: 3.0.0-beta.67, Tag: 3.0.0-beta.66, IsNew: True
 # Expected: Version: 3.0.0-beta.67, Tag: v3.0.0-beta.67, IsNew: False
 ```
+
+## Implementation Plan
+
+### Files to Modify
+
+1. **`source/timewarp-amuru/repo/RepoCheckVersionService.cs`** (lines ~107-114) — Replace `git describe --tags --abbrev=0` with `git tag -l "v{version}"` and update the result-handling logic.
+2. **`tools/dev-cli/endpoints/check-version-command.cs`** (lines ~75-78) — Same fix for duplicated logic in the dev CLI command.
+3. **`tests/.../repo-check-version-service.cs`** — Add 4 new test methods for the fix.
+
+### Key Design Decisions
+
+- Use `git tag -l "v{version}"` instead of `git describe --tags --abbrev=0` — searches ALL tags globally, not just commit ancestry.
+- `git tag -l` always returns exit code 0; empty stdout means tag doesn't exist, non-empty means it exists.
+- Both the service and the dev CLI endpoint have duplicated logic and both need the fix.
+- Tag naming uses `v` prefix convention consistent with existing repo tags.
+
+### Verification Steps
+
+1. `dotnet build` to verify compilation
+2. `./Tests/RunTests.cs` to run all tests
+3. `./tools/dev-cli/dev.cs check-version` to verify dev CLI behavior
