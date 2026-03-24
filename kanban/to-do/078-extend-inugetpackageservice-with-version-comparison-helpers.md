@@ -4,18 +4,20 @@
 
 ## Description
 
-The `INuGetPackageService` currently only has `SearchAsync` which returns a raw list of versions. Ganda (and potentially other consumers) need higher-level helpers for version analysis including semantic version comparison, parsing, and update type detection.
+The `INuGetPackageService` currently only has `SearchAsync` which returns a raw list of versions. Ganda needs higher-level helpers for version analysis.
+
+**Approach:** Amuru should use `NuGet.Versioning` internally and expose a clean API. Consumers shouldn't need to reference `NuGet.Versioning` directly.
 
 ## Proposed API Additions
 
 ### New Type: `PackageVersionInfo`
 
 ```csharp
-public sealed record PackageVersionInfo
-(
-  string? StableVersion,
-  string? PrereleaseVersion
-);
+public sealed class PackageVersionInfo
+{
+  public string? StableVersion { get; set; }
+  public string? PrereleaseVersion { get; set; }
+}
 ```
 
 ### New Methods on `INuGetPackageService`
@@ -26,29 +28,34 @@ public interface INuGetPackageService
   // Existing
   Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken);
   
-  // New
+  // New - uses NuGet.Versioning internally, exposes simple string-based APIs
   Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken);
-  NuGetVersion? ParseVersion(string version);
+  string? ParseVersion(string version);
   int CompareVersions(string version1, string version2);
   string GetUpdateType(string currentVersion, string latestVersion);
 }
 ```
 
+**Note:** `ParseVersion`, `CompareVersions`, and `GetUpdateType` use `NuGet.Versioning` internally but expose simple string-based APIs for consumers.
+
 ## Checklist
 
+### Setup
+- [ ] Add `NuGet.Versioning` package reference to Amuru
+- [ ] Publish dev-cli with AOT to validate `NuGet.Versioning` compatibility
+- [ ] Address any AOT warnings/errors if they arise
+
 ### Design
-- [ ] Create `PackageVersionInfo` record in `NuGetModels.cs`
+- [ ] Create `PackageVersionInfo` class in `NuGetModels.cs`
 - [ ] Add new method signatures to `INuGetPackageService`
-- [ ] Consider using `NuGet.Versioning` package for semantic version handling (recommended)
-- [ ] Design `GetUpdateType` return values (enum vs string - suggest enum)
+- [ ] Design `GetUpdateType` return values: "major", "minor", "patch", "stable", or "none"
 
 ### Implementation
-- [ ] Implement `GetLatestVersionsAsync` - query NuGet and separate stable from prerelease
-- [ ] Implement `ParseVersion` - handle leading 'v', validate semver format
-- [ ] Implement `CompareVersions` - semantic version comparison (not string comparison)
-- [ ] Implement `GetUpdateType` - return "major", "minor", "patch", or "prerelease"
+- [ ] Implement `GetLatestVersionsAsync` - calls `SearchAsync` and extracts latest stable/prerelease from versions list
+- [ ] Implement `ParseVersion` - wraps `NuGetVersion.TryParse()`, handles leading 'v', returns normalized string or null
+- [ ] Implement `CompareVersions` - wraps `NuGetVersion.CompareTo()`, returns -1, 0, or 1
+- [ ] Implement `GetUpdateType` - uses `Major`/`Minor`/`Patch`/`IsPrerelease` to determine update type
 - [ ] Update `NuGetPackageService` with all new method implementations
-- [ ] Consider caching strategy for `GetLatestVersionsAsync` results
 
 ### Testing
 - [ ] Add unit tests for `ParseVersion` with various inputs:
@@ -66,6 +73,7 @@ public interface INuGetPackageService
   - [ ] Minor update detection
   - [ ] Patch update detection
   - [ ] Prerelease detection
+  - [ ] No update (same version)
 - [ ] Add integration tests for `GetLatestVersionsAsync` with real packages
 
 ### Documentation
@@ -73,7 +81,7 @@ public interface INuGetPackageService
 - [ ] Update `NuGetModels.cs` with documentation for `PackageVersionInfo`
 - [ ] Add usage examples in comments
 
-### Refactoring (Optional)
+### Refactoring
 - [ ] Update `RepoCheckVersionService.CheckNuGetVersionAsync` to use new methods
   - Currently uses `string.Compare` which is not semantically correct
   - Should use `CompareVersions` for proper semantic comparison
@@ -91,14 +99,23 @@ Ganda's `repo check-version` command needs to:
 2. Compare versions to determine update type (major/minor/patch)
 3. Parse version strings (handling leading 'v', etc.)
 
-### Recommended Approach
-Use the `NuGet.Versioning` NuGet package which provides:
-- `NuGetVersion` class for parsing and comparing semantic versions
-- Handles prerelease versions correctly
-- Handles leading 'v' prefix
-- Well-tested and maintained
+### Implementation Details
+
+| Method | Implementation |
+|--------|----------------|
+| `ParseVersion` | Wraps `NuGetVersion.TryParse()`, handles leading 'v', returns normalized string or null |
+| `CompareVersions` | Wraps `NuGetVersion.CompareTo()`, returns -1, 0, or 1 |
+| `GetUpdateType` | Uses `Major`/`Minor`/`Patch`/`IsPrerelease` to determine "major", "minor", "patch", "stable", or "none" |
+| `GetLatestVersionsAsync` | Calls `SearchAsync` and extracts latest stable/prerelease from the versions list |
+
+### AOT Validation Strategy
+- dev-cli has `PublishAot=true` and references Amuru
+- Publishing dev-cli with AOT will validate `NuGet.Versioning` compatibility
+- If AOT compilation succeeds, `NuGet.Versioning` is compatible
+- If AOT compilation fails, we'll see specific warnings/errors to address
 
 ### Files to Modify
+- `source/timewarp-amuru/timewarp-amuru.csproj` - add `NuGet.Versioning` package reference
 - `source/timewarp-amuru/nu-get/NuGetModels.cs` - add `PackageVersionInfo`
 - `source/timewarp-amuru/nu-get/INuGetPackageService.cs` - add new method signatures
 - `source/timewarp-amuru/nu-get/NuGetPackageService.cs` - implement new methods
@@ -106,4 +123,5 @@ Use the `NuGet.Versioning` NuGet package which provides:
 
 ### Context
 - Discovered during migration from ganda's local `INuGetPackageService` to Amuru's version
-- The local ganda implementation had these methods, but Amuru's public interface doesn't expose them
+- Ganda's local implementation had these methods using `NuGet.Versioning` internally
+- Moving to Amuru keeps all NuGet-related logic in one place
