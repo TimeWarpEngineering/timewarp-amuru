@@ -21,3 +21,14 @@ public sealed record NuGetSearchResult
   string PackageId,
   IReadOnlyList<NuGetPackageVersion> Versions
 );
+
+/// <summary>
+/// Contains the latest stable and prerelease versions for a package.
+/// </summary>
+/// <param name="StableVersion">The latest stable version, or null if none exists.</param>
+/// <param name="PrereleaseVersion">The latest prerelease version, or null if none exists.</param>
+public sealed record PackageVersionInfo
+(
+  string? StableVersion,
+  string? PrereleaseVersion
+);
