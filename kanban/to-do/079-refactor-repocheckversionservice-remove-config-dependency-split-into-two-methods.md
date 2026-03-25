@@ -23,18 +23,10 @@ Remove config-related files from Amuru (public repo should not reference private
   - [ ] Split into two methods matching the interface
   - [ ] `CheckGitTagVersionAsync` — no package param, optional tag
   - [ ] `CheckNuGetVersionAsync` — required `IReadOnlyList<string> packages`
-- [ ] Update `tools/dev-cli/endpoints/check-version-command.cs`
-  - [ ] Remove `RepoConfigService` instantiation
-  - [ ] Call correct method based on user intent
-  - [ ] Split comma-separated package string to array for NuGet method
 - [ ] Update tests in `tests/timewarp-amuru/single-file-tests/repo-services/`
   - [ ] Delete `MockRepoConfigService` from test file
   - [ ] Update tests to call `CheckGitTagVersionAsync` or `CheckNuGetVersionAsync` directly
   - [ ] Update assertions for new result types
-- [ ] Update Nuru dev-cli (if applicable)
-  - [ ] `timewarp-nuru/dev/source/timewarp-nuru-devcli/content/any/endpoints/check-version-command.cs`
-  - [ ] Remove `IRepoConfigService` from DI
-  - [ ] Call correct method, split packages to array
 
 ## Notes
 
@@ -100,3 +92,26 @@ NuGetCheckResult result = await CheckVersionService.CheckNuGetVersionAsync(packa
 | `RepoConfigService.cs` | Hardcoded `.timewarp/ganda.jsonc` path |
 | `RepoConfig.cs` | Application-level config schema |
 | `RepoConfigJsonContext.cs` | Serialization for app config |
+
+### Follow-up Sequence
+
+This task is step 1 of a larger migration:
+
+```
+1. Refactor Amuru (this task)
+       │
+       ▼
+2. Release new Amuru version
+       │
+       ▼
+3. Nuru.DevCli updates to use new Amuru
+       │
+       ▼
+4. Amuru's dev-cli updates to use Nuru.DevCli shared endpoints
+```
+
+**NOT in this task:**
+- Updating Amuru's `tools/dev-cli/endpoints/check-version-command.cs` (step 4)
+- Updating Nuru dev-cli (step 3)
+
+The dev-cli updates happen after Nuru.DevCli consumes the new Amuru release.
