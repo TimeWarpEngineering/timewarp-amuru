@@ -10,22 +10,14 @@ namespace TimeWarp.Amuru;
 public sealed class RepoCheckVersionService : IRepoCheckVersionService
 {
   private readonly INuGetPackageService NuGetPackageService;
-  private readonly IRepoConfigService RepoConfigService;
 
-  public RepoCheckVersionService
-  (
-    INuGetPackageService nuGetPackageService,
-    IRepoConfigService repoConfigService
-  )
+  public RepoCheckVersionService(INuGetPackageService nuGetPackageService)
   {
     NuGetPackageService = nuGetPackageService;
-    RepoConfigService = repoConfigService;
   }
 
-  public async Task<CheckVersionResult> CheckAsync
+  public async Task<GitTagCheckResult> CheckGitTagVersionAsync
   (
-    string? strategy = null,
-    string? package = null,
     string? tag = null,
     CancellationToken cancellationToken = default
   )
@@ -33,29 +25,103 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     string? repoRoot = Git.FindRoot();
     if (repoRoot == null)
     {
-      return new CheckVersionResult(false, string.Empty, string.Empty, null, null, null, null);
+      return new GitTagCheckResult(false, string.Empty, null);
     }
 
     string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken);
     if (version == null)
     {
-      return new CheckVersionResult(false, string.Empty, string.Empty, null, null, null, null);
+      return new GitTagCheckResult(false, string.Empty, null);
     }
 
-    RepoConfig config = await RepoConfigService.GetConfigAsync(cancellationToken);
-    string resolvedStrategy = strategy ?? config.CheckVersion?.Strategy ?? "git-tag";
+    string? latestTag = tag;
 
-    if (string.Equals(resolvedStrategy, "git-tag", StringComparison.OrdinalIgnoreCase))
+    if (string.IsNullOrWhiteSpace(latestTag))
     {
-      return await CheckGitTagVersionAsync(version, tag, cancellationToken);
+      latestTag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
     }
 
-    if (string.Equals(resolvedStrategy, "nuget-search", StringComparison.OrdinalIgnoreCase))
+    if (string.IsNullOrWhiteSpace(latestTag))
     {
-      return await CheckNuGetVersionAsync(version, package, config, cancellationToken);
+      latestTag = await GetLatestGitTagAsync(cancellationToken);
     }
 
-    return new CheckVersionResult(false, version, string.Empty, null, null, null, null);
+    if (string.IsNullOrWhiteSpace(latestTag))
+    {
+      return new GitTagCheckResult(true, version, null);
+    }
+
+    string tagVersion = latestTag.StartsWith('v') ? latestTag[1..] : latestTag;
+    bool isNewVersion = !string.Equals(version, tagVersion, StringComparison.OrdinalIgnoreCase);
+
+    return new GitTagCheckResult(isNewVersion, version, latestTag);
+  }
+
+  public async Task<NuGetCheckResult> CheckNuGetVersionAsync
+  (
+    IReadOnlyList<string> packages,
+    CancellationToken cancellationToken = default
+  )
+  {
+    ArgumentNullException.ThrowIfNull(packages);
+
+    if (packages.Count == 0)
+    {
+      return new NuGetCheckResult(false, string.Empty, null, [], null);
+    }
+
+    string? repoRoot = Git.FindRoot();
+    if (repoRoot == null)
+    {
+      return new NuGetCheckResult(false, string.Empty, null, [], null);
+    }
+
+    string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken);
+    if (version == null)
+    {
+      return new NuGetCheckResult(false, string.Empty, null, [], null);
+    }
+
+    List<string> checkedPackages = [];
+    List<string> alreadyPublished = [];
+    string? latestNuGetVersion = null;
+
+    foreach (string pkg in packages)
+    {
+      checkedPackages.Add(pkg);
+
+      NuGetSearchResult? result = await NuGetPackageService.SearchAsync(pkg, cancellationToken);
+      if (result != null && result.Versions.Count > 0)
+      {
+        string latestVersion = result.Versions[0].Version;
+
+        if
+        (
+          latestNuGetVersion == null ||
+          NuGetPackageService.CompareVersions(latestVersion, latestNuGetVersion) > 0
+        )
+        {
+          latestNuGetVersion = latestVersion;
+        }
+
+        if (string.Equals(version, latestVersion, StringComparison.OrdinalIgnoreCase))
+        {
+          alreadyPublished.Add(pkg);
+        }
+      }
+    }
+
+    bool isNewVersion = alreadyPublished.Count == 0;
+    IReadOnlyList<string>? alreadyPublishedPackages = alreadyPublished.Count > 0 ? alreadyPublished : null;
+
+    return new NuGetCheckResult
+    (
+      isNewVersion,
+      version,
+      latestNuGetVersion,
+      checkedPackages,
+      alreadyPublishedPackages
+    );
   }
 
   private static async Task<string?> GetVersionFromDirectoryBuildPropsAsync(string repoRoot, CancellationToken cancellationToken)
@@ -89,31 +155,6 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     return versionElement?.Value;
   }
 
-  private static async Task<CheckVersionResult> CheckGitTagVersionAsync(string version, string? tag, CancellationToken cancellationToken)
-  {
-    string? latestTag = tag;
-
-    if (string.IsNullOrWhiteSpace(latestTag))
-    {
-      latestTag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
-    }
-
-    if (string.IsNullOrWhiteSpace(latestTag))
-    {
-      latestTag = await GetLatestGitTagAsync(cancellationToken);
-    }
-
-    if (string.IsNullOrWhiteSpace(latestTag))
-    {
-      return new CheckVersionResult(true, version, "git-tag", null, null, null, null);
-    }
-
-    string tagVersion = latestTag.StartsWith('v') ? latestTag[1..] : latestTag;
-    bool isNewVersion = !string.Equals(version, tagVersion, StringComparison.OrdinalIgnoreCase);
-
-    return new CheckVersionResult(isNewVersion, version, "git-tag", latestTag, null, null, null);
-  }
-
   private static async Task<string?> GetLatestGitTagAsync(CancellationToken cancellationToken)
   {
     CommandOutput result = await Shell.Builder("git")
@@ -139,64 +180,5 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     }
 
     return lines[0];
-  }
-
-  private async Task<CheckVersionResult> CheckNuGetVersionAsync
-  (
-    string version,
-    string? package,
-    RepoConfig config,
-    CancellationToken cancellationToken
-  )
-  {
-    string packagesValue = package ?? config.CheckVersion?.Packages ?? string.Empty;
-    if (string.IsNullOrWhiteSpace(packagesValue))
-    {
-      return new CheckVersionResult(false, version, "nuget-search", null, null, null, null);
-    }
-
-    string[] packages = packagesValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    List<string> checkedPackages = [];
-    List<string> alreadyPublished = [];
-    string? latestNuGetVersion = null;
-
-    foreach (string pkg in packages)
-    {
-      checkedPackages.Add(pkg);
-
-      NuGetSearchResult? result = await NuGetPackageService.SearchAsync(pkg, cancellationToken);
-      if (result != null && result.Versions.Count > 0)
-      {
-        string latestVersion = result.Versions[0].Version;
-
-        if
-        (
-          latestNuGetVersion == null ||
-          NuGetPackageService.CompareVersions(latestVersion, latestNuGetVersion) > 0
-        )
-        {
-          latestNuGetVersion = latestVersion;
-        }
-
-        if (string.Equals(version, latestVersion, StringComparison.OrdinalIgnoreCase))
-        {
-          alreadyPublished.Add(pkg);
-        }
-      }
-    }
-
-    bool isNewVersion = alreadyPublished.Count == 0;
-    IReadOnlyList<string>? alreadyPublishedPackages = alreadyPublished.Count > 0 ? alreadyPublished : null;
-
-    return new CheckVersionResult
-    (
-      isNewVersion,
-      version,
-      "nuget-search",
-      null,
-      latestNuGetVersion,
-      checkedPackages,
-      alreadyPublishedPackages
-    );
   }
 }

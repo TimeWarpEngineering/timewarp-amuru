@@ -5,16 +5,24 @@
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Result of a version check operation.
+/// Result of a git tag version check operation.
 /// </summary>
-public sealed record CheckVersionResult
+public sealed record GitTagCheckResult
 (
   bool IsNewVersion,
   string Version,
-  string Strategy,
-  string? LatestReleaseTag,
+  string? LatestReleaseTag
+);
+
+/// <summary>
+/// Result of a NuGet version check operation.
+/// </summary>
+public sealed record NuGetCheckResult
+(
+  bool IsNewVersion,
+  string Version,
   string? LatestNuGetVersion,
-  IReadOnlyList<string>? CheckedPackages,
+  IReadOnlyList<string> CheckedPackages,
   IReadOnlyList<string>? AlreadyPublishedPackages
 );
 
@@ -24,18 +32,18 @@ public sealed record CheckVersionResult
 public interface IRepoCheckVersionService
 {
   /// <summary>
-  /// Checks if the current version is new and can be published.
+  /// Checks if the current version is new compared to git tags.
   /// </summary>
-  /// <param name="strategy">The version check strategy (git-tag or nuget-search)</param>
-  /// <param name="package">Specific package to check (for nuget-search strategy)</param>
-  /// <param name="tag">Specific tag to check (for git-tag strategy)</param>
+  /// <param name="tag">Specific tag to check (optional, uses GITHUB_REF_NAME or latest git tag if not provided)</param>
   /// <param name="cancellationToken">Cancellation token</param>
-  /// <returns>The result of the version check</returns>
-  Task<CheckVersionResult> CheckAsync
-  (
-    string? strategy = null,
-    string? package = null,
-    string? tag = null,
-    CancellationToken cancellationToken = default
-  );
+  /// <returns>The result of the git tag version check</returns>
+  Task<GitTagCheckResult> CheckGitTagVersionAsync(string? tag = null, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Checks if the current version is new compared to NuGet packages.
+  /// </summary>
+  /// <param name="packages">List of packages to check</param>
+  /// <param name="cancellationToken">Cancellation token</param>
+  /// <returns>The result of the NuGet version check</returns>
+  Task<NuGetCheckResult> CheckNuGetVersionAsync(IReadOnlyList<string> packages, CancellationToken cancellationToken = default);
 }
