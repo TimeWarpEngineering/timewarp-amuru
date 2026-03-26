@@ -21,20 +21,18 @@ namespace Repo_Services
     public static async Task Constructor_WithValidDependencies_ShouldSucceed()
     {
       MockNuGetPackageService nuGetService = new();
-      MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetService);
       service.ShouldNotBeNull();
 
       await Task.CompletedTask;
     }
 
-    public static async Task CheckAsync_WhenNotInGitRepo_ShouldReturnFalse()
+    public static async Task CheckGitTagVersionAsync_WhenNotInGitRepo_ShouldReturnFalse()
     {
       MockNuGetPackageService nuGetService = new();
-      MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
       string tempDir = Path.Combine(Path.GetTempPath(), $"not-a-repo-{Guid.NewGuid()}");
       Directory.CreateDirectory(tempDir);
@@ -43,15 +41,11 @@ namespace Repo_Services
       try
       {
         Directory.SetCurrentDirectory(tempDir);
-        CheckVersionResult result = await service.CheckAsync();
+        GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBeEmpty();
-        result.Strategy.ShouldBeEmpty();
         result.LatestReleaseTag.ShouldBeNull();
-        result.LatestNuGetVersion.ShouldBeNull();
-        result.CheckedPackages.ShouldBeNull();
-        result.AlreadyPublishedPackages.ShouldBeNull();
       }
       finally
       {
@@ -60,12 +54,11 @@ namespace Repo_Services
       }
     }
 
-    public static async Task CheckAsync_WithGitTagStrategy_ShouldCompareVersions()
+    public static async Task CheckGitTagVersionAsync_ShouldCompareVersions()
     {
       MockNuGetPackageService nuGetService = new();
-      MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
@@ -75,16 +68,15 @@ namespace Repo_Services
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns("v999.0.0\nv1.0.0");
 
-        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+        GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.Version.ShouldNotBeEmpty();
-        result.Strategy.ShouldBe("git-tag");
         result.LatestReleaseTag.ShouldBe("v999.0.0");
         CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
       }
     }
 
-    public static async Task CheckAsync_WhenGitTagExists_ShouldReturnIsNewVersionFalse()
+    public static async Task CheckGitTagVersionAsync_WhenGitTagExists_ShouldReturnIsNewVersionFalse()
     {
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
@@ -93,58 +85,48 @@ namespace Repo_Services
       string expectedTag = $"v{version}";
 
       MockNuGetPackageService nuGetService = new();
-      MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
       using (CommandMock.Enable())
       {
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns(expectedTag);
 
-        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+        GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBe(version);
-        result.Strategy.ShouldBe("git-tag");
         result.LatestReleaseTag.ShouldBe(expectedTag);
-        result.LatestNuGetVersion.ShouldBeNull();
-        result.CheckedPackages.ShouldBeNull();
-        result.AlreadyPublishedPackages.ShouldBeNull();
         CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
       }
     }
 
-    public static async Task CheckAsync_WhenGitTagDoesNotExist_ShouldReturnIsNewVersionTrue()
+    public static async Task CheckGitTagVersionAsync_WhenGitTagDoesNotExist_ShouldReturnIsNewVersionTrue()
     {
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
 
       string version = ReadVersionFromBuildProps(repoRoot);
       MockNuGetPackageService nuGetService = new();
-      MockRepoConfigService configService = new();
 
-      RepoCheckVersionService service = new(nuGetService, configService);
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
       using (CommandMock.Enable())
       {
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns("v0.0.1");
 
-        CheckVersionResult result = await service.CheckAsync(strategy: "git-tag");
+        GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.IsNewVersion.ShouldBeTrue();
         result.Version.ShouldBe(version);
-        result.Strategy.ShouldBe("git-tag");
         result.LatestReleaseTag.ShouldBe("v0.0.1");
-        result.LatestNuGetVersion.ShouldBeNull();
-        result.CheckedPackages.ShouldBeNull();
-        result.AlreadyPublishedPackages.ShouldBeNull();
         CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
       }
     }
 
-    public static async Task CheckAsync_WithNuGetSearchStrategy_WhenVersionIsNew_ShouldReturnTrue()
+    public static async Task CheckNuGetVersionAsync_WhenVersionIsNew_ShouldReturnTrue()
     {
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
@@ -167,35 +149,19 @@ namespace Repo_Services
         }
       );
 
-      RepoConfig repoConfig = new()
-      {
-        CheckVersion = new RepoCheckVersionConfig
-        {
-          Strategy = "nuget-search",
-          Packages = "TestPackage"
-        }
-      };
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
-      MockRepoConfigService configService = new(repoConfig);
-      RepoCheckVersionService service = new(nuGetService, configService);
-
-      CheckVersionResult result = await service.CheckAsync();
+      NuGetCheckResult result = await service.CheckNuGetVersionAsync(["TestPackage"]);
 
       result.IsNewVersion.ShouldBeTrue();
-      result.Strategy.ShouldBe("nuget-search");
       result.LatestNuGetVersion.ShouldBe("1.0.0-beta.1");
       result.CheckedPackages.ShouldNotBeNull();
-
-      bool checkedPackagesContainsTestPackage = result.CheckedPackages.Any
-      (
-        package => string.Equals(package, "TestPackage", StringComparison.Ordinal)
-      );
-      checkedPackagesContainsTestPackage.ShouldBeTrue();
-
+      result.CheckedPackages.Count.ShouldBe(1);
+      result.CheckedPackages[0].ShouldBe("TestPackage");
       result.AlreadyPublishedPackages.ShouldBeNull();
     }
 
-    public static async Task CheckAsync_WithNuGetSearchStrategy_WhenVersionExists_ShouldReturnFalse()
+    public static async Task CheckNuGetVersionAsync_WhenVersionExists_ShouldReturnFalse()
     {
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
@@ -217,30 +183,28 @@ namespace Repo_Services
         }
       );
 
-      RepoConfig repoConfig = new()
-      {
-        CheckVersion = new RepoCheckVersionConfig
-        {
-          Strategy = "nuget-search",
-          Packages = "TestPackage"
-        }
-      };
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
-      MockRepoConfigService configService = new(repoConfig);
-      RepoCheckVersionService service = new(nuGetService, configService);
-
-      CheckVersionResult result = await service.CheckAsync();
+      NuGetCheckResult result = await service.CheckNuGetVersionAsync(["TestPackage"]);
 
       result.IsNewVersion.ShouldBeFalse();
-      result.Strategy.ShouldBe("nuget-search");
       result.LatestNuGetVersion.ShouldBe(version);
       result.AlreadyPublishedPackages.ShouldNotBeNull();
+      result.AlreadyPublishedPackages.Count.ShouldBe(1);
+      result.AlreadyPublishedPackages[0].ShouldBe("TestPackage");
+    }
 
-      bool alreadyPublishedContainsTestPackage = result.AlreadyPublishedPackages.Any
-      (
-        package => string.Equals(package, "TestPackage", StringComparison.Ordinal)
-      );
-      alreadyPublishedContainsTestPackage.ShouldBeTrue();
+    public static async Task CheckNuGetVersionAsync_WithEmptyPackages_ShouldReturnFalse()
+    {
+      MockNuGetPackageService nuGetService = new();
+
+      RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
+
+      NuGetCheckResult result = await service.CheckNuGetVersionAsync([]);
+
+      result.IsNewVersion.ShouldBeFalse();
+      result.Version.ShouldBeEmpty();
+      result.CheckedPackages.Count.ShouldBe(0);
     }
 
     private static string ReadVersionFromBuildProps(string repoRoot)
@@ -277,6 +241,20 @@ namespace Repo_Services
         ResultsByPackageId.TryGetValue(packageId, out NuGetSearchResult? result);
         return Task.FromResult(result);
       }
+
+      public Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default)
+      {
+        return Task.FromResult<PackageVersionInfo?>(null);
+      }
+
+      public string? ParseVersion(string version) => version;
+
+      public int CompareVersions(string version1, string version2)
+      {
+        return string.Compare(version1, version2, StringComparison.OrdinalIgnoreCase);
+      }
+
+      public string GetUpdateType(string currentVersion, string latestVersion) => "none";
     }
 
     private sealed class MockNuGetPackageService : INuGetPackageService
@@ -285,33 +263,20 @@ namespace Repo_Services
       {
         return Task.FromResult<NuGetSearchResult?>(null);
       }
-    }
 
-    private sealed class MockRepoConfigService : IRepoConfigService
-    {
-      private readonly RepoConfig RepoConfig;
-
-      public string ConfigPath => "/mock/config.json";
-
-      public MockRepoConfigService()
+      public Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default)
       {
-        RepoConfig = new RepoConfig();
+        return Task.FromResult<PackageVersionInfo?>(null);
       }
 
-      public MockRepoConfigService(RepoConfig repoConfig)
+      public string? ParseVersion(string version) => version;
+
+      public int CompareVersions(string version1, string version2)
       {
-        RepoConfig = repoConfig;
+        return string.Compare(version1, version2, StringComparison.OrdinalIgnoreCase);
       }
 
-      public Task<RepoConfig> GetConfigAsync(CancellationToken cancellationToken = default)
-      {
-        return Task.FromResult(RepoConfig);
-      }
-
-      public Task SetConfigAsync(RepoConfig config, CancellationToken cancellationToken = default)
-      {
-        return Task.CompletedTask;
-      }
+      public string GetUpdateType(string currentVersion, string latestVersion) => "none";
     }
   }
 }
