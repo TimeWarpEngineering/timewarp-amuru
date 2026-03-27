@@ -50,7 +50,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -76,7 +76,7 @@ public static class SshKeyHelper
         TimeWarpTerminal.Default.WriteLine("❌ Failed to generate SSH key pair");
         return false;
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch (Exception ex)
     {
@@ -105,7 +105,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -130,7 +130,7 @@ public static class SshKeyHelper
         TimeWarpTerminal.Default.WriteLine($"❌ Failed to extract public key: {error}");
         return null;
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch (Exception ex)
     {
@@ -159,7 +159,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -183,7 +183,7 @@ public static class SshKeyHelper
         TimeWarpTerminal.Default.WriteLine($"❌ SSH key is invalid: {keyPath}");
         return false;
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch (Exception ex)
     {
@@ -214,7 +214,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -255,7 +255,7 @@ public static class SshKeyHelper
         TimeWarpTerminal.Default.WriteLine($"❌ Failed to change passphrase for: {privateKeyPath}");
         return false;
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch (Exception ex)
     {
@@ -286,7 +286,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -312,7 +312,7 @@ public static class SshKeyHelper
         TimeWarpTerminal.Default.WriteLine($"❌ Failed to convert key format");
         return false;
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch (Exception ex)
     {
@@ -358,7 +358,7 @@ public static class SshKeyHelper
 
     try
     {
-#pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable CA1416, RS0030 // Validate platform compatibility; Banned symbol: Amuru itself must use Process/ProcessStartInfo
       using var process = new System.Diagnostics.Process();
       process.StartInfo = new System.Diagnostics.ProcessStartInfo
       {
@@ -389,7 +389,7 @@ public static class SshKeyHelper
           };
         }
       }
-#pragma warning restore CA1416
+#pragma warning restore CA1416, RS0030
     }
     catch
     {

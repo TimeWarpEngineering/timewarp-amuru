@@ -110,6 +110,7 @@ public class CommandResult
 
     DateTimeOffset startTime = DateTimeOffset.Now;
     
+#pragma warning disable RS0030 // Banned symbol: Amuru itself must use Process/ProcessStartInfo to implement TTY passthrough
     using var process = new System.Diagnostics.Process
     {
       StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -144,6 +145,7 @@ public class CommandResult
     }
 
     process.Start();
+#pragma warning restore RS0030
     
     // Register cancellation
     await using CancellationTokenRegistration registration = cancellationToken.Register(() =>
