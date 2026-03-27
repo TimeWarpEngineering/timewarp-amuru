@@ -6,11 +6,11 @@ Review and resolve RS0030 banned symbol warnings throughout the repository. The 
 
 ## Checklist
 
-- [ ] Audit all RS0030 pragma exemptions in the codebase
-- [ ] Evaluate if `SshKeyHelper.cs` should use Shell.Builder instead of raw Process/ProcessStartInfo
+- [x] Audit all RS0030 pragma exemptions in the codebase
+- [x] Evaluate if `SshKeyHelper.cs` should use Shell.Builder instead of raw Process/ProcessStartInfo
 - [ ] Evaluate if `CommandResult.cs` TtyPassthroughAsync needs Process directly (TTY inheritance requirement)
 - [ ] Document legitimate exemptions with clear justification comments
-- [ ] Refactor any code that should use Amuru's API but doesn't
+- [x] Refactor any code that should use Amuru's API but doesn't
 - [ ] Consider if banned symbol configuration needs adjustment for Amuru's own source
 
 ## Notes
@@ -22,9 +22,17 @@ Files with RS0030 pragma exemptions:
    - Uses Process directly for TTY inheritance (no stream redirection)
    - May be legitimate: TTY passthrough requires Process.Start without CliWrap's stream piping
 
-2. `source/timewarp-amuru/native/utilities/SshKeyHelper.cs` - 6 methods
-   - Uses Process directly for synchronous ssh-keygen execution
-   - Should likely be refactored to use Shell.Builder
+2. ~~`source/timewarp-amuru/native/utilities/SshKeyHelper.cs`~~ - **REFACTORED**
+   - Now uses `Shell.Builder` for all ssh-keygen operations
+   - Methods renamed to async versions (e.g., `GenerateKeyPair` → `GenerateKeyPairAsync`)
+   - No longer needs RS0030 pragma exemptions
+
+### Completed Work (2026-03-27)
+
+- Refactored `SshKeyHelper.cs` to use `Shell.Builder` API
+- All 6 methods now use async patterns with `CaptureAsync()`
+- Removed all RS0030 pragmas from SshKeyHelper.cs
+- Added IDE0007 pragma for explicit type usage per coding standards
 
 ### Architectural Questions
 
