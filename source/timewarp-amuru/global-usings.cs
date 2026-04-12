@@ -1,5 +1,5 @@
 #region Purpose
-// TODO: Add purpose description
+// Global using statements shared across the timewarp-amuru project
 #endregion
 
 global using CliWrap;
