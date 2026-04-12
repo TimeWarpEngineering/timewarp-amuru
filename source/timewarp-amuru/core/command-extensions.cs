@@ -1,5 +1,14 @@
 #region Purpose
-// TODO: Add purpose description
+// Provides helper methods for executing shell commands via CliWrap
+// Handles special cases like C# scripts which require -- argument prefixing
+#endregion
+
+#region Design
+// - Static helper class providing Run() overloads for command execution
+// - Special handling for .cs files: inserts "--" to prevent dotnet CLI interception
+// - Command path overrides via CliConfiguration for tool aliasing
+// - Returns CommandResult for fluent builder pattern continuation
+// - Supports standard input piping for interactive commands
 #endregion
 
 namespace TimeWarp.Amuru;
