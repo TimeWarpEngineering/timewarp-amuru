@@ -48,3 +48,38 @@ var versions = await metadata.GetMetadataAsync(packageId, includePrerelease, ...
   - work with configured NuGet sources and authenticated feeds
   - preserve the existing `INuGetPackageService` contract
 - Repro observed: `ganda nuget outdated --update` shows packages as "(not found on NuGet)" even though they exist as prerelease
+
+---
+
+## Implementation Plan
+
+### Files to Modify
+- `Directory.Packages.props` - Add `NuGet.Protocol` 6.11.0 and `NuGet.Configuration` 6.11.0
+- `source/timewarp-amuru/timewarp-amuru.csproj` - Add package references
+- `source/timewarp-amuru/nu-get/NuGetPackageService.cs` - Major rewrite: replace CLI calls with `FindPackageByIdResource.GetAllVersionsAsync()`
+
+### Files to Create
+- `source/timewarp-amuru/nu-get/NuGetSourceCache.cs` - Cache `SourceRepository` instances per source URL
+
+### Tests to Update
+- `tests/timewarp-amuru/single-file-tests/repo-services/nuget-package-service.cs` - Add prerelease package test, verify existing tests pass
+
+### Key Decisions
+1. Use `FindPackageByIdResource` instead of `PackageMetadataResource` - returns all versions including prerelease, simpler API
+2. Match `NuGet.Protocol`/`NuGet.Configuration` version to existing `NuGet.Versioning` 6.11.0
+3. Cache `SourceRepository` instances in `NuGetSourceCache` to avoid repeated initialization
+4. Remove `ParseSearchResult` method entirely (CLI JSON parsing no longer needed)
+5. `INuGetPackageService` contract remains unchanged - backward compatible
+6. Aggregate versions from all enabled NuGet sources
+
+### Implementation Steps
+1. Add NuGet.Protocol and NuGet.Configuration to Directory.Packages.props
+2. Add package references to timewarp-amuru.csproj
+3. Create NuGetSourceCache.cs helper class
+4. Rewrite NuGetPackageService.SearchAsync() using FindPackageByIdResource
+5. Remove ParseSearchResult private method
+6. Add NuGetVersionComparer helper
+7. Update tests with prerelease package test case
+8. Verify RepoCheckVersionService and CheckVersionCommand work unchanged
+9. Run full test suite
+10. Update documentation
