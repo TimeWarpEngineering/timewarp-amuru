@@ -11,7 +11,6 @@
 namespace TimeWarp.Amuru;
 
 using System.Collections.Concurrent;
-using NuGet.Configuration;
 
 public sealed class NuGetSourceCache
 {

@@ -14,9 +14,6 @@
 
 namespace TimeWarp.Amuru;
 
-using NuGet.Common;
-using NuGet.Versioning;
-
 public sealed class NuGetPackageService : INuGetPackageService
 {
   private readonly NuGetSourceCache SourceCache;
