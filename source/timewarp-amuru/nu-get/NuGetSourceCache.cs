@@ -10,8 +10,6 @@
 
 namespace TimeWarp.Amuru;
 
-using System.Collections.Concurrent;
-
 public sealed class NuGetSourceCache
 {
   private readonly ConcurrentDictionary<string, SourceRepository> Repositories = new(StringComparer.OrdinalIgnoreCase);
