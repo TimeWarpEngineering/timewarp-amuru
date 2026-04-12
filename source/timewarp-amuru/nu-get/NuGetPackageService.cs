@@ -1,68 +1,131 @@
 #region Purpose
-// Implementation of NuGet package operations using dotnet package search
+// Implementation of NuGet package operations using NuGet Protocol API
+#endregion
+
+#region Design
+// Uses FindPackageByIdResource instead of PackageMetadataResource because:
+// - GetAllVersionsAsync returns all versions including prerelease in one call
+// - Simpler API surface - no need for multiple queries
+// - Aggregate versions from all enabled NuGet sources for comprehensive results
+// - SourceRepository instances are cached via NuGetSourceCache to avoid repeated init
+// - Removed CLI-based approach (ParseSearchResult) for correctness and performance:
+//   dotnet package search only returns latest version, Protocol gives all versions
 #endregion
 
 namespace TimeWarp.Amuru;
 
+using NuGet.Common;
 using NuGet.Versioning;
 
-/// <summary>
-/// Implementation of NuGet package operations using the dotnet CLI.
-/// </summary>
 public sealed class NuGetPackageService : INuGetPackageService
 {
+  private readonly NuGetSourceCache SourceCache;
+
+  public NuGetPackageService()
+    : this(new NuGetSourceCache())
+  {
+  }
+
+  internal NuGetPackageService(NuGetSourceCache sourceCache)
+  {
+    SourceCache = sourceCache;
+  }
+
   public async Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    CommandOutput result = await Shell.Builder("dotnet")
-      .WithArguments("package", "search", packageId, "--exact-match", "--format", "json")
-      .CaptureAsync(cancellationToken);
+    SourceRepository repository = SourceCache.GetOrCreate("https://api.nuget.org/v3/index.json");
 
-    if (result.ExitCode != 0)
+    FindPackageByIdResource? resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
+    if (resource == null)
     {
       return null;
     }
 
-    return ParseSearchResult(packageId, result.Stdout);
+    using SourceCacheContext cacheContext = new();
+    #pragma warning disable IDE0007
+    IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync
+#pragma warning restore IDE0007
+    (
+      packageId,
+      cacheContext,
+      NullLogger.Instance,
+      cancellationToken
+    );
+
+#pragma warning disable IDE0007
+    List<NuGetVersion> versionList = versions.ToList();
+#pragma warning restore IDE0007
+    if (versionList.Count == 0)
+    {
+      return null;
+    }
+
+    #pragma warning disable IDE0007
+    List<NuGetPackageVersion> packageVersions = versionList
+#pragma warning restore IDE0007
+      .OrderByDescending(static v => v, VersionComparer.Default)
+      .Select(static v => new NuGetPackageVersion(v.ToNormalizedString()))
+      .ToList();
+
+    return new NuGetSearchResult(packageId, packageVersions);
   }
 
   public async Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default)
   {
-    NuGetSearchResult? result = await SearchAsync(packageId, cancellationToken);
+    ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    if (result == null || result.Versions.Count == 0)
+    SourceRepository repository = SourceCache.GetOrCreate("https://api.nuget.org/v3/index.json");
+
+    FindPackageByIdResource? resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
+    if (resource == null)
     {
       return null;
     }
 
-    string? stableVersion = null;
-    string? prereleaseVersion = null;
+    using SourceCacheContext cacheContext = new();
+    #pragma warning disable IDE0007
+    IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync
+#pragma warning restore IDE0007
+    (
+      packageId,
+      cacheContext,
+      NullLogger.Instance,
+      cancellationToken
+    );
 
-    foreach (NuGetPackageVersion pkgVersion in result.Versions)
+    NuGetVersion? stableVersion = null;
+    NuGetVersion? prereleaseVersion = null;
+
+    foreach (NuGetVersion version in versions)
     {
-      if (!NuGetVersion.TryParse(pkgVersion.Version, out NuGetVersion? parsed))
+      if (!version.IsPrerelease)
       {
-        continue;
-      }
-
-      if (!parsed.IsPrerelease)
-      {
-        if (stableVersion == null || CompareVersions(pkgVersion.Version, stableVersion) > 0)
+        if (stableVersion == null || version > stableVersion)
         {
-          stableVersion = pkgVersion.Version;
+          stableVersion = version;
         }
       }
       else
       {
-        if (prereleaseVersion == null || CompareVersions(pkgVersion.Version, prereleaseVersion) > 0)
+        if (prereleaseVersion == null || version > prereleaseVersion)
         {
-          prereleaseVersion = pkgVersion.Version;
+          prereleaseVersion = version;
         }
       }
     }
 
-    return new PackageVersionInfo(stableVersion, prereleaseVersion);
+    if (stableVersion == null && prereleaseVersion == null)
+    {
+      return null;
+    }
+
+    return new PackageVersionInfo
+    (
+      stableVersion?.ToNormalizedString(),
+      prereleaseVersion?.ToNormalizedString()
+    );
   }
 
   public string? ParseVersion(string version)
@@ -128,58 +191,5 @@ public sealed class NuGetPackageService : INuGetPackageService
     if (latest.Major > current.Major) return "major";
     if (latest.Minor > current.Minor) return "minor";
     return "patch";
-  }
-
-  private static NuGetSearchResult? ParseSearchResult(string packageId, string jsonOutput)
-  {
-    using var document = JsonDocument.Parse(jsonOutput);
-    JsonElement root = document.RootElement;
-
-    if (!root.TryGetProperty("searchResult", out JsonElement searchResults))
-    {
-      return null;
-    }
-
-    foreach (JsonElement searchResult in searchResults.EnumerateArray())
-    {
-      if (!searchResult.TryGetProperty("packages", out JsonElement packages))
-      {
-        continue;
-      }
-
-      foreach (JsonElement package in packages.EnumerateArray())
-      {
-        if (!package.TryGetProperty("id", out JsonElement idElement))
-        {
-          continue;
-        }
-
-        string? id = idElement.GetString();
-        if (id == null || !string.Equals(id, packageId, StringComparison.OrdinalIgnoreCase))
-        {
-          continue;
-        }
-
-        if (!package.TryGetProperty("version", out JsonElement versionElement))
-        {
-          continue;
-        }
-
-        string? latestVersion = versionElement.GetString();
-        if (latestVersion == null)
-        {
-          continue;
-        }
-
-        List<NuGetPackageVersion> versions =
-        [
-          new NuGetPackageVersion(latestVersion)
-        ];
-
-        return new NuGetSearchResult(id, versions);
-      }
-    }
-
-    return null;
   }
 }
