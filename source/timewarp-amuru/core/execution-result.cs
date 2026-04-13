@@ -1,5 +1,15 @@
 #region Purpose
-// TODO: Add purpose description
+// Represents the result of a command execution with output capture
+// Wraps CliWrap CommandResult and provides formatted output methods
+#endregion
+
+#region Design
+// - Wraps CliWrap CommandResult to expose exit code, timing, and success status
+// - Stores captured stdout and stderr as strings
+// - Delegates properties (ExitCode, IsSuccess, timing) to underlying CliWrap result
+// - Multiple output formats: ToString (one-line), ToSummary (compact), ToDetailedString (full)
+// - WriteToConsole for direct terminal output with color formatting via TimeWarp.Terminal
+// - Used by CaptureAsync and RunAndCaptureAsync to return execution results
 #endregion
 
 namespace TimeWarp.Amuru;

@@ -23,17 +23,16 @@ namespace TimeWarp.Amuru;
 
 public class CommandResult
 {
-  private readonly Command? Command;
 
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
 
   // Property to access Command from other CommandResult instances in Pipe() method
-  private Command? InternalCommand => Command;
+  private Command? InternalCommand { get; }
 
   internal CommandResult(Command? command)
   {
-    Command = command;
+    InternalCommand = command;
   }
 
   /// <summary>
@@ -63,7 +62,7 @@ public class CommandResult
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return new ExecutionResult(
         new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
@@ -78,7 +77,7 @@ public class CommandResult
     await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
 
     // Configure command with console pipes
-    Command interactiveCommand = Command
+    Command interactiveCommand = InternalCommand
       .WithStandardInputPipe(PipeSource.FromStream(stdIn))
       .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
@@ -121,7 +120,7 @@ public class CommandResult
   )]
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return new ExecutionResult(
         new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
@@ -137,11 +136,11 @@ public class CommandResult
     {
       StartInfo = new ProcessStartInfo
       {
-        FileName = Command.TargetFilePath,
-        Arguments = Command.Arguments,
-        WorkingDirectory = string.IsNullOrEmpty(Command.WorkingDirPath)
+        FileName = InternalCommand.TargetFilePath,
+        Arguments = InternalCommand.Arguments,
+        WorkingDirectory = string.IsNullOrEmpty(InternalCommand.WorkingDirPath)
           ? null
-          : Command.WorkingDirPath,
+          : InternalCommand.WorkingDirPath,
         UseShellExecute = false,
         // CRITICAL: Do NOT redirect any streams - this preserves TTY inheritance
         RedirectStandardInput = false,
@@ -151,9 +150,9 @@ public class CommandResult
     };
 
     // Apply environment variables if configured
-    if (Command.EnvironmentVariables.Count > 0)
+    if (InternalCommand.EnvironmentVariables.Count > 0)
     {
-      foreach (KeyValuePair<string, string?> envVar in Command.EnvironmentVariables)
+      foreach (KeyValuePair<string, string?> envVar in InternalCommand.EnvironmentVariables)
       {
         if (envVar.Value != null)
         {
@@ -206,7 +205,7 @@ public class CommandResult
   )]
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return string.Empty;
     }
@@ -219,7 +218,7 @@ public class CommandResult
     // - stdout is captured (for the result)
     // - stderr goes to console (for interactive UI)
     // - stdin comes from pipeline or was already configured
-    Command interactiveCommand = Command
+    Command interactiveCommand = InternalCommand
       .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputBuilder))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
@@ -248,7 +247,7 @@ public class CommandResult
   )
   {
     // Input validation
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return NullCommandResult;
     }
@@ -270,7 +269,7 @@ public class CommandResult
       }
 
       // Chain commands using CliWrap's pipe operator
-      Command pipedCommand = Command | nextCommandResult.InternalCommand;
+      Command pipedCommand = InternalCommand | nextCommandResult.InternalCommand;
 
       return new CommandResult(pipedCommand);
     }
@@ -285,7 +284,7 @@ public class CommandResult
   /// Returns the command string that would be executed, useful for debugging.
   /// </summary>
   /// <returns>The command string in the format "executable arguments", or "[No command]" if no command is configured</returns>
-  public string ToCommandString() => Command?.ToString() ?? "[No command]";
+  public string ToCommandString() => InternalCommand?.ToString() ?? "[No command]";
 
   /// <summary>
   /// Executes the command and streams output to the console in real-time.
@@ -295,7 +294,7 @@ public class CommandResult
   /// <returns>The exit code of the command</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return 0;
     }
@@ -303,8 +302,8 @@ public class CommandResult
     // Check if mocking is enabled and a mock is configured
     if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
     {
-      string? executable = Command.TargetFilePath;
-      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      string? executable = InternalCommand.TargetFilePath;
+      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
@@ -336,7 +335,7 @@ public class CommandResult
     }
 
     // Stream to terminal using CliWrap's pipe targets
-    Command consoleCommand = Command
+    Command consoleCommand = InternalCommand
       .WithStandardOutputPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
@@ -352,7 +351,7 @@ public class CommandResult
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
   public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return CommandOutput.Empty();
     }
@@ -360,8 +359,8 @@ public class CommandResult
     // Check if mocking is enabled and a mock is configured
     if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
     {
-      string? executable = Command.TargetFilePath;
-      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      string? executable = InternalCommand.TargetFilePath;
+      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
@@ -407,7 +406,7 @@ public class CommandResult
       PipeTarget.ToStringBuilder(stdErrBuilder)
     );
 
-    Command captureCommand = Command
+    Command captureCommand = InternalCommand
       .WithStandardOutputPipe(stdOutTarget)
       .WithStandardErrorPipe(stdErrTarget);
 
@@ -428,7 +427,7 @@ public class CommandResult
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return CommandOutput.Empty();
     }
@@ -437,8 +436,8 @@ public class CommandResult
     if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
     {
       // Extract command details from CliWrap Command
-      string? executable = Command.TargetFilePath;
-      string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      string? executable = InternalCommand.TargetFilePath;
+      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
@@ -466,7 +465,7 @@ public class CommandResult
     List<OutputLine> outputLines = [];
     Lock outputLock = new();
 
-    Command captureCommand = Command
+    Command captureCommand = InternalCommand
       .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
       {
         using (outputLock.EnterScope())
@@ -493,13 +492,13 @@ public class CommandResult
   /// <returns>An async enumerable of stdout lines</returns>
   public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       yield break;
     }
 
     // Use CliWrap's event stream for stdout
-    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -515,13 +514,13 @@ public class CommandResult
   /// <returns>An async enumerable of stderr lines</returns>
   public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       yield break;
     }
 
     // Use CliWrap's event stream for stderr
-    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
     {
       if (evt is StandardErrorCommandEvent stdErr)
       {
@@ -537,13 +536,13 @@ public class CommandResult
   /// <returns>An async enumerable of OutputLine objects</returns>
   public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       yield break;
     }
 
     // Use CliWrap's event stream for combined output
-    await foreach (CommandEvent evt in Command.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -564,14 +563,14 @@ public class CommandResult
   /// <returns>A task that completes when the command finishes</returns>
   public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
   {
-    if (Command == null)
+    if (InternalCommand == null)
     {
       return;
     }
 
     await using FileStream fileStream = File.Create(filePath);
 
-    Command fileCommand = Command
+    Command fileCommand = InternalCommand
       .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
       .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
 
