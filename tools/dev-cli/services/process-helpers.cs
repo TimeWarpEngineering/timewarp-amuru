@@ -1,18 +1,9 @@
 #region Purpose
 // Helper methods for running external processes asynchronously
-// Used by dev-cli for bootstrapping - cannot depend on TimeWarp.Amuru
+// Provides simple wrappers around Shell.Builder for common dev-cli operations
 #endregion
 
-#region Design
-// Dev-cli intentionally uses raw System.Diagnostics.Process instead of TimeWarp.Amuru:
-// - Prevents circular dependency (dev-cli builds the project which includes TimeWarp.Amuru)
-// - Tool must be self-contained for bootstrapping the build system
-// - See AGENTS.md: "Build scripts avoid circular dependency"
-#endregion
-
-#pragma warning disable RS0030 // ProcessStartInfo is allowed in dev-cli for bootstrapping
-
-using System.Diagnostics;
+using System.Text;
 
 namespace DevCli;
 
@@ -20,27 +11,57 @@ public static class ProcessHelpers
 {
   public static async Task<int> RunProcessAsync(string fileName, string arguments)
   {
-    using Process process = new();
-    process.StartInfo = new ProcessStartInfo
+    string[] args = ParseArguments(arguments);
+
+    CommandOutput output = await Shell.Builder(fileName)
+      .WithArguments(args)
+      .CaptureAsync();
+
+    if (!string.IsNullOrEmpty(output.Stdout))
+      await TimeWarpTerminal.Default.WriteLineAsync(output.Stdout);
+
+    if (!string.IsNullOrEmpty(output.Stderr))
+      await TimeWarpTerminal.Default.WriteErrorLineAsync(output.Stderr);
+
+    return output.ExitCode;
+  }
+
+  private static string[] ParseArguments(string arguments)
+  {
+    if (string.IsNullOrWhiteSpace(arguments))
+      return [];
+
+    List<string> result = new();
+    StringBuilder current = new();
+    bool inQuotes = false;
+
+    for (int i = 0; i < arguments.Length; i++)
     {
-      FileName = fileName,
-      Arguments = arguments,
-      UseShellExecute = false,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-      CreateNoWindow = true
-    };
+      char c = arguments[i];
 
-    process.Start();
-    string output = await process.StandardOutput.ReadToEndAsync();
-    string error = await process.StandardError.ReadToEndAsync();
-    await process.WaitForExitAsync();
+      if (c == '"')
+      {
+        inQuotes = !inQuotes;
+        continue;
+      }
 
-    if (!string.IsNullOrEmpty(output)) await TimeWarpTerminal.Default.WriteLineAsync(output);
-    if (!string.IsNullOrEmpty(error)) await TimeWarpTerminal.Default.WriteErrorLineAsync(error);
+      if (c == ' ' && !inQuotes)
+      {
+        if (current.Length > 0)
+        {
+          result.Add(current.ToString());
+          current.Clear();
+        }
 
-    return process.ExitCode;
+        continue;
+      }
+
+      current.Append(c);
+    }
+
+    if (current.Length > 0)
+      result.Add(current.ToString());
+
+    return result.ToArray();
   }
 }
-
-#pragma warning restore RS0030
