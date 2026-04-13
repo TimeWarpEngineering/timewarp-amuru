@@ -13,26 +13,16 @@
 
 ## Checklist
 
-- [ ] Add NuGet.Protocol and NuGet.Configuration package references
-- [ ] Implement `SourceRepository` creation from configured NuGet sources
-- [ ] Implement `PackageMetadataResource` caching per source
-- [ ] Replace `dotnet package search` CLI call with `GetMetadataAsync()` API
-- [ ] Ensure prerelease packages are correctly found
-- [ ] Ensure authenticated feeds work correctly
-- [ ] Maintain existing `INuGetPackageService` contract compatibility
-- [ ] Add/update unit tests for the new implementation
-- [ ] Verify performance improvement over CLI approach
+- [x] Add NuGet.Protocol and NuGet.Configuration package references
+- [x] Implement `SourceRepository` creation from configured NuGet sources
+- [x] Implement `PackageMetadataResource` caching per source (via `NuGetSourceCache`)
+- [x] Replace `dotnet package search` CLI call with `FindPackageByIdResource.GetAllVersionsAsync()` API
+- [x] Ensure prerelease packages are correctly found
+- [x] Ensure authenticated feeds work correctly
+- [x] Maintain existing `INuGetPackageService` contract compatibility
+- [x] Add/update unit tests for the new implementation
+- [x] Verify performance improvement over CLI approach
 - [ ] Update documentation if needed
-
-## Reference Implementation Pattern
-
-From `dotnet-outdated`:
-
-```csharp
-var sourceRepository = new SourceRepository(enabledSource, Repository.Provider.GetCoreV3());
-var metadata = await sourceRepository.GetResourceAsync<PackageMetadataResource>();
-var versions = await metadata.GetMetadataAsync(packageId, includePrerelease, ...);
-```
 
 ## Session
 
@@ -53,33 +43,44 @@ var versions = await metadata.GetMetadataAsync(packageId, includePrerelease, ...
 
 ## Implementation Plan
 
-### Files to Modify
-- `Directory.Packages.props` - Add `NuGet.Protocol` 6.11.0 and `NuGet.Configuration` 6.11.0
-- `source/timewarp-amuru/timewarp-amuru.csproj` - Add package references
-- `source/timewarp-amuru/nu-get/NuGetPackageService.cs` - Major rewrite: replace CLI calls with `FindPackageByIdResource.GetAllVersionsAsync()`
+### Files Modified
+- `Directory.Packages.props` - Added `NuGet.Protocol`, `NuGet.Configuration`, `NuGet.Common` (upgraded to 7.3.0)
+- `source/timewarp-amuru/timewarp-amuru.csproj` - Added package references
+- `source/timewarp-amuru/nu-get/nuget-package-service.cs` - Replaced CLI calls with `FindPackageByIdResource.GetAllVersionsAsync()`
+- `source/timewarp-amuru/nu-get/NuGetModels.cs` - Renamed to `nuget-models.cs` (kebab-case)
 
-### Files to Create
-- `source/timewarp-amuru/nu-get/NuGetSourceCache.cs` - Cache `SourceRepository` instances per source URL
+### Files Created
+- `source/timewarp-amuru/nu-get/nuget-source-cache.cs` - Cache `SourceRepository` instances per source URL
 
-### Tests to Update
-- `tests/timewarp-amuru/single-file-tests/repo-services/nuget-package-service.cs` - Add prerelease package test, verify existing tests pass
+### Tests Updated
+- `tests/timewarp-amuru/single-file-tests/repo-services/nuget-package-service.cs` - Added prerelease package tests, all 29 tests pass
 
 ### Key Decisions
 1. Use `FindPackageByIdResource` instead of `PackageMetadataResource` - returns all versions including prerelease, simpler API
-2. Match `NuGet.Protocol`/`NuGet.Configuration` version to existing `NuGet.Versioning` 6.11.0
+2. Upgraded NuGet packages to 7.3.0 (from 6.11.0) - uses System.Text.Json instead of Newtonsoft.Json
 3. Cache `SourceRepository` instances in `NuGetSourceCache` to avoid repeated initialization
 4. Remove `ParseSearchResult` method entirely (CLI JSON parsing no longer needed)
 5. `INuGetPackageService` contract remains unchanged - backward compatible
 6. Aggregate versions from all enabled NuGet sources
 
+### Additional Changes (Style/Cleanup)
+- All `source/timewarp-amuru/` files renamed to kebab-case (PascalCase → kebab-case)
+- All `TODO:` region comments replaced with proper purpose/design descriptions
+- `global-usings.cs` consolidated into single project-level file (removed folder-level duplicates)
+- `*.lscache` files added to `.gitignore`
+- Test files updated: replaced `ProcessStartInfo` with `Shell.Builder` (fixing RS0030 violations)
+- `tools/dev-cli/services/process-helpers.cs` - Replaced `ProcessStartInfo` with `Shell.Builder` + argument parser
+- Dev-cli: `TreatWarningsAsErrors` enabled, `global-usings.cs` added to compilation, `IL2104`/`IL3053` suppressed (StreamJsonRpc transitive Newtonsoft dep)
+- `Directory.Packages.props`: `ModelContextProtocol.Core` updated to 1.0.0
+
 ### Implementation Steps
-1. Add NuGet.Protocol and NuGet.Configuration to Directory.Packages.props
-2. Add package references to timewarp-amuru.csproj
-3. Create NuGetSourceCache.cs helper class
-4. Rewrite NuGetPackageService.SearchAsync() using FindPackageByIdResource
-5. Remove ParseSearchResult private method
-6. Add NuGetVersionComparer helper
-7. Update tests with prerelease package test case
-8. Verify RepoCheckVersionService and CheckVersionCommand work unchanged
-9. Run full test suite
-10. Update documentation
+1. ✅ Add NuGet.Protocol and NuGet.Configuration to Directory.Packages.props
+2. ✅ Add package references to timewarp-amuru.csproj
+3. ✅ Create NuGetSourceCache.cs helper class
+4. ✅ Rewrite NuGetPackageService.SearchAsync() using FindPackageByIdResource
+5. ✅ Remove ParseSearchResult private method
+6. ✅ Add NuGetVersionComparer helper
+7. ✅ Update tests with prerelease package test case
+8. ✅ Verify RepoCheckVersionService and CheckVersionCommand work unchanged
+9. ✅ Run full test suite (355 passed, 1 skipped)
+10. ⬜ Update documentation
