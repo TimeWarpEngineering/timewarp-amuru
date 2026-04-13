@@ -1,5 +1,15 @@
 #region Purpose
-// TODO: Add purpose description
+// Represents the complete output from a command execution with lazy-computed views
+// Provides thread-safe access to stdout, stderr, and combined output
+#endregion
+
+#region Design
+// - Lazy-computed string properties (Stdout, Stderr, Combined) with double-checked locking
+// - Thread-safe: uses lock(syncLock) for lazy initialization
+// - Stores raw OutputLine list for flexible processing and line-level access
+// - Factory method Empty() for creating empty outputs (failed commands, tests)
+// - Two constructors: one from OutputLine list (streaming), one from strings (reconstruction)
+// - Convenience methods GetLines/GetStdoutLines/GetStderrLines for line-array access
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -11,21 +21,21 @@ public class CommandOutput
 {
   private readonly List<OutputLine> lines;
   private readonly object syncLock = new();
-  
+
   private string? stdout;
   private string? stderr;
   private string? combined;
-  
+
   /// <summary>
   /// Gets the exit code of the command.
   /// </summary>
   public int ExitCode { get; }
-  
+
   /// <summary>
   /// Gets whether the command succeeded (exit code is 0).
   /// </summary>
   public bool Success => ExitCode == 0;
-  
+
   /// <summary>
   /// Gets only the stdout output as a single string.
   /// This property is lazy-computed and thread-safe.
@@ -38,15 +48,15 @@ public class CommandOutput
       {
         lock (syncLock)
         {
-          stdout ??= string.Join("\n", 
+          stdout ??= string.Join("\n",
             lines.Where(l => !l.IsError).Select(l => l.Text));
         }
       }
-      
+
       return stdout;
     }
   }
-  
+
   /// <summary>
   /// Gets only the stderr output as a single string.
   /// This property is lazy-computed and thread-safe.
@@ -63,11 +73,11 @@ public class CommandOutput
             lines.Where(l => l.IsError).Select(l => l.Text));
         }
       }
-      
+
       return stderr;
     }
   }
-  
+
   /// <summary>
   /// Gets the combined stdout and stderr output in the order they were produced.
   /// This property is lazy-computed and thread-safe.
@@ -84,31 +94,31 @@ public class CommandOutput
             lines.Select(l => l.Text));
         }
       }
-      
+
       return combined;
     }
   }
-  
+
   /// <summary>
   /// Gets the output lines for direct access and processing.
   /// </summary>
   public IReadOnlyList<OutputLine> OutputLines => lines;
-  
+
   /// <summary>
   /// Gets the combined output split into lines (convenience method).
   /// </summary>
   public string[] GetLines() => Combined.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-  
+
   /// <summary>
   /// Gets the stdout output split into lines.
   /// </summary>
   public string[] GetStdoutLines() => Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-  
+
   /// <summary>
   /// Gets the stderr output split into lines.
   /// </summary>
   public string[] GetStderrLines() => Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-  
+
   /// <summary>
   /// Initializes a new instance of the CommandOutput class.
   /// </summary>
@@ -119,7 +129,7 @@ public class CommandOutput
     lines = outputLines != null ? new List<OutputLine>(outputLines) : new List<OutputLine>();
     ExitCode = exitCode;
   }
-  
+
   /// <summary>
   /// Initializes a new instance of the CommandOutput class with separate stdout and stderr.
   /// The output will be reconstructed with lines in the order they were added.
@@ -130,7 +140,7 @@ public class CommandOutput
   public CommandOutput(string stdoutText, string stderrText, int exitCode)
   {
     lines = new List<OutputLine>();
-    
+
     if (!string.IsNullOrEmpty(stdoutText))
     {
       foreach (string line in stdoutText.Split('\n'))
@@ -141,7 +151,7 @@ public class CommandOutput
         }
       }
     }
-    
+
     if (!string.IsNullOrEmpty(stderrText))
     {
       foreach (string line in stderrText.Split('\n'))
@@ -152,10 +162,10 @@ public class CommandOutput
         }
       }
     }
-    
+
     ExitCode = exitCode;
   }
-  
+
   /// <summary>
   /// Creates an empty CommandOutput for failed or null commands.
   /// </summary>

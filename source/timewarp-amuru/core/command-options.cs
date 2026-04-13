@@ -24,19 +24,19 @@ public class CommandOptions
   /// If not specified, uses the current working directory.
   /// </summary>
   public string? WorkingDirectory { get; set; }
-  
+
   /// <summary>
   /// Gets additional environment variables for the command execution.
   /// These are added to the inherited environment variables from the parent process.
   /// </summary>
   public Dictionary<string, string?>? EnvironmentVariables { get; init; }
-  
+
   /// <summary>
   /// Gets or sets the command result validation behavior.
   /// If not specified, defaults to CommandResultValidation.None for graceful error handling.
   /// </summary>
   public CommandResultValidation? Validation { get; set; }
-  
+
   /// <summary>
   /// Creates a new instance of CommandOptions with default settings.
   /// </summary>
@@ -44,7 +44,7 @@ public class CommandOptions
   {
     // Default constructor with no configuration
   }
-  
+
   /// <summary>
   /// Sets the working directory for command execution.
   /// </summary>
@@ -59,7 +59,7 @@ public class CommandOptions
       Validation = Validation
     };
   }
-  
+
   /// <summary>
   /// Adds a single environment variable for command execution.
   /// </summary>
@@ -71,16 +71,16 @@ public class CommandOptions
     var newOptions = new CommandOptions
     {
       WorkingDirectory = WorkingDirectory,
-      EnvironmentVariables = EnvironmentVariables != null 
+      EnvironmentVariables = EnvironmentVariables != null
         ? new Dictionary<string, string?>(EnvironmentVariables)
-        : new Dictionary<string, string?>(),
+        : [],
       Validation = Validation
     };
-    
+
     newOptions.EnvironmentVariables[key] = value;
     return newOptions;
   }
-  
+
   /// <summary>
   /// Sets multiple environment variables for command execution.
   /// </summary>
@@ -95,7 +95,7 @@ public class CommandOptions
       Validation = Validation
     };
   }
-  
+
   /// <summary>
   /// Disables command result validation, allowing commands to exit with non-zero codes without throwing exceptions.
   /// </summary>
@@ -109,7 +109,7 @@ public class CommandOptions
       Validation = CommandResultValidation.None
     };
   }
-  
+
   /// <summary>
   /// Applies the configuration options to a CliWrap Command.
   /// </summary>
@@ -118,25 +118,25 @@ public class CommandOptions
   internal Command ApplyTo(Command command)
   {
     Command configuredCommand = command;
-    
+
     // Apply working directory if specified
     if (!string.IsNullOrWhiteSpace(WorkingDirectory))
     {
       configuredCommand = configuredCommand.WithWorkingDirectory(WorkingDirectory);
     }
-    
+
     // Apply environment variables if specified
-    if (EnvironmentVariables != null && EnvironmentVariables.Count > 0)
+    if (EnvironmentVariables?.Count > 0)
     {
       configuredCommand = configuredCommand.WithEnvironmentVariables(EnvironmentVariables);
     }
-    
+
     // Apply validation if specified (otherwise keep the default from CommandExtensions)
     if (Validation.HasValue)
     {
       configuredCommand = configuredCommand.WithValidation(Validation.Value);
     }
-    
+
     return configuredCommand;
   }
 }
