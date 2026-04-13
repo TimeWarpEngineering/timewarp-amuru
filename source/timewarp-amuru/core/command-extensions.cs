@@ -1,14 +1,28 @@
 #region Purpose
-// Provides helper methods for executing shell commands via CliWrap
-// Handles special cases like C# scripts which require -- argument prefixing
+// Constructs CommandResult instances from an executable, arguments, and command options.
+// Centralizes command path resolution, script argument normalization, and optional stdin wiring.
 #endregion
 
 #region Design
-// - Static helper class providing Run() overloads for command execution
-// - Special handling for .cs files: inserts "--" to prevent dotnet CLI interception
-// - Command path overrides via CliConfiguration for tool aliasing
-// - Returns CommandResult for fluent builder pattern continuation
-// - Supports standard input piping for interactive commands
+// - This is the command construction surface; CommandResult is the execution surface.
+// - Returns NullCommandResult for invalid input so higher layers can degrade gracefully.
+// - Applies CliConfiguration path overrides before building the CliWrap command.
+// - Inserts "--" for .cs targets so dotnet file-based apps receive arguments correctly.
+// - Applies CommandOptions in one place to keep ShellBuilder and other builders thin.
+// - Optional standardInput is attached as a PipeSource only when explicitly provided.
+#endregion
+
+#region Responsibilities
+// This file is responsible for:
+// - validating executable/options input before command construction
+// - normalizing arguments for .NET file-based app execution
+// - creating the underlying CliWrap command
+// - attaching execution options and standard input
+// It is not responsible for:
+// - running commands
+// - capturing output
+// - interactive passthrough or TTY behavior
+// - streaming output
 #endregion
 
 namespace TimeWarp.Amuru;

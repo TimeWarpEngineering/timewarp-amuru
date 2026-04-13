@@ -1,22 +1,40 @@
 #region Purpose
-// Fluent API for executing shell commands with multiple output modes
-// Wraps CliWrap Command and provides methods for run, capture, stream, and pipe operations
+// Provides the execution surface over a pre-built command.
+// Exposes shell-like run, capture, stream, pipe, selection, and passthrough behaviors from one fluent object.
 #endregion
 
 #region Design
-// - Wraps CliWrap Command object; null Command indicates invalid/failed command
-// - NullCommandResult singleton avoids creating multiple identical null instances
-// - Multiple execution modes:
-//   * RunAsync: Stream to console (default shell-like behavior)
-//   * CaptureAsync: Silent execution, capture all output
-//   * RunAndCaptureAsync: Both stream and capture
-//   * PassthroughAsync: Interactive with console streams (fzf-style)
-//   * TtyPassthroughAsync: True TTY for TUI apps (vim, nano)
-//   * SelectAsync: Interactive selection tools (fzf output capture)
-// - Stream methods: StreamStdoutAsync, StreamStderrAsync, StreamCombinedAsync for async enumeration
-// - Pipe(): Chain commands using CliWrap pipe operator
-// - Mocking support via Testing.CommandMock for testability
-// - All methods gracefully handle null Command (return empty results or 0 exit code)
+// - CommandExtensions builds commands; this class executes them.
+// - InternalCommand may be null, representing invalid construction or graceful degradation.
+// - NullCommandResult is a shared sentinel to avoid repeated null-instance allocation.
+// - Execution modes intentionally separate common scripting cases:
+//   * RunAsync: stream to terminal
+//   * CaptureAsync: capture silently
+//   * RunAndCaptureAsync: stream and capture
+//   * PassthroughAsync: interactive stream piping without true TTY
+//   * TtyPassthroughAsync: real terminal inheritance for TUI apps
+//   * SelectAsync: capture stdout while leaving interactive UI on stderr
+// - Streaming methods use CliWrap event streams for low-buffer processing.
+// - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
+// - Mock support applies to Run/Capture/RunAndCapture paths; TTY passthrough remains a real process boundary.
+// - Null commands return safe defaults instead of throwing, preserving shell-like composition.
+#endregion
+
+#region Execution Modes
+// Choose methods based on interaction model:
+// - Non-interactive terminal output: RunAsync
+// - Non-interactive data processing: CaptureAsync
+// - Non-interactive logging + capture: RunAndCaptureAsync
+// - Interactive stream-based tools like fzf: PassthroughAsync or SelectAsync
+// - True TTY applications like vim/nano/edit: TtyPassthroughAsync
+// - Large outputs: StreamStdoutAsync / StreamStderrAsync / StreamCombinedAsync
+#endregion
+
+#region Implementation Boundaries
+// Most behavior is implemented with CliWrap pipes and event streams.
+// TtyPassthroughAsync is the intentional exception: it uses Process/ProcessStartInfo
+// because true TTY inheritance cannot be expressed through redirected pipes.
+// That raw-process boundary is a core implementation detail, not a preferred public pattern.
 #endregion
 
 namespace TimeWarp.Amuru;
