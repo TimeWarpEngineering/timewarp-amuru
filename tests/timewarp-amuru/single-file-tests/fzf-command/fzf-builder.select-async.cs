@@ -47,9 +47,9 @@ namespace FzfBuilder_
     {
       string mockPath = Path.GetTempFileName();
       File.Delete(mockPath);
-      mockPath = mockPath + ".sh";
+      mockPath += ".sh";
 
-      string mockScript = @"#!/bin/bash
+      const string mockScript = @"#!/bin/bash
 # Mock FZF - just output the first line of input
 head -n 1
 ";
