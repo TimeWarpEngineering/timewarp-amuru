@@ -1,5 +1,22 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent API for executing shell commands with multiple output modes
+// Wraps CliWrap Command and provides methods for run, capture, stream, and pipe operations
+#endregion
+
+#region Design
+// - Wraps CliWrap Command object; null Command indicates invalid/failed command
+// - NullCommandResult singleton avoids creating multiple identical null instances
+// - Multiple execution modes:
+//   * RunAsync: Stream to console (default shell-like behavior)
+//   * CaptureAsync: Silent execution, capture all output
+//   * RunAndCaptureAsync: Both stream and capture
+//   * PassthroughAsync: Interactive with console streams (fzf-style)
+//   * TtyPassthroughAsync: True TTY for TUI apps (vim, nano)
+//   * SelectAsync: Interactive selection tools (fzf output capture)
+// - Stream methods: StreamStdoutAsync, StreamStderrAsync, StreamCombinedAsync for async enumeration
+// - Pipe(): Chain commands using CliWrap pipe operator
+// - Mocking support via Testing.CommandMock for testability
+// - All methods gracefully handle null Command (return empty results or 0 exit code)
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -7,38 +24,40 @@ namespace TimeWarp.Amuru;
 public class CommandResult
 {
   private readonly Command? Command;
-  
+
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
-  
+
   // Property to access Command from other CommandResult instances in Pipe() method
   private Command? InternalCommand => Command;
-  
-  
+
   internal CommandResult(Command? command)
   {
     Command = command;
   }
-  
-  
+
   /// <summary>
   /// Passes the command through to the console by piping stdin/stdout/stderr streams.
   /// This allows interactive commands like fzf to work with user input and terminal UI.
   /// </summary>
   /// <remarks>
+  /// <para>
   /// This method uses CliWrap's stream piping which does NOT preserve TTY characteristics.
   /// For TUI applications like vim, nano, or edit that require a real TTY, use
   /// <see cref="TtyPassthroughAsync"/> instead.
-  /// 
+  /// </para>
+  /// <para>
   /// Use this method for:
   /// - Interactive filter tools like fzf
   /// - Simple interactive prompts
   /// - Commands that don't check isatty()
-  /// 
+  /// </para>
+  /// <para>
   /// Use TtyPassthroughAsync for:
   /// - Full-screen TUI editors (vim, nano, edit)
   /// - SSH sessions with terminal allocation
   /// - Applications that call isatty() to verify terminal
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
@@ -52,21 +71,21 @@ public class CommandResult
         string.Empty
       );
     }
-    
+
     // Open console streams for interactive piping
     await using Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
     await using Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
     await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
-    
+
     // Configure command with console pipes
     Command interactiveCommand = Command
       .WithStandardInputPipe(PipeSource.FromStream(stdIn))
       .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
-    
+
     // Execute interactively
     CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken);
-    
+
     // Return result with empty output strings (output went to console)
     return new ExecutionResult(
       result,
@@ -74,7 +93,7 @@ public class CommandResult
       string.Empty
     );
   }
-  
+
   /// <summary>
   /// Executes the command with true TTY passthrough for TUI applications.
   /// Unlike PassthroughAsync which pipes Console streams, this method
@@ -82,13 +101,16 @@ public class CommandResult
   /// the child process to inherit the terminal's TTY characteristics.
   /// </summary>
   /// <remarks>
+  /// <para>
   /// Use this method for TUI applications like vim, nano, edit, etc. that
   /// require a real terminal (TTY) to function properly. These applications
   /// check isatty() and fail when stdin/stdout/stderr are pipes.
-  /// 
+  /// </para>
+  /// <para>
   /// Note: Output cannot be captured with this method since streams are
   /// not redirected. Use PassthroughAsync for non-TUI interactive commands
   /// where you want stream access.
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
@@ -109,16 +131,16 @@ public class CommandResult
     }
 
     DateTimeOffset startTime = DateTimeOffset.Now;
-    
+
 #pragma warning disable RS0030 // Banned symbol: Amuru itself must use Process/ProcessStartInfo to implement TTY passthrough
-    using var process = new System.Diagnostics.Process
+    using var process = new Process
     {
-      StartInfo = new System.Diagnostics.ProcessStartInfo
+      StartInfo = new ProcessStartInfo
       {
         FileName = Command.TargetFilePath,
         Arguments = Command.Arguments,
-        WorkingDirectory = string.IsNullOrEmpty(Command.WorkingDirPath) 
-          ? null 
+        WorkingDirectory = string.IsNullOrEmpty(Command.WorkingDirPath)
+          ? null
           : Command.WorkingDirPath,
         UseShellExecute = false,
         // CRITICAL: Do NOT redirect any streams - this preserves TTY inheritance
@@ -146,7 +168,7 @@ public class CommandResult
 
     process.Start();
 #pragma warning restore RS0030
-    
+
     // Register cancellation
     await using CancellationTokenRegistration registration = cancellationToken.Register(() =>
     {
@@ -159,9 +181,9 @@ public class CommandResult
         // Process may have already exited
       }
     });
-    
+
     await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-    
+
     DateTimeOffset exitTime = DateTimeOffset.Now;
 
     return new ExecutionResult(
@@ -170,7 +192,7 @@ public class CommandResult
       string.Empty
     );
   }
-  
+
   /// <summary>
   /// Executes an interactive selection command and returns the selected value.
   /// This is ideal for commands like fzf where the UI is rendered to stderr but the selection is written to stdout.
@@ -188,11 +210,11 @@ public class CommandResult
     {
       return string.Empty;
     }
-    
+
     // Use StringBuilder to capture output
     StringBuilder outputBuilder = new();
     await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
-    
+
     // Configure command:
     // - stdout is captured (for the result)
     // - stderr goes to console (for interactive UI)
@@ -200,7 +222,7 @@ public class CommandResult
     Command interactiveCommand = Command
       .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputBuilder))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
-    
+
     try
     {
       await interactiveCommand.ExecuteAsync(cancellationToken);
@@ -210,10 +232,10 @@ public class CommandResult
       // Graceful degradation - return empty string on failure
       return string.Empty;
     }
-    
+
     return outputBuilder.ToString().TrimEnd('\n', '\r');
   }
-  
+
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
@@ -230,26 +252,26 @@ public class CommandResult
     {
       return NullCommandResult;
     }
-    
+
     if (string.IsNullOrWhiteSpace(executable))
     {
       return NullCommandResult;
     }
-    
+
     try
     {
       // Use Run() to create the next command instead of duplicating logic
       CommandResult nextCommandResult = CommandExtensions.Run(executable, arguments);
-      
+
       // If Run() failed, it returned a CommandResult with null Command
       if (nextCommandResult.InternalCommand == null)
       {
         return NullCommandResult;
       }
-      
+
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = Command | nextCommandResult.InternalCommand;
-      
+
       return new CommandResult(pipedCommand);
     }
     catch
@@ -258,7 +280,7 @@ public class CommandResult
       return NullCommandResult;
     }
   }
-  
+
   /// <summary>
   /// Returns the command string that would be executed, useful for debugging.
   /// </summary>
@@ -283,32 +305,32 @@ public class CommandResult
     {
       string? executable = Command.TargetFilePath;
       string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      
+
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
         Testing.CommandMock.State.RecordCall(executable, arguments);
-        
+
         if (setupData.Delay.HasValue)
         {
           await Task.Delay(setupData.Delay.Value, cancellationToken);
         }
-        
+
         if (setupData.Exception != null)
         {
           throw setupData.Exception;
         }
-        
+
         // Write mock output to terminal to simulate RunAsync behavior
         if (!string.IsNullOrEmpty(setupData.Stdout))
         {
           await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
         }
-        
+
         if (!string.IsNullOrEmpty(setupData.Stderr))
         {
           await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
         }
-        
+
         return setupData.ExitCode;
       }
     }
@@ -340,32 +362,32 @@ public class CommandResult
     {
       string? executable = Command.TargetFilePath;
       string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      
+
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
         Testing.CommandMock.State.RecordCall(executable, arguments);
-        
+
         if (setupData.Delay.HasValue)
         {
           await Task.Delay(setupData.Delay.Value, cancellationToken);
         }
-        
+
         if (setupData.Exception != null)
         {
           throw setupData.Exception;
         }
-        
+
         // Write to terminal for RunAndCapture behavior
         if (!string.IsNullOrEmpty(setupData.Stdout))
         {
           await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
         }
-        
+
         if (!string.IsNullOrEmpty(setupData.Stderr))
         {
           await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
         }
-        
+
         return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
       }
     }
@@ -373,24 +395,24 @@ public class CommandResult
     // Use StringBuilders to capture output while also streaming to console
     StringBuilder stdOutBuilder = new();
     StringBuilder stdErrBuilder = new();
-    
+
     // Create pipe targets that both stream to terminal AND capture
     var stdOutTarget = PipeTarget.Merge(
       PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)),
       PipeTarget.ToStringBuilder(stdOutBuilder)
     );
-    
+
     var stdErrTarget = PipeTarget.Merge(
       PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)),
       PipeTarget.ToStringBuilder(stdErrBuilder)
     );
-    
+
     Command captureCommand = Command
       .WithStandardOutputPipe(stdOutTarget)
       .WithStandardErrorPipe(stdErrTarget);
-    
+
     CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
-    
+
     return new CommandOutput(
       stdOutBuilder.ToString(),
       stdErrBuilder.ToString(),
@@ -417,24 +439,24 @@ public class CommandResult
       // Extract command details from CliWrap Command
       string? executable = Command.TargetFilePath;
       string[] arguments = Command.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      
+
       if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
       {
         // Record that this command was called
         Testing.CommandMock.State.RecordCall(executable, arguments);
-        
+
         // Apply delay if configured
         if (setupData.Delay.HasValue)
         {
           await Task.Delay(setupData.Delay.Value, cancellationToken);
         }
-        
+
         // Throw exception if configured
         if (setupData.Exception != null)
         {
           throw setupData.Exception;
         }
-        
+
         // Return mock result
         return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
       }
@@ -548,7 +570,7 @@ public class CommandResult
     }
 
     await using FileStream fileStream = File.Create(filePath);
-    
+
     Command fileCommand = Command
       .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
       .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
