@@ -7,10 +7,10 @@
     <!-- External packages -->
     <PackageVersion Include="CliWrap" Version="3.10.1" />
     <PackageVersion Include="ModelContextProtocol.Core" Version="1.0.0-rc.1" />
-    <PackageVersion Include="NuGet.Common" Version="6.11.0" />
-    <PackageVersion Include="NuGet.Configuration" Version="6.11.0" />
-    <PackageVersion Include="NuGet.Protocol" Version="6.11.0" />
-    <PackageVersion Include="NuGet.Versioning" Version="6.11.0" />
+    <PackageVersion Include="NuGet.Common" Version="7.3.0" />
+    <PackageVersion Include="NuGet.Configuration" Version="7.3.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="7.3.0" />
+    <PackageVersion Include="NuGet.Versioning" Version="7.3.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="StreamJsonRpc" Version="2.24.84" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
