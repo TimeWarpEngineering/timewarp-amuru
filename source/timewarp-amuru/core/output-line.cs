@@ -52,7 +52,5 @@ public class OutputLine
   /// </summary>
   /// <param name="text">The text content of the line</param>
   /// <param name="isError">Whether this line is from stderr</param>
-  public OutputLine(string text, bool isError) : this(text, isError, DateTime.UtcNow)
-  {
-  }
+  public OutputLine(string text, bool isError) : this(text, isError, DateTime.UtcNow) { }
 }
