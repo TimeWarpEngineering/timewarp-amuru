@@ -3,6 +3,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
     <!-- Suppress warnings that don't apply to CLI tools -->
     <!-- CA1031: Catch general exception types - OK for CLI error handling -->
     <!-- CA1303: Literal strings - OK for CLI output -->
