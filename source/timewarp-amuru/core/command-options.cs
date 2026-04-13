@@ -1,5 +1,14 @@
 #region Purpose
-// TODO: Add purpose description
+// Configuration options for shell command execution
+// Controls working directory, environment variables, and result validation behavior
+#endregion
+
+#region Design
+// - Immutable-style fluent API: With* methods return new instances
+// - Properties use init-only or setters for flexible configuration
+// - ApplyTo method translates options into CliWrap Command configuration
+// - Validation defaults to null (uses CommandExtensions default behavior)
+// - Environment variables are merged with parent process environment
 #endregion
 
 namespace TimeWarp.Amuru;
