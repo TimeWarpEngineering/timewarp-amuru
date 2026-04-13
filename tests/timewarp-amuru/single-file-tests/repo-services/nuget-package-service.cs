@@ -1,7 +1,7 @@
 #!/usr/bin/dotnet --
 
 #region Purpose
-// Tests for NuGetPackageService - validates NuGet search operations
+// Tests for NuGetPackageService - validates NuGet Protocol API operations
 #endregion
 
 #if !JARIBU_MULTI
@@ -59,6 +59,26 @@ namespace Repo_Services
       result.ShouldNotBeNull();
       result.PackageId.ShouldBe("Newtonsoft.Json");
       result.Versions.Count.ShouldBeGreaterThan(0);
+    }
+
+    public static async Task SearchAsync_WithValidPackage_ShouldReturnMultipleVersions()
+    {
+      NuGetPackageService service = new();
+
+      NuGetSearchResult? result = await service.SearchAsync("Newtonsoft.Json");
+
+      result.ShouldNotBeNull();
+      result.Versions.Count.ShouldBeGreaterThan(1);
+    }
+
+    public static async Task SearchAsync_WithPrereleasePackage_ShouldIncludePrereleaseVersions()
+    {
+      NuGetPackageService service = new();
+
+      NuGetSearchResult? result = await service.SearchAsync("TimeWarp.Amuru");
+
+      result.ShouldNotBeNull();
+      result.Versions.Any(static v => v.Version.Contains('-', StringComparison.Ordinal)).ShouldBeTrue();
     }
 
     public static async Task SearchAsync_WithNonExistentPackage_ShouldReturnNull()
@@ -349,6 +369,16 @@ namespace Repo_Services
       PackageVersionInfo? result = await service.GetLatestVersionsAsync(nonExistentPackage);
 
       result.ShouldBeNull();
+    }
+
+    public static async Task GetLatestVersionsAsync_WithPrereleasePackage_ShouldReturnPrereleaseVersion()
+    {
+      NuGetPackageService service = new();
+
+      PackageVersionInfo? result = await service.GetLatestVersionsAsync("TimeWarp.Amuru");
+
+      result.ShouldNotBeNull();
+      result.PrereleaseVersion.ShouldNotBeNull();
     }
   }
 }

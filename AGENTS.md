@@ -8,7 +8,7 @@ This file provides guidance to agents when working with code in this repository.
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
 
 ## Non-Obvious Patterns
-- **Build scripts avoid circular dependency**: Use raw `System.Diagnostics.Process` instead of TimeWarp.Amuru library
+- **Build scripts and dev-cli should use TimeWarp.Amuru**: Prefer `Shell.Builder` over raw `System.Diagnostics.Process`; only use raw process APIs in rare implementation boundaries like true TTY passthrough
 - **C# script execution**: `.cs` files get `--` prefix inserted before arguments to prevent dotnet interception
 - **Directory management**: Scripts use `[CallerFilePath]` pattern for relative path resolution from script location
 - **Test discovery**: Tests found via `find Integration/ -name "*.cs" -type f` command
@@ -17,6 +17,3 @@ This file provides guidance to agents when working with code in this repository.
 
 ## Code Style Rules
 See `.ai/04-csharp-coding-standards.md` and `.editorconfig` for project-specific formatting requirements.
-
-## Related AI Assistant Rules
-- See `CLAUDE.md` for comprehensive project documentation and workflow guidance

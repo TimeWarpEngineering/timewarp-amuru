@@ -484,8 +484,8 @@ See our [Architectural Decision Records](Documentation/Conceptual/ArchitecturalD
 ## Documentation
 
 - **[Migration Guide](Analysis/MigrationGuide.md)** - Guide for migrating from older versions
-- **[command-extensions.md](source/timewarp-amuru/command-extensions.md)** - Static API documentation
-- **[command-result.md](source/timewarp-amuru/command-result.md)** - Fluent interface documentation
+- **[command-extensions.cs](source/timewarp-amuru/core/command-extensions.cs)** - Collocated command construction design documentation
+- **[command-result.cs](source/timewarp-amuru/core/command-result.cs)** - Collocated command execution design documentation
 - **[Architectural Decisions](Documentation/Conceptual/ArchitecturalDecisionRecords/Overview.md)** - Design rationale and decisions
 
 ## Example Scripts

@@ -1,12 +1,17 @@
 #region Purpose
-// TODO: Add purpose description
+// Global using statements shared across the timewarp-amuru project
 #endregion
 
 global using CliWrap;
 global using CliWrap.Buffered;
 global using CliWrap.EventStream;
+global using NuGet.Common;
+global using NuGet.Configuration;
+global using NuGet.Protocol.Core.Types;
+global using NuGet.Versioning;
 global using StreamJsonRpc;
 global using System;
+global using System.Collections.Concurrent;
 global using System.Diagnostics;
 global using System.Globalization;
 global using System.Runtime.CompilerServices;
