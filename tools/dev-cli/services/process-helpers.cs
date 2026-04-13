@@ -3,8 +3,6 @@
 // Provides simple wrappers around Shell.Builder for common dev-cli operations
 #endregion
 
-using System.Text;
-
 namespace DevCli;
 
 public static class ProcessHelpers
