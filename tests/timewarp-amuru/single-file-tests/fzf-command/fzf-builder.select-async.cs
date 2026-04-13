@@ -23,7 +23,7 @@ namespace FzfBuilder_
 
     public static async Task MockFzfWithOptions_Should_ReturnFirstOption()
     {
-      string mockFzfPath = CreateMockFzf();
+      string mockFzfPath = await CreateMockFzf();
 
       try
       {
@@ -43,7 +43,7 @@ namespace FzfBuilder_
       }
     }
 
-    private static string CreateMockFzf()
+    private static async Task<string> CreateMockFzf()
     {
       string mockPath = Path.GetTempFileName();
       File.Delete(mockPath);
@@ -54,18 +54,13 @@ namespace FzfBuilder_
 head -n 1
 ";
 
-      File.WriteAllText(mockPath, mockScript);
+      await File.WriteAllTextAsync(mockPath, mockScript);
 
       if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
       {
-        using Process chmod = Process.Start(new ProcessStartInfo
-        {
-          FileName = "chmod",
-          Arguments = $"+x \"{mockPath}\"",
-          RedirectStandardOutput = true,
-          RedirectStandardError = true
-        })!;
-        chmod.WaitForExit();
+        await Shell.Builder("chmod")
+          .WithArguments("+x", mockPath)
+          .RunAsync();
       }
 
       return mockPath;
