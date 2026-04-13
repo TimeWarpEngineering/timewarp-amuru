@@ -25,30 +25,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Global usings for dev-cli -->
-    <Using Include="System" />
-    <Using Include="System.IO" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Threading" />
-    <Using Include="System.Threading.Tasks" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Diagnostics" />
-    <Using Include="System.Runtime.CompilerServices" />
-    <Using Include="System.Text" />
-    <Using Include="System.Text.Json" />
-    <Using Include="System.Xml.Linq" />
-
-    <Using Include="TimeWarp.Nuru" />
-    <Using Include="TimeWarp.Nuru.Unit" Static="true" />
-    <Using Include="TimeWarp.Amuru" />
-    <Using Include="TimeWarp.Terminal" />
-    <Using Include="Microsoft.Extensions.DependencyInjection" />
-
-    <Using Include="System.Console" Static="true" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Include endpoint and service files in compilation -->
+    <!-- Include global usings, endpoint and service files in compilation -->
+    <Compile Include="global-usings.cs" />
     <Compile Include="endpoints/**/*.cs" />
     <Compile Include="services/**/*.cs" />
   </ItemGroup>
