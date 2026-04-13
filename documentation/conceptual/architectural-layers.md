@@ -936,7 +936,7 @@ var files = await Fzf.Builder()
 ### API Documentation
 - [README.md](../../../README.md) - Main library documentation
 - [Ganda README](../../../Source/TimeWarp.Ganda/README.md) - CLI tool documentation
-- [command-extensions.md](../../../source/timewarp-amuru/command-extensions.md) - Extension methods reference
+- [command-extensions.md](../../../source/timewarp-amuru/core/command-extensions.md) - Extension methods reference
 
 ### Related Concepts
 - [Error Handling](../ArchitecturalDecisionRecords/Approved/0002-error-handling-philosophy.md)
