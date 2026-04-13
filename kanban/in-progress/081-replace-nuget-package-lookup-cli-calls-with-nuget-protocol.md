@@ -22,7 +22,7 @@
 - [x] Maintain existing `INuGetPackageService` contract compatibility
 - [x] Add/update unit tests for the new implementation
 - [x] Verify performance improvement over CLI approach
-- [ ] Update documentation if needed
+- [x] Update documentation if needed
 
 ## Session
 
@@ -72,6 +72,10 @@
 - `tools/dev-cli/services/process-helpers.cs` - Replaced `ProcessStartInfo` with `Shell.Builder` + argument parser
 - Dev-cli: `TreatWarningsAsErrors` enabled, `global-usings.cs` added to compilation, `IL2104`/`IL3053` suppressed (StreamJsonRpc transitive Newtonsoft dep)
 - `Directory.Packages.props`: `ModelContextProtocol.Core` updated to 1.0.0
+- `AGENTS.md` updated to reflect that build scripts/dev-cli should prefer `Shell.Builder`
+- Command core files now use richer collocated `#region` documentation (`Purpose`, `Design`, `Responsibilities`, `Execution Modes`, `Implementation Boundaries`)
+- Stale sidecar docs `source/timewarp-amuru/core/command-extensions.md` and `command-result.md` deleted in favor of collocated source documentation
+- README and architectural docs updated to reference source files instead of deleted sidecar docs
 
 ### Implementation Steps
 1. ✅ Add NuGet.Protocol and NuGet.Configuration to Directory.Packages.props
@@ -83,4 +87,4 @@
 7. ✅ Update tests with prerelease package test case
 8. ✅ Verify RepoCheckVersionService and CheckVersionCommand work unchanged
 9. ✅ Run full test suite (355 passed, 1 skipped)
-10. ⬜ Update documentation
+10. ✅ Update documentation
