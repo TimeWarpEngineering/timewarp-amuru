@@ -9,10 +9,10 @@ public static class AppContextExtensions
 {
   extension(AppContext)
   {
-    public static string? EntryPointFilePath() 
+    public static string? EntryPointFilePath()
       => AppContext.GetData("EntryPointFilePath") as string;
-    
-    public static string? EntryPointFileDirectoryPath() 
+
+    public static string? EntryPointFileDirectoryPath()
       => AppContext.GetData("EntryPointFileDirectoryPath") as string;
   }
 }

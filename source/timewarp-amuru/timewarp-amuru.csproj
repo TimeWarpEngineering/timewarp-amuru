@@ -14,7 +14,7 @@
     <PackageReference Include="NuGet.Configuration" />
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="NuGet.Versioning" />
-    <PackageReference Include="StreamJsonRpc" />
+    <!-- <PackageReference Include="StreamJsonRpc" /> -->
     <PackageReference Include="TimeWarp.Terminal" />
   </ItemGroup>
 
