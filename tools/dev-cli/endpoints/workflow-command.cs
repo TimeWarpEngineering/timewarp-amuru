@@ -89,11 +89,18 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteLine("Pipeline: clean -> build -> verify-samples -> test -> check-version");
       Terminal.WriteLine("");
 
+      Environment.ExitCode = 0;
+
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 1/5: Clean");
       Terminal.WriteLine("===============================================================================");
       CleanCommand.Handler cleanHandler = new();
       await cleanHandler.Handle(new CleanCommand(), CancellationToken.None);
+
+      if (StopOnFailure("Clean"))
+      {
+        return;
+      }
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
@@ -102,12 +109,22 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       BuildCommand.Handler buildHandler = new();
       await buildHandler.Handle(new BuildCommand(), CancellationToken.None);
 
+      if (StopOnFailure("Build"))
+      {
+        return;
+      }
+
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 3/5: Verify Samples");
       Terminal.WriteLine("===============================================================================");
       VerifySamplesCommand.Handler verifySamplesHandler = new(Terminal);
       await verifySamplesHandler.Handle(new VerifySamplesCommand(), CancellationToken.None);
+
+      if (StopOnFailure("Verify Samples"))
+      {
+        return;
+      }
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
@@ -116,6 +133,11 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       TestCommand.Handler testHandler = new();
       await testHandler.Handle(new TestCommand(), CancellationToken.None);
 
+      if (StopOnFailure("Test"))
+      {
+        return;
+      }
+
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 5/5: Check Version");
@@ -123,12 +145,8 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       CheckVersionCommand.Handler checkVersionHandler = new(Terminal);
       await checkVersionHandler.Handle(new CheckVersionCommand(), CancellationToken.None);
 
-      if (Environment.ExitCode != 0)
+      if (StopOnFailure("Check Version"))
       {
-        Terminal.WriteErrorLine("");
-        Terminal.WriteErrorLine("===============================================================================");
-        Terminal.WriteErrorLine("  Pipeline FAILED - Version check failed");
-        Terminal.WriteErrorLine("===============================================================================");
         return;
       }
 
@@ -142,6 +160,8 @@ internal sealed class WorkflowCommand : ICommand<Unit>
     {
       Terminal.WriteLine("Pipeline: clean -> build -> push");
       Terminal.WriteLine("");
+
+      Environment.ExitCode = 0;
 
       string? repoRoot = Git.FindRoot();
       if (repoRoot == null)
@@ -157,6 +177,11 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       CleanCommand.Handler cleanHandler = new();
       await cleanHandler.Handle(new CleanCommand(), CancellationToken.None);
 
+      if (StopOnFailure("Clean"))
+      {
+        return;
+      }
+
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 2/3: Build");
@@ -164,18 +189,19 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       BuildCommand.Handler buildHandler = new();
       await buildHandler.Handle(new BuildCommand(), CancellationToken.None);
 
+      if (StopOnFailure("Build"))
+      {
+        return;
+      }
+
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Step 3/3: Push to NuGet");
       Terminal.WriteLine("===============================================================================");
       await PushPackageAsync(repoRoot, apiKey);
 
-      if (Environment.ExitCode != 0)
+      if (StopOnFailure("Push to NuGet"))
       {
-        Terminal.WriteErrorLine("");
-        Terminal.WriteErrorLine("===============================================================================");
-        Terminal.WriteErrorLine("  Pipeline FAILED - Package push failed");
-        Terminal.WriteErrorLine("===============================================================================");
         return;
       }
 
@@ -228,6 +254,20 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       }
 
       Terminal.WriteLine("\n✅ Package pushed successfully!");
+    }
+
+    private bool StopOnFailure(string stepName)
+    {
+      if (Environment.ExitCode == 0)
+      {
+        return false;
+      }
+
+      Terminal.WriteErrorLine("");
+      Terminal.WriteErrorLine("===============================================================================");
+      Terminal.WriteErrorLine($"  Pipeline FAILED - {stepName} failed");
+      Terminal.WriteErrorLine("===============================================================================");
+      return true;
     }
   }
 }
