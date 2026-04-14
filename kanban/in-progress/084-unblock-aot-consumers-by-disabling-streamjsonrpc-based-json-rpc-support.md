@@ -8,14 +8,14 @@ This is an intentional interim step. The JSON-RPC feature should preserve design
 
 ## Checklist
 
-- [ ] Remove or comment out the `StreamJsonRpc` package reference from `source/timewarp-amuru/timewarp-amuru.csproj`
-- [ ] Remove or comment out `global using StreamJsonRpc` from `source/timewarp-amuru/global-usings.cs`
-- [ ] Disable `source/timewarp-amuru/json-rpc/IJsonRpcClient.cs`
-- [ ] Disable `source/timewarp-amuru/json-rpc/JsonRpcClient.cs`
-- [ ] Disable `source/timewarp-amuru/json-rpc/JsonRpcClientBuilder.cs`
-- [ ] Disable `ShellBuilder.AsJsonRpcClient()` in `source/timewarp-amuru/core/shell-builder.cs`
+- [x] Remove or comment out the `StreamJsonRpc` package reference from `source/timewarp-amuru/timewarp-amuru.csproj`
+- [x] Remove or comment out `global using StreamJsonRpc` from `source/timewarp-amuru/global-usings.cs`
+- [x] Disable `source/timewarp-amuru/json-rpc/IJsonRpcClient.cs`
+- [x] Disable `source/timewarp-amuru/json-rpc/JsonRpcClient.cs`
+- [x] Disable `source/timewarp-amuru/json-rpc/JsonRpcClientBuilder.cs`
+- [x] Disable `ShellBuilder.AsJsonRpcClient()` in `source/timewarp-amuru/core/shell-builder.cs`
 - [ ] Add clear temporary comments explaining JSON-RPC is disabled pending task 083
-- [ ] Ensure the rest of Amuru builds without `StreamJsonRpc`
+- [x] Ensure the rest of Amuru builds without `StreamJsonRpc`
 - [ ] Verify AOT consumers no longer inherit `Newtonsoft.Json` through Amuru
 - [ ] Update any docs/samples that incorrectly imply JSON-RPC support is active
 
@@ -47,6 +47,14 @@ A local build experiment showed that Amuru builds successfully without `StreamJs
 - `timewarp-amuru.csproj` package reference
 
 This means the dependency is isolated to the JSON-RPC feature slice and can be temporarily turned off without breaking the rest of the package.
+
+### Current progress
+
+- The package reference and global using are commented out
+- The three `json-rpc/` source files are commented out
+- `ShellBuilder.AsJsonRpcClient()` is commented out
+- `dotnet build source/timewarp-amuru/timewarp-amuru.csproj` succeeds without `StreamJsonRpc`
+- Remaining follow-up for this task is mainly cleanup/documentation and downstream AOT validation
 
 ### Intent
 
