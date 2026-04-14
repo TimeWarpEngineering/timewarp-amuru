@@ -13,6 +13,7 @@ public static class ProcessHelpers
 
     CommandOutput output = await Shell.Builder(fileName)
       .WithArguments(args)
+      .WithNoValidation()
       .CaptureAsync();
 
     if (!string.IsNullOrEmpty(output.Stdout))
