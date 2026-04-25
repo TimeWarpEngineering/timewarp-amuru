@@ -11,7 +11,7 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <!-- IDE0007 conflicts with project standard (explicit types), IDE0008 enforces explicit types -->
-    <NoWarn>$(NoWarn);IDE0007</NoWarn>
+    <NoWarn>$(NoWarn);IDE0007;NU1902</NoWarn>
   </PropertyGroup>
 
   <!-- Keep analyzers but suppress specific conflicting rules -->
