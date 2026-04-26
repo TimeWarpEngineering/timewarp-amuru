@@ -1,59 +1,37 @@
 #region Purpose
-// Implementation of NuGet package operations using NuGet Protocol API
+// Implementation of NuGet package operations using NuGet registration API
 #endregion
 
 #region Design
-// Uses FindPackageByIdResource instead of PackageMetadataResource because:
-// - GetAllVersionsAsync returns all versions including prerelease in one call
-// - Simpler API surface - no need for multiple queries
-// - Aggregate versions from all enabled NuGet sources for comprehensive results
-// - SourceRepository instances are cached via NuGetSourceCache to avoid repeated init
-// - Removed CLI-based approach (ParseSearchResult) for correctness and performance:
-//   dotnet package search only returns latest version, Protocol gives all versions
+// Uses nuget.org's registration index to avoid the NuGet.Protocol dependency chain.
+// Keeps NuGet.Versioning for NuGet-compatible parsing, normalization, and comparison.
+// Registration metadata excludes unlisted packages and matches package update semantics.
+// The service targets nuget.org package version checks, not authenticated/custom feeds.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 public sealed class NuGetPackageService : INuGetPackageService
 {
-  private readonly NuGetSourceCache SourceCache;
+  private const string RegistrationBaseUrl = "https://api.nuget.org/v3/registration5-gz-semver2";
+  private static readonly HttpClient HttpClient = new
+  (
+    new HttpClientHandler
+    {
+      AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate,
+      CheckCertificateRevocationList = true
+    }
+  );
 
   public NuGetPackageService()
-    : this(new NuGetSourceCache())
   {
-  }
-
-  internal NuGetPackageService(NuGetSourceCache sourceCache)
-  {
-    SourceCache = sourceCache;
   }
 
   public async Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    SourceRepository repository = SourceCache.GetOrCreate("https://api.nuget.org/v3/index.json");
-
-    FindPackageByIdResource? resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
-    if (resource == null)
-    {
-      return null;
-    }
-
-    using SourceCacheContext cacheContext = new();
-    #pragma warning disable IDE0007
-    IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync
-#pragma warning restore IDE0007
-    (
-      packageId,
-      cacheContext,
-      NullLogger.Instance,
-      cancellationToken
-    );
-
-#pragma warning disable IDE0007
-    List<NuGetVersion> versionList = versions.ToList();
-#pragma warning restore IDE0007
+    List<NuGetVersion>? versionList = await GetVersionsAsync(packageId, cancellationToken);
     if (versionList.Count == 0)
     {
       return null;
@@ -73,24 +51,7 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    SourceRepository repository = SourceCache.GetOrCreate("https://api.nuget.org/v3/index.json");
-
-    FindPackageByIdResource? resource = await repository.GetResourceAsync<FindPackageByIdResource>(cancellationToken);
-    if (resource == null)
-    {
-      return null;
-    }
-
-    using SourceCacheContext cacheContext = new();
-    #pragma warning disable IDE0007
-    IEnumerable<NuGetVersion> versions = await resource.GetAllVersionsAsync
-#pragma warning restore IDE0007
-    (
-      packageId,
-      cacheContext,
-      NullLogger.Instance,
-      cancellationToken
-    );
+    List<NuGetVersion>? versions = await GetVersionsAsync(packageId, cancellationToken);
 
     NuGetVersion? stableVersion = null;
     NuGetVersion? prereleaseVersion = null;
@@ -188,5 +149,115 @@ public sealed class NuGetPackageService : INuGetPackageService
     if (latest.Major > current.Major) return "major";
     if (latest.Minor > current.Minor) return "minor";
     return "patch";
+  }
+
+  private static async Task<List<NuGetVersion>> GetVersionsAsync(string packageId, CancellationToken cancellationToken)
+  {
+    string lowerPackageId = packageId.ToLowerInvariant();
+    string escapedPackageId = Uri.EscapeDataString(lowerPackageId);
+    string url = $"{RegistrationBaseUrl}/{escapedPackageId}/index.json";
+
+    using HttpRequestMessage request = new(HttpMethod.Get, url);
+    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+
+    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+      return [];
+    }
+
+    response.EnsureSuccessStatusCode();
+
+    using JsonDocument document = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+
+    if (!document.RootElement.TryGetProperty("items", out JsonElement pagesElement) ||
+        pagesElement.ValueKind != JsonValueKind.Array)
+    {
+      return [];
+    }
+
+    List<NuGetVersion> versions = [];
+    foreach (JsonElement pageElement in pagesElement.EnumerateArray())
+    {
+      await AddPageVersionsAsync(pageElement, versions, cancellationToken);
+    }
+
+    return versions;
+  }
+
+  private static async Task AddPageVersionsAsync
+  (
+    JsonElement pageElement,
+    List<NuGetVersion> versions,
+    CancellationToken cancellationToken
+  )
+  {
+    if (!pageElement.TryGetProperty("items", out JsonElement itemsElement))
+    {
+      if (!pageElement.TryGetProperty("@id", out JsonElement pageUrlElement))
+      {
+        return;
+      }
+
+      string? pageUrl = pageUrlElement.GetString();
+      if (string.IsNullOrWhiteSpace(pageUrl))
+      {
+        return;
+      }
+
+      using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
+      using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+      response.EnsureSuccessStatusCode();
+
+      using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+
+      if (!pageDocument.RootElement.TryGetProperty("items", out itemsElement))
+      {
+        return;
+      }
+    }
+
+    AddLeafVersions(itemsElement, versions);
+  }
+
+  private static void AddLeafVersions(JsonElement itemsElement, List<NuGetVersion> versions)
+  {
+    if (itemsElement.ValueKind != JsonValueKind.Array)
+    {
+      return;
+    }
+
+    foreach (JsonElement itemElement in itemsElement.EnumerateArray())
+    {
+      if (!itemElement.TryGetProperty("catalogEntry", out JsonElement catalogEntryElement) ||
+          !catalogEntryElement.TryGetProperty("version", out JsonElement versionElement))
+      {
+        continue;
+      }
+
+      string? version = versionElement.GetString();
+      if (version != null && NuGetVersion.TryParse(version, out NuGetVersion? parsedVersion))
+      {
+        versions.Add(parsedVersion);
+      }
+    }
+  }
+
+  private static async Task<JsonDocument> ReadJsonDocumentAsync(HttpContent content, CancellationToken cancellationToken)
+  {
+    byte[] bytes = await content.ReadAsByteArrayAsync(cancellationToken);
+    if (bytes.Length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B)
+    {
+      using MemoryStream compressedStream = new(bytes);
+      using System.IO.Compression.GZipStream gzipStream = new
+      (
+        compressedStream,
+        System.IO.Compression.CompressionMode.Decompress
+      );
+      using MemoryStream decompressedStream = new();
+      await gzipStream.CopyToAsync(decompressedStream, cancellationToken);
+      return JsonDocument.Parse(decompressedStream.ToArray());
+    }
+
+    return JsonDocument.Parse(bytes);
   }
 }
