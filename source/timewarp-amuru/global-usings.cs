@@ -5,9 +5,6 @@
 global using CliWrap;
 global using CliWrap.Buffered;
 global using CliWrap.EventStream;
-global using NuGet.Common;
-global using NuGet.Configuration;
-global using NuGet.Protocol.Core.Types;
 global using NuGet.Versioning;
 // global using StreamJsonRpc;
 global using System;
