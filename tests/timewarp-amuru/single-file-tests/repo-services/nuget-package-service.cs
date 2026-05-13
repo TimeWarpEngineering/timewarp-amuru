@@ -90,6 +90,16 @@ namespace Repo_Services
 
       result.ShouldBeNull();
     }
+
+    public static async Task SearchAsync_WithHighVersionCountPackage_ShouldReturnVersions()
+    {
+      NuGetPackageService service = new();
+
+      NuGetSearchResult? result = await service.SearchAsync("NuGet.Versioning");
+
+      result.ShouldNotBeNull();
+      result.Versions.Count.ShouldBeGreaterThan(100);
+    }
   }
 
   [TestTag("Repo")]
