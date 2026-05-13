@@ -220,6 +220,12 @@ public sealed class NuGetPackageService : INuGetPackageService
 
     using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
     using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+
+    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+      return;
+    }
+
     response.EnsureSuccessStatusCode();
 
     using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken);
