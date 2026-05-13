@@ -39,6 +39,57 @@ ganda nuget outdated --package ModelContextProtocol.Core  # succeeds
 
 Full diagnosis: `.agent/workspace/2026-05-13T00-00-00_diagnosis-ganda-nuget-outdated-jsondocument-disposed.md`
 
+### Implementation Plan
+
+#### Goal
+
+Fix `ganda nuget outdated` so NuGet registration pages that require external page document fetches do not pass a `JsonElement` backed by a disposed `JsonDocument` into `AddLeafVersions`.
+
+#### 1. Inspect the affected code
+
+Review `source/timewarp-amuru/nu-get/nuget-package-service.cs`, focusing on `AddPageVersionsAsync`, `AddLeafVersions`, `ReadJsonDocumentAsync`, and related traversal logic. Confirm inline page `items` path works and external page fetch path disposes `pageDocument` before `AddLeafVersions`.
+
+#### 2. Fix `AddPageVersionsAsync`
+
+Move the call to `AddLeafVersions` inside the lifetime scope of the `JsonDocument` used for external page fetches. Prefer explicit branches:
+
+- If `pageElement` has inline `items`, call `AddLeafVersions` immediately.
+- Otherwise, fetch the external page document and call `AddLeafVersions` before disposing that page document.
+
+Avoid `JsonElement.Clone()` unless necessary; keeping enumeration inside the owning document lifetime is simpler and avoids extra allocation.
+
+#### 3. Preserve behavior for all registration page shapes
+
+Verify handling remains correct for inline `items`, external page URLs, missing `items`, malformed/unexpected page documents, multiple root pages, and single root page. Do not change sorting, version parsing, or filtering unless required by the fix.
+
+#### 4. Consider a defensive refactor
+
+If lifetime remains hard to reason about, extract an `AddExternalPageVersionsAsync` helper that owns the `using JsonDocument` and calls `AddLeafVersions` before returning.
+
+#### 5. Add or update regression coverage
+
+Add a regression test that exercises external NuGet registration page shape or use a live check against `NuGet.Versioning`. The test/verification should confirm no `ObjectDisposedException`, versions are extracted successfully, and external page items are included.
+
+#### 6. Manual verification commands
+
+Run:
+
+```bash
+ganda nuget outdated --package NuGet.Versioning
+ganda nuget outdated --package ModelContextProtocol.Core
+ganda nuget outdated
+```
+
+Expected: all commands complete without `ObjectDisposedException`.
+
+#### 7. Optional cache handling
+
+If cache could obscure results, run `ganda runfile cache --clear` before verification.
+
+#### 8. Final validation
+
+Run relevant tests/build, confirm formatting/style, inspect diff for intended logic only, and confirm no unrelated files changed.
+
 ### History
 
 - Commit `79b4b3c0` — `fix: remove NuGet.Protocol dependency chain`; owns lines 154-222 of `nuget-package-service.cs`
