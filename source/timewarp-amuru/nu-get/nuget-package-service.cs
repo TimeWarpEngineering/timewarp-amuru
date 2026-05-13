@@ -191,29 +191,42 @@ public sealed class NuGetPackageService : INuGetPackageService
     CancellationToken cancellationToken
   )
   {
-    if (!pageElement.TryGetProperty("items", out JsonElement itemsElement))
+    if (pageElement.TryGetProperty("items", out JsonElement itemsElement))
     {
-      if (!pageElement.TryGetProperty("@id", out JsonElement pageUrlElement))
-      {
-        return;
-      }
+      AddLeafVersions(itemsElement, versions);
+      return;
+    }
 
-      string? pageUrl = pageUrlElement.GetString();
-      if (string.IsNullOrWhiteSpace(pageUrl))
-      {
-        return;
-      }
+    await AddExternalPageVersionsAsync(pageElement, versions, cancellationToken);
+  }
 
-      using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
-      using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
-      response.EnsureSuccessStatusCode();
+  private static async Task AddExternalPageVersionsAsync
+  (
+    JsonElement pageElement,
+    List<NuGetVersion> versions,
+    CancellationToken cancellationToken
+  )
+  {
+    if (!pageElement.TryGetProperty("@id", out JsonElement pageUrlElement))
+    {
+      return;
+    }
 
-      using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+    string? pageUrl = pageUrlElement.GetString();
+    if (string.IsNullOrWhiteSpace(pageUrl))
+    {
+      return;
+    }
 
-      if (!pageDocument.RootElement.TryGetProperty("items", out itemsElement))
-      {
-        return;
-      }
+    using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
+    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+    response.EnsureSuccessStatusCode();
+
+    using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+
+    if (!pageDocument.RootElement.TryGetProperty("items", out JsonElement itemsElement))
+    {
+      return;
     }
 
     AddLeafVersions(itemsElement, versions);
