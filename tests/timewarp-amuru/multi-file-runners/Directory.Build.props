@@ -7,6 +7,8 @@
     <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
     <!-- Suppress IDE0161 for multi-file compilation (block-scoped namespaces in test files) -->
     <NoWarn>$(NoWarn);IDE0161</NoWarn>
+    <!-- Enable transitive directives for single-file tests compiled in multi-file mode -->
+    <ExperimentalFileBasedProgramEnableTransitiveDirectives>true</ExperimentalFileBasedProgramEnableTransitiveDirectives>
   </PropertyGroup>
 
     <ItemGroup>

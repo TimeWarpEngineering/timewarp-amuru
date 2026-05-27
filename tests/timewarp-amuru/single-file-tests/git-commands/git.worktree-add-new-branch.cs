@@ -56,5 +56,39 @@ namespace Git_
 
       await Task.CompletedTask;
     }
+
+    public static async Task StartPoint_Should_CreateWorktreeFromSpecifiedRef()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "worktree", "add", "-b", "new-feature", "/path/to/worktree", "origin/develop")
+          .Returns("");
+
+        GitWorktreeAddResult result = await Git.WorktreeAddNewBranchAsync("/path/to/repo.git", "/path/to/worktree", "new-feature", startPoint: "origin/develop");
+
+        result.Success.ShouldBeTrue();
+        result.WorktreePath.ShouldBe("/path/to/worktree");
+        result.ErrorMessage.ShouldBeNull();
+      }
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task StartPoint_WithCommitSha_Should_CreateWorktreeFromCommit()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "worktree", "add", "-b", "hotfix-123", "/path/to/worktree", "abc1234")
+          .Returns("");
+
+        GitWorktreeAddResult result = await Git.WorktreeAddNewBranchAsync("/path/to/repo.git", "/path/to/worktree", "hotfix-123", startPoint: "abc1234");
+
+        result.Success.ShouldBeTrue();
+        result.WorktreePath.ShouldBe("/path/to/worktree");
+        result.ErrorMessage.ShouldBeNull();
+      }
+
+      await Task.CompletedTask;
+    }
   }
 }
