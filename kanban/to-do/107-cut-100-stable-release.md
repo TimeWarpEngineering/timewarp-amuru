@@ -19,12 +19,12 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 092 — result-type unification (DONE 2026-07-05: ExecutionResult deleted, CommandOutput is THE result type with RunTime + WriteToConsole)
 - [x] 093 (core half) — XML docs generated, enforced, and shipping in the core nupkg (DONE 2026-07-05; Tools half gates Tools stable)
 - [x] 097 — core engine bugs (DONE 2026-07-05: race, cancellation, Windows .cs, ConfigureAwait+CA2007, ScriptContext nesting)
-- [ ] 084 — JSON-RPC disable finalized (core 1.0 ships WITHOUT json-rpc; 083 post-1.0 additive)
+- [x] 084 — JSON-RPC disable finalized (DONE 2026-07-05 except the design-doc note, which rides 102): dead files deleted, pins pruned, AOT verified clean)
 
 ### Strongly recommended before tagging
 - [ ] 101 — release pipeline runs tests; tag-vs-version guard; workflow_dispatch defused
 - [ ] 102 — readme samples compile (readme ships in the nupkg)
-- [ ] 103 — slnx fix, runner exclusions, AGENTS.md (global.json DONE 2026-07-05)
+- [x] 103 — build/test infrastructure complete (DONE 2026-07-05: slnx, global.json, runner covers all 417 tests, AGENTS.md rewritten)
 - [x] 096 — AOT declared on both packages, validated end-to-end with a native publish (DONE 2026-07-05)
 - [ ] 098 — repo services fixes (rides in Tools, but the version-check bug affects THIS pipeline via dev-cli)
 

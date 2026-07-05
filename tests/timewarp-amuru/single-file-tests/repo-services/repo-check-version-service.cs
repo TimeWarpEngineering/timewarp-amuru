@@ -63,7 +63,7 @@ namespace Repo_Services
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
 
-      using (CommandMock.Enable())
+      using (CommandMock.Enable(MockBehavior.Loose))
       {
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns("v999.0.0\nv1.0.0");
@@ -88,7 +88,7 @@ namespace Repo_Services
 
       RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
-      using (CommandMock.Enable())
+      using (CommandMock.Enable(MockBehavior.Loose))
       {
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns(expectedTag);
@@ -112,7 +112,7 @@ namespace Repo_Services
 
       RepoCheckVersionService service = new(nuGetPackageService: nuGetService);
 
-      using (CommandMock.Enable())
+      using (CommandMock.Enable(MockBehavior.Loose))
       {
         CommandMock.Setup("git", "tag", "--sort=-v:refname")
           .Returns("v0.0.1");

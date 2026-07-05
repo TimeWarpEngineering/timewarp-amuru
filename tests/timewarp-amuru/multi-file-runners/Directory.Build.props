@@ -6,7 +6,7 @@
     <!-- Enable Jaribu multi-mode test registration -->
     <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
     <!-- Suppress IDE0161 for multi-file compilation (block-scoped namespaces in test files) -->
-    <NoWarn>$(NoWarn);IDE0161</NoWarn>
+    <NoWarn>$(NoWarn);IDE0161;IDE0065</NoWarn>
     <!-- Enable transitive directives for single-file tests compiled in multi-file mode -->
     <ExperimentalFileBasedProgramEnableTransitiveDirectives>true</ExperimentalFileBasedProgramEnableTransitiveDirectives>
   </PropertyGroup>
@@ -20,8 +20,8 @@
     <Compile Include="../single-file-tests/script-support/*.cs" />
     <Compile Include="../single-file-tests/fzf-command/*.cs" />
     <Compile Include="../single-file-tests/native/file-system/*.cs" />
-    <!-- Note: repo-services tests excluded - they require being run from within a git repo -->
-    <!-- Note: json-rpc tests excluded - they require ModelContextProtocol.Core package -->
+    <Compile Include="../single-file-tests/native/*.cs" />
+    <Compile Include="../single-file-tests/repo-services/*.cs" />
   </ItemGroup>
 
 </Project>
