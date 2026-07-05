@@ -1,12 +1,12 @@
 #!/usr/bin/dotnet --
 
 #region Purpose
-// Tests for WorktreePorcelainParser.ParseWorktreeList() - validates parsing of git worktree porcelain output
+// Tests for Git.ParseWorktreeList() - validates parsing of git worktree porcelain output
 #endregion
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// SUT: WorktreePorcelainParser (the static class for parsing worktree output)
+// SUT: Git.ParseWorktreeList (public facade over the internal porcelain parser)
 // Action: ParseWorktreeList (the method being tested)
 // Tests verify parsing of various porcelain output formats
 #endregion
@@ -39,7 +39,7 @@ bare
 
 ";
 
-      IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList(porcelainOutput);
+      IReadOnlyList<WorktreeEntry> worktrees = Git.ParseWorktreeList(porcelainOutput);
 
       worktrees.Count.ShouldBe(3);
 
@@ -66,7 +66,7 @@ bare
 
     public static async Task EmptyInput_Should_ReturnEmptyList()
     {
-      IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList("");
+      IReadOnlyList<WorktreeEntry> worktrees = Git.ParseWorktreeList("");
 
       worktrees.ShouldBeEmpty();
 
@@ -75,7 +75,7 @@ bare
 
     public static async Task WhitespaceOnlyInput_Should_ReturnEmptyList()
     {
-      IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList("   \n\t  \n");
+      IReadOnlyList<WorktreeEntry> worktrees = Git.ParseWorktreeList("   \n\t  \n");
 
       worktrees.ShouldBeEmpty();
 
@@ -90,7 +90,7 @@ branch refs/heads/main
 
 ";
 
-      IReadOnlyList<WorktreeEntry> worktrees = WorktreePorcelainParser.ParseWorktreeList(porcelainOutput);
+      IReadOnlyList<WorktreeEntry> worktrees = Git.ParseWorktreeList(porcelainOutput);
 
       worktrees.Count.ShouldBe(1);
       worktrees[0].Path.ShouldBe("/home/user/single-project");

@@ -35,7 +35,7 @@ Parent task / decision record. The package exposed ~125 public types; each is a 
 
 ## Checklist
 
-- [ ] 094-001 — Delete dead public surface
+- [x] 094-001 — Delete dead public surface
 - [ ] 094-002 — Move SshKeyHelper to Zana
 - [ ] 094-003 — Split TimeWarp.Amuru.Tools package
 - [ ] 094-004 — Adopt PublicAPI analyzers baseline (at/after release)

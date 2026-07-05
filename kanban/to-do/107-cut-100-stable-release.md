@@ -10,7 +10,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 
 ### Core 1.0 gates (must be done)
 - [x] 095 — TimeWarp.Terminal stable dependency (DONE 2026-07-05: bumped to 1.0.0, nuspec verified all-stable, suite green)
-- [ ] 094-001 — dead-surface deletes (Post, Installer, GenerateColor, ConvertTimestamp, CommandBuilderExtensions)
+- [x] 094-001 — dead-surface deletes (Post, Installer, GenerateColor, ConvertTimestamp, CommandBuilderExtensions)
 - [ ] 094-002 — SshKeyHelper moved to Zana (ganda side lands first)
 - [ ] 094-003 — Tools package split (core drops NuGet.Versioning; 087/099/100 stop gating core)
 - [ ] 090 + 041 — error-handling contract decision (the one true now-or-never)

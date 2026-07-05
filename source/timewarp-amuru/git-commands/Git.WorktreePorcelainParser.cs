@@ -6,8 +6,9 @@ namespace TimeWarp.Amuru;
 
 /// <summary>
 /// Parser for git worktree list --porcelain output.
+/// Implementation detail; the public entry point is <see cref="Git.ParseWorktreeList"/>.
 /// </summary>
-public static class WorktreePorcelainParser
+internal static class WorktreePorcelainParser
 {
   /// <summary>
   /// Parses the porcelain output from "git worktree list --porcelain" into a list of WorktreeEntry objects.

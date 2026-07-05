@@ -19,15 +19,23 @@ public record WorktreeEntry(string Path, string? HeadCommit, string? BranchRef, 
 public static partial class Git
 {
   /// <summary>
+  /// Parses the porcelain output from "git worktree list --porcelain" into a list of WorktreeEntry objects.
+  /// </summary>
+  /// <param name="porcelainOutput">The raw porcelain output from git.</param>
+  /// <returns>A read-only list of parsed WorktreeEntry objects.</returns>
+  public static IReadOnlyList<WorktreeEntry> ParseWorktreeList(string porcelainOutput) =>
+    WorktreePorcelainParser.ParseWorktreeList(porcelainOutput);
+
+  /// <summary>
   /// Lists all worktrees in a repository using porcelain output format.
-  /// Returns the raw porcelain output which can be parsed using WorktreePorcelainParser.
+  /// Returns the raw porcelain output which can be parsed using <see cref="ParseWorktreeList"/>.
   /// </summary>
   /// <param name="repositoryPath">The path to the repository.</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>The raw porcelain output from git worktree list.</returns>
   /// <example>
   /// string porcelain = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
-  /// List&lt;WorktreeEntry&gt; worktrees = WorktreePorcelainParser.ParseWorktreeList(porcelain);
+  /// IReadOnlyList&lt;WorktreeEntry&gt; worktrees = Git.ParseWorktreeList(porcelain);
   /// foreach (WorktreeEntry wt in worktrees)
   /// {
   ///   Console.WriteLine($"Worktree: {wt.Path} - Branch: {wt.BranchRef}");
