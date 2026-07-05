@@ -36,17 +36,10 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 
     string? latestTag = tag;
 
-    if (string.IsNullOrWhiteSpace(latestTag))
-    {
-      // GITHUB_REF_NAME is only a tag on tag-triggered runs; on PR/push runs it is a
-      // branch name ("81/merge", "master") and must not be treated as a release tag.
-      string? refType = Environment.GetEnvironmentVariable("GITHUB_REF_TYPE");
-      if (string.Equals(refType, "tag", StringComparison.OrdinalIgnoreCase))
-      {
-        latestTag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
-      }
-    }
-
+    // Environment resolution (e.g. GITHUB_REF_NAME on tag-triggered CI runs) is the
+    // CALLER's job via the explicit tag parameter; peeking env vars here made the
+    // service behave differently under CI than anywhere else and untestable on
+    // release runs.
     if (string.IsNullOrWhiteSpace(latestTag))
     {
       latestTag = await GetLatestGitTagAsync(cancellationToken).ConfigureAwait(false);
