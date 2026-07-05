@@ -6,10 +6,10 @@ AOT compatibility was the entire motivation for disabling StreamJsonRpc (task 08
 
 ## Checklist
 
-- [ ] Add `<IsAotCompatible>true</IsAotCompatible>` (implies `IsTrimmable` + trim/AOT analyzers) to `source/timewarp-amuru/timewarp-amuru.csproj`
-- [ ] Fix resulting analyzer warnings; known one: `testing/MockSetup.cs:65` — `Throws<TException>(message)` uses `Activator.CreateInstance(typeof(TException), message)`, not trim-safe (string ctor can be trimmed)
-- [ ] Validate with a real `PublishAot=true` consumer (the AOT sample in `samples/`) — zero AOT warnings from TimeWarp.Amuru
-- [ ] Complete task 084's remaining verification item: AOT consumers no longer inherit Newtonsoft.Json through Amuru
+- [x] `IsAotCompatible` declared on BOTH packages (core + Tools) — 2026-07-05
+- [x] Zero trim/AOT analyzer warnings (the `MockSetup.Throws` Activator issue was already fixed in 089)
+- [x] Validated: scratch console app referencing both projects published with `PublishAot=true` — zero warnings, native binary executes Shell/Git APIs correctly
+- [x] Verified: zero Newtonsoft strings in the published native binary (084's verification item)
 
 ## Notes
 

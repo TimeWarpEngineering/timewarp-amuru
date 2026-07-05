@@ -6,6 +6,7 @@
     <PackageTags>cli;scripting;fluent;dotnet;git;fzf;amuru</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsAotCompatible>true</IsAotCompatible>
     <!-- Tools tracks external CLIs and rides its own beta cadence; the repo version in
          source/Directory.Build.props stays the TimeWarp.Amuru (core) version. -->
     <Version>1.0.0-beta.1</Version>

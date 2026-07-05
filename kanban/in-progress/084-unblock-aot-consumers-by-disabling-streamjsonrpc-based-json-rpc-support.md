@@ -16,7 +16,7 @@ This is an intentional interim step. The JSON-RPC feature should preserve design
 - [x] Disable `ShellBuilder.AsJsonRpcClient()` in `source/timewarp-amuru/core/shell-builder.cs`
 - [ ] Add clear temporary comments explaining JSON-RPC is disabled pending task 083
 - [x] Ensure the rest of Amuru builds without `StreamJsonRpc`
-- [ ] Verify AOT consumers no longer inherit `Newtonsoft.Json` through Amuru
+- [x] Verify AOT consumers no longer inherit `Newtonsoft.Json` through Amuru — verified 2026-07-05 via native AOT probe (zero warnings, zero Newtonsoft strings in binary)
 - [ ] Update any docs/samples that incorrectly imply JSON-RPC support is active (release review 2026-07-04: `documentation/conceptual/design/json-rpc-support-design.md` still documents `AsJsonRpcClient()` as active)
 - [x] Remove the stale `StreamJsonRpc 2.24.84` pin from `Directory.Packages.props:12` (invites accidental re-reference; also prune unused `ModelContextProtocol.Core` pin) — done 2026-07-05
 

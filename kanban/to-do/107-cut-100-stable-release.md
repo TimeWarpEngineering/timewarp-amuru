@@ -25,7 +25,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [ ] 101 — release pipeline runs tests; tag-vs-version guard; workflow_dispatch defused
 - [ ] 102 — readme samples compile (readme ships in the nupkg)
 - [ ] 103 — slnx fix, runner exclusions, AGENTS.md (global.json DONE 2026-07-05)
-- [ ] 096 — AOT declaration on core
+- [x] 096 — AOT declared on both packages, validated end-to-end with a native publish (DONE 2026-07-05)
 - [ ] 098 — repo services fixes (rides in Tools, but the version-check bug affects THIS pipeline via dev-cli)
 
 ### Tools-stable gates (do NOT block core 1.0)
