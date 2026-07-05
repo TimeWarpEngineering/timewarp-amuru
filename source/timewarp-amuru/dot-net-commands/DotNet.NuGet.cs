@@ -394,12 +394,12 @@ public class DotNetNuGetPushBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -513,12 +513,12 @@ public class DotNetNuGetDeleteBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -594,12 +594,12 @@ public class DotNetNuGetListSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -713,12 +713,12 @@ public class DotNetNuGetAddSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -778,12 +778,12 @@ public class DotNetNuGetRemoveSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -897,12 +897,12 @@ public class DotNetNuGetUpdateSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -962,12 +962,12 @@ public class DotNetNuGetEnableSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -1027,12 +1027,12 @@ public class DotNetNuGetDisableSourceBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -1119,12 +1119,12 @@ public class DotNetNuGetLocalsBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -1204,12 +1204,12 @@ public class DotNetNuGetWhyBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }

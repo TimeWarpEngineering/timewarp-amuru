@@ -479,7 +479,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -491,7 +491,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }

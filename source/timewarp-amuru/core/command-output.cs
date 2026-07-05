@@ -37,6 +37,12 @@ public class CommandOutput
   public bool Success => ExitCode == 0;
 
   /// <summary>
+  /// Gets how long the command ran. Zero when the command never ran
+  /// (see <see cref="CommandResult.NeverRanExitCode"/>) or when produced by a mock.
+  /// </summary>
+  public TimeSpan RunTime { get; init; }
+
+  /// <summary>
   /// Gets only the stdout output as a single string.
   /// This property is lazy-computed and thread-safe.
   /// </summary>
@@ -194,5 +200,65 @@ public class CommandOutput
   public static CommandOutput Empty(int exitCode = 0)
   {
     return new CommandOutput(new List<OutputLine>(), exitCode);
+  }
+
+  /// <summary>
+  /// Returns a one-line status summary: success flag, exit code, and runtime.
+  /// </summary>
+  public override string ToString()
+  {
+    string status = Success ? "Success" : "Failed";
+    return $"[{status}] Exit: {ExitCode}, Runtime: {RunTime.TotalSeconds:F2}s";
+  }
+
+  /// <summary>
+  /// Returns a one-line summary of the execution result.
+  /// </summary>
+  public string ToSummary() =>
+    $"Exit: {ExitCode} | Runtime: {RunTime.TotalSeconds:F2}s | Output: {Stdout.Length} chars";
+
+  /// <summary>
+  /// Returns a detailed, multi-line string representation of the execution result.
+  /// </summary>
+  public string ToDetailedString()
+  {
+    StringBuilder sb = new();
+    sb.AppendLine("=== Execution Result ===");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Status: {(Success ? "SUCCESS" : "FAILED")}");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Exit Code: {ExitCode}");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Runtime: {RunTime}");
+
+    if (!string.IsNullOrEmpty(Stdout))
+    {
+      sb.AppendLine("\nStandard Output:");
+      sb.AppendLine(Stdout);
+    }
+
+    if (!string.IsNullOrEmpty(Stderr))
+    {
+      sb.AppendLine("\nStandard Error:");
+      sb.AppendLine(Stderr);
+    }
+
+    return sb.ToString();
+  }
+
+  /// <summary>
+  /// Writes the result to the terminal with status coloring: exit line, stdout, and stderr (yellow).
+  /// </summary>
+  public void WriteToConsole()
+  {
+    string status = Success ? "SUCCESS".Green() : "FAILED".Red();
+    TimeWarpTerminal.Default.WriteLine($"[{status}] Exit Code: {ExitCode}");
+
+    if (!string.IsNullOrEmpty(Stdout))
+    {
+      TimeWarpTerminal.Default.WriteLine(Stdout);
+    }
+
+    if (!string.IsNullOrEmpty(Stderr))
+    {
+      TimeWarpTerminal.Default.WriteErrorLine(Stderr.Yellow());
+    }
   }
 }

@@ -23,30 +23,30 @@ namespace ShellBuilder_
 
     public static async Task EchoCommand_Should_ReturnZeroExitCode()
     {
-      ExecutionResult result = await Shell.Builder("echo")
+      CommandOutput result = await Shell.Builder("echo")
         .WithArguments("Hello TTY")
         .TtyPassthroughAsync();
 
       result.ExitCode.ShouldBe(0);
-      result.IsSuccess.ShouldBeTrue();
-      result.StandardOutput.ShouldBeNullOrEmpty();
+      result.Success.ShouldBeTrue();
+      result.Stdout.ShouldBeNullOrEmpty();
     }
 
     public static async Task EmptyCommand_Should_ReportNeverRanFailure()
     {
       CommandResult nullCommand = Shell.Builder("").Build();
 
-      ExecutionResult result = await nullCommand.TtyPassthroughAsync();
+      CommandOutput result = await nullCommand.TtyPassthroughAsync();
 
       result.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
-      result.IsSuccess.ShouldBeFalse();
+      result.Success.ShouldBeFalse();
     }
 
     public static async Task WorkingDirectory_Should_Work()
     {
       string tempDir = Path.GetTempPath();
 
-      ExecutionResult result = await Shell.Builder("pwd")
+      CommandOutput result = await Shell.Builder("pwd")
         .WithWorkingDirectory(tempDir)
         .TtyPassthroughAsync();
 
@@ -55,7 +55,7 @@ namespace ShellBuilder_
 
     public static async Task EnvironmentVariable_Should_SetExitCode()
     {
-      ExecutionResult result = await Shell.Builder("sh")
+      CommandOutput result = await Shell.Builder("sh")
         .WithArguments("-c", "exit ${MY_EXIT_CODE:-1}")
         .WithEnvironmentVariable("MY_EXIT_CODE", "42")
         .TtyPassthroughAsync();
@@ -83,17 +83,17 @@ namespace ShellBuilder_
 
     public static async Task FailingCommand_Should_ReturnNonZeroExitCode()
     {
-      ExecutionResult result = await Shell.Builder("sh")
+      CommandOutput result = await Shell.Builder("sh")
         .WithArguments("-c", "exit 5")
         .TtyPassthroughAsync();
 
       result.ExitCode.ShouldBe(5);
-      result.IsSuccess.ShouldBeFalse();
+      result.Success.ShouldBeFalse();
     }
 
     public static async Task SleepCommand_Should_CaptureRunTime()
     {
-      ExecutionResult result = await Shell.Builder("sleep")
+      CommandOutput result = await Shell.Builder("sleep")
         .WithArguments("0.1")
         .TtyPassthroughAsync();
 
@@ -103,7 +103,7 @@ namespace ShellBuilder_
 
     public static async Task DotNetBuild_Should_BeCallable()
     {
-      ExecutionResult result = await DotNet.Build()
+      CommandOutput result = await DotNet.Build()
         .WithNoValidation()
         .TtyPassthroughAsync();
 

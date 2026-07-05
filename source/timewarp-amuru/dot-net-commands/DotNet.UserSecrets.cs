@@ -167,12 +167,12 @@ public class DotNetUserSecretsInitBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -232,12 +232,12 @@ public class DotNetUserSecretsSetBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -295,12 +295,12 @@ public class DotNetUserSecretsRemoveBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -356,12 +356,12 @@ public class DotNetUserSecretsListBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
@@ -417,12 +417,12 @@ public class DotNetUserSecretsClearBuilder
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }

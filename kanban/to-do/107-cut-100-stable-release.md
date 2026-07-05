@@ -16,7 +16,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 090 + 041 — error-handling contract: default None, WithZeroExitCodeValidation opt-in, never-ran reports failure (DONE 2026-07-05)
 - [x] 089 — CommandMock matching/fallthrough fixes (DONE 2026-07-05: strict by default, all modes intercepted)
 - [x] 091 — CliWrap types out of public signatures (DONE 2026-07-05)
-- [ ] 092 — result-type unification (Terminal coupling settled 2026-07-05: stays; Terminal is stack-foundational and stable)
+- [x] 092 — result-type unification (DONE 2026-07-05: ExecutionResult deleted, CommandOutput is THE result type with RunTime + WriteToConsole)
 - [ ] 093 — XML docs for the core surface
 - [x] 097 — core engine bugs (DONE 2026-07-05: race, cancellation, Windows .cs, ConfigureAwait+CA2007, ScriptContext nesting)
 - [ ] 084 — JSON-RPC disable finalized (core 1.0 ships WITHOUT json-rpc; 083 post-1.0 additive)

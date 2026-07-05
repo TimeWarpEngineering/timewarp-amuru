@@ -152,15 +152,11 @@ public class CommandResult
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(NeverRanExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
@@ -177,11 +173,7 @@ public class CommandResult
         await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
       }
 
-      return new ExecutionResult(
-        new CliWrap.CommandResult(mockSetup.ExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return new CommandOutput(string.Empty, string.Empty, mockSetup.ExitCode);
     }
 
     // Open console streams for interactive piping
@@ -202,11 +194,7 @@ public class CommandResult
     CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken);
 
     // Return result with empty output strings (output went to console)
-    return new ExecutionResult(
-      result,
-      string.Empty,
-      string.Empty
-    );
+    return new CommandOutput(string.Empty, string.Empty, result.ExitCode) { RunTime = result.RunTime };
   }
 
   /// <summary>
@@ -229,7 +217,7 @@ public class CommandResult
   /// <para>
   /// Validation options do not apply here: this method never throws on a
   /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
-  /// ExecutionResult.ExitCode/IsSuccess instead.
+  /// the returned CommandOutput's ExitCode/Success instead.
   /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
@@ -239,26 +227,18 @@ public class CommandResult
     "CA1031",
     Justification = "CLI boundary: cancellation/teardown race can throw during process kill; failures are intentionally ignored to preserve graceful shutdown."
   )]
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(NeverRanExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
     Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
     if (ttyMockSetup != null)
     {
       await ApplyMockPreludeAsync(ttyMockSetup, cancellationToken).ConfigureAwait(false);
-      return new ExecutionResult(
-        new CliWrap.CommandResult(ttyMockSetup.ExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return new CommandOutput(string.Empty, string.Empty, ttyMockSetup.ExitCode);
     }
 
     DateTimeOffset startTime = DateTimeOffset.Now;
@@ -318,11 +298,7 @@ public class CommandResult
 
     DateTimeOffset exitTime = DateTimeOffset.Now;
 
-    return new ExecutionResult(
-      new CliWrap.CommandResult(process.ExitCode, startTime, exitTime),
-      string.Empty,
-      string.Empty
-    );
+    return new CommandOutput(string.Empty, string.Empty, process.ExitCode) { RunTime = exitTime - startTime };
   }
 
   /// <summary>
