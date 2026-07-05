@@ -16,7 +16,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [ ] 090 + 041 — error-handling contract decision (the one true now-or-never)
 - [ ] 089 — CommandMock matching/fallthrough fixes
 - [ ] 091 — CliWrap types out of public signatures
-- [ ] 092 — result-type unification (decide `ExecutionResult.WriteToConsole`/Terminal coupling here)
+- [ ] 092 — result-type unification (Terminal coupling settled 2026-07-05: stays; Terminal is stack-foundational and stable)
 - [ ] 093 — XML docs for the core surface
 - [ ] 097 — core engine bugs (at minimum the `StreamToFileAsync` race)
 - [ ] 084 — JSON-RPC disable finalized (core 1.0 ships WITHOUT json-rpc; 083 post-1.0 additive)

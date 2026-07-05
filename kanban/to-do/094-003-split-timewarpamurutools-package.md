@@ -12,9 +12,10 @@ Root namespace stays `TimeWarp.Amuru` for both — consumers only add a package 
 ## Checklist
 
 - [ ] Create `source/timewarp-amuru-tools/` project; move `dot-net-commands/`, `git-commands/`, `fzf-command/`, `repo/`, `nu-get/` (namespaces unchanged)
-- [ ] Tools references core; core drops the `NuGet.Versioning` dependency (only repo/nu-get use it); check where `TimeWarp.Terminal` lands after 092 decides `ExecutionResult.WriteToConsole`'s fate
+- [ ] Tools references core; core drops the `NuGet.Versioning` dependency (only repo/nu-get use it). `TimeWarp.Terminal` STAYS a core dependency (settled 2026-07-05: Terminal is TimeWarp-stack foundational — `BannedSymbols.txt` bans `System.Console`; core uses `TimeWarpTerminal.Default` for TTY passthrough streams, mock echo, and RunAsync pipes, not just `WriteToConsole`; and it's 1.0 stable now so no NU5104 concern)
 - [ ] Package metadata for Tools (id, description, tags, readme section, icon)
-- [ ] Versioning: core and Tools get independent `<Version>` properties. NOTE: deviates from the owner's single-version-per-repo convention — add/confirm a `ganda repo audit` exception for this repo, and document the deviation in the repo readme
+- [ ] Versioning convention (no audit exception needed — `ganda repo audit` has no version check yet; this defines the convention): `source/Directory.Build.props` `<Version>` remains THE repo version (core inherits it; audit and release pipeline read it), and `timewarp-amuru-tools.csproj` sets its own `<Version>` which overrides the imported default while Tools is on beta cadence
+- [ ] Update the release pipeline's version detection (`tools/dev-cli/endpoints/workflow-command.cs` reads only `source/Directory.Build.props`) to resolve version PER PACKAGE so Tools pushes its own version
 - [ ] Update `timewarp-amuru.slnx`, dev-cli build/test/pack endpoints, and CI workflow to build+push both packages
 - [ ] Split test tree accordingly (`tests/timewarp-amuru/` vs `tests/timewarp-amuru-tools/`) or tag runner groups; keep aggregate runner covering both
 - [ ] Readme: installation section shows both packages; wrapper examples note the Tools package
