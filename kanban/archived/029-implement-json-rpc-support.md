@@ -1,3 +1,7 @@
+> **ARCHIVED 2026-07-05:** superseded by task 083 (Amuru-native minimal JSON-RPC client).
+> The StreamJsonRpc-based implementation this task produced was disabled (084) and its
+> source deleted; design intent lives in documentation/conceptual/design/json-rpc-support-design.md.
+
 # Implement JSON-RPC Support for Interactive Process Communication
 
 **GitHub Issue:** #18

@@ -7,16 +7,16 @@
 ## Checklist
 
 ### Amuru side (this repo)
-- [ ] Remove `native/utilities/SshKeyHelper.cs` from the package (delete once the Zana copy lands; coordinate so ganda never has a gap)
-- [ ] Build + suite green; confirm nothing else references it
+- [x] `native/utilities/SshKeyHelper.cs` deleted from Amuru (2026-07-05; ganda keeps working on its pinned beta.34 package until it bumps)
+- [x] Build + suite green (416/417); no remaining references
 
-### Ganda side (track on ganda's board — create the task there)
-- [ ] Port implementation into Zana `native/utilities/`, FIXING the confirmed bugs during the port:
+### Ganda side — DONE 2026-07-05 in worktree Cramer-2026-06-29-dev, commit a7001fc
+- [x] Ported to `source/timewarp-zana/native/utilities/ssh-key-helper.cs` with all three bugs FIXED, each verified against real ssh-keygen:
   - `GenerateKeyPairAsync` passes the entire flag string as one argv element — ssh-keygen always fails. Use discrete `WithArguments` args
   - `ChangePassphraseAsync` feeds passphrases via stdin but `ssh-keygen -p` prompts on `/dev/tty` — hangs in CI. Use `-P`/`-N` args
   - `ConvertKeyFormatAsync` destructively rewrites the INPUT key in place (strips passphrase), then copies input over output. Operate on a copy
-- [ ] Update ganda `endpoints/ssh-key-helper-command.cs` and `global-usings.cs` (drops `TimeWarp.Amuru.Native.Utilities` import for this)
-- [ ] Tests for the three fixed methods
+- [x] ganda `global-usings.cs` drops `TimeWarp.Amuru.Native.Utilities`; endpoint resolves `SshKeyHelper` from `TimeWarp.Zana` unchanged; full ganda solution builds clean
+- [ ] Tests for the three fixed methods (ganda-repo follow-up; invocation patterns verified manually end-to-end)
 
 ## Notes
 

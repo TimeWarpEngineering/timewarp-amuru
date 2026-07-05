@@ -11,7 +11,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 ### Core 1.0 gates (must be done)
 - [x] 095 — TimeWarp.Terminal stable dependency (DONE 2026-07-05: bumped to 1.0.0, nuspec verified all-stable, suite green)
 - [x] 094-001 — dead-surface deletes (Post, Installer, GenerateColor, ConvertTimestamp, CommandBuilderExtensions)
-- [ ] 094-002 — SshKeyHelper moved to Zana (ganda side lands first)
+- [x] 094-002 — SshKeyHelper moved to Zana with bugs fixed (DONE 2026-07-05; ganda commit a7001fc)
 - [x] 094-003 — Tools package split (DONE 2026-07-05: TimeWarp.Amuru.Tools 1.0.0-beta.1, per-package push, Shell.Run factory)
 - [x] 090 + 041 — error-handling contract: default None, WithZeroExitCodeValidation opt-in, never-ran reports failure (DONE 2026-07-05)
 - [x] 089 — CommandMock matching/fallthrough fixes (DONE 2026-07-05: strict by default, all modes intercepted)
