@@ -104,7 +104,10 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
           latestNuGetVersion = latestVersion;
         }
 
-        if (string.Equals(version, latestVersion, StringComparison.OrdinalIgnoreCase))
+        // "Already published" means the feed has THIS version anywhere in its list,
+        // not just as the latest — otherwise a feed at [1.2.0, 1.3.0] reports 1.2.0
+        // as new and the release pipeline proceeds into a push that 409s.
+        if (result.Versions.Any(v => string.Equals(version, v.Version, StringComparison.OrdinalIgnoreCase)))
         {
           alreadyPublished.Add(pkg);
         }
@@ -157,8 +160,10 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 
   private static async Task<string?> GetLatestGitTagAsync(CancellationToken cancellationToken)
   {
+    // versionsort.suffix=- makes pre-release tags (v1.0.0-beta.34) sort BEFORE their
+    // release (v1.0.0); without it the latest tag can be a pre-release older than the release.
     CommandOutput result = await Shell.Builder("git")
-      .WithArguments("tag", "--sort=-v:refname")
+      .WithArguments("-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
       .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode != 0)

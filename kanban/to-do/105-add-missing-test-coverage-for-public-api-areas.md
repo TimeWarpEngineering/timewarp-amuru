@@ -11,6 +11,7 @@ Test suite is healthy (409 pass, no flakes) with good coverage of core, dot-net-
 - [ ] git-commands untested members: `Git.FindRoot`, `Git.GetRepositoryName`, `Git.GetWorktreePath`, `Git.IsWorktree`, `Git.UpdateBranch`, `Git.UpdateWorktree` (MEDIUM — coordinate with task 099 fixes)
 - [x] ~~`native/utilities/`~~ — `ConvertTimestamp`/`GenerateColor`/`Post`/`Installer` deleted in 094-001; `SshKeyHelper` moves to Zana with tests there (094-002)
 - [ ] `native/file-system/direct/` — only `Direct.GetContent` tested; GetChildItem/GetLocation/RemoveItem/SetLocation untested (LOW — coordinate with task 104)
+- [ ] Regression tests for the 098 fixes: RepoCleanService skips tracked-file dirs and symlinked dirs; CheckNuGetVersionAsync version-contains; unlisted-version filtering
 - [ ] Add coverage as areas get fixed by tasks 097-099 (regression tests belong with those fixes; this task sweeps what remains)
 
 ## Notes

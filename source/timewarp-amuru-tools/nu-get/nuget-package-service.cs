@@ -5,7 +5,7 @@
 #region Design
 // Uses nuget.org's registration index to avoid the NuGet.Protocol dependency chain.
 // Keeps NuGet.Versioning for NuGet-compatible parsing, normalization, and comparison.
-// Registration metadata excludes unlisted packages and matches package update semantics.
+// Registration metadata INCLUDES unlisted versions; catalogEntry.listed is checked to skip them.
 // The service targets nuget.org package version checks, not authenticated/custom feeds.
 #endregion
 
@@ -249,6 +249,14 @@ public sealed class NuGetPackageService : INuGetPackageService
     {
       if (!itemElement.TryGetProperty("catalogEntry", out JsonElement catalogEntryElement) ||
           !catalogEntryElement.TryGetProperty("version", out JsonElement versionElement))
+      {
+        continue;
+      }
+
+      // Registration blobs include UNLISTED versions; catalogEntry.listed flags them.
+      // Skip delisted versions so "latest" never reports a version the feed hides.
+      if (catalogEntryElement.TryGetProperty("listed", out JsonElement listedElement) &&
+          listedElement.ValueKind == JsonValueKind.False)
       {
         continue;
       }

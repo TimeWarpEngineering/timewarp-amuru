@@ -26,7 +26,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [ ] 102 — readme samples compile (readme ships in the nupkg)
 - [x] 103 — build/test infrastructure complete (DONE 2026-07-05: slnx, global.json, runner covers all 417 tests, AGENTS.md rewritten)
 - [x] 096 — AOT declared on both packages, validated end-to-end with a native publish (DONE 2026-07-05)
-- [ ] 098 — repo services fixes (rides in Tools, but the version-check bug affects THIS pipeline via dev-cli)
+- [x] 098 — repo services fixed (DONE 2026-07-05: tracked-file guard + symlink-safe clean, version-contains check, versionsort, unlisted filter)
 
 ### Tools-stable gates (do NOT block core 1.0)
 - 087 — invalid CLI flags; 088 — fzf stub; 099 — git standardization; 100 — validation-control rollout; 093/096 Tools portions
