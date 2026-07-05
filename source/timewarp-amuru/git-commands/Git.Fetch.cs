@@ -29,7 +29,7 @@ public static partial class Git
       .WithArguments("fetch", remote)
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     return result.Success;
   }

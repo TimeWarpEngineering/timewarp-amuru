@@ -63,7 +63,9 @@ internal static class CommandExtensions
     // Check for configured command path override
     executable = CliConfiguration.GetCommandPath(executable);
 
-    // Preserve the caller's logical arguments for mock matching before any normalization
+    // Preserve the caller's logical command identity for mock matching before any
+    // normalization (the ".cs on Windows" path below rewrites executable/arguments)
+    string mockExecutable = executable;
     string[] mockArguments = arguments ?? [];
 
     // Handle .cs script files specially
@@ -72,6 +74,14 @@ internal static class CommandExtensions
       // Insert -- at the beginning of arguments to prevent dotnet from intercepting them
       List<string> newArgs = ["--", .. (arguments ?? [])];
       arguments = [.. newArgs];
+
+      // Direct execution of a .cs file relies on the Unix shebang + exec bit; Windows has
+      // neither, so route through the dotnet host there (dotnet <script.cs> -- <args>).
+      if (OperatingSystem.IsWindows())
+      {
+        arguments = [executable, .. arguments];
+        executable = "dotnet";
+      }
     }
 
     Command cliCommand = CliWrap.Cli.Wrap(executable)
@@ -86,6 +96,6 @@ internal static class CommandExtensions
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }
 
-    return new CommandResult(cliCommand, executable, mockArguments);
+    return new CommandResult(cliCommand, mockExecutable, mockArguments);
   }
 }

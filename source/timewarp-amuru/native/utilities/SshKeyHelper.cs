@@ -41,7 +41,7 @@ public static class SshKeyHelper
     // Check if key already exists
     if (File.Exists(privateKeyPath))
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"SSH key already exists: {privateKeyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"SSH key already exists: {privateKeyPath}").ConfigureAwait(false);
       return true;
     }
 
@@ -50,17 +50,17 @@ public static class SshKeyHelper
 
     CommandOutput result = await Shell.Builder("ssh-keygen")
       .WithArguments($"{keyTypeArgs} -f {privateKeyPath} -N \"\" {commentArgs}".Trim())
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0)
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"✅ SSH key pair generated successfully:");
-      await TimeWarpTerminal.Default.WriteLineAsync($"   Private key: {privateKeyPath}");
-      await TimeWarpTerminal.Default.WriteLineAsync($"   Public key: {publicKeyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"✅ SSH key pair generated successfully:").ConfigureAwait(false);
+      await TimeWarpTerminal.Default.WriteLineAsync($"   Private key: {privateKeyPath}").ConfigureAwait(false);
+      await TimeWarpTerminal.Default.WriteLineAsync($"   Public key: {publicKeyPath}").ConfigureAwait(false);
       return true;
     }
 
-    await TimeWarpTerminal.Default.WriteLineAsync("❌ Failed to generate SSH key pair");
+    await TimeWarpTerminal.Default.WriteLineAsync("❌ Failed to generate SSH key pair").ConfigureAwait(false);
     return false;
   }
 
@@ -74,20 +74,20 @@ public static class SshKeyHelper
   {
     if (!File.Exists(privateKeyPath))
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Private key file not found: {privateKeyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Private key file not found: {privateKeyPath}").ConfigureAwait(false);
       return null;
     }
 
     CommandOutput result = await Shell.Builder("ssh-keygen")
       .WithArguments("-y", "-f", privateKeyPath)
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0)
     {
       return result.Stdout.Trim();
     }
 
-    await TimeWarpTerminal.Default.WriteLineAsync($"❌ Failed to extract public key: {result.Stderr}");
+    await TimeWarpTerminal.Default.WriteLineAsync($"❌ Failed to extract public key: {result.Stderr}").ConfigureAwait(false);
     return null;
   }
 
@@ -101,21 +101,21 @@ public static class SshKeyHelper
   {
     if (!File.Exists(keyPath))
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Key file not found: {keyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Key file not found: {keyPath}").ConfigureAwait(false);
       return false;
     }
 
     CommandOutput result = await Shell.Builder("ssh-keygen")
       .WithArguments("-l", "-f", keyPath)
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0)
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"✅ SSH key is valid: {keyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"✅ SSH key is valid: {keyPath}").ConfigureAwait(false);
       return true;
     }
 
-    await TimeWarpTerminal.Default.WriteLineAsync($"❌ SSH key is invalid: {keyPath}");
+    await TimeWarpTerminal.Default.WriteLineAsync($"❌ SSH key is invalid: {keyPath}").ConfigureAwait(false);
     return false;
   }
 
@@ -135,7 +135,7 @@ public static class SshKeyHelper
   {
     if (!File.Exists(privateKeyPath))
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Private key file not found: {privateKeyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Private key file not found: {privateKeyPath}").ConfigureAwait(false);
       return false;
     }
 
@@ -159,15 +159,15 @@ public static class SshKeyHelper
       builder = builder.WithStandardInput(stdinInput);
     }
 
-    CommandOutput result = await builder.CaptureAsync(cancellationToken);
+    CommandOutput result = await builder.CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0)
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"✅ Passphrase changed successfully for: {privateKeyPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"✅ Passphrase changed successfully for: {privateKeyPath}").ConfigureAwait(false);
       return true;
     }
 
-    await TimeWarpTerminal.Default.WriteLineAsync($"❌ Failed to change passphrase for: {privateKeyPath}");
+    await TimeWarpTerminal.Default.WriteLineAsync($"❌ Failed to change passphrase for: {privateKeyPath}").ConfigureAwait(false);
     return false;
   }
 
@@ -187,23 +187,23 @@ public static class SshKeyHelper
   {
     if (!File.Exists(inputPath))
     {
-      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Input key file not found: {inputPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"❌ Input key file not found: {inputPath}").ConfigureAwait(false);
       return false;
     }
 
     CommandOutput result = await Shell.Builder("ssh-keygen")
       .WithArguments("-p", "-m", targetFormat, "-f", inputPath, "-N", "")
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0)
     {
       // Copy the converted key to output path
       File.Copy(inputPath, outputPath, true);
-      await TimeWarpTerminal.Default.WriteLineAsync($"✅ Key converted to {targetFormat} format: {outputPath}");
+      await TimeWarpTerminal.Default.WriteLineAsync($"✅ Key converted to {targetFormat} format: {outputPath}").ConfigureAwait(false);
       return true;
     }
 
-    await TimeWarpTerminal.Default.WriteLineAsync("❌ Failed to convert key format");
+    await TimeWarpTerminal.Default.WriteLineAsync("❌ Failed to convert key format").ConfigureAwait(false);
     return false;
   }
 
@@ -242,7 +242,7 @@ public static class SshKeyHelper
 
     CommandOutput result = await Shell.Builder("ssh-keygen")
       .WithArguments("-l", "-f", keyPath)
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode == 0 && !string.IsNullOrWhiteSpace(result.Stdout))
     {

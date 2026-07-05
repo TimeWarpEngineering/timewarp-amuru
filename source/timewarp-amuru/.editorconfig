@@ -1,0 +1,4 @@
+# Library-only analyzer tightening (applies to source/timewarp-amuru and below)
+[*.cs]
+# Require ConfigureAwait(false) — this is a library; consumers may block on a SynchronizationContext
+dotnet_diagnostic.CA2007.severity = error

@@ -95,17 +95,17 @@ public partial class FzfBuilder
 
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAndCaptureAsync(cancellationToken);
+    return await Build().RunAndCaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -116,7 +116,7 @@ public partial class FzfBuilder
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -128,7 +128,7 @@ public partial class FzfBuilder
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -139,6 +139,6 @@ public partial class FzfBuilder
   /// <returns>The selected item(s) as a string, or empty string if cancelled</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 }

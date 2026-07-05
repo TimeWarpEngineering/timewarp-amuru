@@ -38,7 +38,7 @@ public static partial class Git
     string branchName = "master",
     CancellationToken cancellationToken = default)
   {
-    string? branchPath = await GetWorktreePathAsync(branchName, cancellationToken);
+    string? branchPath = await GetWorktreePathAsync(branchName, cancellationToken).ConfigureAwait(false);
 
     if (branchPath == null)
     {
@@ -51,7 +51,7 @@ public static partial class Git
     CommandOutput result = await Shell.Builder("git")
       .WithArguments("-C", branchPath, "pull", "origin", branchName)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success)
     {

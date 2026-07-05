@@ -41,7 +41,7 @@ public static partial class Git
     CommandOutput result = await Shell.Builder("git")
       .WithArguments("rev-list", "--count", $"{branchName}..HEAD")
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (!result.Success)
     {
@@ -77,12 +77,12 @@ public static partial class Git
   /// </example>
   public static async Task<GitCommitCountResult> GetCommitsAheadOfDefaultBranchAsync(CancellationToken cancellationToken = default)
   {
-    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken);
+    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken).ConfigureAwait(false);
     if (!defaultBranchResult.Success || defaultBranchResult.BranchName is null)
     {
       return new GitCommitCountResult(false, 0, defaultBranchResult.ErrorMessage ?? "Failed to detect default branch");
     }
 
-    return await GetCommitsAheadAsync(defaultBranchResult.BranchName, cancellationToken);
+    return await GetCommitsAheadAsync(defaultBranchResult.BranchName, cancellationToken).ConfigureAwait(false);
   }
 }

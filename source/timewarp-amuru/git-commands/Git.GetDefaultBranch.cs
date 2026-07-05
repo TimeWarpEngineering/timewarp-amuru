@@ -37,7 +37,7 @@ public static partial class Git
     CommandOutput symbolicRefResult = await Shell.Builder("git")
       .WithArguments("symbolic-ref", "refs/remotes/origin/HEAD", "--short")
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (symbolicRefResult.Success)
     {
@@ -55,7 +55,7 @@ public static partial class Git
       CommandOutput existsResult = await Shell.Builder("git")
         .WithArguments("show-ref", "--verify", "--quiet", $"refs/remotes/origin/{branch}")
         .WithNoValidation()
-        .CaptureAsync(cancellationToken);
+        .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
       if (existsResult.Success)
       {

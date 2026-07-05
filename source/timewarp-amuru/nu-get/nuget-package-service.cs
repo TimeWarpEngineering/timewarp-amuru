@@ -31,7 +31,7 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<NuGetVersion>? versionList = await GetVersionsAsync(packageId, cancellationToken);
+    List<NuGetVersion>? versionList = await GetVersionsAsync(packageId, cancellationToken).ConfigureAwait(false);
     if (versionList.Count == 0)
     {
       return null;
@@ -51,7 +51,7 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<NuGetVersion>? versions = await GetVersionsAsync(packageId, cancellationToken);
+    List<NuGetVersion>? versions = await GetVersionsAsync(packageId, cancellationToken).ConfigureAwait(false);
 
     NuGetVersion? stableVersion = null;
     NuGetVersion? prereleaseVersion = null;
@@ -158,7 +158,7 @@ public sealed class NuGetPackageService : INuGetPackageService
     string url = $"{RegistrationBaseUrl}/{escapedPackageId}/index.json";
 
     using HttpRequestMessage request = new(HttpMethod.Get, url);
-    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
     {
@@ -167,7 +167,7 @@ public sealed class NuGetPackageService : INuGetPackageService
 
     response.EnsureSuccessStatusCode();
 
-    using JsonDocument document = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+    using JsonDocument document = await ReadJsonDocumentAsync(response.Content, cancellationToken).ConfigureAwait(false);
 
     if (!document.RootElement.TryGetProperty("items", out JsonElement pagesElement) ||
         pagesElement.ValueKind != JsonValueKind.Array)
@@ -178,7 +178,7 @@ public sealed class NuGetPackageService : INuGetPackageService
     List<NuGetVersion> versions = [];
     foreach (JsonElement pageElement in pagesElement.EnumerateArray())
     {
-      await AddPageVersionsAsync(pageElement, versions, cancellationToken);
+      await AddPageVersionsAsync(pageElement, versions, cancellationToken).ConfigureAwait(false);
     }
 
     return versions;
@@ -197,7 +197,7 @@ public sealed class NuGetPackageService : INuGetPackageService
       return;
     }
 
-    await AddExternalPageVersionsAsync(pageElement, versions, cancellationToken);
+    await AddExternalPageVersionsAsync(pageElement, versions, cancellationToken).ConfigureAwait(false);
   }
 
   private static async Task AddExternalPageVersionsAsync
@@ -219,7 +219,7 @@ public sealed class NuGetPackageService : INuGetPackageService
     }
 
     using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
-    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken);
+    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
     {
@@ -228,7 +228,7 @@ public sealed class NuGetPackageService : INuGetPackageService
 
     response.EnsureSuccessStatusCode();
 
-    using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken);
+    using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken).ConfigureAwait(false);
 
     if (!pageDocument.RootElement.TryGetProperty("items", out JsonElement itemsElement))
     {
@@ -263,7 +263,7 @@ public sealed class NuGetPackageService : INuGetPackageService
 
   private static async Task<JsonDocument> ReadJsonDocumentAsync(HttpContent content, CancellationToken cancellationToken)
   {
-    byte[] bytes = await content.ReadAsByteArrayAsync(cancellationToken);
+    byte[] bytes = await content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
     if (bytes.Length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B)
     {
       using MemoryStream compressedStream = new(bytes);
@@ -273,7 +273,7 @@ public sealed class NuGetPackageService : INuGetPackageService
         System.IO.Compression.CompressionMode.Decompress
       );
       using MemoryStream decompressedStream = new();
-      await gzipStream.CopyToAsync(decompressedStream, cancellationToken);
+      await gzipStream.CopyToAsync(decompressedStream, cancellationToken).ConfigureAwait(false);
       return JsonDocument.Parse(decompressedStream.ToArray());
     }
 

@@ -47,7 +47,7 @@ public static partial class Git
       .WithArguments("worktree", "list", "--porcelain")
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     return result.Success ? result.Stdout : string.Empty;
   }

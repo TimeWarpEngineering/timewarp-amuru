@@ -28,7 +28,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
       return new GitTagCheckResult(false, string.Empty, null);
     }
 
-    string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken);
+    string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken).ConfigureAwait(false);
     if (version == null)
     {
       return new GitTagCheckResult(false, string.Empty, null);
@@ -43,7 +43,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 
     if (string.IsNullOrWhiteSpace(latestTag))
     {
-      latestTag = await GetLatestGitTagAsync(cancellationToken);
+      latestTag = await GetLatestGitTagAsync(cancellationToken).ConfigureAwait(false);
     }
 
     if (string.IsNullOrWhiteSpace(latestTag))
@@ -76,7 +76,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
       return new NuGetCheckResult(false, string.Empty, null, [], null);
     }
 
-    string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken);
+    string? version = await GetVersionFromDirectoryBuildPropsAsync(repoRoot, cancellationToken).ConfigureAwait(false);
     if (version == null)
     {
       return new NuGetCheckResult(false, string.Empty, null, [], null);
@@ -90,7 +90,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     {
       checkedPackages.Add(pkg);
 
-      NuGetSearchResult? result = await NuGetPackageService.SearchAsync(pkg, cancellationToken);
+      NuGetSearchResult? result = await NuGetPackageService.SearchAsync(pkg, cancellationToken).ConfigureAwait(false);
       if (result != null && result.Versions.Count > 0)
       {
         string latestVersion = result.Versions[0].Version;
@@ -139,7 +139,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     }
 
     string buildPropsPath = buildPropsFiles[0];
-    string xml = await File.ReadAllTextAsync(buildPropsPath, cancellationToken);
+    string xml = await File.ReadAllTextAsync(buildPropsPath, cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable IDE0007
     XDocument doc = XDocument.Parse(xml);
@@ -159,7 +159,7 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
   {
     CommandOutput result = await Shell.Builder("git")
       .WithArguments("tag", "--sort=-v:refname")
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.ExitCode != 0)
     {

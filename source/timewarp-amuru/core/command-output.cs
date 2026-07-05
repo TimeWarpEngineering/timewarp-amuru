@@ -102,22 +102,41 @@ public class CommandOutput
   /// <summary>
   /// Gets the output lines for direct access and processing.
   /// </summary>
-  public IReadOnlyList<OutputLine> OutputLines => lines;
+  public IReadOnlyList<OutputLine> OutputLines => lines.AsReadOnly();
 
   /// <summary>
   /// Gets the combined output split into lines (convenience method).
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetLines() => Combined.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetLines() => SplitLines(Combined);
 
   /// <summary>
   /// Gets the stdout output split into lines.
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetStdoutLines() => Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetStdoutLines() => SplitLines(Stdout);
 
   /// <summary>
   /// Gets the stderr output split into lines.
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetStderrLines() => Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetStderrLines() => SplitLines(Stderr);
+
+  private static string[] SplitLines(string text)
+  {
+    if (string.IsNullOrEmpty(text))
+    {
+      return [];
+    }
+
+    string[] result = text.TrimEnd('\n').Split('\n');
+    for (int i = 0; i < result.Length; i++)
+    {
+      result[i] = result[i].TrimEnd('\r');
+    }
+
+    return result;
+  }
 
   /// <summary>
   /// Initializes a new instance of the CommandOutput class.
@@ -132,7 +151,8 @@ public class CommandOutput
 
   /// <summary>
   /// Initializes a new instance of the CommandOutput class with separate stdout and stderr.
-  /// The output will be reconstructed with lines in the order they were added.
+  /// True interleaving cannot be reconstructed from two separate strings, so <see cref="Combined"/>
+  /// and <see cref="OutputLines"/> order all stdout lines before all stderr lines.
   /// </summary>
   /// <param name="stdoutText">The stdout output as a single string</param>
   /// <param name="stderrText">The stderr output as a single string</param>

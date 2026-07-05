@@ -1,5 +1,12 @@
 #region Purpose
-// TODO: Add purpose description
+// Process-wide command path overrides: map a logical command name (e.g. "fzf") to a
+// specific executable path so scripts and tests control which binary actually runs.
+#endregion
+
+#region Design
+// - State is PROCESS-GLOBAL by design: a script sets overrides once at startup and they
+//   apply everywhere. This is intentionally different from CommandMock's AsyncLocal scoping;
+//   do not use SetCommandPath from parallel tests — use CommandMock for per-test isolation.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -7,7 +14,8 @@ namespace TimeWarp.Amuru;
 using System.Threading;
 
 /// <summary>
-/// Global configuration for TimeWarp.Cli, including command path overrides for testing.
+/// Process-wide configuration for TimeWarp.Amuru, including command path overrides.
+/// Overrides apply to the whole process; for per-test isolation use <see cref="Testing.CommandMock"/> instead.
 /// </summary>
 public static class CliConfiguration
 {

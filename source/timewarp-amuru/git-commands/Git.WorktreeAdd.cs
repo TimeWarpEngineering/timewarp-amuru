@@ -41,7 +41,7 @@ public static partial class Git
       .WithArguments("worktree", "add", worktreePath, branchName)
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success)
     {

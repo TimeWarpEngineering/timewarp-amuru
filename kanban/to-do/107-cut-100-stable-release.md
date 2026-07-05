@@ -18,7 +18,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 091 — CliWrap types out of public signatures (DONE 2026-07-05)
 - [ ] 092 — result-type unification (Terminal coupling settled 2026-07-05: stays; Terminal is stack-foundational and stable)
 - [ ] 093 — XML docs for the core surface
-- [ ] 097 — core engine bugs (at minimum the `StreamToFileAsync` race)
+- [x] 097 — core engine bugs (DONE 2026-07-05: race, cancellation, Windows .cs, ConfigureAwait+CA2007, ScriptContext nesting)
 - [ ] 084 — JSON-RPC disable finalized (core 1.0 ships WITHOUT json-rpc; 083 post-1.0 additive)
 
 ### Strongly recommended before tagging

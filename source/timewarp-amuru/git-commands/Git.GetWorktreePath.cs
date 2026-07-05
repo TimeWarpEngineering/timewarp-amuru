@@ -30,7 +30,7 @@ public static partial class Git
     CommandOutput result = await Shell.Builder("git")
       .WithArguments("worktree", "list", "--porcelain")
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (!result.Success)
     {

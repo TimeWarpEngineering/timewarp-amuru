@@ -109,7 +109,7 @@ public class CommandResult
   {
     if (setupData.Delay.HasValue)
     {
-      await Task.Delay(setupData.Delay.Value, cancellationToken);
+      await Task.Delay(setupData.Delay.Value, cancellationToken).ConfigureAwait(false);
     }
 
     if (setupData.Exception != null)
@@ -143,6 +143,12 @@ public class CommandResult
   /// - SSH sessions with terminal allocation
   /// - Applications that call isatty() to verify terminal
   /// </para>
+  /// <para>
+  /// Caveat: the child's stdin is piped from the console. If the child exits without draining
+  /// stdin, a pending console read can remain and swallow the parent's next line of input.
+  /// Prefer TtyPassthroughAsync (stream inheritance, no pending reads) when the child may
+  /// ignore stdin.
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
@@ -160,15 +166,15 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       if (!string.IsNullOrEmpty(mockSetup.Stdout))
       {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout);
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
       }
 
       if (!string.IsNullOrEmpty(mockSetup.Stderr))
       {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr);
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
       }
 
       return new ExecutionResult(
@@ -179,9 +185,12 @@ public class CommandResult
     }
 
     // Open console streams for interactive piping
-    await using Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
-    await using Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
-    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdInScope = stdIn.ConfigureAwait(false);
+    Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdOutScope = stdOut.ConfigureAwait(false);
+    Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
     // Configure command with console pipes
     Command interactiveCommand = InternalCommand
@@ -244,7 +253,7 @@ public class CommandResult
     Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
     if (ttyMockSetup != null)
     {
-      await ApplyMockPreludeAsync(ttyMockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(ttyMockSetup, cancellationToken).ConfigureAwait(false);
       return new ExecutionResult(
         new CliWrap.CommandResult(ttyMockSetup.ExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
         string.Empty,
@@ -292,7 +301,7 @@ public class CommandResult
 #pragma warning restore RS0030
 
     // Register cancellation
-    await using CancellationTokenRegistration registration = cancellationToken.Register(() =>
+    CancellationTokenRegistration registration = cancellationToken.Register(() =>
     {
       try
       {
@@ -303,6 +312,7 @@ public class CommandResult
         // Process may have already exited
       }
     });
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable registrationScope = registration.ConfigureAwait(false);
 
     await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
@@ -338,13 +348,14 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       return (mockSetup.Stdout ?? string.Empty).TrimEnd('\n', '\r');
     }
 
     // Use StringBuilder to capture output
     StringBuilder outputBuilder = new();
-    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
     // Configure command:
     // - stdout is captured (for the result)
@@ -440,17 +451,17 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
 
       // Write mock output to terminal to simulate RunAsync behavior
       if (!string.IsNullOrEmpty(mockSetup.Stdout))
       {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout);
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
       }
 
       if (!string.IsNullOrEmpty(mockSetup.Stderr))
       {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr);
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
       }
 
       return mockSetup.ExitCode;
@@ -481,17 +492,17 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
 
       // Write to terminal for RunAndCapture behavior
       if (!string.IsNullOrEmpty(mockSetup.Stdout))
       {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout);
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
       }
 
       if (!string.IsNullOrEmpty(mockSetup.Stderr))
       {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr);
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
       }
 
       return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
@@ -541,7 +552,7 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
     }
 
@@ -584,7 +595,7 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       foreach (string line in SplitMockLines(mockSetup.Stdout))
       {
         yield return line;
@@ -594,7 +605,7 @@ public class CommandResult
     }
 
     // Use CliWrap's event stream for stdout
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -618,7 +629,7 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       foreach (string line in SplitMockLines(mockSetup.Stderr))
       {
         yield return line;
@@ -628,7 +639,7 @@ public class CommandResult
     }
 
     // Use CliWrap's event stream for stderr
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardErrorCommandEvent stdErr)
       {
@@ -652,7 +663,7 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
       foreach (string line in SplitMockLines(mockSetup.Stdout))
       {
         yield return new OutputLine(line, false);
@@ -667,7 +678,7 @@ public class CommandResult
     }
 
     // Use CliWrap's event stream for combined output
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -696,13 +707,15 @@ public class CommandResult
     Testing.MockSetupData? mockSetup = ResolveMockSetup();
     if (mockSetup != null)
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken);
-      await File.WriteAllTextAsync(filePath, (mockSetup.Stdout ?? string.Empty) + (mockSetup.Stderr ?? string.Empty), cancellationToken);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      await File.WriteAllTextAsync(filePath, (mockSetup.Stdout ?? string.Empty) + (mockSetup.Stderr ?? string.Empty), cancellationToken).ConfigureAwait(false);
       return;
     }
 
-    await using FileStream fileStream = File.Create(filePath);
-    await using StreamWriter writer = new(fileStream);
+    FileStream fileStream = File.Create(filePath);
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable fileStreamScope = fileStream.ConfigureAwait(false);
+    StreamWriter writer = new(fileStream);
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable writerScope = writer.ConfigureAwait(false);
 
     // CliWrap pumps stdout and stderr concurrently; two PipeTarget.ToStream targets
     // sharing one FileStream race and corrupt the file (FileStream is not thread-safe).

@@ -58,7 +58,7 @@ public static partial class Git
       .WithArguments(arguments.ToArray())
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success)
     {

@@ -38,7 +38,7 @@ public static partial class Git
     CommandOutput result = await Shell.Builder("git")
       .WithArguments("clone", "--bare", repositoryUrl, targetPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success)
     {

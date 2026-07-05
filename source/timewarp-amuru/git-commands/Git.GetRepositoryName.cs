@@ -33,7 +33,7 @@ public static partial class Git
       .WithArguments("remote", "get-url", "origin")
       .WithWorkingDirectory(gitRoot)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success && !string.IsNullOrWhiteSpace(result.Stdout))
     {

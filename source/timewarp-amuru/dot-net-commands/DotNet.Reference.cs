@@ -163,27 +163,27 @@ public class DotNetReferenceAddBuilder
 
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 }
 
@@ -219,27 +219,27 @@ public class DotNetReferenceListBuilder
 
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 }
 
@@ -285,26 +285,26 @@ public class DotNetReferenceRemoveBuilder
 
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 }

@@ -30,7 +30,7 @@ public static partial class Git
       .WithArguments("remote", "set-head", "origin", "--auto")
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     return result.Success;
   }

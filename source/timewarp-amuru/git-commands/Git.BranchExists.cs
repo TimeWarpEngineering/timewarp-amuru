@@ -26,7 +26,7 @@ public static partial class Git
       .WithArguments("show-ref", "--verify", $"refs/heads/{branchName}")
       .WithWorkingDirectory(repoPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     return result.Success;
   }

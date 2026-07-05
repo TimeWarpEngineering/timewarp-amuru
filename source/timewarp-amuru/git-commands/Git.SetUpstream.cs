@@ -48,7 +48,7 @@ public static partial class Git
   {
     if (fetchFirst)
     {
-      bool fetchResult = await FetchAsync(worktreePath, remote, cancellationToken);
+      bool fetchResult = await FetchAsync(worktreePath, remote, cancellationToken).ConfigureAwait(false);
       if (!fetchResult)
       {
         return new GitSetUpstreamResult(false, $"Failed to fetch from {remote} before setting upstream");
@@ -59,7 +59,7 @@ public static partial class Git
       .WithArguments("branch", "--set-upstream-to", $"{remote}/{branchName}", branchName)
       .WithWorkingDirectory(worktreePath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     if (result.Success)
     {

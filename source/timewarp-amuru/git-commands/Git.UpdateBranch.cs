@@ -44,7 +44,7 @@ public static partial class Git
     if (IsWorktree())
     {
       // Using worktrees - delegate to worktree-specific method
-      GitWorktreeUpdateResult worktreeResult = await UpdateWorktreeAsync(branchName, cancellationToken);
+      GitWorktreeUpdateResult worktreeResult = await UpdateWorktreeAsync(branchName, cancellationToken).ConfigureAwait(false);
       return new GitBranchUpdateResult(worktreeResult.Success, worktreeResult.BranchPath, worktreeResult.ErrorMessage);
     }
     else
@@ -53,7 +53,7 @@ public static partial class Git
       CommandOutput result = await Shell.Builder("git")
         .WithArguments("fetch", "origin", $"{branchName}:{branchName}")
         .WithNoValidation()
-        .CaptureAsync(cancellationToken);
+        .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
       if (result.Success)
       {
@@ -86,12 +86,12 @@ public static partial class Git
   /// </example>
   public static async Task<GitBranchUpdateResult> UpdateDefaultBranchAsync(CancellationToken cancellationToken = default)
   {
-    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken);
+    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken).ConfigureAwait(false);
     if (!defaultBranchResult.Success || defaultBranchResult.BranchName is null)
     {
       return new GitBranchUpdateResult(false, null, defaultBranchResult.ErrorMessage ?? "Failed to detect default branch");
     }
 
-    return await UpdateBranchAsync(defaultBranchResult.BranchName, cancellationToken);
+    return await UpdateBranchAsync(defaultBranchResult.BranchName, cancellationToken).ConfigureAwait(false);
   }
 }

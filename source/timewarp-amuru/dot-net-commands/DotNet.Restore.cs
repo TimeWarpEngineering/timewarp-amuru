@@ -347,7 +347,7 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   /// <returns>The exit code of the command</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -358,7 +358,7 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -369,7 +369,7 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
   public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -381,7 +381,7 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
   public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -392,6 +392,6 @@ public class DotNetRestoreBuilder : ICommandBuilder<DotNetRestoreBuilder>
   /// <returns>The selected value from the interactive command</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 }

@@ -30,7 +30,7 @@ public static partial class Git
       .WithArguments("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
       .WithWorkingDirectory(repositoryPath)
       .WithNoValidation()
-      .CaptureAsync(cancellationToken);
+      .CaptureAsync(cancellationToken).ConfigureAwait(false);
 
     return result.Success;
   }

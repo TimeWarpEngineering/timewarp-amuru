@@ -21,7 +21,7 @@ public sealed class RepoCleanService : IRepoCleanService
     string? repoRoot = Git.FindRoot();
     if (repoRoot == null)
     {
-      await Terminal.WriteErrorLineAsync("Not in a git repository");
+      await Terminal.WriteErrorLineAsync("Not in a git repository").ConfigureAwait(false);
       return new CleanResult(0, 0, 0);
     }
 
@@ -38,7 +38,7 @@ public sealed class RepoCleanService : IRepoCleanService
         rootBinFilesCleaned = CleanRootBinDirectory(repoRoot);
       },
       cancellationToken
-    );
+    ).ConfigureAwait(false);
 
     return new CleanResult(objDirectoriesDeleted, binDirectoriesDeleted, rootBinFilesCleaned);
   }
