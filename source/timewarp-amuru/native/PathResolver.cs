@@ -65,7 +65,7 @@ public static class PathResolver
   /// <returns>List of full paths to all matching executables.</returns>
   /// <exception cref="ArgumentException">Thrown when name is null or whitespace.</exception>
   /// <example>
-  /// IReadOnlyList<string> allDevs = PathResolver.ResolveAllExecutables("dev");
+  /// IReadOnlyList&lt;string&gt; allDevs = PathResolver.ResolveAllExecutables("dev");
   /// foreach (string path in allDevs)
   /// {
   ///   Console.WriteLine($"Found: {path}");

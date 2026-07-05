@@ -42,6 +42,11 @@
 
 namespace TimeWarp.Amuru;
 
+/// <summary>
+/// The execution surface over a built command: run, capture, stream, pipe, select,
+/// and passthrough behaviors from one fluent object. Create via <see cref="Shell.Builder"/>
+/// (then <c>Build()</c>) or <see cref="Shell.Run"/>.
+/// </summary>
 public class CommandResult
 {
   /// <summary>
@@ -360,6 +365,15 @@ public class CommandResult
     return outputBuilder.ToString().TrimEnd('\n', '\r');
   }
 
+  /// <summary>
+  /// Chains this command's stdout into another command, shell-pipe style.
+  /// Composition never throws: an invalid stage yields a command that reports
+  /// <see cref="NeverRanExitCode"/> when executed. Pipe compositions bypass
+  /// <see cref="Testing.CommandMock"/> matching (use loose mode when testing pipelines).
+  /// </summary>
+  /// <param name="executable">The next command in the pipeline</param>
+  /// <param name="arguments">Arguments for the next command</param>
+  /// <returns>A CommandResult representing the composed pipeline</returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
