@@ -215,45 +215,63 @@ internal sealed class WorkflowCommand : ICommand<Unit>
     {
       string artifactsDir = Path.Combine(repoRoot, "artifacts", "packages");
 
-      string propsPath = Path.Combine(repoRoot, "source", "Directory.Build.props");
-      XDocument doc = XDocument.Load(propsPath);
+      // Versions are per package: the repo version in source/Directory.Build.props is the
+      // core (TimeWarp.Amuru) version; TimeWarp.Amuru.Tools overrides <Version> in its csproj.
+      string coreVersion = ReadVersion(Path.Combine(repoRoot, "source", "Directory.Build.props"));
+      string toolsVersion = ReadVersion(Path.Combine(repoRoot, "source", "timewarp-amuru-tools", "timewarp-amuru-tools.csproj"));
+
+      (string PackageId, string Version)[] packages =
+      [
+        ("TimeWarp.Amuru", coreVersion),
+        ("TimeWarp.Amuru.Tools", toolsVersion),
+      ];
+
+      foreach ((string packageId, string version) in packages)
+      {
+        string nupkgPath = Path.Combine(artifactsDir, $"{packageId}.{version}.nupkg");
+
+        if (!File.Exists(nupkgPath))
+        {
+          throw new FileNotFoundException($"Package not found: {nupkgPath}");
+        }
+
+        Terminal.WriteLine($"Pushing {packageId}.{version}.nupkg...");
+
+        List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--no-symbols"];
+
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+          args.AddRange(["--api-key", apiKey]);
+        }
+
+        int exitCode = await Shell.Builder("dotnet")
+          .WithArguments([.. args])
+          .WithWorkingDirectory(repoRoot)
+          .WithNoValidation()
+          .RunAsync();
+
+        if (exitCode != 0)
+        {
+          Terminal.WriteErrorLine($"\n❌ NuGet push failed for {packageId} with exit code {exitCode}");
+          Environment.ExitCode = 1;
+          return;
+        }
+      }
+
+      Terminal.WriteLine("\n✅ Packages pushed successfully!");
+    }
+
+    private static string ReadVersion(string msbuildFilePath)
+    {
+      XDocument doc = XDocument.Load(msbuildFilePath);
       string? version = doc.Descendants("Version").FirstOrDefault()?.Value;
 
       if (string.IsNullOrEmpty(version))
       {
-        throw new InvalidOperationException("Could not determine version for push");
+        throw new InvalidOperationException($"Could not determine version from {msbuildFilePath}");
       }
 
-      string nupkgPath = Path.Combine(artifactsDir, $"TimeWarp.Amuru.{version}.nupkg");
-
-      if (!File.Exists(nupkgPath))
-      {
-        throw new FileNotFoundException($"Package not found: {nupkgPath}");
-      }
-
-      Terminal.WriteLine($"Pushing TimeWarp.Amuru.{version}.nupkg...");
-
-      List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--no-symbols"];
-
-      if (!string.IsNullOrEmpty(apiKey))
-      {
-        args.AddRange(["--api-key", apiKey]);
-      }
-
-      int exitCode = await Shell.Builder("dotnet")
-        .WithArguments([.. args])
-        .WithWorkingDirectory(repoRoot)
-        .WithNoValidation()
-        .RunAsync();
-
-      if (exitCode != 0)
-      {
-        Terminal.WriteErrorLine($"\n❌ NuGet push failed with exit code {exitCode}");
-        Environment.ExitCode = 1;
-        return;
-      }
-
-      Terminal.WriteLine("\n✅ Package pushed successfully!");
+      return version;
     }
 
     private bool StopOnFailure(string stepName)

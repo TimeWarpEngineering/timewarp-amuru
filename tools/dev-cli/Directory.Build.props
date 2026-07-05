@@ -37,6 +37,7 @@
   <ItemGroup>
     <!-- Project references -->
     <ProjectReference Include="$(SourceDirectory)timewarp-amuru/timewarp-amuru.csproj" />
+    <ProjectReference Include="$(SourceDirectory)timewarp-amuru-tools/timewarp-amuru-tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>

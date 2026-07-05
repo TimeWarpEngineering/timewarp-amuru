@@ -5,8 +5,6 @@
 global using CliWrap;
 global using CliWrap.Buffered;
 global using CliWrap.EventStream;
-global using NuGet.Versioning;
-// global using StreamJsonRpc;
 global using System;
 global using System.Collections.Concurrent;
 global using System.Diagnostics;

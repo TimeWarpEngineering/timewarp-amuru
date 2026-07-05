@@ -12,7 +12,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 095 — TimeWarp.Terminal stable dependency (DONE 2026-07-05: bumped to 1.0.0, nuspec verified all-stable, suite green)
 - [x] 094-001 — dead-surface deletes (Post, Installer, GenerateColor, ConvertTimestamp, CommandBuilderExtensions)
 - [ ] 094-002 — SshKeyHelper moved to Zana (ganda side lands first)
-- [ ] 094-003 — Tools package split (core drops NuGet.Versioning; 087/099/100 stop gating core)
+- [x] 094-003 — Tools package split (DONE 2026-07-05: TimeWarp.Amuru.Tools 1.0.0-beta.1, per-package push, Shell.Run factory)
 - [x] 090 + 041 — error-handling contract: default None, WithZeroExitCodeValidation opt-in, never-ran reports failure (DONE 2026-07-05)
 - [x] 089 — CommandMock matching/fallthrough fixes (DONE 2026-07-05: strict by default, all modes intercepted)
 - [x] 091 — CliWrap types out of public signatures (DONE 2026-07-05)
@@ -37,7 +37,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [ ] Pack; inspect core nuspec: stable deps only, xml docs present, readme/icon present
 - [ ] Tag `v1.0.0`, publish GitHub Release with notes (summarize the beta→stable journey + the core/Tools split)
 - [ ] Verify nuget.org listing renders the readme
-- [ ] Post-release: 094-004 (PublicAPI analyzer baseline), announce, open post-1.0 track (083 json-rpc, Tools stabilization, 104/105/106 remainders)
+- [ ] Post-release: update consuming repos' dev-clis to add the TimeWarp.Amuru.Tools reference; 094-004 (PublicAPI analyzer baseline), announce, open post-1.0 track (083 json-rpc, Tools stabilization, 104/105/106 remainders)
 
 ## Notes
 

@@ -17,6 +17,9 @@ The readme ships INSIDE the nupkg, so its non-compiling samples land on the nuge
 ### overview.md (MAJOR)
 - [ ] `:30,77-90,118-122,352,448-462` document `.GetStringAsync()`, `.GetLinesAsync()`, `.ExecuteAsync()`, `.SaveAs()` — none exist; large sections (~126-463) are unshipped "vision" content with nothing flagging it. Rewrite against the real API or clearly mark vision sections
 
+### Package split (from 094-003)
+- [ ] Installation section shows BOTH packages (TimeWarp.Amuru core, TimeWarp.Amuru.Tools for DotNet/Git/Fzf builders); wrapper examples note the Tools package
+
 ### documentation/
 - [ ] `documentation/overview.md:10-16,22-23` — dead PascalCase links, wrong sample filenames
 - [ ] `documentation/developer/reference/shell-commands.md:265`, `documentation/conceptual/architectural-layers.md:938` — links into the now-separate ganda repo

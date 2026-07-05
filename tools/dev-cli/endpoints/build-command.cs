@@ -27,15 +27,15 @@ public sealed class BuildCommand : ICommand<Unit>
         Environment.Exit(1);
       }
 
-      string projectPath = Path.Combine(repoRoot, "source", "timewarp-amuru", "timewarp-amuru.csproj");
+      string solutionPath = Path.Combine(repoRoot, "timewarp-amuru.slnx");
 
-      if (!File.Exists(projectPath))
+      if (!File.Exists(solutionPath))
       {
-        await TimeWarpTerminal.Default.WriteLineAsync($"❌ Project not found: {projectPath}");
+        await TimeWarpTerminal.Default.WriteLineAsync($"❌ Solution not found: {solutionPath}");
         Environment.Exit(1);
       }
 
-      int exitCode = await RunProcessAsync("dotnet", $"build \"{projectPath}\" -c Release --verbosity {verbosity}");
+      int exitCode = await RunProcessAsync("dotnet", $"build \"{solutionPath}\" -c Release --verbosity {verbosity}");
 
       if (exitCode != 0)
       {
