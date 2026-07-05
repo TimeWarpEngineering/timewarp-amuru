@@ -31,6 +31,10 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 ### Tools-stable gates (do NOT block core 1.0)
 - 087 — invalid CLI flags; 088 — fzf stub; 099 — git standardization; 100 — validation-control rollout; 093/096 Tools portions
 
+### Shakeout beta — DONE
+- [x] **1.0.0-beta.35 released 2026-07-05**: full pipeline green (tag guard, both packages pushed — TimeWarp.Amuru 1.0.0-beta.35 + TimeWarp.Amuru.Tools 1.0.0-beta.1 first publish — timewarp-software rebuild dispatched). Release run also hardened check-version: env-ref resolution moved to the CLI edge
+- [ ] Upgrade a consuming repo (ganda is the natural candidate — also picks up the Zana SshKeyHelper port) to shake out the breaking-change migration before tagging 1.0.0
+
 ### Mechanical release steps
 - [ ] Bump `source/Directory.Build.props` core `<Version>` to `1.0.0` in the release PR (Tools stays beta; confirm `ganda repo audit` exception per 094-003)
 - [ ] Full suite + verify-samples green at the release commit
