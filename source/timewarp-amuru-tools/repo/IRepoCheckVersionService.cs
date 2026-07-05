@@ -34,7 +34,7 @@ public interface IRepoCheckVersionService
   /// <summary>
   /// Checks if the current version is new compared to git tags.
   /// </summary>
-  /// <param name="tag">Specific tag to check (optional, uses GITHUB_REF_NAME or latest git tag if not provided)</param>
+  /// <param name="tag">Specific tag to check (optional; falls back to the latest git tag). Callers resolve environment refs like GITHUB_REF_NAME themselves.</param>
   /// <param name="cancellationToken">Cancellation token</param>
   /// <returns>The result of the git tag version check</returns>
   Task<GitTagCheckResult> CheckGitTagVersionAsync(string? tag = null, CancellationToken cancellationToken = default);

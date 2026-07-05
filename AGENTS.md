@@ -20,6 +20,7 @@ This file provides guidance to agents when working with code in this repository.
 - **Tool-wrapper construction**: builders create commands via the public `Shell.Run(executable, args, options, stdin)` — never via core internals (no InternalsVisibleTo)
 - **C# script execution**: `.cs` files get `--` prefix inserted before arguments to prevent dotnet interception; on Windows they route through the `dotnet` host
 - **Tests that change CurrentDirectory must restore it** (try/finally) — later tests in the aggregate run depend on running inside the repo
+- **Runfile caches can serve STALE ProjectReference builds**: after editing library source, `dotnet run <test>.cs` may run against an old copy of the referenced project. If test behavior contradicts the source you just changed, clear the cache: `rm -rf ~/.local/share/dotnet/runfile/<test-name>-*`
 - **Analyzer overrides**: Different analyzer settings in `tests/`, `samples/` directories; `source/.editorconfig` adds CA2007 for the library projects
 
 ## Code Style Rules

@@ -50,7 +50,7 @@ internal sealed class CheckVersionCommand : ICommand<Unit>
       {
         GitTagCheckResult result = await repoCheckVersionService.CheckGitTagVersionAsync
         (
-          tag: command.Tag,
+          tag: command.Tag ?? ResolveTagFromEnvironment(),
           cancellationToken: ct
         );
 
@@ -83,6 +83,16 @@ internal sealed class CheckVersionCommand : ICommand<Unit>
       }
 
       return Unit.Value;
+    }
+
+    // GITHUB_REF_NAME is only a tag on tag-triggered runs; on PR/push runs it is a
+    // branch name ("81/merge", "master") and must not be treated as a release tag.
+    private static string? ResolveTagFromEnvironment()
+    {
+      string? refType = Environment.GetEnvironmentVariable("GITHUB_REF_TYPE");
+      return string.Equals(refType, "tag", StringComparison.OrdinalIgnoreCase)
+        ? Environment.GetEnvironmentVariable("GITHUB_REF_NAME")
+        : null;
     }
 
     private void WriteGitTagOutput(GitTagCheckResult result)
