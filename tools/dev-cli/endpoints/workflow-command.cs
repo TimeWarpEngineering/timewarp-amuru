@@ -10,7 +10,10 @@
 //
 // Modes:
 //   pr/merge:  clean -> build -> verify-samples -> test -> check-version
-//   release:   clean -> build -> verify-samples -> test -> tag-guard -> push
+//   release:   clean -> build -> verify-samples -> test -> tag-guard -> push -> notify timewarp-software
+//
+// The timewarp-software dispatch is best-effort: a failure must never fail
+// a release that already pushed to NuGet (the site also rebuilds nightly).
 
 using DevCli.Endpoints;
 
@@ -236,10 +239,46 @@ internal sealed class WorkflowCommand : ICommand<Unit>
         return;
       }
 
+      await NotifySoftwareSiteAsync(repoRoot);
+
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Pipeline SUCCEEDED - Package published to NuGet.org");
+      Terminal.WriteLine("  Pipeline SUCCEEDED - Packages published to NuGet.org");
       Terminal.WriteLine("===============================================================================");
+    }
+
+    private async Task NotifySoftwareSiteAsync(string repoRoot)
+    {
+      // Signal timewarp-software to rebuild the site so the new release shows up
+      // immediately instead of waiting for its nightly cron backstop. Best effort:
+      // a failure here must never fail a release that already pushed to NuGet.
+      // Cross-repo repository_dispatch needs a credential with write access to
+      // timewarp-software — locally gh's stored auth suffices; in GitHub Actions
+      // the default GITHUB_TOKEN cannot reach other repos, so workflow.yml mints a
+      // short-lived installation token from the org's Rebuild Dispatcher GitHub App
+      // and passes it as GH_TOKEN.
+      Terminal.WriteLine("\nNotifying timewarp-software to rebuild the site...");
+      string coreVersion = ReadVersion(Path.Combine(repoRoot, "source", "Directory.Build.props"));
+
+      int exitCode = await Shell.Builder("gh")
+        .WithArguments(
+          "api",
+          "repos/TimeWarpEngineering/timewarp-software/dispatches",
+          "-f", "event_type=rebuild",
+          "-f", "client_payload[package]=TimeWarp.Amuru",
+          "-f", $"client_payload[version]={coreVersion}")
+        .WithWorkingDirectory(repoRoot)
+        .WithNoValidation()
+        .RunAsync();
+
+      if (exitCode == 0)
+      {
+        Terminal.WriteLine("timewarp-software rebuild dispatched".Green());
+      }
+      else
+      {
+        Terminal.WriteLine("Could not dispatch timewarp-software rebuild (non-fatal; the site rebuilds nightly)".Yellow());
+      }
     }
 
     private bool GuardTagMatchesVersion(string repoRoot)

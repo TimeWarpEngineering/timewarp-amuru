@@ -58,7 +58,24 @@ jobs:
         with:
           user: TimeWarp.Enterprises
 
+      # Cross-repo repository_dispatch (timewarp-software rebuild) cannot use the
+      # default GITHUB_TOKEN. A short-lived installation token is minted from the
+      # org's TimeWarp Rebuild Dispatcher GitHub App (org variable REBUILD_APP_ID +
+      # org secret REBUILD_APP_PRIVATE_KEY). If the app is not configured the step
+      # is skipped and the dispatch degrades to a warning (site rebuilds nightly).
+      - name: Mint rebuild dispatch token
+        if: github.event_name == 'release' && vars.REBUILD_APP_ID != ''
+        id: rebuild-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.REBUILD_APP_ID }}
+          private-key: ${{ secrets.REBUILD_APP_PRIVATE_KEY }}
+          owner: TimeWarpEngineering
+          repositories: timewarp-software
+
       - name: Run CI Pipeline
+        env:
+          GH_TOKEN: ${{ steps.rebuild-token.outputs.token }}
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
             dotnet run tools/dev-cli/dev.cs -- workflow --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
