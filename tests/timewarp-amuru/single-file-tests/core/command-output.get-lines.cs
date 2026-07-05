@@ -45,16 +45,19 @@ namespace CommandOutput_
       lines[2].ShouldBe("line3");
     }
 
-    public static async Task EmptyLines_Should_BeRemoved()
+    public static async Task InteriorEmptyLines_Should_BePreserved()
     {
       CommandOutput output = await Shell.Builder("printf")
         .WithArguments("line1\n\nline2\n\n")
         .CaptureAsync();
       string[] lines = output.GetLines();
 
-      lines.Length.ShouldBe(2);
+      // Interior blank lines are data (e.g. git log block delimiters); only the
+      // trailing newline is trimmed so no final empty entry appears.
+      lines.Length.ShouldBe(3);
       lines[0].ShouldBe("line1");
-      lines[1].ShouldBe("line2");
+      lines[1].ShouldBe("");
+      lines[2].ShouldBe("line2");
     }
 
     public static async Task EmptyOutput_Should_ReturnEmptyArray()

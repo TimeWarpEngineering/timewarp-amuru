@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SourceDirectory)timewarp-amuru/timewarp-amuru.csproj" />
+    <ProjectReference Include="$(SourceDirectory)timewarp-amuru-tools/timewarp-amuru-tools.csproj" />
     <PackageReference Include="TimeWarp.Jaribu" />
     <PackageReference Include="TimeWarp.Terminal" />
     <PackageReference Include="CliWrap" />

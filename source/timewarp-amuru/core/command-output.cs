@@ -37,6 +37,12 @@ public class CommandOutput
   public bool Success => ExitCode == 0;
 
   /// <summary>
+  /// Gets how long the command ran. Zero when the command never ran
+  /// (see <see cref="CommandResult.NeverRanExitCode"/>) or when produced by a mock.
+  /// </summary>
+  public TimeSpan RunTime { get; init; }
+
+  /// <summary>
   /// Gets only the stdout output as a single string.
   /// This property is lazy-computed and thread-safe.
   /// </summary>
@@ -102,22 +108,41 @@ public class CommandOutput
   /// <summary>
   /// Gets the output lines for direct access and processing.
   /// </summary>
-  public IReadOnlyList<OutputLine> OutputLines => lines;
+  public IReadOnlyList<OutputLine> OutputLines => lines.AsReadOnly();
 
   /// <summary>
   /// Gets the combined output split into lines (convenience method).
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetLines() => Combined.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetLines() => SplitLines(Combined);
 
   /// <summary>
   /// Gets the stdout output split into lines.
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetStdoutLines() => Stdout.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetStdoutLines() => SplitLines(Stdout);
 
   /// <summary>
   /// Gets the stderr output split into lines.
+  /// Interior blank lines are preserved; a trailing newline does not produce a final empty entry.
   /// </summary>
-  public string[] GetStderrLines() => Stderr.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+  public string[] GetStderrLines() => SplitLines(Stderr);
+
+  private static string[] SplitLines(string text)
+  {
+    if (string.IsNullOrEmpty(text))
+    {
+      return [];
+    }
+
+    string[] result = text.TrimEnd('\n').Split('\n');
+    for (int i = 0; i < result.Length; i++)
+    {
+      result[i] = result[i].TrimEnd('\r');
+    }
+
+    return result;
+  }
 
   /// <summary>
   /// Initializes a new instance of the CommandOutput class.
@@ -132,7 +157,8 @@ public class CommandOutput
 
   /// <summary>
   /// Initializes a new instance of the CommandOutput class with separate stdout and stderr.
-  /// The output will be reconstructed with lines in the order they were added.
+  /// True interleaving cannot be reconstructed from two separate strings, so <see cref="Combined"/>
+  /// and <see cref="OutputLines"/> order all stdout lines before all stderr lines.
   /// </summary>
   /// <param name="stdoutText">The stdout output as a single string</param>
   /// <param name="stderrText">The stderr output as a single string</param>
@@ -174,5 +200,65 @@ public class CommandOutput
   public static CommandOutput Empty(int exitCode = 0)
   {
     return new CommandOutput(new List<OutputLine>(), exitCode);
+  }
+
+  /// <summary>
+  /// Returns a one-line status summary: success flag, exit code, and runtime.
+  /// </summary>
+  public override string ToString()
+  {
+    string status = Success ? "Success" : "Failed";
+    return $"[{status}] Exit: {ExitCode}, Runtime: {RunTime.TotalSeconds:F2}s";
+  }
+
+  /// <summary>
+  /// Returns a one-line summary of the execution result.
+  /// </summary>
+  public string ToSummary() =>
+    $"Exit: {ExitCode} | Runtime: {RunTime.TotalSeconds:F2}s | Output: {Stdout.Length} chars";
+
+  /// <summary>
+  /// Returns a detailed, multi-line string representation of the execution result.
+  /// </summary>
+  public string ToDetailedString()
+  {
+    StringBuilder sb = new();
+    sb.AppendLine("=== Execution Result ===");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Status: {(Success ? "SUCCESS" : "FAILED")}");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Exit Code: {ExitCode}");
+    sb.AppendLine(CultureInfo.InvariantCulture, $"Runtime: {RunTime}");
+
+    if (!string.IsNullOrEmpty(Stdout))
+    {
+      sb.AppendLine("\nStandard Output:");
+      sb.AppendLine(Stdout);
+    }
+
+    if (!string.IsNullOrEmpty(Stderr))
+    {
+      sb.AppendLine("\nStandard Error:");
+      sb.AppendLine(Stderr);
+    }
+
+    return sb.ToString();
+  }
+
+  /// <summary>
+  /// Writes the result to the terminal with status coloring: exit line, stdout, and stderr (yellow).
+  /// </summary>
+  public void WriteToConsole()
+  {
+    string status = Success ? "SUCCESS".Green() : "FAILED".Red();
+    TimeWarpTerminal.Default.WriteLine($"[{status}] Exit Code: {ExitCode}");
+
+    if (!string.IsNullOrEmpty(Stdout))
+    {
+      TimeWarpTerminal.Default.WriteLine(Stdout);
+    }
+
+    if (!string.IsNullOrEmpty(Stderr))
+    {
+      TimeWarpTerminal.Default.WriteErrorLine(Stderr.Yellow());
+    }
   }
 }

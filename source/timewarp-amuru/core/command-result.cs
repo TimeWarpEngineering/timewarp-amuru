@@ -16,8 +16,11 @@
 //   * SelectAsync: capture stdout while leaving interactive UI on stderr
 // - Streaming methods use CliWrap event streams for low-buffer processing.
 // - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
-// - Mock support applies to Run/Capture/RunAndCapture paths; TTY passthrough remains a real process boundary.
-// - Null commands return safe defaults instead of throwing, preserving shell-like composition.
+// - Mock support applies to ALL execution modes (run, capture, stream, select, passthrough, TTY).
+//   Strict mode (the default) throws on unmocked commands so tests can never silently run real processes.
+//   Pipe compositions are the exception: they bypass mock matching (use MockBehavior.Loose for pipelines).
+// - Null commands never throw, preserving shell-like composition, but they report FAILURE:
+//   NeverRanExitCode (-1) via ExitCode/Success so a command that never ran is distinguishable from one that succeeded.
 #endregion
 
 #region Execution Modes
@@ -39,8 +42,18 @@
 
 namespace TimeWarp.Amuru;
 
+/// <summary>
+/// The execution surface over a built command: run, capture, stream, pipe, select,
+/// and passthrough behaviors from one fluent object. Create via <see cref="Shell.Builder"/>
+/// (then <c>Build()</c>) or <see cref="Shell.Run"/>.
+/// </summary>
 public class CommandResult
 {
+  /// <summary>
+  /// Exit code reported when a command never ran (invalid construction, failed pipe composition).
+  /// Distinguishes never-ran from a successful (0) or tool-reported non-zero exit.
+  /// </summary>
+  public const int NeverRanExitCode = -1;
 
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
@@ -48,10 +61,70 @@ public class CommandResult
   // Property to access Command from other CommandResult instances in Pipe() method
   private Command? InternalCommand { get; }
 
+  // Original executable/arguments as provided at construction, used for mock matching.
+  // CliWrap's Arguments property is an escaped string; re-splitting it breaks on arguments
+  // containing spaces, so the raw array must be carried through (null for piped compositions).
+  private string? MockExecutable { get; }
+  private string[]? MockArguments { get; }
+
   internal CommandResult(Command? command)
   {
     InternalCommand = command;
   }
+
+  internal CommandResult(Command? command, string executable, string[] arguments) : this(command)
+  {
+    MockExecutable = executable;
+    MockArguments = arguments;
+  }
+
+  /// <summary>
+  /// Resolves the mock setup for this command, if mocking is enabled in the current context.
+  /// Records the call on a match. In strict mode (the default), an unmatched command throws
+  /// instead of falling through to real execution.
+  /// </summary>
+  private Testing.MockSetupData? ResolveMockSetup()
+  {
+    if (Testing.CommandMock.State is not { } state || InternalCommand == null)
+    {
+      return null;
+    }
+
+    string executable = MockExecutable ?? InternalCommand.TargetFilePath;
+    string[] arguments = MockArguments ?? InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+    if (state.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+    {
+      state.RecordCall(executable, arguments);
+      return setupData;
+    }
+
+    if (state.Behavior == Testing.MockBehavior.Strict)
+    {
+      string argumentText = arguments.Length > 0 ? " " + string.Join(' ', arguments) : string.Empty;
+      throw new InvalidOperationException(
+        $"CommandMock strict mode: no setup matches '{executable}{argumentText}'. " +
+        "Add a matching CommandMock.Setup(...) or use CommandMock.Enable(MockBehavior.Loose) to allow real execution.");
+    }
+
+    return null;
+  }
+
+  private static async Task ApplyMockPreludeAsync(Testing.MockSetupData setupData, CancellationToken cancellationToken)
+  {
+    if (setupData.Delay.HasValue)
+    {
+      await Task.Delay(setupData.Delay.Value, cancellationToken).ConfigureAwait(false);
+    }
+
+    if (setupData.Exception != null)
+    {
+      throw setupData.Exception;
+    }
+  }
+
+  private static string[] SplitMockLines(string? text) =>
+    string.IsNullOrEmpty(text) ? [] : text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
   /// <summary>
   /// Passes the command through to the console by piping stdin/stdout/stderr streams.
@@ -75,24 +148,46 @@ public class CommandResult
   /// - SSH sessions with terminal allocation
   /// - Applications that call isatty() to verify terminal
   /// </para>
+  /// <para>
+  /// Caveat: the child's stdin is piped from the console. If the child exits without draining
+  /// stdin, a pending console read can remain and swallow the parent's next line of input.
+  /// Prefer TtyPassthroughAsync (stream inheritance, no pending reads) when the child may
+  /// ignore stdin.
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return CommandOutput.Empty(NeverRanExitCode);
+    }
+
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      if (!string.IsNullOrEmpty(mockSetup.Stdout))
+      {
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
+      }
+
+      if (!string.IsNullOrEmpty(mockSetup.Stderr))
+      {
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
+      }
+
+      return new CommandOutput(string.Empty, string.Empty, mockSetup.ExitCode);
     }
 
     // Open console streams for interactive piping
-    await using Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
-    await using Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
-    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdInScope = stdIn.ConfigureAwait(false);
+    Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdOutScope = stdOut.ConfigureAwait(false);
+    Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
     // Configure command with console pipes
     Command interactiveCommand = InternalCommand
@@ -104,11 +199,7 @@ public class CommandResult
     CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken);
 
     // Return result with empty output strings (output went to console)
-    return new ExecutionResult(
-      result,
-      string.Empty,
-      string.Empty
-    );
+    return new CommandOutput(string.Empty, string.Empty, result.ExitCode) { RunTime = result.RunTime };
   }
 
   /// <summary>
@@ -128,6 +219,11 @@ public class CommandResult
   /// not redirected. Use PassthroughAsync for non-TUI interactive commands
   /// where you want stream access.
   /// </para>
+  /// <para>
+  /// Validation options do not apply here: this method never throws on a
+  /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
+  /// the returned CommandOutput's ExitCode/Success instead.
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
@@ -136,15 +232,18 @@ public class CommandResult
     "CA1031",
     Justification = "CLI boundary: cancellation/teardown race can throw during process kill; failures are intentionally ignored to preserve graceful shutdown."
   )]
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
-        string.Empty,
-        string.Empty
-      );
+      return CommandOutput.Empty(NeverRanExitCode);
+    }
+
+    Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
+    if (ttyMockSetup != null)
+    {
+      await ApplyMockPreludeAsync(ttyMockSetup, cancellationToken).ConfigureAwait(false);
+      return new CommandOutput(string.Empty, string.Empty, ttyMockSetup.ExitCode);
     }
 
     DateTimeOffset startTime = DateTimeOffset.Now;
@@ -187,7 +286,7 @@ public class CommandResult
 #pragma warning restore RS0030
 
     // Register cancellation
-    await using CancellationTokenRegistration registration = cancellationToken.Register(() =>
+    CancellationTokenRegistration registration = cancellationToken.Register(() =>
     {
       try
       {
@@ -198,16 +297,13 @@ public class CommandResult
         // Process may have already exited
       }
     });
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable registrationScope = registration.ConfigureAwait(false);
 
     await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
     DateTimeOffset exitTime = DateTimeOffset.Now;
 
-    return new ExecutionResult(
-      new CliWrap.CommandResult(process.ExitCode, startTime, exitTime),
-      string.Empty,
-      string.Empty
-    );
+    return new CommandOutput(string.Empty, string.Empty, process.ExitCode) { RunTime = exitTime - startTime };
   }
 
   /// <summary>
@@ -228,9 +324,19 @@ public class CommandResult
       return string.Empty;
     }
 
+    // Mock resolution happens outside the graceful-degradation try below so strict-mode
+    // violations and configured mock exceptions propagate to the test instead of being swallowed.
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      return (mockSetup.Stdout ?? string.Empty).TrimEnd('\n', '\r');
+    }
+
     // Use StringBuilder to capture output
     StringBuilder outputBuilder = new();
-    await using Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
     // Configure command:
     // - stdout is captured (for the result)
@@ -244,6 +350,12 @@ public class CommandResult
     {
       await interactiveCommand.ExecuteAsync(cancellationToken);
     }
+    catch (OperationCanceledException)
+    {
+      // Cancellation must remain observable so callers can distinguish
+      // "user cancelled" from "user selected nothing"
+      throw;
+    }
     catch
     {
       // Graceful degradation - return empty string on failure
@@ -253,6 +365,15 @@ public class CommandResult
     return outputBuilder.ToString().TrimEnd('\n', '\r');
   }
 
+  /// <summary>
+  /// Chains this command's stdout into another command, shell-pipe style.
+  /// Composition never throws: an invalid stage yields a command that reports
+  /// <see cref="NeverRanExitCode"/> when executed. Pipe compositions bypass
+  /// <see cref="Testing.CommandMock"/> matching (use loose mode when testing pipelines).
+  /// </summary>
+  /// <param name="executable">The next command in the pipeline</param>
+  /// <param name="arguments">Arguments for the next command</param>
+  /// <returns>A CommandResult representing the composed pipeline</returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
@@ -314,42 +435,26 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return 0;
+      return NeverRanExitCode;
     }
 
-    // Check if mocking is enabled and a mock is configured
-    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
     {
-      string? executable = InternalCommand.TargetFilePath;
-      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
 
-      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      // Write mock output to terminal to simulate RunAsync behavior
+      if (!string.IsNullOrEmpty(mockSetup.Stdout))
       {
-        Testing.CommandMock.State.RecordCall(executable, arguments);
-
-        if (setupData.Delay.HasValue)
-        {
-          await Task.Delay(setupData.Delay.Value, cancellationToken);
-        }
-
-        if (setupData.Exception != null)
-        {
-          throw setupData.Exception;
-        }
-
-        // Write mock output to terminal to simulate RunAsync behavior
-        if (!string.IsNullOrEmpty(setupData.Stdout))
-        {
-          await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
-        }
-
-        if (!string.IsNullOrEmpty(setupData.Stderr))
-        {
-          await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
-        }
-
-        return setupData.ExitCode;
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
       }
+
+      if (!string.IsNullOrEmpty(mockSetup.Stderr))
+      {
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
+      }
+
+      return mockSetup.ExitCode;
     }
 
     // Stream to terminal using CliWrap's pipe targets
@@ -371,42 +476,26 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty();
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
-    // Check if mocking is enabled and a mock is configured
-    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
     {
-      string? executable = InternalCommand.TargetFilePath;
-      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
 
-      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
+      // Write to terminal for RunAndCapture behavior
+      if (!string.IsNullOrEmpty(mockSetup.Stdout))
       {
-        Testing.CommandMock.State.RecordCall(executable, arguments);
-
-        if (setupData.Delay.HasValue)
-        {
-          await Task.Delay(setupData.Delay.Value, cancellationToken);
-        }
-
-        if (setupData.Exception != null)
-        {
-          throw setupData.Exception;
-        }
-
-        // Write to terminal for RunAndCapture behavior
-        if (!string.IsNullOrEmpty(setupData.Stdout))
-        {
-          await TimeWarpTerminal.Default.WriteLineAsync(setupData.Stdout);
-        }
-
-        if (!string.IsNullOrEmpty(setupData.Stderr))
-        {
-          await TimeWarpTerminal.Default.WriteErrorLineAsync(setupData.Stderr);
-        }
-
-        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
+        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
       }
+
+      if (!string.IsNullOrEmpty(mockSetup.Stderr))
+      {
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
+      }
+
+      return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
     }
 
     // Use StringBuilders to capture output while also streaming to console
@@ -447,36 +536,14 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty();
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
-    // Check if mocking is enabled and a mock is configured
-    if (Testing.CommandMock.IsEnabled && Testing.CommandMock.State != null)
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
     {
-      // Extract command details from CliWrap Command
-      string? executable = InternalCommand.TargetFilePath;
-      string[] arguments = InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-      if (Testing.CommandMock.State.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
-      {
-        // Record that this command was called
-        Testing.CommandMock.State.RecordCall(executable, arguments);
-
-        // Apply delay if configured
-        if (setupData.Delay.HasValue)
-        {
-          await Task.Delay(setupData.Delay.Value, cancellationToken);
-        }
-
-        // Throw exception if configured
-        if (setupData.Exception != null)
-        {
-          throw setupData.Exception;
-        }
-
-        // Return mock result
-        return new CommandOutput(setupData.Stdout ?? string.Empty, setupData.Stderr ?? string.Empty, setupData.ExitCode);
-      }
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
     }
 
     // Capture both stdout and stderr with timestamps
@@ -515,8 +582,20 @@ public class CommandResult
       yield break;
     }
 
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      foreach (string line in SplitMockLines(mockSetup.Stdout))
+      {
+        yield return line;
+      }
+
+      yield break;
+    }
+
     // Use CliWrap's event stream for stdout
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -537,8 +616,20 @@ public class CommandResult
       yield break;
     }
 
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      foreach (string line in SplitMockLines(mockSetup.Stderr))
+      {
+        yield return line;
+      }
+
+      yield break;
+    }
+
     // Use CliWrap's event stream for stderr
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardErrorCommandEvent stdErr)
       {
@@ -559,8 +650,25 @@ public class CommandResult
       yield break;
     }
 
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      foreach (string line in SplitMockLines(mockSetup.Stdout))
+      {
+        yield return new OutputLine(line, false);
+      }
+
+      foreach (string line in SplitMockLines(mockSetup.Stderr))
+      {
+        yield return new OutputLine(line, true);
+      }
+
+      yield break;
+    }
+
     // Use CliWrap's event stream for combined output
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken))
+    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -586,11 +694,39 @@ public class CommandResult
       return;
     }
 
-    await using FileStream fileStream = File.Create(filePath);
+    Testing.MockSetupData? mockSetup = ResolveMockSetup();
+    if (mockSetup != null)
+    {
+      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
+      await File.WriteAllTextAsync(filePath, (mockSetup.Stdout ?? string.Empty) + (mockSetup.Stderr ?? string.Empty), cancellationToken).ConfigureAwait(false);
+      return;
+    }
+
+    FileStream fileStream = File.Create(filePath);
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable fileStreamScope = fileStream.ConfigureAwait(false);
+    StreamWriter writer = new(fileStream);
+    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable writerScope = writer.ConfigureAwait(false);
+
+    // CliWrap pumps stdout and stderr concurrently; two PipeTarget.ToStream targets
+    // sharing one FileStream race and corrupt the file (FileStream is not thread-safe).
+    // Serialize line writes under a lock instead; interleaving granularity is one line.
+    Lock writeLock = new();
 
     Command fileCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
-      .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (writeLock.EnterScope())
+        {
+          writer.WriteLine(line);
+        }
+      }))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (writeLock.EnterScope())
+        {
+          writer.WriteLine(line);
+        }
+      }));
 
     await fileCommand.ExecuteAsync(cancellationToken);
   }

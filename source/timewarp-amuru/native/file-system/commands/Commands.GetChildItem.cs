@@ -25,7 +25,7 @@ public static partial class Commands
       // Use Direct API internally and collect results
       var task = Task.Run(async () =>
       {
-        await foreach (FileSystemInfo entry in Direct.GetChildItem(path))
+        await foreach (FileSystemInfo entry in Direct.GetChildItem(path).ConfigureAwait(false))
         {
           // Format similar to ls -la
           string type = entry is DirectoryInfo ? "d" : "-";

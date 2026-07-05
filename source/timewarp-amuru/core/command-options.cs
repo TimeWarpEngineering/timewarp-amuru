@@ -7,7 +7,8 @@
 // - Immutable-style fluent API: With* methods return new instances
 // - Properties use init-only or setters for flexible configuration
 // - ApplyTo method translates options into CliWrap Command configuration
-// - Validation defaults to null (uses CommandExtensions default behavior)
+// - Validation defaults to None: non-zero exit codes are reported via ExitCode/Success, never thrown.
+//   ApplyTo always applies the resolved validation so CliWrap's own default (ZeroExitCode) can't leak in.
 // - Environment variables are merged with parent process environment
 #endregion
 
@@ -32,10 +33,11 @@ public class CommandOptions
   public Dictionary<string, string?>? EnvironmentVariables { get; init; }
 
   /// <summary>
-  /// Gets or sets the command result validation behavior.
-  /// If not specified, defaults to CommandResultValidation.None for graceful error handling.
+  /// Gets the command result validation behavior.
+  /// Defaults to no validation: non-zero exit codes are reported via the result, not thrown.
+  /// Use <see cref="WithZeroExitCodeValidation"/> to opt in to throwing on non-zero exit codes.
   /// </summary>
-  public CommandResultValidation? Validation { get; set; }
+  internal CommandResultValidation? Validation { get; set; }
 
   /// <summary>
   /// Creates a new instance of CommandOptions with default settings.
@@ -98,6 +100,7 @@ public class CommandOptions
 
   /// <summary>
   /// Disables command result validation, allowing commands to exit with non-zero codes without throwing exceptions.
+  /// This is the default behavior; the method exists to make the intent explicit at call sites.
   /// </summary>
   /// <returns>A new CommandOptions instance with validation disabled</returns>
   public CommandOptions WithNoValidation()
@@ -107,6 +110,21 @@ public class CommandOptions
       WorkingDirectory = WorkingDirectory,
       EnvironmentVariables = EnvironmentVariables,
       Validation = CommandResultValidation.None
+    };
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>A new CommandOptions instance with zero-exit-code validation enabled</returns>
+  public CommandOptions WithZeroExitCodeValidation()
+  {
+    return new CommandOptions
+    {
+      WorkingDirectory = WorkingDirectory,
+      EnvironmentVariables = EnvironmentVariables,
+      Validation = CommandResultValidation.ZeroExitCode
     };
   }
 
@@ -131,11 +149,9 @@ public class CommandOptions
       configuredCommand = configuredCommand.WithEnvironmentVariables(EnvironmentVariables);
     }
 
-    // Apply validation if specified (otherwise keep the default from CommandExtensions)
-    if (Validation.HasValue)
-    {
-      configuredCommand = configuredCommand.WithValidation(Validation.Value);
-    }
+    // Always apply validation so CliWrap's own default (ZeroExitCode) can't leak in;
+    // Amuru's contract is None unless the caller opts in to strict validation.
+    configuredCommand = configuredCommand.WithValidation(Validation ?? CommandResultValidation.None);
 
     return configuredCommand;
   }

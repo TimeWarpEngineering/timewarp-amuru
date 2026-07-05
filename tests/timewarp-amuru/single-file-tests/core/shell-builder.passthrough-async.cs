@@ -23,21 +23,22 @@ namespace ShellBuilder_
 
     public static async Task EchoCommand_Should_ReturnZeroExitCode()
     {
-      ExecutionResult result = await Shell.Builder("echo")
+      CommandOutput result = await Shell.Builder("echo")
         .WithArguments("Hello from interactive mode")
         .PassthroughAsync();
 
       result.ExitCode.ShouldBe(0);
-      result.StandardOutput.ShouldBeNullOrEmpty();
+      result.Stdout.ShouldBeNullOrEmpty();
     }
 
-    public static async Task EmptyCommand_Should_ReturnZeroExitCode()
+    public static async Task EmptyCommand_Should_ReportNeverRanFailure()
     {
       CommandResult nullCommand = Shell.Builder("").Build();
 
-      ExecutionResult execResult = await nullCommand.PassthroughAsync();
+      CommandOutput execResult = await nullCommand.PassthroughAsync();
 
-      execResult.ExitCode.ShouldBe(0);
+      execResult.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
+      execResult.Success.ShouldBeFalse();
     }
   }
 }

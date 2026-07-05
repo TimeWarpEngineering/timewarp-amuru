@@ -6,12 +6,12 @@
     <PackageTags>cli;scripting;fluent;shell;pipeline;amuru</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CliWrap" />
-    <PackageReference Include="NuGet.Versioning" />
-    <!-- <PackageReference Include="StreamJsonRpc" /> -->
     <PackageReference Include="TimeWarp.Terminal" />
   </ItemGroup>
 

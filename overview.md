@@ -1,3 +1,10 @@
+> **STATUS: original design/vision document (historical).**
+> This file captures the original design exploration for TimeWarp.Amuru and is kept for
+> context. Method names and signatures here (e.g. `GetStringAsync()`, `GetLinesAsync()`,
+> `ExecuteAsync()`, `SaveAs()`, multi-argument `Shell.Builder(...)`) do NOT all match the
+> shipped API. For the current API, see [readme.md](readme.md) and the collocated design
+> regions in [source/timewarp-amuru/core/](source/timewarp-amuru/core/).
+
 # C# Script Command Execution Overview
 
 ## What We're Building

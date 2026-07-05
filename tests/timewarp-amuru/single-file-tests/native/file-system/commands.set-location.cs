@@ -25,16 +25,26 @@ namespace Commands_
 
     public static async Task ValidPath_Should_ChangeDirectory()
     {
-      string tempPath = Path.GetTempPath();
-      CommandOutput result = Commands.SetLocation(tempPath);
+      // SetLocation mutates process-global CurrentDirectory; restore it so
+      // later tests (e.g. repo-services relying on Git.FindRoot) still run in-repo
+      string originalDirectory = Directory.GetCurrentDirectory();
+      try
+      {
+        string tempPath = Path.GetTempPath();
+        CommandOutput result = Commands.SetLocation(tempPath);
 
-      result.Success.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
 
-      // Verify location was changed
-      CommandOutput pwdResult = Commands.GetLocation();
-      pwdResult.Stdout.TrimEnd(Path.DirectorySeparatorChar).ShouldBe(tempPath.TrimEnd(Path.DirectorySeparatorChar));
+        // Verify location was changed
+        CommandOutput pwdResult = Commands.GetLocation();
+        pwdResult.Stdout.TrimEnd(Path.DirectorySeparatorChar).ShouldBe(tempPath.TrimEnd(Path.DirectorySeparatorChar));
 
-      await Task.CompletedTask;
+        await Task.CompletedTask;
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDirectory);
+      }
     }
   }
 }

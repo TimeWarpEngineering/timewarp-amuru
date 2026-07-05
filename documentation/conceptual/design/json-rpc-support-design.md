@@ -1,3 +1,8 @@
+> **STATUS: feature currently DISABLED.** The StreamJsonRpc-based implementation described
+> here was removed from the package to keep AOT consumers free of the transitive
+> Newtonsoft.Json dependency (kanban task 084). A native minimal JSON-RPC client is planned
+> post-1.0 (kanban task 083); this document preserves the design intent.
+
 # JSON-RPC Support Design Document
 
 ## Executive Summary

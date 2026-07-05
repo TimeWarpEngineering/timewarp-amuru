@@ -63,11 +63,23 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
 
   /// <summary>
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// This is the default behavior; the method exists to make the intent explicit at call sites.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
   public ShellBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
@@ -97,9 +109,9 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
-  public async Task<ExecutionResult> PassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().PassthroughAsync(cancellationToken);
+    return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -109,9 +121,9 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
-  public async Task<ExecutionResult> TtyPassthroughAsync(CancellationToken cancellationToken = default)
+  public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().TtyPassthroughAsync(cancellationToken);
+    return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
   /// <summary>
@@ -123,7 +135,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>The selected value from the interactive command</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().SelectAsync(cancellationToken);
+    return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -145,7 +157,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>The exit code of the command</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAsync(cancellationToken);
+    return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -156,7 +168,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().CaptureAsync(cancellationToken);
+    return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -167,7 +179,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
   public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
-    return await Build().RunAndCaptureAsync(cancellationToken);
+    return await Build().RunAndCaptureAsync(cancellationToken).ConfigureAwait(false);
   }
 
   /// <summary>
@@ -178,7 +190,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     CommandResult command = Build();
-    await foreach (string line in command.StreamStdoutAsync(cancellationToken))
+    await foreach (string line in command.StreamStdoutAsync(cancellationToken).ConfigureAwait(false))
     {
       yield return line;
     }
@@ -192,7 +204,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     CommandResult command = Build();
-    await foreach (string line in command.StreamStderrAsync(cancellationToken))
+    await foreach (string line in command.StreamStderrAsync(cancellationToken).ConfigureAwait(false))
     {
       yield return line;
     }
@@ -206,7 +218,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     CommandResult command = Build();
-    await foreach (OutputLine line in command.StreamCombinedAsync(cancellationToken))
+    await foreach (OutputLine line in command.StreamCombinedAsync(cancellationToken).ConfigureAwait(false))
     {
       yield return line;
     }
@@ -220,7 +232,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>A task that completes when the command finishes</returns>
   public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
   {
-    await Build().StreamToFileAsync(filePath, cancellationToken);
+    await Build().StreamToFileAsync(filePath, cancellationToken).ConfigureAwait(false);
   }
 
   // /// <summary>

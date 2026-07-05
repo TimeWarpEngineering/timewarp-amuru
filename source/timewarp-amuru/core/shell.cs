@@ -22,9 +22,26 @@ public static class Shell
   /// Creates a fluent builder for executing a command.
   /// </summary>
   /// <param name="executable">The executable or command to run</param>
-  /// <returns>A RunBuilder for configuring the command</returns>
+  /// <returns>A ShellBuilder for configuring the command</returns>
   public static ShellBuilder Builder(string executable)
   {
     return new ShellBuilder(executable);
+  }
+
+  /// <summary>
+  /// Builds an executable command directly from its parts with a reusable options object.
+  /// This is the supported construction path for tool-wrapper builders (e.g. TimeWarp.Amuru.Tools)
+  /// that assemble arguments and options themselves; for ad-hoc use prefer <see cref="Builder"/>.
+  /// Invalid input (empty executable, null options) yields a command that reports
+  /// <see cref="CommandResult.NeverRanExitCode"/> instead of throwing.
+  /// </summary>
+  /// <param name="executable">The executable or command to run</param>
+  /// <param name="arguments">The command arguments</param>
+  /// <param name="options">Execution options (working directory, environment, validation)</param>
+  /// <param name="standardInput">Optional text piped to the command's standard input</param>
+  /// <returns>A CommandResult ready to execute</returns>
+  public static CommandResult Run(string executable, string[]? arguments, CommandOptions options, string? standardInput = null)
+  {
+    return CommandExtensions.Run(executable, arguments, options, standardInput);
   }
 }

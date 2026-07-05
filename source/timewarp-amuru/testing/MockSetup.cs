@@ -54,21 +54,13 @@ public sealed class MockSetup
   
   /// <summary>
   /// Configures the mock to throw an exception when called.
+  /// To control the exception message, use <see cref="Throws(Exception)"/> with a constructed instance.
   /// </summary>
   /// <typeparam name="TException">The type of exception to throw</typeparam>
-  /// <param name="message">The exception message (optional)</param>
   /// <returns>This instance for method chaining</returns>
-  public MockSetup Throws<TException>(string? message = null) where TException : Exception, new()
+  public MockSetup Throws<TException>() where TException : Exception, new()
   {
-    if (message != null)
-    {
-      setupData.Exception = (TException)Activator.CreateInstance(typeof(TException), message)!;
-    }
-    else
-    {
-      setupData.Exception = new TException();
-    }
-    
+    setupData.Exception = new TException();
     state.AddSetup(executable, arguments, setupData);
     return this;
   }
@@ -94,6 +86,9 @@ public sealed class MockSetup
   public MockSetup Delays(TimeSpan delay)
   {
     setupData.Delay = delay;
+    // Register so Setup(...).Delays(...) alone is a valid setup (delay + empty success output);
+    // previously only Returns/Throws registered, silently dropping delay-only setups.
+    state.AddSetup(executable, arguments, setupData);
     return this;
   }
 }

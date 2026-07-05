@@ -59,12 +59,21 @@ namespace BashAliases_
 
     public static async Task Cd_Should_ChangeDirectory()
     {
-      string tempPath = Path.GetTempPath();
+      // Cd mutates process-global CurrentDirectory; restore it for later tests
+      string originalDirectory = Directory.GetCurrentDirectory();
+      try
+      {
+        string tempPath = Path.GetTempPath();
 
-      CommandOutput cdResult = Cd(tempPath);
-      cdResult.Success.ShouldBeTrue();
+        CommandOutput cdResult = Cd(tempPath);
+        cdResult.Success.ShouldBeTrue();
 
-      await Task.CompletedTask;
+        await Task.CompletedTask;
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDirectory);
+      }
     }
 
     public static async Task Rm_Should_RemoveFile()

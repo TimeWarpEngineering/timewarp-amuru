@@ -5,7 +5,7 @@
   <!-- Default package metadata (can be overridden in individual projects) -->
   <PropertyGroup Label="Package Metadata">
     <IsPackable>true</IsPackable>
-    <Version>1.0.0-beta.34</Version>
+    <Version>1.0.0-beta.35</Version>
     <Authors>Steven T. Cramer</Authors>
     <RepositoryUrl>https://github.com/TimeWarpEngineering/timewarp-amuru</RepositoryUrl>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
@@ -16,9 +16,11 @@
   <PropertyGroup Label="Source Link Configuration">
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Symbols strategy: embedded PDB inside the DLL; no separate snupkg
+         (the pipeline pushes with no-symbols, so a snupkg would be built and discarded) -->
     <DebugType>embedded</DebugType>
+    <!-- Deterministic/SourceLink-clean builds in CI -->
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <ItemGroup>

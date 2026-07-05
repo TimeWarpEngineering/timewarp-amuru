@@ -22,7 +22,7 @@ public static partial class Direct
   {
     using StreamReader reader = File.OpenText(path);
     string? line;
-    while ((line = await reader.ReadLineAsync()) != null)
+    while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
     {
       yield return line;
     }

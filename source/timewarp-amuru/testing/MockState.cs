@@ -1,5 +1,5 @@
 #region Purpose
-// TODO: Add purpose description
+// Per-scope storage for command mock setups and recorded calls, keyed by executable + argument list.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
@@ -12,7 +12,17 @@ internal sealed class MockState
   private readonly Dictionary<string, MockSetupData> setups = new();
   private readonly List<MockCall> calls = new();
   private readonly Lock syncLock = new();
-  
+
+  internal MockState(MockBehavior behavior)
+  {
+    Behavior = behavior;
+  }
+
+  /// <summary>
+  /// How executions without a matching setup are handled.
+  /// </summary>
+  internal MockBehavior Behavior { get; }
+
   /// <summary>
   /// Adds a mock setup for a command.
   /// </summary>
@@ -86,7 +96,9 @@ internal sealed class MockState
   
   private static string CreateKey(string executable, string[] arguments)
   {
-    return $"{executable}|{string.Join("|", arguments)}";
+    // NUL separator: cannot appear in real command-line arguments, so keys are collision-free
+    // (a '|' separator would make ["a|b"] collide with ["a","b"]).
+    return $"{executable}\0{string.Join('\0', arguments)}";
   }
   
   /// <summary>

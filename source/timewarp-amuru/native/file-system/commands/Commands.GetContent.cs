@@ -30,7 +30,7 @@ public static partial class Commands
       // Use Direct API internally and collect results
       var task = Task.Run(async () =>
       {
-        await foreach (string line in Direct.GetContent(path))
+        await foreach (string line in Direct.GetContent(path).ConfigureAwait(false))
         {
           lines.Add(line);
         }
