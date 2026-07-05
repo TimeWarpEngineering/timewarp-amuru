@@ -31,10 +31,14 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 ### Tools-stable gates (do NOT block core 1.0)
 - 087 — invalid CLI flags; 088 — fzf stub; 099 — git standardization; 100 — validation-control rollout; 093/096 Tools portions
 
+### Shakeout beta — DONE
+- [x] **1.0.0-beta.35 released 2026-07-05**: full pipeline green (tag guard, both packages pushed — TimeWarp.Amuru 1.0.0-beta.35 + TimeWarp.Amuru.Tools 1.0.0-beta.1 first publish — timewarp-software rebuild dispatched). Release run also hardened check-version: env-ref resolution moved to the CLI edge
+- [x] ganda upgraded to beta.35 + Tools (2026-07-05): full solution + 275/275 tests green; migration was one package reference plus three call sites, and found/fixed a latent fzf-selection bug (PassthroughAsync.StandardOutput was always empty; SelectAsync is correct)
+
 ### Mechanical release steps
-- [ ] Bump `source/Directory.Build.props` core `<Version>` to `1.0.0` in the release PR (Tools stays beta; confirm `ganda repo audit` exception per 094-003)
-- [ ] Full suite + verify-samples green at the release commit
-- [ ] Pack; inspect core nuspec: stable deps only, xml docs present, readme/icon present
+- [x] Core bumped to 1.0.0; Tools to 1.0.0-beta.2 (content changed since beta.1)
+- [x] Full suite green at the release commit (416/417); verify-samples runs in the release pipeline
+- [x] Core 1.0.0 nuspec verified: CliWrap 3.10.2 + TimeWarp.Terminal 1.0.0 only (all stable), xml docs/readme/icon packed
 - [ ] Tag `v1.0.0`, publish GitHub Release with notes (summarize the beta→stable journey + the core/Tools split)
 - [ ] Verify nuget.org listing renders the readme
 - [ ] Post-release: update consuming repos' dev-clis to add the TimeWarp.Amuru.Tools reference; 094-004 (PublicAPI analyzer baseline), announce, open post-1.0 track (083 json-rpc, Tools stabilization, 104/105/106 remainders)
