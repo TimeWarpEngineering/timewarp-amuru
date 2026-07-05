@@ -7,9 +7,9 @@ Test suite is healthy (409 pass, no flakes) with good coverage of core, dot-net-
 ## Checklist
 
 - [ ] `dot-net-commands/tool/` — all 8 builders (Install/List/Restore/Run/Search/Uninstall/Update) have no test file; every other DotNet command does (MEDIUM)
-- [ ] `extensions/CommandBuilderExtensions` — `When`, `WhenNotNull`, `Unless`, `Apply`, `ForEach`, `Tap` have zero usage in tests OR samples (MEDIUM — gate on task 043/094 keep-or-cut decision)
+- [x] ~~`extensions/CommandBuilderExtensions`~~ — being deleted in 094-001 (zero callers); no coverage needed
 - [ ] git-commands untested members: `Git.FindRoot`, `Git.GetRepositoryName`, `Git.GetWorktreePath`, `Git.IsWorktree`, `Git.UpdateBranch`, `Git.UpdateWorktree` (MEDIUM — coordinate with task 099 fixes)
-- [ ] `native/utilities/` — `ConvertTimestamp`, `GenerateColor` untested; `SshKeyHelper`/`Post`/`Installer` gated on task 094 disposition (LOW-MED)
+- [x] ~~`native/utilities/`~~ — `ConvertTimestamp`/`GenerateColor`/`Post`/`Installer` deleted in 094-001; `SshKeyHelper` moves to Zana with tests there (094-002)
 - [ ] `native/file-system/direct/` — only `Direct.GetContent` tested; GetChildItem/GetLocation/RemoveItem/SetLocation untested (LOW — coordinate with task 104)
 - [ ] Add coverage as areas get fixed by tasks 097-099 (regression tests belong with those fixes; this task sweeps what remains)
 

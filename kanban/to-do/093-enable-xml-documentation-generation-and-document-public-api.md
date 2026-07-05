@@ -9,9 +9,10 @@
 ## Checklist
 
 - [ ] Add `<GenerateDocumentationFile>true</GenerateDocumentationFile>` to `source/Directory.Build.props`
-- [ ] Burn down CS1591 (build is `TreatWarningsAsErrors`, so this lands as one deliberate task). Top offenders: `DotNet.Workload.cs` (77), `DotNet.NuGet.cs` (70), `DotNet.New.cs` (36), `DotNet.UserSecrets.cs` (35), `DotNet.Sln.cs` (30), `execution-result.cs` (10), `CommandResult` class and `Pipe` method (`core/command-result.cs:42,261`), all 6 public members of `ScriptContext`
-- [ ] Verify the `.xml` ships in the nupkg after the change
+- [ ] **Core package first (gates 1.0)**: burn down CS1591 for the ~31 core types — `CommandResult` class and `Pipe` method (`core/command-result.cs:42,261`), all 6 public members of `ScriptContext`, `execution-result.cs` (10), remaining core/testing/native members
+- [ ] **Tools package (gates Tools stable, not core 1.0)**: the bulk — `DotNet.Workload.cs` (77), `DotNet.NuGet.cs` (70), `DotNet.New.cs` (36), `DotNet.UserSecrets.cs` (35), `DotNet.Sln.cs` (30), rest of the wrappers
+- [ ] Verify the `.xml` ships in each nupkg after the change
 
 ## Notes
 
-Found by multi-agent release review (2026-07-04); confirmed independently by two reviewers (API-surface and packaging). Sequence after task 094 (surface scoping) so effort isn't spent documenting members that get internalized or cut.
+Found by multi-agent release review (2026-07-04); confirmed independently by two reviewers (API-surface and packaging). Sequence after 094-001 (deletes) and 094-003 (package split) — the split cuts the core-1.0 doc burden from 391 members to roughly the core types' share, and every deleted type is doc work avoided. Build is `TreatWarningsAsErrors`, so enabling the property forces the burn-down per project.

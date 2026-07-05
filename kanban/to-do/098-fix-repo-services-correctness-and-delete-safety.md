@@ -2,7 +2,7 @@
 
 ## Description
 
-Two real bugs in `repo/` services, one of which can delete source-controlled files. These matter regardless of whether `repo/` stays public (task 094 decides that) because ganda and the dev CLI depend on them.
+Two real bugs in `repo/` services, one of which can delete source-controlled files. Per the 094 decision record (2026-07-05): `repo/` and `nu-get/` stay PUBLIC and move to the `TimeWarp.Amuru.Tools` package (every TimeWarp repo's dev-cli consumes them; public repos can't depend on private Zana). Fix the bugs here — they ride along in the 094-003 move.
 
 ## Checklist
 
