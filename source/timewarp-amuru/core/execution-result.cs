@@ -20,7 +20,7 @@ public class ExecutionResult
   public string StandardOutput { get; }
   public string StandardError { get; }
   
-  public ExecutionResult(CliWrap.CommandResult result, string standardOutput, string standardError)
+  internal ExecutionResult(CliWrap.CommandResult result, string standardOutput, string standardError)
   {
     Result = result;
     StandardOutput = standardOutput;
