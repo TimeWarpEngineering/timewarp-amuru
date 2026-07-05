@@ -63,6 +63,9 @@ internal static class CommandExtensions
     // Check for configured command path override
     executable = CliConfiguration.GetCommandPath(executable);
 
+    // Preserve the caller's logical arguments for mock matching before any normalization
+    string[] mockArguments = arguments ?? [];
+
     // Handle .cs script files specially
     if (executable.EndsWith(CSharpScriptExtension, StringComparison.OrdinalIgnoreCase))
     {
@@ -83,6 +86,6 @@ internal static class CommandExtensions
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }
 
-    return new CommandResult(cliCommand);
+    return new CommandResult(cliCommand, executable, mockArguments);
   }
 }

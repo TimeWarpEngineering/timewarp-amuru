@@ -26,15 +26,25 @@ public static class CommandMock
   /// Enables command mocking for the current test scope.
   /// Returns an IDisposable that automatically cleans up when disposed.
   /// </summary>
+  /// <remarks>
+  /// By default the scope is <see cref="MockBehavior.Strict"/>: any command executed without a
+  /// matching setup throws instead of running the real process. Pass <see cref="MockBehavior.Loose"/>
+  /// to allow unmocked commands to execute for mixed mocked/real tests.
+  /// Note: <c>Pipe</c> compositions bypass mocking entirely (and throw under strict mode) — use
+  /// loose mode when testing pipelines.
+  /// Dispose the returned scope in the same async context that called Enable(); disposing from a
+  /// different context cannot clear the originating context's state (AsyncLocal semantics).
+  /// </remarks>
+  /// <param name="behavior">How executions without a matching setup are handled</param>
   /// <returns>A disposable scope that cleans up mocking when disposed</returns>
-  public static IDisposable Enable()
+  public static IDisposable Enable(MockBehavior behavior = MockBehavior.Strict)
   {
     if (CurrentMockState.Value != null)
     {
       throw new InvalidOperationException("CommandMock is already enabled in this context. Did you forget to dispose a previous mock?");
     }
-    
-    MockState newState = new();
+
+    MockState newState = new(behavior);
     CurrentMockState.Value = newState;
     return new MockScope(() => CurrentMockState.Value = null);
   }
