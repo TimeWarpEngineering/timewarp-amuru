@@ -11,6 +11,10 @@ on:
       - 'tools/**'
       - '.github/workflows/**'
       - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'msbuild/**'
+      - 'nuget.config'
+      - 'global.json'
   pull_request:
     branches:
       - master
@@ -21,6 +25,10 @@ on:
       - 'tools/**'
       - '.github/workflows/**'
       - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'msbuild/**'
+      - 'nuget.config'
+      - 'global.json'
   release:
     types: [published]
   workflow_dispatch:
@@ -41,7 +49,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.201'
+          global-json-file: global.json
 
       - name: NuGet login (OIDC Trusted Publishing)
         if: github.event_name == 'release'

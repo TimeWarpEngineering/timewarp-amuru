@@ -22,7 +22,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 084 — JSON-RPC disable finalized (DONE 2026-07-05 except the design-doc note, which rides 102): dead files deleted, pins pruned, AOT verified clean)
 
 ### Strongly recommended before tagging
-- [ ] 101 — release pipeline runs tests; tag-vs-version guard; workflow_dispatch defused
+- [x] 101 — release pipeline hardened (DONE 2026-07-05: tests+samples in release mode, tag guard, dispatch defused, CI determinism, skip-duplicate)
 - [ ] 102 — readme samples compile (readme ships in the nupkg)
 - [x] 103 — build/test infrastructure complete (DONE 2026-07-05: slnx, global.json, runner covers all 417 tests, AGENTS.md rewritten)
 - [x] 096 — AOT declared on both packages, validated end-to-end with a native publish (DONE 2026-07-05)

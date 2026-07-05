@@ -10,7 +10,7 @@
 //
 // Modes:
 //   pr/merge:  clean -> build -> verify-samples -> test -> check-version
-//   release:   clean -> build -> push
+//   release:   clean -> build -> verify-samples -> test -> tag-guard -> push
 
 using DevCli.Endpoints;
 
@@ -75,7 +75,9 @@ internal sealed class WorkflowCommand : ICommand<Unit>
         "pull_request" => CiMode.Pr,
         "push" => CiMode.Merge,
         "release" => CiMode.Release,
-        "workflow_dispatch" => CiMode.Release,
+        // A manual "Run workflow" click must never attempt a NuGet push;
+        // releases are triggered only by publishing a GitHub Release.
+        "workflow_dispatch" => CiMode.Merge,
         _ => CiMode.Pr
       };
 
@@ -158,7 +160,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
     private async Task RunReleaseWorkflowAsync(string? apiKey)
     {
-      Terminal.WriteLine("Pipeline: clean -> build -> push");
+      Terminal.WriteLine("Pipeline: clean -> build -> verify-samples -> test -> tag-guard -> push");
       Terminal.WriteLine("");
 
       Environment.ExitCode = 0;
@@ -172,7 +174,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       }
 
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 1/3: Clean");
+      Terminal.WriteLine("  Step 1/5: Clean");
       Terminal.WriteLine("===============================================================================");
       CleanCommand.Handler cleanHandler = new();
       await cleanHandler.Handle(new CleanCommand(), CancellationToken.None);
@@ -184,7 +186,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 2/3: Build");
+      Terminal.WriteLine("  Step 2/5: Build");
       Terminal.WriteLine("===============================================================================");
       BuildCommand.Handler buildHandler = new();
       await buildHandler.Handle(new BuildCommand(), CancellationToken.None);
@@ -196,7 +198,36 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
       Terminal.WriteLine("");
       Terminal.WriteLine("===============================================================================");
-      Terminal.WriteLine("  Step 3/3: Push to NuGet");
+      Terminal.WriteLine("  Step 3/5: Verify Samples");
+      Terminal.WriteLine("===============================================================================");
+      VerifySamplesCommand.Handler verifySamplesHandler = new(Terminal);
+      await verifySamplesHandler.Handle(new VerifySamplesCommand(), CancellationToken.None);
+
+      if (StopOnFailure("Verify Samples"))
+      {
+        return;
+      }
+
+      Terminal.WriteLine("");
+      Terminal.WriteLine("===============================================================================");
+      Terminal.WriteLine("  Step 4/5: Test");
+      Terminal.WriteLine("===============================================================================");
+      TestCommand.Handler testHandler = new();
+      await testHandler.Handle(new TestCommand(), CancellationToken.None);
+
+      if (StopOnFailure("Test"))
+      {
+        return;
+      }
+
+      if (!GuardTagMatchesVersion(repoRoot))
+      {
+        return;
+      }
+
+      Terminal.WriteLine("");
+      Terminal.WriteLine("===============================================================================");
+      Terminal.WriteLine("  Step 5/5: Push to NuGet");
       Terminal.WriteLine("===============================================================================");
       await PushPackageAsync(repoRoot, apiKey);
 
@@ -209,6 +240,32 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteLine("===============================================================================");
       Terminal.WriteLine("  Pipeline SUCCEEDED - Package published to NuGet.org");
       Terminal.WriteLine("===============================================================================");
+    }
+
+    private bool GuardTagMatchesVersion(string repoRoot)
+    {
+      // Publishing a GitHub Release without bumping source/Directory.Build.props would
+      // re-push a stale core version; require the release tag to match it exactly.
+      string? tag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
+      if (string.IsNullOrEmpty(tag))
+      {
+        Terminal.WriteLine("Tag guard: GITHUB_REF_NAME not set (local run) — skipping tag/version check");
+        return true;
+      }
+
+      string coreVersion = ReadVersion(Path.Combine(repoRoot, "source", "Directory.Build.props"));
+      string expectedTag = $"v{coreVersion}";
+
+      if (!string.Equals(tag, expectedTag, StringComparison.Ordinal))
+      {
+        Terminal.WriteErrorLine($"❌ Tag guard failed: release tag '{tag}' does not match core version '{coreVersion}' (expected '{expectedTag}').");
+        Terminal.WriteErrorLine("   Bump <Version> in source/Directory.Build.props (or fix the tag) and re-release.");
+        Environment.ExitCode = 1;
+        return false;
+      }
+
+      Terminal.WriteLine($"Tag guard: '{tag}' matches core version — OK");
+      return true;
     }
 
     private async Task PushPackageAsync(string repoRoot, string? apiKey)
@@ -237,7 +294,9 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
         Terminal.WriteLine($"Pushing {packageId}.{version}.nupkg...");
 
-        List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--no-symbols"];
+        // --skip-duplicate: Tools rides its own cadence, so a core release may legitimately
+        // re-push an already-published Tools version; treat the 409 as success.
+        List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--no-symbols", "--skip-duplicate"];
 
         if (!string.IsNullOrEmpty(apiKey))
         {
