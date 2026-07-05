@@ -63,11 +63,23 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
 
   /// <summary>
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// This is the default behavior; the method exists to make the intent explicit at call sites.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
   public ShellBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 

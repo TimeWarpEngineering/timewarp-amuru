@@ -17,7 +17,8 @@
 // - Streaming methods use CliWrap event streams for low-buffer processing.
 // - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
 // - Mock support applies to Run/Capture/RunAndCapture paths; TTY passthrough remains a real process boundary.
-// - Null commands return safe defaults instead of throwing, preserving shell-like composition.
+// - Null commands never throw, preserving shell-like composition, but they report FAILURE:
+//   NeverRanExitCode (-1) via ExitCode/Success so a command that never ran is distinguishable from one that succeeded.
 #endregion
 
 #region Execution Modes
@@ -41,6 +42,11 @@ namespace TimeWarp.Amuru;
 
 public class CommandResult
 {
+  /// <summary>
+  /// Exit code reported when a command never ran (invalid construction, failed pipe composition).
+  /// Distinguishes never-ran from a successful (0) or tool-reported non-zero exit.
+  /// </summary>
+  public const int NeverRanExitCode = -1;
 
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
@@ -83,7 +89,7 @@ public class CommandResult
     if (InternalCommand == null)
     {
       return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
+        new CliWrap.CommandResult(NeverRanExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
         string.Empty,
         string.Empty
       );
@@ -128,6 +134,11 @@ public class CommandResult
   /// not redirected. Use PassthroughAsync for non-TUI interactive commands
   /// where you want stream access.
   /// </para>
+  /// <para>
+  /// Validation options do not apply here: this method never throws on a
+  /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
+  /// ExecutionResult.ExitCode/IsSuccess instead.
+  /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
@@ -141,7 +152,7 @@ public class CommandResult
     if (InternalCommand == null)
     {
       return new ExecutionResult(
-        new CliWrap.CommandResult(0, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
+        new CliWrap.CommandResult(NeverRanExitCode, DateTimeOffset.MinValue, DateTimeOffset.MinValue),
         string.Empty,
         string.Empty
       );
@@ -314,7 +325,7 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return 0;
+      return NeverRanExitCode;
     }
 
     // Check if mocking is enabled and a mock is configured
@@ -371,7 +382,7 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty();
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
     // Check if mocking is enabled and a mock is configured
@@ -447,7 +458,7 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty();
+      return CommandOutput.Empty(NeverRanExitCode);
     }
 
     // Check if mocking is enabled and a mock is configured

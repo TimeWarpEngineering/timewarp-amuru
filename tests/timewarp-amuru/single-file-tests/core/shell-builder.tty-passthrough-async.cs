@@ -32,13 +32,14 @@ namespace ShellBuilder_
       result.StandardOutput.ShouldBeNullOrEmpty();
     }
 
-    public static async Task EmptyCommand_Should_ReturnZeroExitCode()
+    public static async Task EmptyCommand_Should_ReportNeverRanFailure()
     {
       CommandResult nullCommand = Shell.Builder("").Build();
 
       ExecutionResult result = await nullCommand.TtyPassthroughAsync();
 
-      result.ExitCode.ShouldBe(0);
+      result.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
+      result.IsSuccess.ShouldBeFalse();
     }
 
     public static async Task WorkingDirectory_Should_Work()

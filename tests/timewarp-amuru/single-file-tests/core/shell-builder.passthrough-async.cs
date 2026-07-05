@@ -31,13 +31,14 @@ namespace ShellBuilder_
       result.StandardOutput.ShouldBeNullOrEmpty();
     }
 
-    public static async Task EmptyCommand_Should_ReturnZeroExitCode()
+    public static async Task EmptyCommand_Should_ReportNeverRanFailure()
     {
       CommandResult nullCommand = Shell.Builder("").Build();
 
       ExecutionResult execResult = await nullCommand.PassthroughAsync();
 
-      execResult.ExitCode.ShouldBe(0);
+      execResult.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
+      execResult.IsSuccess.ShouldBeFalse();
     }
   }
 }

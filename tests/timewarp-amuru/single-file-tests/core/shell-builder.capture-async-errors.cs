@@ -38,10 +38,23 @@ namespace ShellBuilder_
       output.Stdout.ShouldBeNullOrEmpty();
     }
 
-    public static async Task NonZeroExit_Should_Throw()
+    public static async Task NonZeroExit_Should_ReportFailureWithoutThrowing()
+    {
+      CommandOutput output = await Shell.Builder("ls")
+        .WithArguments("/nonexistent/path/12345")
+        .CaptureAsync();
+
+      output.Success.ShouldBeFalse();
+      output.ExitCode.ShouldNotBe(0);
+    }
+
+    public static async Task NonZeroExitWithZeroExitCodeValidation_Should_Throw()
     {
       await Should.ThrowAsync<Exception>(async () =>
-        await Shell.Builder("ls").WithArguments("/nonexistent/path/12345").CaptureAsync()
+        await Shell.Builder("ls")
+          .WithArguments("/nonexistent/path/12345")
+          .WithZeroExitCodeValidation()
+          .CaptureAsync()
       );
     }
 
@@ -65,18 +78,22 @@ namespace ShellBuilder_
       output.Stdout.ShouldNotBeNullOrEmpty();
     }
 
-    public static async Task EmptyCommand_Should_ReturnEmpty()
+    public static async Task EmptyCommand_Should_ReportNeverRanFailure()
     {
       CommandOutput output = await Shell.Builder("").CaptureAsync();
 
       output.Stdout.ShouldBeNullOrEmpty();
+      output.Success.ShouldBeFalse();
+      output.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
     }
 
-    public static async Task WhitespaceCommand_Should_ReturnEmpty()
+    public static async Task WhitespaceCommand_Should_ReportNeverRanFailure()
     {
       CommandOutput output = await Shell.Builder("   ").CaptureAsync();
 
       output.Stdout.ShouldBeNullOrEmpty();
+      output.Success.ShouldBeFalse();
+      output.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
     }
 
     public static async Task FailedCommandWithNoValidation_Should_SetSuccessFalse()

@@ -13,7 +13,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 - [x] 094-001 — dead-surface deletes (Post, Installer, GenerateColor, ConvertTimestamp, CommandBuilderExtensions)
 - [ ] 094-002 — SshKeyHelper moved to Zana (ganda side lands first)
 - [ ] 094-003 — Tools package split (core drops NuGet.Versioning; 087/099/100 stop gating core)
-- [ ] 090 + 041 — error-handling contract decision (the one true now-or-never)
+- [x] 090 + 041 — error-handling contract: default None, WithZeroExitCodeValidation opt-in, never-ran reports failure (DONE 2026-07-05)
 - [ ] 089 — CommandMock matching/fallthrough fixes
 - [ ] 091 — CliWrap types out of public signatures
 - [ ] 092 — result-type unification (Terminal coupling settled 2026-07-05: stays; Terminal is stack-foundational and stable)

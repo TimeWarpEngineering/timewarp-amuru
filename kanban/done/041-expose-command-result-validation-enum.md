@@ -100,3 +100,6 @@ Option 3 (strongly-typed methods) is recommended for consistency with the existi
 ## Priority
 
 Medium - Improves developer experience but not blocking functionality
+## Results
+
+Implemented via task 090 (2026-07-05): `None` is the true default (set explicitly in `CommandOptions.ApplyTo`), and `WithZeroExitCodeValidation()` exists on both `CommandOptions` and `ShellBuilder` per the recommended Option 3 (strongly-typed methods, no CliWrap enum exposure — the `Validation` property is now internal). Tests cover default and opt-in paths.

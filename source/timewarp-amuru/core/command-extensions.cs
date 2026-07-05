@@ -5,7 +5,8 @@
 
 #region Design
 // - This is the command construction surface; CommandResult is the execution surface.
-// - Returns NullCommandResult for invalid input so higher layers can degrade gracefully.
+// - Returns NullCommandResult for invalid input so higher layers never throw; the sentinel
+//   reports failure (CommandResult.NeverRanExitCode) when executed, so it is not mistaken for success.
 // - Applies CliConfiguration path overrides before building the CliWrap command.
 // - Inserts "--" for .cs targets so dotnet file-based apps receive arguments correctly.
 // - Applies CommandOptions in one place to keep ShellBuilder and other builders thin.
