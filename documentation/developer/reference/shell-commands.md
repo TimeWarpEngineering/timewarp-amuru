@@ -262,6 +262,5 @@ All commands follow consistent error handling:
 
 ## See Also
 
-- [TimeWarp.Ganda README](../../../Source/TimeWarp.Ganda/README.md) - Tool overview
-- [How to Use Shell Commands](../HowToGuides/HowToUseShellCommands.md) - Usage guide
-- [Architecture Documentation](../../../Architecture/TimeWarp-Ecosystem-Architecture.md) - System design
+- [TimeWarp.Ganda repository](https://github.com/TimeWarpEngineering/timewarp-ganda) - Tool overview
+- [Ecosystem Architecture](../../conceptual/timewarp-ecosystem-architecture.md) - System design

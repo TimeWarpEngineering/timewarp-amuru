@@ -23,7 +23,7 @@ Review basis: six-agent release review (2026-07-04), tasks 087-106.
 
 ### Strongly recommended before tagging
 - [x] 101 — release pipeline hardened (DONE 2026-07-05: tests+samples in release mode, tag guard, dispatch defused, CI determinism, skip-duplicate)
-- [ ] 102 — readme samples compile (readme ships in the nupkg)
+- [x] 102 — readme rewritten with verified samples; vision doc bannered; doc links fixed (DONE 2026-07-05 except optional doc-compile-check nicety)
 - [x] 103 — build/test infrastructure complete (DONE 2026-07-05: slnx, global.json, runner covers all 417 tests, AGENTS.md rewritten)
 - [x] 096 — AOT declared on both packages, validated end-to-end with a native publish (DONE 2026-07-05)
 - [x] 098 — repo services fixed (DONE 2026-07-05: tracked-file guard + symlink-safe clean, version-contains check, versionsort, unlisted filter)

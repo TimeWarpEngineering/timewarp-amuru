@@ -934,8 +934,8 @@ var files = await Fzf.Builder()
 - [Native Namespace Design](../../Analysis/Architecture/NativeNamespaceDesign.md) - Namespace organization strategy
 
 ### API Documentation
-- [README.md](../../../README.md) - Main library documentation
-- [Ganda README](../../../Source/TimeWarp.Ganda/README.md) - CLI tool documentation
+- [readme.md](../../readme.md) - Main library documentation
+- [TimeWarp.Ganda repository](https://github.com/TimeWarpEngineering/timewarp-ganda) - CLI tool documentation
 - [command-extensions.cs](../../../source/timewarp-amuru/core/command-extensions.cs) - Collocated command construction reference
 - [command-result.cs](../../../source/timewarp-amuru/core/command-result.cs) - Collocated command execution reference
 

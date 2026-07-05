@@ -4,23 +4,23 @@ Welcome to the TimeWarp.Amuru documentation. This library provides a fluent API 
 
 ## Documentation Structure
 
-### [Developer Documentation](Developer/)
+### [Developer Documentation](developer/)
 Technical documentation for developers using TimeWarp.Amuru in their projects.
 
-- **[How-To Guides](Developer/HowToGuides/)** - Step-by-step instructions for specific tasks
-  - [How to Use ScriptContext](Developer/HowToGuides/HowToUseScriptContext.md)
-  - [How to Use AppContext Extensions](Developer/HowToGuides/HowToUseAppContextExtensions.md)
+- **[How-To Guides](developer/how-to-guides/)** - Step-by-step instructions for specific tasks
+  - [How to Use ScriptContext](developer/how-to-guides/how-to-use-script-context.md)
+  - [How to Use AppContext Extensions](developer/how-to-guides/how-to-use-app-context-extensions.md)
 
-- **[Reference](Developer/Reference/)** - Detailed technical reference
-  - [Shell Commands Reference](Developer/Reference/ShellCommands.md) - Complete shell command reference
-  - [Git Commands Reference](Developer/Reference/GitCommands.md) - Git helper methods reference
+- **[Reference](developer/reference/)** - Detailed technical reference
+  - [Shell Commands Reference](developer/reference/shell-commands.md) - Complete shell command reference
+  - [Git Commands Reference](developer/reference/git-commands.md) - Git helper methods reference
 
 > **Note**: TimeWarp.Ganda CLI tool has moved to a [separate repository](https://github.com/TimeWarpEngineering/timewarp-ganda).
 
 ### [Samples](../samples/)
 Working code examples demonstrating library features:
-- `AppContextExtensionsExample.cs` - Using AppContext extensions in scripts
-- `ScriptContextExample.cs` - Directory management with ScriptContext
+- `app-context-extensions-example.cs` - Using AppContext extensions in scripts
+- `script-context-example.cs` - Directory management with ScriptContext
 
 ## Quick Links
 
