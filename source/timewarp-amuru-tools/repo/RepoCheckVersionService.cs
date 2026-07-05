@@ -38,7 +38,13 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 
     if (string.IsNullOrWhiteSpace(latestTag))
     {
-      latestTag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
+      // GITHUB_REF_NAME is only a tag on tag-triggered runs; on PR/push runs it is a
+      // branch name ("81/merge", "master") and must not be treated as a release tag.
+      string? refType = Environment.GetEnvironmentVariable("GITHUB_REF_TYPE");
+      if (string.Equals(refType, "tag", StringComparison.OrdinalIgnoreCase))
+      {
+        latestTag = Environment.GetEnvironmentVariable("GITHUB_REF_NAME");
+      }
     }
 
     if (string.IsNullOrWhiteSpace(latestTag))

@@ -65,14 +65,14 @@ namespace Repo_Services
 
       using (CommandMock.Enable(MockBehavior.Loose))
       {
-        CommandMock.Setup("git", "tag", "--sort=-v:refname")
+        CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns("v999.0.0\nv1.0.0");
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.Version.ShouldNotBeEmpty();
         result.LatestReleaseTag.ShouldBe("v999.0.0");
-        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
       }
     }
 
@@ -90,7 +90,7 @@ namespace Repo_Services
 
       using (CommandMock.Enable(MockBehavior.Loose))
       {
-        CommandMock.Setup("git", "tag", "--sort=-v:refname")
+        CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns(expectedTag);
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
@@ -98,7 +98,7 @@ namespace Repo_Services
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBe(version);
         result.LatestReleaseTag.ShouldBe(expectedTag);
-        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
       }
     }
 
@@ -114,7 +114,7 @@ namespace Repo_Services
 
       using (CommandMock.Enable(MockBehavior.Loose))
       {
-        CommandMock.Setup("git", "tag", "--sort=-v:refname")
+        CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns("v0.0.1");
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
@@ -122,7 +122,7 @@ namespace Repo_Services
         result.IsNewVersion.ShouldBeTrue();
         result.Version.ShouldBe(version);
         result.LatestReleaseTag.ShouldBe("v0.0.1");
-        CommandMock.VerifyCalled("git", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
       }
     }
 
