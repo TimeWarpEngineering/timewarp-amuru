@@ -358,6 +358,12 @@ public class CommandResult
     {
       await interactiveCommand.ExecuteAsync(cancellationToken);
     }
+    catch (OperationCanceledException)
+    {
+      // Cancellation must remain observable so callers can distinguish
+      // "user cancelled" from "user selected nothing"
+      throw;
+    }
     catch
     {
       // Graceful degradation - return empty string on failure
@@ -696,10 +702,28 @@ public class CommandResult
     }
 
     await using FileStream fileStream = File.Create(filePath);
+    await using StreamWriter writer = new(fileStream);
+
+    // CliWrap pumps stdout and stderr concurrently; two PipeTarget.ToStream targets
+    // sharing one FileStream race and corrupt the file (FileStream is not thread-safe).
+    // Serialize line writes under a lock instead; interleaving granularity is one line.
+    Lock writeLock = new();
 
     Command fileCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToStream(fileStream))
-      .WithStandardErrorPipe(PipeTarget.ToStream(fileStream));
+      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (writeLock.EnterScope())
+        {
+          writer.WriteLine(line);
+        }
+      }))
+      .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
+      {
+        using (writeLock.EnterScope())
+        {
+          writer.WriteLine(line);
+        }
+      }));
 
     await fileCommand.ExecuteAsync(cancellationToken);
   }
