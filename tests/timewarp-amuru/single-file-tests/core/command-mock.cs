@@ -131,6 +131,45 @@ namespace CommandMock_
       }
     }
 
+    public static async Task StreamStdout_Should_PreserveInteriorBlankLines()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "log")
+          .Returns("line1\n\nline2");
+
+        List<string> lines = [];
+        await foreach (string line in Shell.Builder("git").WithArguments("log").Build().StreamStdoutAsync())
+        {
+          lines.Add(line);
+        }
+
+        lines.Count.ShouldBe(3);
+        lines[0].ShouldBe("line1");
+        lines[1].ShouldBe("");
+        lines[2].ShouldBe("line2");
+      }
+    }
+
+    public static async Task CaptureAsync_Should_PreserveInteriorBlankLines()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "log")
+          .Returns("line1\n\nline2");
+
+        CommandOutput output = await Shell.Builder("git")
+          .WithArguments("log")
+          .CaptureAsync();
+        string[] lines = output.GetLines();
+
+        lines.Length.ShouldBe(3);
+        lines[0].ShouldBe("line1");
+        lines[1].ShouldBe("");
+        lines[2].ShouldBe("line2");
+      }
+    }
+
     public static async Task DelaysOnly_Should_RegisterSetup()
     {
       using (CommandMock.Enable())

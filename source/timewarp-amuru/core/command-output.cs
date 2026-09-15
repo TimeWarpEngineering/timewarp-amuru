@@ -9,6 +9,7 @@
 // - Stores raw OutputLine list for flexible processing and line-level access
 // - Factory method Empty() for creating empty outputs (failed commands, tests)
 // - Two constructors: one from OutputLine list (streaming), one from strings (reconstruction)
+// - String constructor uses SplitLines so interior blanks (including whitespace-only) match CaptureAsync
 // - Convenience methods GetLines/GetStdoutLines/GetStderrLines for line-array access
 #endregion
 
@@ -128,7 +129,7 @@ public class CommandOutput
   /// </summary>
   public string[] GetStderrLines() => SplitLines(Stderr);
 
-  private static string[] SplitLines(string text)
+  internal static string[] SplitLines(string text)
   {
     if (string.IsNullOrEmpty(text))
     {
@@ -169,23 +170,17 @@ public class CommandOutput
 
     if (!string.IsNullOrEmpty(stdoutText))
     {
-      foreach (string line in stdoutText.Split('\n'))
+      foreach (string line in SplitLines(stdoutText))
       {
-        if (!string.IsNullOrWhiteSpace(line))
-        {
-          lines.Add(new OutputLine(line, false));
-        }
+        lines.Add(new OutputLine(line, false));
       }
     }
 
     if (!string.IsNullOrEmpty(stderrText))
     {
-      foreach (string line in stderrText.Split('\n'))
+      foreach (string line in SplitLines(stderrText))
       {
-        if (!string.IsNullOrWhiteSpace(line))
-        {
-          lines.Add(new OutputLine(line, true));
-        }
+        lines.Add(new OutputLine(line, true));
       }
     }
 

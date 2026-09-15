@@ -14,6 +14,8 @@
 //   * PassthroughAsync: interactive stream piping without true TTY
 //   * TtyPassthroughAsync: real terminal inheritance for TUI apps
 //   * SelectAsync: capture stdout while leaving interactive UI on stderr
+// - CaptureAsync and RunAndCaptureAsync set CommandOutput.RunTime from CliWrap, matching PassthroughAsync and TtyPassthroughAsync. Mocks and Empty stay at zero.
+// - SelectAsync lets CommandExecutionException (zero-exit-code validation) and cancellation propagate; only unexpected runtime failures degrade to empty. TtyPassthroughAsync remains the documented validation exemption.
 // - Streaming methods use CliWrap event streams for low-buffer processing.
 // - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
 // - Mock support applies to ALL execution modes (run, capture, stream, select, passthrough, TTY).
@@ -124,7 +126,7 @@ public class CommandResult
   }
 
   private static string[] SplitMockLines(string? text) =>
-    string.IsNullOrEmpty(text) ? [] : text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+    CommandOutput.SplitLines(text ?? string.Empty);
 
   /// <summary>
   /// Passes the command through to the console by piping stdin/stdout/stderr streams.
@@ -196,7 +198,7 @@ public class CommandResult
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
     // Execute interactively
-    CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken);
+    CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
     // Return result with empty output strings (output went to console)
     return new CommandOutput(string.Empty, string.Empty, result.ExitCode) { RunTime = result.RunTime };
@@ -348,12 +350,17 @@ public class CommandResult
 
     try
     {
-      await interactiveCommand.ExecuteAsync(cancellationToken);
+      await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
     }
     catch (OperationCanceledException)
     {
       // Cancellation must remain observable so callers can distinguish
       // "user cancelled" from "user selected nothing"
+      throw;
+    }
+    catch (CliWrap.Exceptions.CommandExecutionException)
+    {
+      // Validation / command-execution failures propagate; only TtyPassthroughAsync is exempt.
       throw;
     }
     catch
@@ -462,7 +469,7 @@ public class CommandResult
       .WithStandardOutputPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
-    CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken);
+    CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
     return result.ExitCode;
   }
 
@@ -517,13 +524,13 @@ public class CommandResult
       .WithStandardOutputPipe(stdOutTarget)
       .WithStandardErrorPipe(stdErrTarget);
 
-    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
 
     return new CommandOutput(
       stdOutBuilder.ToString(),
       stdErrBuilder.ToString(),
       result.ExitCode
-    );
+    ) { RunTime = result.RunTime };
   }
 
   /// <summary>
@@ -566,8 +573,8 @@ public class CommandResult
         }
       }));
 
-    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken);
-    return new CommandOutput(outputLines, result.ExitCode);
+    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+    return new CommandOutput(outputLines, result.ExitCode) { RunTime = result.RunTime };
   }
 
   /// <summary>
@@ -728,6 +735,6 @@ public class CommandResult
         }
       }));
 
-    await fileCommand.ExecuteAsync(cancellationToken);
+    await fileCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
   }
 }
