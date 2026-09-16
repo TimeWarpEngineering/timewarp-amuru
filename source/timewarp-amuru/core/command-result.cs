@@ -21,6 +21,7 @@
 // - Mock support applies to ALL execution modes (run, capture, stream, select, passthrough, TTY).
 //   Strict mode (the default) throws on unmocked commands so tests can never silently run real processes.
 //   Pipe compositions are the exception: they bypass mock matching (use MockBehavior.Loose for pipelines).
+//   Piped CommandResults have no mock identity; ResolveMockSetup must not fall back to last-stage CliWrap TargetFilePath.
 // - Null commands never throw, preserving shell-like composition, but they report FAILURE:
 //   NeverRanExitCode (-1) via ExitCode/Success so a command that never ran is distinguishable from one that succeeded.
 #endregion
@@ -92,8 +93,22 @@ public class CommandResult
       return null;
     }
 
-    string executable = MockExecutable ?? InternalCommand.TargetFilePath;
-    string[] arguments = MockArguments ?? InternalCommand.Arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    // Piped compositions drop MockExecutable. Do not fall back to CliWrap's last-stage
+    // identity — Setup("grep", "World") would otherwise match `echo … | grep World`.
+    if (MockExecutable is null)
+    {
+      if (state.Behavior == Testing.MockBehavior.Strict)
+      {
+        throw new InvalidOperationException(
+          "CommandMock strict mode: Pipe compositions bypass mock matching. " +
+          "Use CommandMock.Enable(MockBehavior.Loose) to run the real pipeline.");
+      }
+
+      return null;
+    }
+
+    string executable = MockExecutable;
+    string[] arguments = MockArguments ?? [];
 
     if (state.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
     {

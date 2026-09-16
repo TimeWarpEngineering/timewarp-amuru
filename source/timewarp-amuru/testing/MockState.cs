@@ -2,6 +2,11 @@
 // Per-scope storage for command mock setups and recorded calls, keyed by executable + argument list.
 #endregion
 
+#region Design
+// Tombstoned on MockScope dispose (IsDisposed) so leftover AsyncLocal pointers cannot reuse setups.
+// Keys use NUL separators so argument lists cannot collide.
+#endregion
+
 namespace TimeWarp.Amuru.Testing;
 
 /// <summary>
@@ -12,6 +17,7 @@ internal sealed class MockState
   private readonly Dictionary<string, MockSetupData> setups = new();
   private readonly List<MockCall> calls = new();
   private readonly Lock syncLock = new();
+  private bool disposed;
 
   internal MockState(MockBehavior behavior)
   {
@@ -22,6 +28,30 @@ internal sealed class MockState
   /// How executions without a matching setup are handled.
   /// </summary>
   internal MockBehavior Behavior { get; }
+
+  /// <summary>
+  /// True after the owning mock scope is disposed. Leftover AsyncLocal pointers must ignore this state.
+  /// </summary>
+  internal bool IsDisposed
+  {
+    get
+    {
+      using (syncLock.EnterScope())
+      {
+        return disposed;
+      }
+    }
+  }
+
+  internal void MarkDisposed()
+  {
+    using (syncLock.EnterScope())
+    {
+      disposed = true;
+      setups.Clear();
+      calls.Clear();
+    }
+  }
 
   /// <summary>
   /// Adds a mock setup for a command.

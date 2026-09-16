@@ -216,5 +216,103 @@ namespace CommandMock_
         CommandMock.CallCount("echo", "test1").ShouldBe(0);
       }
     }
+
+    public static async Task LooseMode_PipedCommand_Should_NotMatchLastStageSetup()
+    {
+      using (CommandMock.Enable(MockBehavior.Loose))
+      {
+        CommandMock.Setup("grep", "World").Returns("MOCKED");
+
+        CommandOutput output = await Shell.Builder("echo")
+          .WithArguments("Hello\nWorld\nTest")
+          .Build()
+          .Pipe("grep", "World")
+          .CaptureAsync();
+
+        output.Stdout.Trim().ShouldBe("World");
+      }
+    }
+
+    public static async Task StrictMode_PipedCommand_Should_ThrowPipeSpecificMessage()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("grep", "World").Returns("MOCKED");
+
+        InvalidOperationException exception = await Should.ThrowAsync<InvalidOperationException>(async () =>
+          await Shell.Builder("echo")
+            .WithArguments("Hello\nWorld\nTest")
+            .Build()
+            .Pipe("grep", "World")
+            .CaptureAsync()
+        );
+
+        exception.Message.ShouldContain("Pipe compositions bypass mock matching");
+        exception.Message.ShouldNotContain("MOCKED");
+      }
+    }
+
+    public static async Task DisposedFromOtherContext_Should_IgnoreLeftoverAsyncLocal()
+    {
+      IDisposable scope = CommandMock.Enable();
+      try
+      {
+        CommandMock.Setup("echo", "hello").Returns("MOCKED");
+
+        await Task.Run(() => scope.Dispose());
+
+        Should.Throw<InvalidOperationException>(() => CommandMock.Setup("echo", "hello"))
+          .Message.ShouldContain("not enabled");
+
+        CommandOutput realOutput = await Shell.Builder("echo")
+          .WithArguments("hello")
+          .CaptureAsync();
+        realOutput.Stdout.Trim().ShouldBe("hello");
+
+        using (CommandMock.Enable())
+        {
+          CommandMock.Setup("echo", "hello").Returns("after-reenable");
+
+          CommandOutput mocked = await Shell.Builder("echo")
+            .WithArguments("hello")
+            .CaptureAsync();
+
+          mocked.Stdout.Trim().ShouldBe("after-reenable");
+        }
+      }
+      finally
+      {
+        scope.Dispose();
+      }
+    }
+
+    public static async Task PathOverride_Should_MatchLogicalExecutableName()
+    {
+      string overridePath = await CreateExecutableTempFile();
+      try
+      {
+        CliConfiguration.SetCommandPath("git", overridePath);
+
+        using (CommandMock.Enable())
+        {
+          CommandMock.Setup("git", "status").Returns("On branch main");
+
+          CommandOutput output = await Shell.Builder("git")
+            .WithArguments("status")
+            .CaptureAsync();
+
+          output.Stdout.Trim().ShouldBe("On branch main");
+          CommandMock.VerifyCalled("git", "status");
+        }
+      }
+      finally
+      {
+        CliConfiguration.ClearCommandPath("git");
+        if (File.Exists(overridePath))
+        {
+          File.Delete(overridePath);
+        }
+      }
+    }
   }
 }

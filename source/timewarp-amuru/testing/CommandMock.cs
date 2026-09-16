@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// AsyncLocal-scoped command mocking for tests, without dependency injection.
+#endregion
+
+#region Design
+// Enable captures the MockState and tombstones it on dispose. AsyncLocal cannot be cleared from
+// another async context, so State/IsEnabled ignore disposed instances even if the pointer remains.
+// Pipe compositions have no mock identity and never match last-stage setups.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
@@ -15,12 +21,12 @@ public static class CommandMock
   /// <summary>
   /// Gets whether mocking is currently enabled for this async context.
   /// </summary>
-  internal static bool IsEnabled => CurrentMockState.Value != null;
+  internal static bool IsEnabled => State != null;
   
   /// <summary>
   /// Gets the current mock state for this async context.
   /// </summary>
-  internal static MockState? State => CurrentMockState.Value;
+  internal static MockState? State => CurrentMockState.Value is { IsDisposed: false } mockState ? mockState : null;
   
   /// <summary>
   /// Enables command mocking for the current test scope.
@@ -32,21 +38,28 @@ public static class CommandMock
   /// to allow unmocked commands to execute for mixed mocked/real tests.
   /// Note: <c>Pipe</c> compositions bypass mocking entirely (and throw under strict mode) — use
   /// loose mode when testing pipelines.
-  /// Dispose the returned scope in the same async context that called Enable(); disposing from a
-  /// different context cannot clear the originating context's state (AsyncLocal semantics).
+  /// Disposing from a different async context cannot clear the originating <c>AsyncLocal</c>; the
+  /// captured mock state is tombstoned on dispose so leftover pointers are ignored.
   /// </remarks>
   /// <param name="behavior">How executions without a matching setup are handled</param>
   /// <returns>A disposable scope that cleans up mocking when disposed</returns>
   public static IDisposable Enable(MockBehavior behavior = MockBehavior.Strict)
   {
-    if (CurrentMockState.Value != null)
+    if (State != null)
     {
       throw new InvalidOperationException("CommandMock is already enabled in this context. Did you forget to dispose a previous mock?");
     }
 
     MockState newState = new(behavior);
     CurrentMockState.Value = newState;
-    return new MockScope(() => CurrentMockState.Value = null);
+    return new MockScope(() =>
+    {
+      newState.MarkDisposed();
+      if (ReferenceEquals(CurrentMockState.Value, newState))
+      {
+        CurrentMockState.Value = null;
+      }
+    });
   }
   
   /// <summary>
@@ -57,8 +70,8 @@ public static class CommandMock
   /// <returns>A fluent builder for configuring the mock behavior</returns>
   public static MockSetup Setup(string executable, params string[] arguments)
   {
-    MockState? state = CurrentMockState.Value;
-    if (state == null)
+    MockState? state = State;
+    if (state is null)
     {
       throw new InvalidOperationException("CommandMock is not enabled. Call CommandMock.Enable() first.");
     }
@@ -76,8 +89,8 @@ public static class CommandMock
   {
     ArgumentNullException.ThrowIfNull(arguments);
     
-    MockState? state = CurrentMockState.Value;
-    if (state == null)
+    MockState? state = State;
+    if (state is null)
     {
       throw new InvalidOperationException("CommandMock is not enabled. Cannot verify calls.");
     }
@@ -97,8 +110,8 @@ public static class CommandMock
   /// <returns>The number of times the command was called</returns>
   public static int CallCount(string executable, params string[] arguments)
   {
-    MockState? state = CurrentMockState.Value;
-    if (state == null)
+    MockState? state = State;
+    if (state is null)
     {
       return 0;
     }
@@ -111,7 +124,6 @@ public static class CommandMock
   /// </summary>
   public static void Reset()
   {
-    MockState? state = CurrentMockState.Value;
-    state?.Reset();
+    State?.Reset();
   }
 }
