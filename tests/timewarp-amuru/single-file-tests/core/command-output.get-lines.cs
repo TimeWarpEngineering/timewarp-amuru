@@ -80,5 +80,35 @@ namespace CommandOutput_
 
       files.Length.ShouldBeGreaterThan(0);
     }
+
+    public static Task StringConstructor_Should_PreserveInteriorBlankLines()
+    {
+      CommandOutput output = new("line1\n\nline2\n", "err1\n\nerr2\n", 0);
+
+      string[] stdoutLines = output.GetStdoutLines();
+      stdoutLines.Length.ShouldBe(3);
+      stdoutLines[0].ShouldBe("line1");
+      stdoutLines[1].ShouldBe("");
+      stdoutLines[2].ShouldBe("line2");
+
+      string[] stderrLines = output.GetStderrLines();
+      stderrLines.Length.ShouldBe(3);
+      stderrLines[0].ShouldBe("err1");
+      stderrLines[1].ShouldBe("");
+      stderrLines[2].ShouldBe("err2");
+      return Task.CompletedTask;
+    }
+
+    public static Task StringConstructor_Should_PreserveWhitespaceOnlyLines()
+    {
+      CommandOutput output = new("line1\n   \nline2", "", 0);
+      string[] lines = output.GetStdoutLines();
+
+      lines.Length.ShouldBe(3);
+      lines[0].ShouldBe("line1");
+      lines[1].ShouldBe("   ");
+      lines[2].ShouldBe("line2");
+      return Task.CompletedTask;
+    }
   }
 }

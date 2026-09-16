@@ -52,6 +52,25 @@ namespace ShellBuilder_
       stringResult.ShouldBeNullOrEmpty();
     }
 
+    public static async Task NonZeroExitWithZeroExitCodeValidation_Should_Throw()
+    {
+      await Should.ThrowAsync<CliWrap.Exceptions.CommandExecutionException>(async () =>
+        await Shell.Builder("ls")
+          .WithArguments("/nonexistent/path/12345")
+          .WithZeroExitCodeValidation()
+          .SelectAsync()
+      );
+    }
+
+    public static async Task NonZeroExitWithoutValidation_Should_ReturnStdout()
+    {
+      string result = await Shell.Builder("sh")
+        .WithArguments("-c", "echo selected; exit 2")
+        .SelectAsync();
+
+      result.ShouldBe("selected");
+    }
+
     private static async Task<string> CreateMockFzf()
     {
       string mockPath = Path.GetTempFileName();
