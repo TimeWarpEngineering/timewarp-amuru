@@ -10,6 +10,7 @@
 // - Validation defaults to None: non-zero exit codes are reported via ExitCode/Success, never thrown.
 //   ApplyTo always applies the resolved validation so CliWrap's own default (ZeroExitCode) can't leak in.
 // - Environment variables are merged with parent process environment
+// - With* methods copy EnvironmentVariables rather than aliasing the dictionary
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -57,7 +58,7 @@ public class CommandOptions
     return new CommandOptions
     {
       WorkingDirectory = directory,
-      EnvironmentVariables = EnvironmentVariables,
+      EnvironmentVariables = CopyEnvironmentVariables(),
       Validation = Validation
     };
   }
@@ -108,7 +109,7 @@ public class CommandOptions
     return new CommandOptions
     {
       WorkingDirectory = WorkingDirectory,
-      EnvironmentVariables = EnvironmentVariables,
+      EnvironmentVariables = CopyEnvironmentVariables(),
       Validation = CommandResultValidation.None
     };
   }
@@ -123,7 +124,7 @@ public class CommandOptions
     return new CommandOptions
     {
       WorkingDirectory = WorkingDirectory,
-      EnvironmentVariables = EnvironmentVariables,
+      EnvironmentVariables = CopyEnvironmentVariables(),
       Validation = CommandResultValidation.ZeroExitCode
     };
   }
@@ -154,5 +155,12 @@ public class CommandOptions
     configuredCommand = configuredCommand.WithValidation(Validation ?? CommandResultValidation.None);
 
     return configuredCommand;
+  }
+
+  private Dictionary<string, string?>? CopyEnvironmentVariables()
+  {
+    return EnvironmentVariables is null
+      ? null
+      : new Dictionary<string, string?>(EnvironmentVariables);
   }
 }

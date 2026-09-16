@@ -125,5 +125,15 @@ namespace ShellBuilder_
       lines[1].ShouldBe("line2");
       lines[2].ShouldBe("line3");
     }
+
+    public static async Task SleepCommand_Should_CaptureRunTime()
+    {
+      CommandOutput output = await Shell.Builder("sleep")
+        .WithArguments("0.1")
+        .CaptureAsync();
+
+      output.ExitCode.ShouldBe(0);
+      output.RunTime.TotalMilliseconds.ShouldBeGreaterThan(50);
+    }
   }
 }
