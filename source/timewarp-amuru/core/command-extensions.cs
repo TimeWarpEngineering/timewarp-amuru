@@ -8,6 +8,7 @@
 // - Returns NullCommandResult for invalid input so higher layers never throw; the sentinel
 //   reports failure (CommandResult.NeverRanExitCode) when executed, so it is not mistaken for success.
 // - Applies CliConfiguration path overrides before building the CliWrap command.
+// - Mock matching uses the caller's logical executable name, captured before GetCommandPath and before .cs host rewrite.
 // - Inserts "--" for .cs targets so dotnet file-based apps receive arguments correctly.
 // - Applies CommandOptions in one place to keep ShellBuilder and other builders thin.
 // - Optional standardInput is attached as a PipeSource only when explicitly provided.
@@ -60,13 +61,13 @@ internal static class CommandExtensions
       return CommandResult.NullCommandResult;
     }
 
-    // Check for configured command path override
-    executable = CliConfiguration.GetCommandPath(executable);
-
-    // Preserve the caller's logical command identity for mock matching before any
-    // normalization (the ".cs on Windows" path below rewrites executable/arguments)
+    // Preserve the caller's logical command identity for mock matching before path
+    // override and before the ".cs on Windows" rewrite of executable/arguments.
     string mockExecutable = executable;
     string[] mockArguments = arguments ?? [];
+
+    // Check for configured command path override
+    executable = CliConfiguration.GetCommandPath(executable);
 
     // Handle .cs script files specially
     if (executable.EndsWith(CSharpScriptExtension, StringComparison.OrdinalIgnoreCase))

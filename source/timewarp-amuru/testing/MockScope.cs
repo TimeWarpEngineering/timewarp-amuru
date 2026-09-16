@@ -1,5 +1,5 @@
 #region Purpose
-// TODO: Add purpose description
+// Disposable CommandMock.Enable scope that tombstones MockState and clears AsyncLocal when possible.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
