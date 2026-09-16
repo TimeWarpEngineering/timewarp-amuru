@@ -24,14 +24,20 @@ Do not reopen 090–092 / 097 unless the defect is still present after these fix
 - [x] M4 ConfigureAwait(false) on CommandTask awaits
 - [x] M5 EnvironmentVariables copied in With* methods
 - [x] `## Results` + `### How to validate`
+- [x] Implementation review (effort 1 general): round 1 + fix M1 newline + round 2 + disposition clean
 
 ## Notes
 
 Parent: **111**. Source: `review/round-1/core-engine.md`.
 
+### Implementation review 2026-09-16
+
+Kitchen: `review/`. Effort 1 general, 2 rounds, disposition **clean**. See Results.
+
 ## Session
 
 - Implementer: grok session `01a0a77a-093e-7771-b995-bd2c2994cb99` (2026-09-16)
+- Review oracle: grok session `01a0a781-c37f-71b3-8b10-84ee1e2fc14b` (2026-09-16)
 
 ## Results
 
@@ -61,6 +67,18 @@ M1–M5 from parent 111 round-1 `review/round-1/core-engine.md` / `merged.md`. C
 - Kept SelectAsync graceful-degradation `catch` for unexpected failures; only validation/execution exceptions and cancellation propagate (core-engine Issue 3 first option, not a new TTY-style exemption).
 
 **Tests:** `cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs` → **490 passed, 0 failed, 1 skipped** (pre-existing skip on `GetCommitsAheadOfDefaultBranch_Given_`). Targeted single-file runs for the new assertions also passed.
+
+### Review disposition
+
+- **Outcome:** clean
+- **Rounds:** 2
+- **Effort / roster:** 1, general only
+- **Final counts:** bug 0/0/0 open/fixed/wontfix; suggestion 0/0/0; nit 0 open, 1 fixed, 0 wontfix
+- **Final open count:** 0
+- Round 1: parent 111 M1–M5 confirmed; **M1** missing trailing newline on `command-options.cs` (`insert_final_newline`)
+- Fix on this task id (no sibling apply-review task): append LF to `command-options.cs`
+- Round 2: M1 confirmed fixed; no new findings
+- Paths: `review/review-framework.md`, `review/round-1/{general,merged}.md`, `review/round-2/{general,merged}.md`, `review/disposition.md`
 
 ### How to validate
 
