@@ -20,14 +20,20 @@ Do not reopen **089** (ordinary-path argument matching is fixed). M9 (Throws-the
 - [x] M7 disposed MockState is ignored even if AsyncLocal still points at it
 - [x] M8 Setup uses the caller’s logical executable name, not the path override
 - [x] `## Results` + `### How to validate`
+- [x] Implementation review (effort 1 general): round 1 + disposition clean
 
 ## Notes
 
 Parent: **111**. Source: `review/round-1/testing-mocks.md`.
 
+### Implementation review 2026-09-16
+
+Kitchen: `review/`. Effort 1 general, 1 round, disposition **clean**. See Results.
+
 ## Session
 
 - Implementer: grok session `01a0a78c-0a7e-7dd1-af56-eb562d4aa341` (2026-09-16)
+- Review oracle: grok session `01a0a793-ccde-7931-8e31-1f9715361667` (2026-09-16)
 
 ## Results
 
@@ -53,6 +59,17 @@ M6–M8 from parent 111 round-1 `review/round-1/testing-mocks.md` / `merged.md`.
 - Path-override test uses a real temp executable because CliWrap validates the override path at `Wrap` time, before mock interception.
 
 **Tests:** `cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs` → **494 passed, 0 failed, 1 skipped** (pre-existing skip on `GetCommitsAheadOfDefaultBranch_Given_`). Targeted `command-mock.cs` and `shell-builder.pipe.cs` also passed.
+
+### Review disposition
+
+- **Outcome:** clean
+- **Rounds:** 1
+- **Effort / roster:** 1, general only
+- **Final counts:** bug 0/0/0 open/fixed/wontfix; suggestion 0/0/0; nit 0/0/0
+- **Final open count:** 0
+- Round 1: parent 111 M6–M8 confirmed; no new findings
+- No sibling apply-review task; disposition stayed on this id
+- Paths: `review/review-framework.md`, `review/round-1/{general,merged}.md`, `review/disposition.md`
 
 ### How to validate
 
