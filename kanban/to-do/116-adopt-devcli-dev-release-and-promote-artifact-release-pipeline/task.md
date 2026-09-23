@@ -32,13 +32,15 @@ Reference implementation: `timewarp-terminal` (consumes the DevCli package,
 - [x] Upload-artifacts and keep-last-two conditions still skip PRs, release, break-glass, and probe
 - [x] Add `documentation/developer/guides/releasing.md` describing this repo's instantiation (copy the nuru guide's structure; state only what amuru actually implements)
 - [x] `dev workflow --mode merge` locally green; `ganda repo audit` clean
-- [x] Check-version keeps working under the new pipeline: props `<Version>` vs newest tag, refuses when equal
+- [x] Version gating keeps working under the new pipeline: `dev release` guard 6 refuses when tag `v{Version}` already exists, DevCli `check-version` refuses when `TimeWarp.Amuru {Version}` is already on NuGet.org (the old local props-vs-newest-tag comparison is replaced by these two)
+- [x] Tools `<Version>` override decision (Notes): keep the csproj override and treat Tools as an independent cadence — `.timewarp/dev.jsonc` scopes the publish-state gate to `TimeWarp.Amuru`, the release pipeline evaluates each packable project's own `<Version>` and pushes with `--skip-duplicate` (see guide appendix “Tools-only release”)
 - [ ] PR open; after merge, prove it end to end on the next real release (do not cut a test release for this task)
 
 ## Session
 
 - Created: 2401810 (2026-09-23)
 - Implemented: 2026-09-23, claude (Fable 5.1) headless via `ganda task work 116`; worktree `task-116-adopt-devcli-dev-release-and-promote-artifact-rele`, branch `task/116-adopt-devcli-dev-release-and-promote-artifact-rele`
+- Reviewed: 2026-09-23, review oracle claude (Fable 5.1) headless via `ganda task work 116`; round-1 `general` reviewer = claude sonnet sub-agent (agent id ad3dcb4425a403db0); effort 1
 
 ## Notes
 
@@ -93,3 +95,12 @@ Expect (CI, after merge): the master push run uploads `Packages-{n}` containing 
 
 - End-to-end proof on the next real release (last checklist item); do not cut a test release.
 - If Tools ever needs a release without a core bump, decide on a Tools-only path; today the tag and publish-state gate follow the core version only (documented in the guide's appendix).
+
+### Review disposition
+
+- Rounds: 2 (round 1 findings + fix loop; round 2 re-verify). Roster: `general` only, effort 1.
+- Final counts: bug 0; suggestion 0 open / 0 fixed / 2 wontfix; nit 0 open / 2 fixed / 0 wontfix. Open: 0.
+- Disposition: **accepted-exceptions**.
+  - M1 wontfix: dispatch-merge artifacts entering keep-last-two is harmless — DevCli `OrderCandidateRuns` accepts `workflow_dispatch` runs at the same SHA, so promotion still finds a tested artifact.
+  - M4 wontfix: project-wide `NoWarn` is the only mechanism that reaches DevCli content compiled from the NuGet cache.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
