@@ -15,14 +15,14 @@
 //              CI run already built, tested and uploaded for this commit; the org
 //              convention from timewarp-nuru task 458-002)
 //
-// Amuru ships two packages on independent cadences: TimeWarp.Amuru takes <Version>
-// from source/Directory.Build.props (the release SSOT the tag derives from) while
-// TimeWarp.Amuru.Tools overrides <Version> in its csproj. The verify and push steps
-// therefore resolve each packable project's own version through MSBuild evaluation
-// instead of assuming lockstep; check-version and `dev release` guard the core
-// package only (.timewarp/dev.jsonc checkVersionConfig.packages); and the push uses
-// --skip-duplicate so an unchanged Tools version re-pushed by a core release is a
-// no-op at the HTTP layer.
+// One version, lockstep: every packable project (TimeWarp.Amuru and
+// TimeWarp.Amuru.Tools) ships at the single <Version> in source/Directory.Build.props,
+// the release SSOT the tag derives from. The packable set is derived from IsPackable
+// via MSBuild evaluation, and each project's effective <Version> is evaluated the
+// same way so the verify step can refuse any project that drifts from the props
+// version (a stray per-csproj <Version>). check-version and `dev release` guard the
+// whole derived set. The push uses --skip-duplicate only so a partial-publish resume
+// (same commit, tag-pinned) is idempotent for packages already on the feed.
 //
 // The timewarp-software rebuild dispatch after a successful push is best-effort: a
 // failure must never fail a release that already reached NuGet (the site rebuilds
@@ -300,7 +300,18 @@ internal sealed class WorkflowCommand : ICommand<Unit>
         releasePackages.Add(new ReleasePackage(project.PackageId, projectVersion));
       }
 
-      Terminal.WriteLine($"Packable set ({releasePackages.Count}): {string.Join(", ", releasePackages.Select(p => $"{p.PackageId} {p.Version}"))}");
+      // Lockstep gate: every packable project must evaluate to the props version. A
+      // per-csproj <Version> override would otherwise ship a second version silently.
+      List<ReleasePackage> driftedPackages = [.. releasePackages.Where(p => !string.Equals(p.Version, propsVersion, StringComparison.Ordinal))];
+
+      if (driftedPackages.Count > 0)
+      {
+        Terminal.WriteErrorLine($"Release gate failed: package version(s) differ from source/Directory.Build.props <Version> {propsVersion}: {string.Join(", ", driftedPackages.Select(p => $"{p.PackageId} {p.Version}"))}. All packages ship at one version — remove any <Version> from the csproj (or set IsPackable=false with a stated reason).");
+        AbortPipeline("package version differs from props version");
+        return;
+      }
+
+      Terminal.WriteLine($"Packable set ({releasePackages.Count}) at {propsVersion}: {string.Join(", ", releasePackages.Select(p => p.PackageId))}");
 
       // Step 3: Locate CI Run
       WriteStepBanner("Step 3/6: Locate CI Run");
@@ -359,7 +370,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteLine($"Downloaded '{downloadOutcome.ArtifactName}' from run {downloadOutcome.Run!.DatabaseId} ({downloadOutcome.Run.Event}).");
 
       // Step 5: Verify Package Set — downloaded file names must equal the derived set,
-      // each package at its own resolved version (Amuru and Tools are not lockstep).
+      // every package at the props version.
       WriteStepBanner("Step 5/6: Verify Package Set");
 
       string artifactsDir = Path.Combine(repoRoot, ArtifactsSubPath);
@@ -620,8 +631,9 @@ internal sealed class WorkflowCommand : ICommand<Unit>
     }
 
     // Push order is cosmetic: NuGet does not validate inter-package dependencies at
-    // push time. --skip-duplicate: Tools rides its own cadence, so a core release may
-    // legitimately re-push an already-published Tools version; the 409 is success.
+    // push time. --skip-duplicate makes a partial-publish resume (check-version
+    // Partial, same tag-pinned commit) idempotent: an already-published package's 409
+    // is success and only the rest are pushed.
     private async Task PushPackagesAsync(string repoRoot, IReadOnlyList<ReleasePackage> packages, string? apiKey)
     {
       string artifactsDir = Path.Combine(repoRoot, ArtifactsSubPath);
@@ -708,8 +720,9 @@ internal sealed class WorkflowCommand : ICommand<Unit>
     }
 
     // Each packable project's effective <Version> via real MSBuild evaluation — the
-    // same mechanism IPackableProjectService uses for IsPackable/PackageId — so the
-    // Tools csproj override (and any future condition/import) is honoured exactly.
+    // same mechanism IPackableProjectService uses for IsPackable/PackageId — so a
+    // stray csproj override or conditional import is detected by the lockstep gate
+    // rather than assumed away.
     private static async Task<string?> ResolveProjectVersionAsync(string repoRoot, string projectPath, CancellationToken ct)
     {
       CommandOutput result = await Shell.Builder("dotnet")
@@ -783,8 +796,9 @@ internal sealed class WorkflowCommand : ICommand<Unit>
     // outcome types — distinct verdicts are never collapsed into one message
     // ─────────────────────────────────────────────────────────────────────────
 
-    // A packable project at its own resolved version; FileName is what the CI
-    // artifact must contain and what gets pushed.
+    // A packable project at its evaluated version (always the props version once the
+    // lockstep gate passes); FileName is what the CI artifact must contain and what
+    // gets pushed.
     private sealed record ReleasePackage(string PackageId, string Version)
     {
       public string FileName => $"{PackageId}.{Version}.nupkg";

@@ -13,22 +13,21 @@ only what is actually implemented here.
 ## Overview
 
 - **Version SSOT:** `<Version>` in `source/Directory.Build.props`. There is no
-  MinVer and no CI-injected version. The release tag is always `v{Version}`.
-- **Two packages, two cadences.** The repo ships `TimeWarp.Amuru` (core) and
-  `TimeWarp.Amuru.Tools`. The core package takes the props version and is what a
-  release is named after. Tools overrides `<Version>` in
-  `source/timewarp-amuru-tools/timewarp-amuru-tools.csproj` and rides its own
-  cadence: a core release re-pushes whatever Tools version the CI artifact
-  contains, and `--skip-duplicate` makes an unchanged Tools version a no-op.
+  MinVer, no CI-injected version, and no per-project version overrides. The release
+  tag is always `v{Version}`.
+- **One version, lockstep.** The repo ships `TimeWarp.Amuru` (core) and
+  `TimeWarp.Amuru.Tools`, and both share that single version and release together.
+  Never add a `<Version>` to a csproj; a project that must not ship sets
+  `IsPackable=false` with a stated reason.
 - **Packable set is derived, not listed.** `IsPackable` and `PackageId` are read by
   real MSBuild evaluation (`dotnet msbuild -getProperty:IsPackable,PackageId`) over
-  every `*.csproj` under `source/`, and each project's effective `<Version>` is
-  evaluated the same way. Adding or removing a packable project changes what ships
-  automatically.
-- **Publish-state gate covers the core package only.** `.timewarp/dev.jsonc` sets
-  `checkVersionConfig.packages` to `TimeWarp.Amuru`, because the props version is
-  never expected to exist for Tools. `check-version` prints a nudge about this
-  override every time; that is expected here.
+  every `*.csproj` under `source/`. Adding or removing a packable project changes
+  what ships automatically. Each project's effective `<Version>` is evaluated the
+  same way only so the release pipeline can refuse a project that drifts from the
+  props version.
+- **Publish-state gate covers every packable project.** There is no
+  `.timewarp/dev.jsonc` package scope; `check-version` and `dev release` judge the
+  whole derived set at the props version.
 - **Humans type a version exactly once**, in the props-bump PR. The tag, the GitHub
   Release, every gate and the NuGet push derive from that one value.
 - **Prerelease versions go through the same pipeline** with identical guards.
@@ -67,10 +66,10 @@ failure aborts with an operator-facing reason and a nonzero exit code:
    nonzero is a divergence to reconcile by hand.
 6. **Tag `v{Version}` available** locally and on origin. If it exists, resume from
    that commit via break-glass, or bump the version.
-7. **Publish-state gate** over the configured package set (`TimeWarp.Amuru`):
-   **None** published passes; **All** aborts ("bump the version"); **Partial** also
-   aborts here (an untagged prior push; resume via break-glass from the original
-   commit, or bump).
+7. **Publish-state gate** over the derived packable set (`TimeWarp.Amuru` and
+   `TimeWarp.Amuru.Tools`) at the props version: **None** published passes; **All**
+   aborts ("bump the version"); **Partial** also aborts here (an untagged prior
+   push; resume via break-glass from the original commit, or bump).
 8. **A successful CI run of `workflow.yml` exists at `HEAD`**; otherwise the
    release event would fail at locate-run anyway.
 
@@ -117,12 +116,14 @@ failure class:
 This repo does not run an attestation gate at release time.
 
 **Step 2/6 — Check Version.** Runs the standalone `check-version` gate on the
-configured set (`TimeWarp.Amuru`): `None` and `Partial` proceed, only `All` aborts
-with **"version already released"**. Then the packable set is derived and each
+derived packable set: `None` and `Partial` proceed, only `All` aborts with
+**"version already released"**. Then the packable set is derived and each
 project's effective `<Version>` is evaluated; an empty set aborts **"no packable
-projects found"**, an unevaluable version aborts **"package version unresolvable"**.
-The log prints the set with versions, for example
-`TimeWarp.Amuru 1.1.0, TimeWarp.Amuru.Tools 1.0.0-beta.2`.
+projects found"**, an unevaluable version aborts **"package version unresolvable"**,
+and any project whose evaluated version differs from the props version aborts
+**"package version differs from props version"** (a stray per-csproj `<Version>`;
+remove it, or set `IsPackable=false` with a stated reason). The log prints the set,
+for example `Packable set (2) at 1.1.1: TimeWarp.Amuru, TimeWarp.Amuru.Tools`.
 
 **Step 3/6 — Locate CI Run.** Resolves `HEAD` and asks
 `gh run list --workflow workflow.yml --commit <sha> --status success` for
@@ -138,14 +139,15 @@ candidate CI run … uploaded a Packages-* artifact"**; both are fixed by
 `gh run rerun <run-id>`, which rebuilds the same commit.
 
 **Step 5/6 — Verify Package Set.** The downloaded `.nupkg` file names must equal
-`{PackageId}.{ProjectVersion}.nupkg` for every packable project, each at its own
-evaluated version. Any missing or unexpected file aborts **"downloaded package set
-does not match derived packable set"**; typically the CI run predates the version
-bump.
+`{PackageId}.{Version}.nupkg` for every packable project at the props version. Any
+missing or unexpected file aborts **"downloaded package set does not match derived
+packable set"**; typically the CI run predates the version bump.
 
 **Step 6/6 — Push.** Pushes each verified `.nupkg` to nuget.org with
-`dotnet nuget push --skip-duplicate` using the short-lived OIDC key. A push failure
-fails the pipeline. After a successful push the pipeline dispatches a
+`dotnet nuget push --skip-duplicate` using the short-lived OIDC key.
+`--skip-duplicate` makes a resumed push idempotent at the HTTP layer for packages
+already published; it does not verify byte identity, which comes from the tag-pin
+check in Step 1. A push failure fails the pipeline. After a successful push the pipeline dispatches a
 `repository_dispatch` to `timewarp-software` so the site rebuilds; that dispatch is
 best effort and never fails a release (the site rebuilds nightly).
 
@@ -178,11 +180,13 @@ points at; the tag-pin check aborts otherwise with "tag pin mismatch".
 
 ### Partial-publish resume
 
-If an earlier attempt pushed the core package but the run failed before the Tools
-push (or vice versa), `check-version` reports `Partial` and the run resumes;
-`--skip-duplicate` no-ops the already-published package. This is safe only from the
-same commit as the original push, which the tag-pin check guarantees when the
-release was cut through `dev release`.
+If an earlier attempt pushed some but not all packages under one version (for
+example core landed and the run failed before the Tools push), `check-version`
+reports `Partial` and the run resumes; `--skip-duplicate` no-ops the
+already-published package and pushes the rest. This is safe only from the same
+commit as the original push, which the tag-pin check guarantees when the release
+was cut through `dev release`. If the source has changed since the partial push,
+bump the version instead of resuming.
 
 ## Trusted publishing
 
@@ -217,6 +221,8 @@ failure at the login step means the policy is missing or misconfigured.
   `retention-days: 7` and then keeps only the two newest. If the artifact for a SHA
   is gone, `gh run rerun <run-id>` regenerates it from the same commit. Do not pack
   at release time.
-- **Tools-only release.** Bumping only the Tools csproj version does not create a
-  release: the tag and the publish-state gate follow the core props version. Ship a
-  Tools bump alongside the next core release, or bump both.
+- **No per-package releases.** There is one version and one release for both
+  packages. A change that touches only Tools still ships as a props bump that
+  releases core and Tools together at the new version; a project that must not
+  ship sets `IsPackable=false` with a stated reason rather than carrying its own
+  `<Version>`.
