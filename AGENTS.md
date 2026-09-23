@@ -6,13 +6,14 @@ This file provides guidance to agents when working with code in this repository.
 - **Build**: `dotnet build timewarp-amuru.slnx` (builds both packages: `TimeWarp.Amuru` core and `TimeWarp.Amuru.Tools`), or `./tools/dev-cli/dev.cs build`
 - **Full test suite**: `cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs` (aggregate multi-mode run of all single-file tests), or `./tools/dev-cli/dev.cs test`
 - **Release**: `dev release --dry-run` then `dev release` from a clean, synced master (tag + GitHub Release); the release event promotes the CI-built `Packages-*` artifact, never rebuilds — see `documentation/developer/guides/releasing.md`
+- **One version, lockstep**: All packages ship together at the single `<Version>` in `source/Directory.Build.props`. Never add a `<Version>` to a csproj. A project that must not ship sets `IsPackable=false` with a stated reason
 - **Single test file**: any file under `tests/timewarp-amuru/single-file-tests/` is a runnable .NET 10 file-based app — `dotnet run <file>.cs`
 - **SDK pin**: `global.json` pins SDK 10.0.x — building with a newer preview SDK fails style analysis (IDE0055)
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
 
 ## Package Layout
 - `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system ops, ScriptContext. Stable-1.0 track; XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
-- `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Own `<Version>` in its csproj (beta cadence); repo version in `source/Directory.Build.props` is the CORE version
+- `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Ships at the same `<Version>` as core (inherited from `source/Directory.Build.props`); no per-csproj version
 
 ## Non-Obvious Patterns
 - **Build scripts and dev-cli should use TimeWarp.Amuru**: Prefer `Shell.Builder` over raw `System.Diagnostics.Process`; only use raw process APIs in rare implementation boundaries like true TTY passthrough (`System.Console` and `ProcessStartInfo` are banned via BannedSymbols.txt)

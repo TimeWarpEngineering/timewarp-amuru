@@ -375,7 +375,7 @@ TimeWarp.Amuru provides specialized support for .NET 10's file-based apps (singl
 ## Architecture
 
 - **Static Entry Point**: Minimal ceremony with `Shell.Builder()` / `Shell.Run()`
-- **Two Packages, One Namespace**: `TimeWarp.Amuru` (stable core) and `TimeWarp.Amuru.Tools` (tool builders, own release cadence)
+- **Two Packages, One Namespace**: `TimeWarp.Amuru` (stable core) and `TimeWarp.Amuru.Tools` (tool builders); both ship together at one version
 - **Shell Semantics**: exit codes are values; composition never throws; nothing is cached
 - **Predictable Error Handling**: never-ran, non-zero-exit, and environment failures are all distinguishable
 - **Opt-in Complexity**: Advanced features available when needed
