@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 // Multi-mode Test Runner
 // Test classes are auto-registered via [ModuleInitializer] when compiled with JARIBU_MULTI.

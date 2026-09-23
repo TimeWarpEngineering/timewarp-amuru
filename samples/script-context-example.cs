@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 #:project $(SourceDirectory)timewarp-amuru/timewarp-amuru.csproj
 #:property LangVersion=preview
 #:property EnablePreviewFeatures=true

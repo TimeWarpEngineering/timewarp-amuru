@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests that CommandOptions.With* copies EnvironmentVariables instead of aliasing the dictionary

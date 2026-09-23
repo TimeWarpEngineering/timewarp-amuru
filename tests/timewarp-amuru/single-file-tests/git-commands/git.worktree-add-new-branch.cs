@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for Git.WorktreeAddNewBranchAsync() - validates adding worktrees with new branches
