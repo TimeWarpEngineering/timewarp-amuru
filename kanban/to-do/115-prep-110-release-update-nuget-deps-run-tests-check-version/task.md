@@ -25,6 +25,7 @@ every NuGet dependency to latest, prove the full test suite is green, and confir
 
 - Created: 2010361 (2026-09-23)
 - Implement: Claude Fable 5.1 under `ganda task work` (2026-09-23) — deps bump, audit clean, gates green
+- Review: Claude Fable 5.1 review oracle under `ganda task work` (2026-09-23), general reviewer = Claude Sonnet sub-agent; 2 rounds, disposition clean
 
 ## Notes
 
@@ -106,6 +107,22 @@ Gate results after both commits:
 
 `TimeWarp.Amuru.Tools` stays at its own `1.0.0-beta.2`; only the core `1.1.0` is the
 release version per `AGENTS.md`. No tag, no `dev release` (release follows merge).
+
+### Review disposition
+
+Implementation review (`tw-implementation-review`, effort 1, roster: general) — **clean**.
+
+| Rounds | bug | suggestion | nit | open | fixed | wontfix |
+|--------|-----|------------|-----|------|-------|---------|
+| 2 | 0 | 1 | 1 | 0 | 2 | 0 |
+
+- M1 (suggestion, fixed): `.editorconfig` TW0007.filename line moved into the Global Usings
+  Analyzer group with a repo-wide comment (it was under the Build Scripts heading but in `[*.cs]`).
+- M2 (nit, fixed): trailing newline added to `Directory.Packages.props` and `.memsearch.toml`.
+- Reviewer independently re-ran all gates (build, verify-samples, test, check-version, audit,
+  nuget outdated) with results identical to the table above; build + audit re-run green after fixes.
+- Artifacts: `review/review-framework.md`, `review/round-1/{general,merged}.md`,
+  `review/round-2/{general,merged}.md`, `review/disposition.md`.
 
 ### How to validate
 
