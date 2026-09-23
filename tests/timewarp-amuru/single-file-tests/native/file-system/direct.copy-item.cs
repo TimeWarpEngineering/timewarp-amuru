@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for Direct.CopyItem - preserve attributes, reparse skip, missing source

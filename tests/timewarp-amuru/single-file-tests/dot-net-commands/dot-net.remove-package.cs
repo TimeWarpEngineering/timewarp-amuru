@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for DotNet.RemovePackage() - validates the fluent API for removing NuGet packages

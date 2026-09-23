@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for Commands.GetItemProperty - size, type, missing path, symlink target

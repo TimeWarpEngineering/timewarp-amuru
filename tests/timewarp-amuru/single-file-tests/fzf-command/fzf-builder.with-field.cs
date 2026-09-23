@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for FzfBuilder field processing options - validates nth, with-nth, delimiter settings

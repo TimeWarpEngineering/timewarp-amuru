@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for AppContext.EntryPointFilePath() - validates the extension method that returns the script file path

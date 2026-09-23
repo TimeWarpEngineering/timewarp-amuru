@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for Git.WorktreeListPorcelainAsync() - validates worktree list in porcelain format

@@ -1,4 +1,5 @@
-﻿<Project>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
   <!-- Import repository structure definitions -->
   <Import Project="$(MSBuildThisFileDirectory)msbuild/repository.props" />
   <!-- Repository-specific additions not in repository.props -->
@@ -52,5 +53,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+  </ItemGroup>
+  <!-- TimeWarp build tooling: source generators (TW000x analyzers) and assembly metadata tasks -->
+  <ItemGroup Label="TimeWarp Build Tooling">
+    <PackageReference Include="TimeWarp.SourceGenerators" PrivateAssets="all" />
+    <PackageReference Include="TimeWarp.Build.Tasks" PrivateAssets="all" />
   </ItemGroup>
 </Project>

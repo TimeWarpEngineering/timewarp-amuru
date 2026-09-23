@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for FzfBuilder interface options - validates cycle, mouse, prompt, keybind settings

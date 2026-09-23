@@ -36,4 +36,6 @@
   },
   "peacock.remoteColor": "#e00bf5",
   "timewarp.blurImagePath": "assets/timewarp-amuru-avatar.svg",
+  "window.title": "timewarp-amuru · ${rootName}${separator}${activeEditorShort}",
+  "peacock.color": "#e00bf5"
 }

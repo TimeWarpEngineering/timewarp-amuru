@@ -1,4 +1,4 @@
-#!/usr/bin/dotnet --
+#!/usr/bin/env -S dotnet --
 
 #region Purpose
 // Tests for Git.GetCommitsAheadOfDefaultBranchAsync() - validates commit counting ahead of default branch
