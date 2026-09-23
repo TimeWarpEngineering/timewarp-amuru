@@ -29,6 +29,7 @@ under the new pipeline; the release itself is cut from master after merge.
 
 - Created: 2026-09-23 (cockpit dispatch)
 - 2026-09-23: implementer (Claude Fable 5.1, ganda task work) — lockstep changes landed in commit `7d0300c` on `task/117-…`; check-version, merge workflow and repo audit green; release dry-run refuses only at the on-master guard. PR open is the host open-pr node.
+- 2026-09-23: review oracle (Claude Fable 5.1, ganda task work) — effort 1, general reviewer (Claude Sonnet subagent); round 1 raised 0 findings; disposition `clean` under `review/`.
 
 ## Notes
 
@@ -58,6 +59,13 @@ Gate log (2026-09-23, task worktree, commit `7d0300c`):
 - `dev workflow --mode merge` → clean/build/verify-samples/test, 494 passed / 1 skipped, `Pipeline SUCCEEDED`; `artifacts/packages/` holds `TimeWarp.Amuru.1.1.1.nupkg` and `TimeWarp.Amuru.Tools.1.1.1.nupkg`.
 - `ganda repo audit` → "Repository passes all audit checks" (after `dev self-install` produced the gitignored `bin/dev`; the only failures before that were `bin-dev` / `dev-cli-capabilities`).
 - `dev release --dry-run` → `✓ gh authenticated`, `✓ working tree clean`, then refuses: "release must be cut from master". Guards stop at the first failure, so tag/publish-state were confirmed separately: `git tag -l 'v1.1.*'` and `git ls-remote --tags origin 'v1.1.*'` show only `v1.1.0`; check-version above shows 1.1.1 unpublished for both packages.
+
+### Review disposition
+
+- Rounds: 1. Roster / effort: general (effort 1). Reviewer: Claude Sonnet subagent; orchestrator: Claude Fable 5.1 review oracle.
+- Final counts: bug 0 / suggestion 0 / nit 0 (0 open, 0 fixed, 0 wontfix).
+- Disposition: **clean** — no findings raised; no wontfix, no escalations.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
 
 ### How to validate
 
