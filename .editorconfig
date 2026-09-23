@@ -299,10 +299,10 @@ dotnet_diagnostic.ca1308.severity = none
 dotnet_diagnostic.globalusingsanalyzer0001.filename = GlobalUsings.cs
 dotnet_diagnostic.globalusingsanalyzer0002.enabled = true
 dotnet_diagnostic.globalusingsanalyzer0003.severity = warning
+# TW0007 file-level usings (TimeWarp.SourceGenerators) — repo-wide ([*.cs]), intentionally not scoped to Scripts/
+dotnet_diagnostic.TW0007.filename = global-usings.cs
 
 #### Build Scripts Analyzer Settings ####
-# TW0007 file-level usings (TimeWarp.SourceGenerators)
-dotnet_diagnostic.TW0007.filename = global-usings.cs
 [Scripts/*.cs]
 # CA1303: Do not pass literals as localized parameters - Not needed for build scripts
 dotnet_diagnostic.CA1303.severity = none
