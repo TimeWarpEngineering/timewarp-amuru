@@ -2,19 +2,11 @@ name: CI/CD
 
 on:
   push:
+    # No paths filter on master: every master commit needs a green run with a
+    # Packages-* artifact so `dev release` (guard 8) and the release event's
+    # locate-run step can promote the artifact built at the tag SHA.
     branches:
       - master
-    paths:
-      - 'source/**'
-      - 'samples/**'
-      - 'tests/**'
-      - 'tools/**'
-      - '.github/workflows/**'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'msbuild/**'
-      - 'nuget.config'
-      - 'global.json'
   pull_request:
     branches:
       - master
@@ -34,36 +26,47 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'merge = normal CI (default). probe = trusted-publishing check only (OIDC login, no build, no publish).'
+        description: 'Pipeline mode. merge = build and test only (default). release = break-glass publish; also requires confirm. probe = trusted-publishing check only (OIDC login, no build, no publish).'
         type: choice
         options:
           - merge
+          - release
           - probe
         default: merge
+      confirm:
+        description: 'Break-glass guard: type the word release to confirm publishing when mode is release. Ignored otherwise.'
+        type: string
+        default: ''
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
-      # DELETE /actions/artifacts/{id} for keep-last-two Packages-* prune.
-      # Release download still works with write.
+      id-token: write  # Required for NuGet Trusted Publishing (OIDC)
+      # write: keep-last-two prune deletes older Packages-* artifacts.
+      # Release-mode list/download still works with write (superset of read).
       actions: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Full history required for the release gate's tag-pin / ancestor checks
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
 
+      - name: Validate break-glass confirmation
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm != 'release'
+        run: |
+          echo "::error::mode=release requires confirm=release. Refusing to run a break-glass release."
+          exit 1
+
       - name: NuGet login (OIDC Trusted Publishing)
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'probe')
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'probe')
         id: nuget-login
         uses: nuget/login@v1
         with:
@@ -79,7 +82,7 @@ jobs:
       # org secret REBUILD_APP_PRIVATE_KEY). If the app is not configured the step
       # is skipped and the dispatch degrades to a warning (site rebuilds nightly).
       - name: Mint rebuild dispatch token
-        if: github.event_name == 'release' && vars.REBUILD_APP_ID != ''
+        if: (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release')) && vars.REBUILD_APP_ID != ''
         id: rebuild-token
         uses: actions/create-github-app-token@v2
         with:
@@ -91,22 +94,30 @@ jobs:
       - name: Run CI Pipeline
         if: github.event_name != 'workflow_dispatch' || inputs.mode != 'probe'
         env:
-          GH_TOKEN: ${{ steps.rebuild-token.outputs.token }}
+          # Job token: release mode's locate-run / download-artifact read this
+          # repo's Actions runs and artifacts through gh.
+          GH_TOKEN: ${{ github.token }}
+          # App token for the best-effort timewarp-software rebuild dispatch only.
+          REBUILD_DISPATCH_TOKEN: ${{ steps.rebuild-token.outputs.token }}
         run: |
           if [ "${{ github.event_name }}" == "release" ]; then
-            dotnet run tools/dev-cli/dev.cs -- workflow --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          elif [ "${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release' }}" == "true" ]; then
+            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           else
-            dotnet run tools/dev-cli/dev.cs -- workflow
+            dotnet run --file tools/dev-cli/dev.cs -- workflow
           fi
 
       - name: Upload Artifacts
-        # Green master only. Skip PRs, releases, probe, and failed runs so
-        # Packages-* does not refill Actions artifact quota.
+        # Green master only: release mode promotes Packages-* from a push run at
+        # the tag SHA. Skip PRs, failed runs, probe (no nupkgs), and release /
+        # break-glass runs (they just downloaded the same bytes).
+        id: upload-packages
         if: >-
           success() &&
           github.ref == 'refs/heads/master' &&
           github.event_name != 'release' &&
-          !(github.event_name == 'workflow_dispatch' && inputs.mode == 'probe')
+          !(github.event_name == 'workflow_dispatch' && (inputs.mode == 'release' || inputs.mode == 'probe'))
         uses: actions/upload-artifact@v4
         with:
           name: Packages-${{ github.run_number }}
@@ -115,35 +126,32 @@ jobs:
           retention-days: 7
 
       - name: Keep last two Packages artifacts
-        if: >-
-          success() &&
-          github.ref == 'refs/heads/master' &&
-          github.event_name != 'release' &&
-          !(github.event_name == 'workflow_dispatch' && inputs.mode == 'probe')
+        if: success() && steps.upload-packages.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
+          EXPECTED_ARTIFACT: Packages-${{ github.run_number }}
         run: |
           set -euo pipefail
-          export LC_ALL=C
-          current="Packages-${{ github.run_number }}"
-          rows="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
-            --jq '.artifacts[] | select((.name | startswith("Packages-")) and (.expired | not)) | [.created_at, (.id|tostring), .name] | @tsv')"
-          if [ -z "${rows}" ]; then
-            echo "No Packages-* artifacts listed; skip prune."
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          gh api --paginate \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select((.name | startswith("Packages-")) and (.expired == false)) | [.created_at, (.id | tostring), .name] | @tsv' \
+            | LC_ALL=C sort -r > "$tmp"
+          if ! cut -f3 "$tmp" | grep -qxF "$EXPECTED_ARTIFACT"; then
+            echo "Just-uploaded artifact ${EXPECTED_ARTIFACT} is not listed yet; skipping prune (keep-last-2 runs on the next green master push)."
             exit 0
           fi
-          filtered="$(printf '%s\n' "${rows}" | awk -F '\t' 'NF >= 3')"
-          if ! printf '%s\n' "${filtered}" | awk -F '\t' -v n="${current}" '$3 == n { found=1 } END { exit found ? 0 : 1 }'; then
-            echo "Just-uploaded ${current} is not listed yet; skip prune (next green master will keep-last-2)."
-            exit 0
-          fi
-          extra="$(printf '%s\n' "${filtered}" | sort -r -k1,1 | tail -n +3)"
-          if [ -z "${extra}" ]; then
-            echo "At most two Packages-* artifacts; nothing to prune."
-            exit 0
-          fi
+          keep=2
+          n=0
           while IFS=$'\t' read -r created_at id name; do
-            [ -n "${id}" ] || continue
-            echo "Deleting ${name} (id=${id}, created_at=${created_at})"
-            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
-          done <<< "${extra}"
+            [ -n "$id" ] || continue
+            n=$((n + 1))
+            if [ "$n" -le "$keep" ]; then
+              echo "Keeping ${name} (id=${id}, created=${created_at})"
+              continue
+            fi
+            echo "Deleting ${name} (id=${id}, created=${created_at})"
+            gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
+          done < "$tmp"
