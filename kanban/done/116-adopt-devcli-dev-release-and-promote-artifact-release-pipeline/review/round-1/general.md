@@ -1,0 +1,33 @@
+# Round 1 — general
+**Date:** 2026-09-23
+**Scope reviewed:** `git diff $(git merge-base HEAD origin/master)..HEAD` (612c018..cb0f23a; commits 9c06bcb, cb0f23a) — `.github/workflows/workflow.yml`, `.timewarp/dev.jsonc`, `AGENTS.md`, `Directory.Packages.props`, `documentation/developer/guides/releasing.md`, `samples/Directory.Build.props`, `tools/dev-cli/Directory.Build.props`, `tools/dev-cli/dev.cs`, `tools/dev-cli/endpoints/workflow-command.cs` (rewritten), deleted `tools/dev-cli/endpoints/{check-version,clean,self-install}-command.cs`, and `kanban/.../task.md`.
+
+## Summary
+
+I cross-checked every falsifiable claim in `releasing.md`/`task.md` against the actual `TimeWarp.Nuru.DevCli` 3.0.0-beta.76 package content (`check-version-command.cs`, `release-command.cs`, `release-guard.cs`, `ci-run-promotion.cs`, `packable-project-service.cs`, `repo-config-service.cs`) and against the rewritten `workflow-command.cs`, and empirically verified the `samples/Directory.Build.props` fix by building a sample runfile with and without it. The guide's 8-guard list, the check-version None/Partial/All exit-code behavior, the `.timewarp/dev.jsonc` schema, the tag-pin/ancestor/tag-assertion logic, `CiRunPromotion` usage, and `dotnet msbuild -getProperty:Version` all check out exactly as documented — I found no correctness bugs. The findings below are lower-severity gaps: an artifact-rotation edge case in `workflow.yml` and two `task.md` bookkeeping items the Notes/checklist asked for but that weren't fully closed out.
+
+## Issues
+
+### Issue 1 — Severity: suggestion
+- File: .github/workflows/workflow.yml:116-120
+- Description: The `Upload Artifacts` (and downstream `Keep last two Packages artifacts`) condition excludes PRs (via `github.ref`), `release` events, and `workflow_dispatch` only when `inputs.mode` is `release` or `probe`. It does **not** exclude a bare `workflow_dispatch` run with default inputs (`mode: merge`) on `master`. Such a run executes the full `clean → build → verify-samples → test` pipeline (mode auto-detects to `merge` for `workflow_dispatch`), which does produce real nupkgs via `GeneratePackageOnBuild`, so it uploads its own `Packages-{run_number}` artifact and that artifact enters the same `keep-last-two` rotation as genuine push-triggered artifacts (the prune script in the same file selects globally by `created_at` across all `Packages-*` artifacts, not scoped to push events). If an operator manually re-dispatches the workflow (default inputs) twice on `master` without an intervening push, the two dispatch-run artifacts become the "last two" and the prune deletes the actual push-run's artifact for the commit `dev release` will eventually tag — `CiRunPromotion.SelectPackagesArtifact` would then find no artifact at all for that run (not merely expired), and the release pipeline aborts at Step 4/6 with "no candidate CI run ... uploaded a Packages-* artifact" even though a qualifying push run exists. Recoverable via `gh run rerun`, but avoidable.
+- Suggestion: Add `&& !(github.event_name == 'workflow_dispatch')` (or scope the prune's `select` to artifacts belonging to `push`-event runs) so only push-triggered CI runs feed the artifact rotation that `dev release` promotes from.
+- Status: open
+
+### Issue 2 — Severity: nit
+- File: kanban/to-do/116-adopt-devcli-dev-release-and-promote-artifact-release-pipeline/task.md:35
+- Description: The checked-off checklist item reads "Check-version keeps working under the new pipeline: props `<Version>` vs newest tag, refuses when equal" — this describes the *old* local `check-version-command.cs` behavior. The Results section (correctly) documents that this single comparison was split into two different guards under the DevCli adoption: `dev release` guard 6 refuses when tag `v{Version}` already exists (verified against `release-guard.cs` `CheckTagAvailability`), while the DevCli `check-version` command now refuses only when the version is already published on NuGet.org (verified against `check-version-command.cs`/`NuGetVersionService.IsVersionPublished`) — neither guard compares against "the newest tag." The checklist item's own description is stale relative to what shipped, even though the Results text elsewhere gets it right.
+- Suggestion: Reword the checklist item (or point it at the Results paragraph) so it doesn't read as if the old tag-comparison mechanism still exists.
+- Status: open
+
+### Issue 3 — Severity: nit
+- File: kanban/to-do/116-adopt-devcli-dev-release-and-promote-artifact-release-pipeline/task.md:49
+- Description: The Notes entry documents the Tools/core lockstep gap found while cutting v1.1.0 and explicitly asks: "Either remove the csproj override so Tools ships at the props version, or set `IsPackable=false` on it with a stated reason. Add a checklist item for whichever you choose." Neither of those two options was taken — the implementation instead derives each packable project's own version via MSBuild evaluation and scopes `checkVersionConfig.packages` to the core package only (a third approach, and a reasonable one per `documentation/developer/guides/releasing.md`'s "Two packages, two cadences" section) — but no checklist item was added recording this decision, as the Notes asked.
+- Suggestion: Add a checklist item (or a line in Results explicitly flagged as answering this Note) stating the chosen approach, so the Notes' open question doesn't read as unanswered.
+- Status: open
+
+### Issue 4 — Severity: suggestion
+- File: tools/dev-cli/Directory.Build.props:19-20
+- Description: The extended `NoWarn` list (`IDE0055`, `IDE0022`, `IDE0046`, `IDE0052`, `IDE0058`, `IDE0066`, `IDE0078`, `IDE0160`, `IDE0290`, plus the `IL*`/`CA*` codes) is a project-wide MSBuild property, so it also suppresses these style/analyzer rules for the actively-maintained local files under `tools/dev-cli/endpoints/**` and `tools/dev-cli/services/**` (`build-command.cs`, `test-command.cs`, `verify-samples-command.cs`, and the substantially-rewritten `workflow-command.cs`), not only for the vendored `TimeWarp.Nuru.DevCli` content the comment attributes them to. The comment block correctly explains *why* the DevCli content trips these rules but the mechanism can't distinguish vendored files from first-party ones, so real style regressions in local endpoint code (e.g. formatting drift, missed primary-constructor opportunities) would no longer be flagged by analyzers/CI.
+- Suggestion: If this is intentional parity with `timewarp-terminal`'s existing convention (as the Results note states), no change is needed; otherwise consider a folder-scoped `.editorconfig` override (or per-file `#pragma warning disable`) so the suppression only covers the vendored content files.
+- Status: open

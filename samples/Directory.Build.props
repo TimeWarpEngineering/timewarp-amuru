@@ -1,0 +1,13 @@
+<Project>
+  <!-- Import parent Directory.Build.props -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup Label="Samples are never packed">
+    <!-- verify-samples builds every sample in Release; the root props enable
+         GeneratePackageOnBuild for the product, which would drop sample nupkgs into
+         artifacts/packages and into the CI Packages-* artifact the release pipeline
+         promotes (its verify step aborts on any package outside the packable set). -->
+    <IsPackable>false</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+</Project>

@@ -5,6 +5,7 @@ This file provides guidance to agents when working with code in this repository.
 ## Build/Test Commands
 - **Build**: `dotnet build timewarp-amuru.slnx` (builds both packages: `TimeWarp.Amuru` core and `TimeWarp.Amuru.Tools`), or `./tools/dev-cli/dev.cs build`
 - **Full test suite**: `cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs` (aggregate multi-mode run of all single-file tests), or `./tools/dev-cli/dev.cs test`
+- **Release**: `dev release --dry-run` then `dev release` from a clean, synced master (tag + GitHub Release); the release event promotes the CI-built `Packages-*` artifact, never rebuilds — see `documentation/developer/guides/releasing.md`
 - **Single test file**: any file under `tests/timewarp-amuru/single-file-tests/` is a runnable .NET 10 file-based app — `dotnet run <file>.cs`
 - **SDK pin**: `global.json` pins SDK 10.0.x — building with a newer preview SDK fails style analysis (IDE0055)
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
