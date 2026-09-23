@@ -25,9 +25,9 @@ only what is actually implemented here.
   what ships automatically. Each project's effective `<Version>` is evaluated the
   same way only so the release pipeline can refuse a project that drifts from the
   props version.
-- **Publish-state gate covers every packable project.** There is no
-  `.timewarp/dev.jsonc` package scope; `check-version` and `dev release` judge the
-  whole derived set at the props version.
+- **Publish-state gate covers every packable project.** There is no per-repo
+  package scope; `check-version` and `dev release` judge the whole derived set at
+  the props version.
 - **Humans type a version exactly once**, in the props-bump PR. The tag, the GitHub
   Release, every gate and the NuGet push derive from that one value.
 - **Prerelease versions go through the same pipeline** with identical guards.

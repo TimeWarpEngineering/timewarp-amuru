@@ -71,7 +71,7 @@ dotnet run --file tools/dev-cli/dev.cs -- check-version
 dotnet run --file tools/dev-cli/dev.cs -- workflow --mode merge
 ganda repo audit
 dotnet run --file tools/dev-cli/dev.cs -- release --dry-run
-grep -rn -i "cadence\|dev.jsonc\|beta.2" AGENTS.md readme.md documentation/ tools/ source/ .timewarp 2>/dev/null
+grep -rn -i --exclude-dir=obj "cadence\|dev.jsonc\|beta.2" AGENTS.md readme.md documentation/ tools/ source/
 ```
 
 Expect:
@@ -82,5 +82,5 @@ Expect:
 - Merge workflow ends `Pipeline SUCCEEDED`; `artifacts/packages/` contains `TimeWarp.Amuru.1.1.1.nupkg` and `TimeWarp.Amuru.Tools.1.1.1.nupkg`.
 - Audit ends `Repository passes all audit checks.` (run `dotnet run --file tools/dev-cli/dev.cs -- self-install` first if `bin/dev` is missing in a fresh worktree).
 - Dry-run passes `gh authenticated` and `working tree clean`, then fails only with "release must be cut from master".
-- The final grep returns no hits outside `kanban/` (the `.timewarp` directory no longer exists).
+- The final grep returns no hits (the `.timewarp` directory no longer exists; `Directory.Packages.props` still pins the consumed Tools package at `1.0.0-beta.2` until 1.1.1 is on NuGet).
 - After merge, on clean synced master: `dev release --dry-run` passes all eight guards and prints the `v1.1.1` tag/release commands; the release event's Step 2 banner reads `Packable set (2) at 1.1.1: TimeWarp.Amuru, TimeWarp.Amuru.Tools`.
