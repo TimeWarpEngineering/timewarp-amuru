@@ -1,12 +1,20 @@
 #region Purpose
-// TODO: Add purpose description
+// Cross-platform PATH lookup for executables.
+#endregion
+
+#region Design
+// Unix matches require an execute bit (user, group, or other). That rejects non-executable
+// names the way `which` does, without an access(2) check of the caller's credentials.
+// Windows matches PATHEXT (then a bare name) and does not consult Unix mode.
+// A name that already contains a separator is a direct path, not a PATH search.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 /// <summary>
 /// Provides cross-platform PATH resolution for finding executables.
-/// Equivalent to 'which' on Unix or 'where' on Windows.
+/// On Unix, a match must exist and have an execute bit, approximating <c>which</c>.
+/// On Windows, a match is an existing file selected with PATHEXT, approximating <c>where</c>.
 /// </summary>
 public static class PathResolver
 {
@@ -34,7 +42,7 @@ public static class PathResolver
     // If name contains path separators, check if it exists directly
     if (ContainsPathSeparator(name))
     {
-      return File.Exists(name) ? Path.GetFullPath(name) : null;
+      return IsExecutableFile(name) ? Path.GetFullPath(name) : null;
     }
 
     string? pathEnv = Environment.GetEnvironmentVariable("PATH");
@@ -80,7 +88,7 @@ public static class PathResolver
     // If name contains path separators, check if it exists directly
     if (ContainsPathSeparator(name))
     {
-      if (File.Exists(name))
+      if (IsExecutableFile(name))
       {
         results.Add(Path.GetFullPath(name));
       }
@@ -167,7 +175,7 @@ public static class PathResolver
     if (!IsWindows)
     {
       string filePath = Path.Combine(fullPath, name);
-      if (File.Exists(filePath))
+      if (IsExecutableFile(filePath))
       {
         return filePath;
       }
@@ -193,5 +201,30 @@ public static class PathResolver
     }
 
     return null;
+  }
+
+  private static bool IsExecutableFile(string filePath)
+  {
+    if (!File.Exists(filePath))
+    {
+      return false;
+    }
+
+    if (OperatingSystem.IsWindows())
+    {
+      return true;
+    }
+
+    try
+    {
+      UnixFileMode mode = File.GetUnixFileMode(filePath);
+      const UnixFileMode executeBits =
+        UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+      return (mode & executeBits) != 0;
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+    {
+      return false;
+    }
   }
 }

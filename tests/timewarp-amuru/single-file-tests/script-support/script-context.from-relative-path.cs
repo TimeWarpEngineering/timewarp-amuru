@@ -46,5 +46,33 @@ namespace ScriptContext_
 
       await Task.CompletedTask;
     }
+
+    public static async Task MissingTarget_Should_NotLeakLiveContext()
+    {
+      string originalDir = Directory.GetCurrentDirectory();
+      bool orphanOnExit = false;
+
+      try
+      {
+        using (var outer = ScriptContext.FromEntryPoint(changeToScriptDirectory: false))
+        {
+          string missing = "missing-script-context-" + Guid.NewGuid().ToString("N");
+          Should.Throw<DirectoryNotFoundException>(() =>
+            ScriptContext.FromRelativePath(
+              missing,
+              onExit: () => orphanOnExit = true));
+
+          Directory.GetCurrentDirectory().ShouldBe(originalDir);
+          outer.ScriptDirectory.ShouldNotBeNull();
+        }
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+      }
+
+      orphanOnExit.ShouldBeFalse();
+      await Task.CompletedTask;
+    }
   }
 }

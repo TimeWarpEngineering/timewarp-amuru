@@ -117,4 +117,55 @@ namespace PathResolver_
       }
     }
   }
+
+  [TestTag("Native")]
+  public class ResolveExecutable_UnixExecuteBit_Given_
+  {
+    [ModuleInitializer]
+    internal static void Register() => RegisterTests<ResolveExecutable_UnixExecuteBit_Given_>();
+
+    public static async Task NonExecutableEarlierOnPath_Should_SkipToExecutable()
+    {
+      if (OperatingSystem.IsWindows())
+      {
+        await Task.CompletedTask;
+        return;
+      }
+
+      string root = Path.Combine(Path.GetTempPath(), "path-resolver-" + Guid.NewGuid().ToString("N"));
+      string earlier = Path.Combine(root, "earlier");
+      string later = Path.Combine(root, "later");
+      Directory.CreateDirectory(earlier);
+      Directory.CreateDirectory(later);
+      string blocked = Path.Combine(earlier, "amuru-tool");
+      string allowed = Path.Combine(later, "amuru-tool");
+      string? originalPath = Environment.GetEnvironmentVariable("PATH");
+
+      try
+      {
+        await File.WriteAllTextAsync(blocked, "#!/bin/sh\n");
+        await File.WriteAllTextAsync(allowed, "#!/bin/sh\n");
+        File.SetUnixFileMode(blocked, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+        File.SetUnixFileMode(
+          allowed,
+          UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+
+        Environment.SetEnvironmentVariable("PATH", earlier + Path.PathSeparator + later);
+
+        PathResolver.ResolveExecutable("amuru-tool").ShouldBe(allowed);
+        IReadOnlyList<string> all = PathResolver.ResolveAllExecutables("amuru-tool");
+        all.Count.ShouldBe(1);
+        all[0].ShouldBe(allowed);
+        PathResolver.ResolveExecutable(blocked).ShouldBeNull();
+      }
+      finally
+      {
+        Environment.SetEnvironmentVariable("PATH", originalPath);
+        if (Directory.Exists(root))
+        {
+          Directory.Delete(root, recursive: true);
+        }
+      }
+    }
+  }
 }
