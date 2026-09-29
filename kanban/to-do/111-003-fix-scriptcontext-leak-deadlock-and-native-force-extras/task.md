@@ -24,6 +24,7 @@ Do **not** clone 104 items (dir-symlink AllDirectories walk, force not-found, En
 - [x] M13 force+recursive clears root directory read-only
 - [x] M14 PathResolver Unix execute-bit or docs
 - [x] `## Results` + `### How to validate`
+- [x] Implementation review disposition (round 1, clean)
 
 ## Notes
 
@@ -31,9 +32,12 @@ Parent: **111**. Source: `review/round-1/native-fs.md`. Coordinate with **104** 
 
 M12 and M13 were already folded into **104** (`Direct.RemoveItem` skips file-symlink attribute changes and clears the root directory read-only bit after children, still skipping reparse points). This task verified that code and its tests; it did not edit `Direct.RemoveItem`.
 
+Review trail: `review/review-framework.md`, `review/round-1/merged.md`, `review/disposition.md`. Effort 1 (general). Outcome clean. No sibling apply-review task.
+
 ## Session
 
 - Implementer: Grok task-work oracle (2026-09-29)
+- Review: Grok task-work oracle (2026-09-30); general reviewer subagent `01a0ee59-f69f-7510-a993-9d8e22451960`
 
 ## Results
 
@@ -93,3 +97,11 @@ cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs
 If a standalone `dotnet run <test>.cs` disagrees with the source you just changed, clear the runfile cache (`ganda runfile cache --clear` or `rm -rf ~/.local/share/dotnet/runfile/<test-name>-*`) and re-run.
 
 **Not in scope:** 104 items (directory-symlink `AllDirectories` walk, force not-found, `EnumeratorCancellation`, Commands sync-over-async, Cd global cwd, Rm twin bools, `IAsyncEnumerable` naming). Unix `access(2)` credential check.
+
+### Review
+
+- **Rounds:** 1
+- **Roster / effort:** general only (effort 1)
+- **Counts:** bug 0 open / 0 fixed / 0 wontfix; suggestion 0/0/0; nit 0/0/0
+- **Disposition:** clean (0 open, no wontfix, no escalation)
+- **Paths:** `kanban/to-do/111-003-fix-scriptcontext-leak-deadlock-and-native-force-extras/review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
