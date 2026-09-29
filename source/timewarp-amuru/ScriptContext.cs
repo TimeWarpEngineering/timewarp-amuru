@@ -7,6 +7,11 @@
 // - Contexts nest: a stack tracks live instances so each Dispose restores its own original
 //   directory and runs its own onExit, innermost first. Out-of-order dispose unwinds the stack
 //   down to (and including) the disposed instance.
+// - The working directory changes before the instance is pushed. A failed directory change
+//   leaves the stack untouched, so a caller that never receives the instance cannot leak it.
+// - Dispose and process-exit unwind pop and mark contexts under the lock, then restore
+//   directories and invoke onExit outside the lock. onExit may construct or dispose another
+//   ScriptContext without deadlocking.
 // - Process-exit and unhandled-exception handlers unwind the whole stack, best-effort.
 // - All static state is guarded by a Lock; handlers are registered once while any context lives.
 #endregion
@@ -42,17 +47,6 @@ public sealed class ScriptContext : IDisposable
     ScriptFilePath = scriptFilePath;
     ScriptDirectory = scriptDirectory;
     OnExit = onExit;
-
-    using (SyncLock.EnterScope())
-    {
-      if (LiveContexts.Count == 0)
-      {
-        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-      }
-
-      LiveContexts.Push(this);
-    }
   }
 
   /// <summary>
@@ -70,12 +64,8 @@ public sealed class ScriptContext : IDisposable
     string? scriptDir = AppContext.GetData("EntryPointFileDirectoryPath") as string
       ?? throw new InvalidOperationException("Unable to determine script directory");
 
-    ScriptContext context = new(scriptPath, scriptDir, onExit);
-
-    if (changeToScriptDirectory)
-      Directory.SetCurrentDirectory(scriptDir);
-
-    return context;
+    string? targetDirectory = changeToScriptDirectory ? scriptDir : null;
+    return Activate(scriptPath, scriptDir, targetDirectory, onExit);
   }
 
   /// <summary>
@@ -94,12 +84,77 @@ public sealed class ScriptContext : IDisposable
     string scriptPath = AppContext.GetData("EntryPointFilePath") as string ?? "";
 
     string targetDir = Path.GetFullPath(Path.Combine(scriptDir, relativePath));
-    ScriptContext context = new(scriptPath, scriptDir, onExit);
+    string? targetDirectory = changeToTargetDirectory ? targetDir : null;
+    return Activate(scriptPath, scriptDir, targetDirectory, onExit);
+  }
 
-    if (changeToTargetDirectory)
-      Directory.SetCurrentDirectory(targetDir);
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "Activation must not leave a live stack entry or a changed directory when directory change or registration fails."
+  )]
+  private static ScriptContext Activate(
+    string scriptPath,
+    string scriptDirectory,
+    string? targetDirectory,
+    Action? onExit)
+  {
+    ScriptContext context = new(scriptPath, scriptDirectory, onExit);
+    try
+    {
+      if (targetDirectory is not null)
+      {
+        Directory.SetCurrentDirectory(targetDirectory);
+      }
 
-    return context;
+      context.PushLive();
+      return context;
+    }
+    catch (Exception)
+    {
+      try
+      {
+        Directory.SetCurrentDirectory(context.OriginalDirectory);
+      }
+      catch
+      {
+        // The original failure is the one the caller must see.
+      }
+
+      context.AbandonIfPushed();
+      throw;
+    }
+  }
+
+  private void PushLive()
+  {
+    using (SyncLock.EnterScope())
+    {
+      LiveContexts.Push(this);
+      if (LiveContexts.Count == 1)
+      {
+        AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+      }
+    }
+  }
+
+  private void AbandonIfPushed()
+  {
+    using (SyncLock.EnterScope())
+    {
+      if (Disposed)
+      {
+        return;
+      }
+
+      if (LiveContexts.Count > 0 && ReferenceEquals(LiveContexts.Peek(), this))
+      {
+        LiveContexts.Pop();
+        Disposed = true;
+        UnregisterHandlersIfIdle();
+      }
+    }
   }
 
   private static void OnProcessExit(object? sender, EventArgs e)
@@ -114,37 +169,40 @@ public sealed class ScriptContext : IDisposable
 
   private static void UnwindAll()
   {
+    List<ScriptContext> unwound = new();
     using (SyncLock.EnterScope())
     {
       while (LiveContexts.Count > 0)
       {
-        LiveContexts.Pop().Cleanup();
+        ScriptContext top = LiveContexts.Pop();
+        top.Disposed = true;
+        unwound.Add(top);
       }
+
+      UnregisterHandlersIfIdle();
     }
+
+    FinishUnwind(unwound);
   }
 
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
-    Justification = "Process-exit/unhandled-exception cleanup path is best-effort; failures must not throw during teardown."
+    Justification = "Dispose and process-exit cleanup is best-effort; a failing onExit must not skip the rest of the unwind."
   )]
-  private void Cleanup()
+  private static void FinishUnwind(List<ScriptContext> unwound)
   {
-    if (Disposed)
+    foreach (ScriptContext context in unwound)
     {
-      return;
-    }
-
-    Disposed = true;
-
-    try
-    {
-      Directory.SetCurrentDirectory(OriginalDirectory);
-      OnExit?.Invoke();
-    }
-    catch
-    {
-      // Best effort cleanup - don't throw in cleanup handlers
+      try
+      {
+        Directory.SetCurrentDirectory(context.OriginalDirectory);
+        context.OnExit?.Invoke();
+      }
+      catch
+      {
+        // Best effort cleanup - don't throw in cleanup handlers
+      }
     }
   }
 
@@ -155,6 +213,7 @@ public sealed class ScriptContext : IDisposable
   /// </summary>
   public void Dispose()
   {
+    List<ScriptContext> unwound = new();
     using (SyncLock.EnterScope())
     {
       if (Disposed)
@@ -167,18 +226,28 @@ public sealed class ScriptContext : IDisposable
       while (LiveContexts.Count > 0)
       {
         ScriptContext top = LiveContexts.Pop();
-        top.Cleanup();
+        top.Disposed = true;
+        unwound.Add(top);
         if (ReferenceEquals(top, this))
         {
           break;
         }
       }
 
-      if (LiveContexts.Count == 0)
-      {
-        AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
-        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
-      }
+      UnregisterHandlersIfIdle();
     }
+
+    FinishUnwind(unwound);
+  }
+
+  private static void UnregisterHandlersIfIdle()
+  {
+    if (LiveContexts.Count != 0)
+    {
+      return;
+    }
+
+    AppDomain.CurrentDomain.ProcessExit -= OnProcessExit;
+    AppDomain.CurrentDomain.UnhandledException -= OnUnhandledException;
   }
 }

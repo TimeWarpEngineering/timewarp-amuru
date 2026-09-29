@@ -85,5 +85,100 @@ namespace ScriptContext_
 
       await Task.CompletedTask;
     }
+
+    public static async Task NestedInnerContext_Should_RestoreEachOriginalDirectory()
+    {
+      string originalDir = Directory.GetCurrentDirectory();
+
+      try
+      {
+        using (var outer = ScriptContext.FromEntryPoint())
+        {
+          string scriptDir = Directory.GetCurrentDirectory();
+          using (var inner = ScriptContext.FromRelativePath(".."))
+          {
+            Directory.GetCurrentDirectory().ShouldNotBe(scriptDir);
+            inner.ScriptDirectory.ShouldBe(scriptDir);
+          }
+
+          Directory.GetCurrentDirectory().ShouldBe(scriptDir);
+          outer.ScriptDirectory.ShouldBe(scriptDir);
+        }
+
+        Directory.GetCurrentDirectory().ShouldBe(originalDir);
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+      }
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task OnExit_Should_ObserveRestoredDirectory()
+    {
+      string originalDir = Directory.GetCurrentDirectory();
+      string elsewhere = Path.Combine(Path.GetTempPath(), "script-context-" + Guid.NewGuid().ToString("N"));
+      string? directoryDuringOnExit = null;
+      Directory.CreateDirectory(elsewhere);
+
+      try
+      {
+        using (ScriptContext.FromEntryPoint(
+          changeToScriptDirectory: false,
+          onExit: () => directoryDuringOnExit = Directory.GetCurrentDirectory()))
+        {
+          Directory.SetCurrentDirectory(elsewhere);
+          Directory.GetCurrentDirectory().ShouldBe(elsewhere);
+        }
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+        if (Directory.Exists(elsewhere))
+        {
+          Directory.Delete(elsewhere);
+        }
+      }
+
+      directoryDuringOnExit.ShouldBe(originalDir);
+      await Task.CompletedTask;
+    }
+
+    [Timeout(5000)]
+    public static async Task OnExitNestedContext_Should_NotDeadlock()
+    {
+      string originalDir = Directory.GetCurrentDirectory();
+      bool nestedCreated = false;
+
+      var work = Task.Run(() =>
+      {
+        using var outer = ScriptContext.FromEntryPoint(
+          changeToScriptDirectory: false,
+          onExit: () =>
+          {
+            using var nested = ScriptContext.FromEntryPoint(changeToScriptDirectory: false);
+            nestedCreated = true;
+          });
+
+        outer.ScriptDirectory.ShouldNotBeNull();
+      });
+
+      try
+      {
+        await work.WaitAsync(TimeSpan.FromSeconds(5));
+      }
+      catch (TimeoutException)
+      {
+        throw new TimeoutException("Nested ScriptContext inside onExit deadlocked on SyncLock");
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+      }
+
+      nestedCreated.ShouldBeTrue();
+      await Task.CompletedTask;
+    }
   }
 }
