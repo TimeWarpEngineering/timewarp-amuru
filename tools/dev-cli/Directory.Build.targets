@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    The shared DevCli clean command only calls IRepoCleanService.CleanAsync.
+    This repo's clean command also removes the local nupkg feed, so the package
+    copy must not compile beside tools/dev-cli/endpoints/clean-command.cs.
+  -->
+  <ItemGroup>
+    <Compile Remove="$(NuGetPackageRoot)timewarp.nuru.devcli/**/content/any/endpoints/clean-command.cs" />
+  </ItemGroup>
+</Project>

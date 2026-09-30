@@ -9,6 +9,12 @@
 // - A directory containing git-TRACKED files is skipped with a warning: "bin"/"obj" are
 //   build-output conventions, but nothing stops a repo from tracking sources under those
 //   names (e.g. tools/bin/*.sh), and tracked content must never be deleted by a cleaner.
+// - Root bin children (files and subdirectories) use the same reparse and tracked-file
+//   guards. dev and dev.exe are preserved by name.
+// - CleanLocalFeedAsync removes local nupkgs and package-id folders under
+//   artifacts/packages. Enumeration does not follow directory reparse points, so a
+//   link under the feed cannot delete files outside the repo. It is separate from
+//   CleanAsync so a bin/obj clean does not discard a just-built package set.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -44,10 +50,80 @@ public sealed class RepoCleanService : IRepoCleanService
     int objDirectoriesDeleted = await DeleteDirectoriesAsync(repoRoot, objDirectories, cancellationToken).ConfigureAwait(false);
     int binDirectoriesDeleted = await DeleteDirectoriesAsync(repoRoot, binDirectories, cancellationToken).ConfigureAwait(false);
 
-    int rootBinFilesCleaned = 0;
-    await Task.Run(() => rootBinFilesCleaned = CleanRootBinDirectory(repoRoot), cancellationToken).ConfigureAwait(false);
+    int rootBinFilesCleaned = await CleanRootBinDirectoryAsync(repoRoot, cancellationToken).ConfigureAwait(false);
 
     return new CleanResult(objDirectoriesDeleted, binDirectoriesDeleted, rootBinFilesCleaned);
+  }
+
+  public async Task<int> CleanLocalFeedAsync(CancellationToken cancellationToken = default)
+  {
+    string? repoRoot = Git.FindRoot();
+    if (repoRoot == null)
+    {
+      return 0;
+    }
+
+    string localFeedPath = Path.Combine(repoRoot, "artifacts", "packages");
+    if (!Directory.Exists(localFeedPath))
+    {
+      return 0;
+    }
+
+    if (IsReparsePoint(localFeedPath))
+    {
+      await Terminal.WriteErrorLineAsync($"Skipped (reparse point): {localFeedPath}").ConfigureAwait(false);
+      return 0;
+    }
+
+    return await DeleteLocalFeedEntriesAsync(repoRoot, localFeedPath, cancellationToken).ConfigureAwait(false);
+  }
+
+  private async Task<int> DeleteLocalFeedEntriesAsync
+  (
+    string repoRoot,
+    string directory,
+    CancellationToken cancellationToken
+  )
+  {
+    int count = 0;
+    foreach (string file in Directory.GetFiles(directory, "TimeWarp.Amuru.*.nupkg"))
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      if (await TryDeletePathAsync(repoRoot, file, isDirectory: false, cancellationToken).ConfigureAwait(false))
+      {
+        count++;
+      }
+    }
+
+    foreach (string child in Directory.GetDirectories(directory))
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      if (IsReparsePoint(child))
+      {
+        await Terminal.WriteErrorLineAsync($"Skipped (reparse point): {child}").ConfigureAwait(false);
+        continue;
+      }
+
+      count += await DeleteLocalFeedEntriesAsync(repoRoot, child, cancellationToken).ConfigureAwait(false);
+
+      if (!Directory.Exists(child) || !IsLocalFeedPackageDirectory(Path.GetFileName(child)))
+      {
+        continue;
+      }
+
+      if (await TryDeletePathAsync(repoRoot, child, isDirectory: true, cancellationToken).ConfigureAwait(false))
+      {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
+  private static bool IsLocalFeedPackageDirectory(string name)
+  {
+    return string.Equals(name, "timewarp.amuru", StringComparison.Ordinal)
+      || string.Equals(name, "timewarp.amuru.tools", StringComparison.Ordinal);
   }
 
   /// <summary>
@@ -143,7 +219,7 @@ public sealed class RepoCleanService : IRepoCleanService
     "CA1031",
     Justification = "CLI cleanup operation: file/directory enumeration failures should be reported as warnings and allow cleanup to continue."
   )]
-  private int CleanRootBinDirectory(string repoRoot)
+  private async Task<int> CleanRootBinDirectoryAsync(string repoRoot, CancellationToken cancellationToken)
   {
     string rootBinPath = Path.Combine(repoRoot, "bin");
     if (!Directory.Exists(rootBinPath))
@@ -158,51 +234,92 @@ public sealed class RepoCleanService : IRepoCleanService
     {
       foreach (string file in Directory.GetFiles(rootBinPath))
       {
+        cancellationToken.ThrowIfCancellationRequested();
         string fileName = Path.GetFileName(file);
         if (preserveNames.Contains(fileName, StringComparer.OrdinalIgnoreCase))
         {
           continue;
         }
 
-        try
+        if (await TryDeletePathAsync(repoRoot, file, isDirectory: false, cancellationToken).ConfigureAwait(false))
         {
-          File.Delete(file);
-          Terminal.WriteLine($"Deleted: {file}");
           count++;
-        }
-        catch (IOException ex)
-        {
-          Terminal.WriteErrorLine($"Warning: Could not delete {file}: {ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-          Terminal.WriteErrorLine($"Warning: Could not delete {file}: {ex.Message}");
         }
       }
 
       foreach (string dir in Directory.GetDirectories(rootBinPath))
       {
-        try
+        cancellationToken.ThrowIfCancellationRequested();
+        if (await TryDeletePathAsync(repoRoot, dir, isDirectory: true, cancellationToken).ConfigureAwait(false))
         {
-          Directory.Delete(dir, recursive: true);
-          Terminal.WriteLine($"Deleted: {dir}");
           count++;
-        }
-        catch (IOException ex)
-        {
-          Terminal.WriteErrorLine($"Warning: Could not delete {dir}: {ex.Message}");
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-          Terminal.WriteErrorLine($"Warning: Could not delete {dir}: {ex.Message}");
         }
       }
     }
-    catch (Exception ex)
+    catch (Exception ex) when (ex is not OperationCanceledException)
     {
-      Terminal.WriteErrorLine($"Warning: Error cleaning root bin directory: {ex.Message}");
+      await Terminal.WriteErrorLineAsync($"Warning: Error cleaning root bin directory: {ex.Message}").ConfigureAwait(false);
     }
 
     return count;
+  }
+
+  private async Task<bool> TryDeletePathAsync
+  (
+    string repoRoot,
+    string path,
+    bool isDirectory,
+    CancellationToken cancellationToken
+  )
+  {
+    if (IsReparsePoint(path))
+    {
+      await Terminal.WriteErrorLineAsync($"Skipped (reparse point): {path}").ConfigureAwait(false);
+      return false;
+    }
+
+    if (await HasTrackedFilesAsync(repoRoot, path, cancellationToken).ConfigureAwait(false))
+    {
+      string reason = isDirectory ? "contains git-tracked files" : "git-tracked file";
+      await Terminal.WriteErrorLineAsync($"Skipped ({reason}): {path}").ConfigureAwait(false);
+      return false;
+    }
+
+    try
+    {
+      if (isDirectory)
+      {
+        Directory.Delete(path, recursive: true);
+      }
+      else
+      {
+        File.Delete(path);
+      }
+
+      await Terminal.WriteLineAsync($"Deleted: {path}").ConfigureAwait(false);
+      return true;
+    }
+    catch (IOException ex)
+    {
+      await Terminal.WriteErrorLineAsync($"Warning: Could not delete {path}: {ex.Message}").ConfigureAwait(false);
+      return false;
+    }
+    catch (UnauthorizedAccessException ex)
+    {
+      await Terminal.WriteErrorLineAsync($"Warning: Could not delete {path}: {ex.Message}").ConfigureAwait(false);
+      return false;
+    }
+  }
+
+  private static bool IsReparsePoint(string path)
+  {
+    // LinkTarget does not follow the link. GetAttributes is the fallback for
+    // other reparse points that are not symlinks.
+    if (new FileInfo(path).LinkTarget != null || new DirectoryInfo(path).LinkTarget != null)
+    {
+      return true;
+    }
+
+    return (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
   }
 }
