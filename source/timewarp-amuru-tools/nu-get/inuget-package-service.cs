@@ -10,7 +10,8 @@ namespace TimeWarp.Amuru;
 public interface INuGetPackageService
 {
   /// <summary>
-  /// Searches for a package on NuGet and returns all available versions.
+  /// Searches for a package on NuGet and returns every registration version,
+  /// including unlisted ones (<see cref="NuGetPackageVersion.Listed"/> is false).
   /// </summary>
   /// <param name="packageId">The package ID to search for</param>
   /// <param name="cancellationToken">Cancellation token</param>
@@ -18,7 +19,8 @@ public interface INuGetPackageService
   Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Gets the latest stable and prerelease versions for a package.
+  /// Gets the latest listed stable and prerelease versions for a package.
+  /// Unlisted versions are excluded.
   /// </summary>
   /// <param name="packageId">The package ID to search for</param>
   /// <param name="cancellationToken">Cancellation token</param>

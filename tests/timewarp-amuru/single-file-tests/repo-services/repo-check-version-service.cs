@@ -62,17 +62,22 @@ namespace Repo_Services
 
       string? repoRoot = Git.FindRoot();
       repoRoot.ShouldNotBeNull();
+      string version = ReadVersionFromBuildProps(repoRoot);
 
       using (CommandMock.Enable(MockBehavior.Loose))
       {
         CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns("v999.0.0\nv1.0.0");
+        CommandMock.Setup("git", "tag", "-l", $"v{version}")
+          .Returns("");
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.Version.ShouldNotBeEmpty();
         result.LatestReleaseTag.ShouldBe("v999.0.0");
+        result.IsNewVersion.ShouldBeTrue();
         CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "tag", "-l", $"v{version}");
       }
     }
 
@@ -92,13 +97,15 @@ namespace Repo_Services
       {
         CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns(expectedTag);
+        CommandMock.Setup("git", "tag", "-l", expectedTag)
+          .Returns(expectedTag);
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.IsNewVersion.ShouldBeFalse();
         result.Version.ShouldBe(version);
         result.LatestReleaseTag.ShouldBe(expectedTag);
-        CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "tag", "-l", expectedTag);
       }
     }
 
@@ -116,13 +123,76 @@ namespace Repo_Services
       {
         CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
           .Returns("v0.0.1");
+        CommandMock.Setup("git", "tag", "-l", $"v{version}")
+          .Returns("");
 
         GitTagCheckResult result = await service.CheckGitTagVersionAsync();
 
         result.IsNewVersion.ShouldBeTrue();
         result.Version.ShouldBe(version);
         result.LatestReleaseTag.ShouldBe("v0.0.1");
-        CommandMock.VerifyCalled("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname");
+        CommandMock.VerifyCalled("git", "tag", "-l", $"v{version}");
+      }
+    }
+
+    public static async Task CheckGitTagVersionAsync_WhenOlderExactTagExists_ShouldReturnIsNewVersionFalse()
+    {
+      string tempRoot = CreateTempRepo
+      (
+        """
+        <Project>
+          <PropertyGroup>
+            <Version>1.0.0</Version>
+          </PropertyGroup>
+        </Project>
+        """
+      );
+      string originalDir = Directory.GetCurrentDirectory();
+      try
+      {
+        Directory.SetCurrentDirectory(tempRoot);
+        RepoCheckVersionService service = new(new MockNuGetPackageService());
+
+        using (CommandMock.Enable(MockBehavior.Strict))
+        {
+          CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
+            .Returns("v1.1.0\nv1.0.0");
+          CommandMock.Setup("git", "tag", "-l", "v1.0.0")
+            .Returns("v1.0.0");
+
+          GitTagCheckResult result = await service.CheckGitTagVersionAsync();
+
+          result.IsNewVersion.ShouldBeFalse();
+          result.Version.ShouldBe("1.0.0");
+          result.LatestReleaseTag.ShouldBe("v1.1.0");
+        }
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+        Directory.Delete(tempRoot, recursive: true);
+      }
+    }
+
+    public static async Task CheckGitTagVersionAsync_WhenExactTagLookupFails_ShouldNotReportNew()
+    {
+      string? repoRoot = Git.FindRoot();
+      repoRoot.ShouldNotBeNull();
+      string version = ReadVersionFromBuildProps(repoRoot);
+      RepoCheckVersionService service = new(new MockNuGetPackageService());
+
+      using (CommandMock.Enable(MockBehavior.Strict))
+      {
+        CommandMock.Setup("git", "-c", "versionsort.suffix=-", "tag", "--sort=-v:refname")
+          .Returns("v0.0.1");
+        CommandMock.Setup("git", "tag", "-l", $"v{version}")
+          .ReturnsError("fatal: not a git repository");
+
+        GitTagCheckResult result = await service.CheckGitTagVersionAsync();
+
+        result.IsNewVersion.ShouldBeFalse();
+        result.Version.ShouldBe(version);
+        result.LatestReleaseTag.ShouldBe("v0.0.1");
       }
     }
 
@@ -194,6 +264,132 @@ namespace Repo_Services
       result.AlreadyPublishedPackages[0].ShouldBe("TestPackage");
     }
 
+    public static async Task CheckNuGetVersionAsync_WhenVersionIsUnlisted_ShouldTreatItAsPublished()
+    {
+      string? repoRoot = Git.FindRoot();
+      repoRoot.ShouldNotBeNull();
+      string version = ReadVersionFromBuildProps(repoRoot);
+
+      ConfigurableMockNuGetPackageService nuGetService = new
+      (
+        new Dictionary<string, NuGetSearchResult?>
+        {
+          ["TestPackage"] = new NuGetSearchResult
+          (
+            "TestPackage",
+            new List<NuGetPackageVersion>
+            {
+              new NuGetPackageVersion("9.9.9", Listed: false),
+              new NuGetPackageVersion(version, Listed: false),
+              new NuGetPackageVersion("0.1.0", Listed: true)
+            }
+          )
+        }
+      );
+
+      RepoCheckVersionService service = new(nuGetService);
+      NuGetCheckResult result = await service.CheckNuGetVersionAsync(["TestPackage"]);
+
+      result.IsNewVersion.ShouldBeFalse();
+      result.LatestNuGetVersion.ShouldBe("0.1.0");
+      result.AlreadyPublishedPackages.ShouldNotBeNull();
+      result.AlreadyPublishedPackages.ShouldContain("TestPackage");
+    }
+
+    public static async Task CheckNuGetVersionAsync_WhenToolsCsprojOverridesVersion_ShouldCompareThatVersion()
+    {
+      string tempRoot = CreateTempRepo
+      (
+        """
+        <Project>
+          <PropertyGroup>
+            <Version>1.0.0</Version>
+          </PropertyGroup>
+        </Project>
+        """,
+        """
+        <Project>
+          <PropertyGroup>
+            <PackageId>Example.Tools</PackageId>
+            <Version>1.0.0-beta.2</Version>
+          </PropertyGroup>
+        </Project>
+        """
+      );
+      string originalDir = Directory.GetCurrentDirectory();
+      try
+      {
+        Directory.SetCurrentDirectory(tempRoot);
+        ConfigurableMockNuGetPackageService nuGetService = new
+        (
+          new Dictionary<string, NuGetSearchResult?>
+          {
+            ["Example.Tools"] = new NuGetSearchResult
+            (
+              "Example.Tools",
+              new List<NuGetPackageVersion>
+              {
+                new NuGetPackageVersion("1.0.0"),
+                new NuGetPackageVersion("1.0.0-beta.2", Listed: false)
+              }
+            )
+          }
+        );
+
+        RepoCheckVersionService service = new(nuGetService);
+        NuGetCheckResult result = await service.CheckNuGetVersionAsync(["Example.Tools"]);
+
+        result.Version.ShouldBe("1.0.0-beta.2");
+        result.IsNewVersion.ShouldBeFalse();
+        result.LatestNuGetVersion.ShouldBe("1.0.0");
+        result.AlreadyPublishedPackages.ShouldNotBeNull();
+        result.AlreadyPublishedPackages.ShouldContain("Example.Tools");
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDir);
+        Directory.Delete(tempRoot, recursive: true);
+      }
+    }
+
+    public static async Task CheckNuGetVersionAsync_WhenToolsHasNoCsprojVersion_ShouldUsePropsVersion()
+    {
+      string? repoRoot = Git.FindRoot();
+      repoRoot.ShouldNotBeNull();
+      string propsVersion = ReadVersionFromBuildProps(repoRoot);
+      string toolsProject = Path.Combine(repoRoot, "source", "timewarp-amuru-tools", "timewarp-amuru-tools.csproj");
+#pragma warning disable IDE0007
+      XDocument toolsDoc = XDocument.Load(toolsProject);
+#pragma warning restore IDE0007
+      bool hasLiteralVersion = toolsDoc.Descendants("Version").Any(static element =>
+      {
+        string value = element.Value.Trim();
+        return value.Length > 0 && !value.Contains("$(", StringComparison.Ordinal);
+      });
+      hasLiteralVersion.ShouldBeFalse();
+
+      ConfigurableMockNuGetPackageService nuGetService = new
+      (
+        new Dictionary<string, NuGetSearchResult?>
+        {
+          ["TimeWarp.Amuru.Tools"] = new NuGetSearchResult
+          (
+            "TimeWarp.Amuru.Tools",
+            new List<NuGetPackageVersion>
+            {
+              new NuGetPackageVersion("0.0.1")
+            }
+          )
+        }
+      );
+
+      RepoCheckVersionService service = new(nuGetService);
+      NuGetCheckResult result = await service.CheckNuGetVersionAsync(["TimeWarp.Amuru.Tools"]);
+
+      result.Version.ShouldBe(propsVersion);
+      result.IsNewVersion.ShouldBeTrue();
+    }
+
     public static async Task CheckNuGetVersionAsync_WithEmptyPackages_ShouldReturnFalse()
     {
       MockNuGetPackageService nuGetService = new();
@@ -205,6 +401,28 @@ namespace Repo_Services
       result.IsNewVersion.ShouldBeFalse();
       result.Version.ShouldBeEmpty();
       result.CheckedPackages.Count.ShouldBe(0);
+    }
+
+    private static string CreateTempRepo(string propsXml, string? toolsCsprojXml = null)
+    {
+      string tempRoot = Path.Combine
+      (
+        AppContext.BaseDirectory,
+        "temp-fixtures",
+        Guid.NewGuid().ToString("N")
+      );
+      Directory.CreateDirectory(Path.Combine(tempRoot, ".git"));
+      string sourceDir = Path.Combine(tempRoot, "source");
+      Directory.CreateDirectory(sourceDir);
+      File.WriteAllText(Path.Combine(sourceDir, "Directory.Build.props"), propsXml);
+      if (toolsCsprojXml != null)
+      {
+        string projectDir = Path.Combine(sourceDir, "example-tools");
+        Directory.CreateDirectory(projectDir);
+        File.WriteAllText(Path.Combine(projectDir, "example-tools.csproj"), toolsCsprojXml);
+      }
+
+      return tempRoot;
     }
 
     private static string ReadVersionFromBuildProps(string repoRoot)

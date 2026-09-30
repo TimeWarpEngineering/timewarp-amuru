@@ -5,8 +5,10 @@
 #region Design
 // Uses nuget.org's registration index to avoid the NuGet.Protocol dependency chain.
 // Keeps NuGet.Versioning for NuGet-compatible parsing, normalization, and comparison.
-// Registration metadata INCLUDES unlisted versions; catalogEntry.listed is checked to skip them.
-// The service targets nuget.org package version checks, not authenticated/custom feeds.
+// Registration metadata INCLUDES unlisted versions. Search keeps them (Listed=false)
+// so existence checks see versions nuget.org still rejects on republish. Latest
+// selection skips catalogEntry.listed == false. The service targets nuget.org
+// package version checks, not authenticated/custom feeds.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -31,7 +33,7 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<NuGetVersion>? versionList = await GetVersionsAsync(packageId, cancellationToken).ConfigureAwait(false);
+    List<RegisteredPackageVersion> versionList = await GetVersionsAsync(packageId, includeUnlisted: true, cancellationToken).ConfigureAwait(false);
     if (versionList.Count == 0)
     {
       return null;
@@ -40,8 +42,8 @@ public sealed class NuGetPackageService : INuGetPackageService
     #pragma warning disable IDE0007
     List<NuGetPackageVersion> packageVersions = versionList
 #pragma warning restore IDE0007
-      .OrderByDescending(static v => v, VersionComparer.Default)
-      .Select(static v => new NuGetPackageVersion(v.ToNormalizedString()))
+      .OrderByDescending(static v => v.Version, VersionComparer.Default)
+      .Select(static v => new NuGetPackageVersion(v.Version.ToNormalizedString(), Listed: v.Listed))
       .ToList();
 
     return new NuGetSearchResult(packageId, packageVersions);
@@ -51,13 +53,14 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<NuGetVersion>? versions = await GetVersionsAsync(packageId, cancellationToken).ConfigureAwait(false);
+    List<RegisteredPackageVersion> versions = await GetVersionsAsync(packageId, includeUnlisted: false, cancellationToken).ConfigureAwait(false);
 
     NuGetVersion? stableVersion = null;
     NuGetVersion? prereleaseVersion = null;
 
-    foreach (NuGetVersion version in versions)
+    foreach (RegisteredPackageVersion registered in versions)
     {
+      NuGetVersion version = registered.Version;
       if (!version.IsPrerelease)
       {
         if (stableVersion == null || version > stableVersion)
@@ -151,7 +154,14 @@ public sealed class NuGetPackageService : INuGetPackageService
     return "patch";
   }
 
-  private static async Task<List<NuGetVersion>> GetVersionsAsync(string packageId, CancellationToken cancellationToken)
+  private readonly record struct RegisteredPackageVersion(NuGetVersion Version, bool Listed);
+
+  private static async Task<List<RegisteredPackageVersion>> GetVersionsAsync
+  (
+    string packageId,
+    bool includeUnlisted,
+    CancellationToken cancellationToken
+  )
   {
     string lowerPackageId = packageId.ToLowerInvariant();
     string escapedPackageId = Uri.EscapeDataString(lowerPackageId);
@@ -175,10 +185,10 @@ public sealed class NuGetPackageService : INuGetPackageService
       return [];
     }
 
-    List<NuGetVersion> versions = [];
+    List<RegisteredPackageVersion> versions = [];
     foreach (JsonElement pageElement in pagesElement.EnumerateArray())
     {
-      await AddPageVersionsAsync(pageElement, versions, cancellationToken).ConfigureAwait(false);
+      await AddPageVersionsAsync(pageElement, versions, includeUnlisted, cancellationToken).ConfigureAwait(false);
     }
 
     return versions;
@@ -187,23 +197,25 @@ public sealed class NuGetPackageService : INuGetPackageService
   private static async Task AddPageVersionsAsync
   (
     JsonElement pageElement,
-    List<NuGetVersion> versions,
+    List<RegisteredPackageVersion> versions,
+    bool includeUnlisted,
     CancellationToken cancellationToken
   )
   {
     if (pageElement.TryGetProperty("items", out JsonElement itemsElement))
     {
-      AddLeafVersions(itemsElement, versions);
+      AddLeafVersions(itemsElement, versions, includeUnlisted);
       return;
     }
 
-    await AddExternalPageVersionsAsync(pageElement, versions, cancellationToken).ConfigureAwait(false);
+    await AddExternalPageVersionsAsync(pageElement, versions, includeUnlisted, cancellationToken).ConfigureAwait(false);
   }
 
   private static async Task AddExternalPageVersionsAsync
   (
     JsonElement pageElement,
-    List<NuGetVersion> versions,
+    List<RegisteredPackageVersion> versions,
+    bool includeUnlisted,
     CancellationToken cancellationToken
   )
   {
@@ -235,10 +247,15 @@ public sealed class NuGetPackageService : INuGetPackageService
       return;
     }
 
-    AddLeafVersions(itemsElement, versions);
+    AddLeafVersions(itemsElement, versions, includeUnlisted);
   }
 
-  private static void AddLeafVersions(JsonElement itemsElement, List<NuGetVersion> versions)
+  private static void AddLeafVersions
+  (
+    JsonElement itemsElement,
+    List<RegisteredPackageVersion> versions,
+    bool includeUnlisted
+  )
   {
     if (itemsElement.ValueKind != JsonValueKind.Array)
     {
@@ -253,10 +270,11 @@ public sealed class NuGetPackageService : INuGetPackageService
         continue;
       }
 
-      // Registration blobs include UNLISTED versions; catalogEntry.listed flags them.
-      // Skip delisted versions so "latest" never reports a version the feed hides.
-      if (catalogEntryElement.TryGetProperty("listed", out JsonElement listedElement) &&
-          listedElement.ValueKind == JsonValueKind.False)
+      // Absent "listed" means listed. False is an unlisted version that still
+      // occupies the id/version on the feed.
+      bool listed = !catalogEntryElement.TryGetProperty("listed", out JsonElement listedElement)
+        || listedElement.ValueKind != JsonValueKind.False;
+      if (!listed && !includeUnlisted)
       {
         continue;
       }
@@ -264,7 +282,7 @@ public sealed class NuGetPackageService : INuGetPackageService
       string? version = versionElement.GetString();
       if (version != null && NuGetVersion.TryParse(version, out NuGetVersion? parsedVersion))
       {
-        versions.Add(parsedVersion);
+        versions.Add(new RegisteredPackageVersion(parsedVersion, listed));
       }
     }
   }
