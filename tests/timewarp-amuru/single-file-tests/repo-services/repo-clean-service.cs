@@ -182,9 +182,15 @@ namespace Repo_Services
 
         Directory.CreateDirectory(outside);
         string outsideFile = Path.Combine(outside, "keep.txt");
+        string outsideNupkg = Path.Combine(outside, "TimeWarp.Amuru.Outside.1.0.0.nupkg");
+        string outsidePackageDir = Path.Combine(outside, "timewarp.amuru");
+        Directory.CreateDirectory(outsidePackageDir);
         await File.WriteAllTextAsync(outsideFile, "keep");
+        await File.WriteAllTextAsync(outsideNupkg, "keep");
+        await File.WriteAllTextAsync(Path.Combine(outsidePackageDir, "keep.txt"), "keep");
         string linkNupkg = Path.Combine(feed, "TimeWarp.Amuru.Link.1.0.0.nupkg");
         File.CreateSymbolicLink(linkNupkg, outsideFile);
+        File.CreateSymbolicLink(Path.Combine(feed, "linked-tree"), outside);
 
         CommandOutput add = await Shell.Builder("git")
           .WithArguments("-C", tempRoot, "add", "--", "artifacts/packages/TimeWarp.Amuru.Tracked.1.0.0.nupkg")
@@ -204,6 +210,9 @@ namespace Repo_Services
         Directory.Exists(packageDir).ShouldBeFalse();
         File.Exists(linkNupkg).ShouldBeTrue();
         File.Exists(outsideFile).ShouldBeTrue();
+        File.Exists(outsideNupkg).ShouldBeTrue();
+        Directory.Exists(outsidePackageDir).ShouldBeTrue();
+        Directory.Exists(Path.Combine(feed, "linked-tree")).ShouldBeTrue();
         terminal.ErrorOutput.ShouldContain("git-tracked file");
         terminal.ErrorOutput.ShouldContain("reparse point");
       }

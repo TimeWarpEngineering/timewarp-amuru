@@ -29,7 +29,8 @@ public interface IRepoCleanService
 
   /// <summary>
   /// Deletes local NuGet feed folders and <c>TimeWarp.Amuru*.nupkg</c> files under
-  /// <c>artifacts/packages</c>. Reparse points and git-tracked paths are skipped.
+  /// <c>artifacts/packages</c>. Enumeration does not follow directory reparse points.
+  /// Reparse points and git-tracked paths are not deleted.
   /// Does not remove bin or obj directories.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token</param>

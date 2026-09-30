@@ -11,8 +11,10 @@
 //   names (e.g. tools/bin/*.sh), and tracked content must never be deleted by a cleaner.
 // - Root bin children (files and subdirectories) use the same reparse and tracked-file
 //   guards. dev and dev.exe are preserved by name.
-// - CleanLocalFeedAsync removes local nupkgs under artifacts/packages. It is separate
-//   from CleanAsync so a bin/obj clean does not discard a just-built package set.
+// - CleanLocalFeedAsync removes local nupkgs and package-id folders under
+//   artifacts/packages. Enumeration does not follow directory reparse points, so a
+//   link under the feed cannot delete files outside the repo. It is separate from
+//   CleanAsync so a bin/obj clean does not discard a just-built package set.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -67,8 +69,24 @@ public sealed class RepoCleanService : IRepoCleanService
       return 0;
     }
 
+    if (IsReparsePoint(localFeedPath))
+    {
+      await Terminal.WriteErrorLineAsync($"Skipped (reparse point): {localFeedPath}").ConfigureAwait(false);
+      return 0;
+    }
+
+    return await DeleteLocalFeedEntriesAsync(repoRoot, localFeedPath, cancellationToken).ConfigureAwait(false);
+  }
+
+  private async Task<int> DeleteLocalFeedEntriesAsync
+  (
+    string repoRoot,
+    string directory,
+    CancellationToken cancellationToken
+  )
+  {
     int count = 0;
-    foreach (string file in Directory.GetFiles(localFeedPath, "TimeWarp.Amuru.*.nupkg", SearchOption.AllDirectories))
+    foreach (string file in Directory.GetFiles(directory, "TimeWarp.Amuru.*.nupkg"))
     {
       cancellationToken.ThrowIfCancellationRequested();
       if (await TryDeletePathAsync(repoRoot, file, isDirectory: false, cancellationToken).ConfigureAwait(false))
@@ -77,27 +95,35 @@ public sealed class RepoCleanService : IRepoCleanService
       }
     }
 
-    List<string> packageDirectories =
-    [
-      .. Directory.GetDirectories(localFeedPath, "timewarp.amuru", SearchOption.AllDirectories),
-      .. Directory.GetDirectories(localFeedPath, "timewarp.amuru.tools", SearchOption.AllDirectories)
-    ];
-
-    foreach (string dir in packageDirectories.OrderByDescending(static path => path.Length))
+    foreach (string child in Directory.GetDirectories(directory))
     {
       cancellationToken.ThrowIfCancellationRequested();
-      if (!Directory.Exists(dir))
+      if (IsReparsePoint(child))
+      {
+        await Terminal.WriteErrorLineAsync($"Skipped (reparse point): {child}").ConfigureAwait(false);
+        continue;
+      }
+
+      count += await DeleteLocalFeedEntriesAsync(repoRoot, child, cancellationToken).ConfigureAwait(false);
+
+      if (!Directory.Exists(child) || !IsLocalFeedPackageDirectory(Path.GetFileName(child)))
       {
         continue;
       }
 
-      if (await TryDeletePathAsync(repoRoot, dir, isDirectory: true, cancellationToken).ConfigureAwait(false))
+      if (await TryDeletePathAsync(repoRoot, child, isDirectory: true, cancellationToken).ConfigureAwait(false))
       {
         count++;
       }
     }
 
     return count;
+  }
+
+  private static bool IsLocalFeedPackageDirectory(string name)
+  {
+    return string.Equals(name, "timewarp.amuru", StringComparison.Ordinal)
+      || string.Equals(name, "timewarp.amuru.tools", StringComparison.Ordinal);
   }
 
   /// <summary>
