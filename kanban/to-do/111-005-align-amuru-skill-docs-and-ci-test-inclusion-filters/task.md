@@ -26,10 +26,12 @@ Do not clone **082** kebab, **105** missing tests, **094-004** PublicAPI analyze
 - [x] M24 TestsDirectory casing
 - [x] M26 remove static System.Console using from tests
 - [x] `## Results` + `### How to validate`
+- [x] Review disposition (2 rounds, effort 1, clean)
 
 ## Session
 
 - Implementer: Grok session 01a0efee-2550-7c01-9a9b-a6fdec8e9be5 (2026-09-30)
+- Review: Grok review oracle (2026-09-30)
 
 ## Results
 
@@ -47,8 +49,9 @@ M15, M21–M24, and M26 are aligned with the 1.0 contract. M25 stays wontfix on 
 **Smoke**
 
 ```bash
-rg -n 'ExecutionResult|AsJsonRpcClient|FindRootAsync|TimeWarp\.Cli|\.ExecuteAsync\(|\.GetStringAsync\(|\.GetLinesAsync\(' \
+rg -n 'ExecutionResult|AsJsonRpcClient|FindRootAsync|TimeWarp\.Cli|\.ExecuteAsync\(|\.GetStringAsync\(|\.GetLinesAsync\(|WithInputItems|WithInputCommand' \
   skills/amuru/SKILL.md source/timewarp-amuru-tools/dot-net-commands/dot-net.md
+rg -n 'TimeWarp\.Amuru\.Tools' skills/amuru/SKILL.md
 rg -n 'BannedSymbols.txt|source/\.editorconfig|timewarp-amuru\.slnx' .github/workflows/workflow.yml
 rg -n 'TestsDirectory' msbuild/repository.props
 rg -n 'System\.Console' tests/timewarp-amuru/Directory.Build.props
@@ -58,6 +61,7 @@ rg -n 'single-file-tests/\*\*/\*\.cs' tests/timewarp-amuru/multi-file-runners/Di
 **Expect**
 
 - First `rg`: no matches.
+- Skill names `TimeWarp.Amuru.Tools`. Fzf samples use `FromInput` / `FromCommand`. DotNet reference limits `WithProperty` and includes pack on `RunAndCaptureAsync`.
 - Workflow: those three names (and `.editorconfig`) are under `pull_request.paths`. `push` to `master` has no `paths` key.
 - `TestsDirectory` ends in `tests/`.
 - No `System.Console` using in the test props.
@@ -74,6 +78,18 @@ cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs
 
 **Not in scope:** M25 `cliwrap-exit-code-tests/`, kebab renames (082), missing tests (105), PublicAPI analyzers (094-004), XML-doc polish (106). A PR that only changes `skills/**` still does not run this workflow.
 
+### Review disposition
+
+Effort 1, roster `general`, 2 rounds. Final counts: bug 0 open / 3 fixed / 0 wontfix; suggestion 0 open / 1 fixed / 0 wontfix; nit 0. Outcome **clean**. No wontfix and no escalation.
+
+Round 1 accepted M15 and M21–M24 / M26 and filed **M1** (fzf `WithInputItems` / `WithInputCommand`), **M2** (skill omitted `TimeWarp.Amuru.Tools`), **M3** (`WithProperty` claimed on every DotNet builder), and **M4** (pack omitted from `RunAndCaptureAsync`). Fixed on this task. Round 2 re-checked M1–M4 against the doc delta; no new findings.
+
+- Framework: `kanban/to-do/111-005-align-amuru-skill-docs-and-ci-test-inclusion-filters/review/review-framework.md`
+- Last merged: `kanban/to-do/111-005-align-amuru-skill-docs-and-ci-test-inclusion-filters/review/round-2/merged.md`
+- Disposition: `kanban/to-do/111-005-align-amuru-skill-docs-and-ci-test-inclusion-filters/review/disposition.md`
+
 ## Notes
 
 Parent: **111**. Sources: `review/round-1/tests-infra.md`, `tools-builders.md`.
+
+Review trail: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`. M1–M4 fixed here; disposition clean.
