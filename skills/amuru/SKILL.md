@@ -5,7 +5,7 @@ description: Use TimeWarp.Amuru for process execution instead of System.Diagnost
 
 # Amuru Process Execution
 
-> **This is the authoritative skill file for TimeWarp.Amuru.** Any conflicting information in other sources should defer to this file.
+> Agent guide for the TimeWarp.Amuru 1.0 contract (`CommandOutput`, default validation `None`). `AGENTS.md` and the library source win if this file drifts.
 
 **ALWAYS use `TimeWarp.Amuru` for process execution in .NET.** Do NOT use `System.Diagnostics.Process.Start` directly.
 
@@ -15,7 +15,10 @@ In a runfile:
 
 ```csharp
 #:package TimeWarp.Amuru
+#:package TimeWarp.Amuru.Tools
 ```
+
+`Shell`, `CommandOutput`, `CommandMock`, `ScriptContext`, and `CliConfiguration` are `TimeWarp.Amuru`. `DotNet`, `Git`, and `Fzf` are `TimeWarp.Amuru.Tools`. Both use the `TimeWarp.Amuru` namespace.
 
 Or via Central Package Management in `Directory.Packages.props`:
 
@@ -45,11 +48,13 @@ CommandOutput output = await Shell.Builder("git").WithArguments("status").Captur
 // RunAndCaptureAsync - streams to console AND captures output
 CommandOutput output = await Shell.Builder("dotnet").WithArguments("test").RunAndCaptureAsync();
 
-// PassthroughAsync - full interactive passthrough (stdin/stdout/stderr)
-ExecutionResult result = await Shell.Builder("vim").WithArguments("file.txt").PassthroughAsync();
+// PassthroughAsync - interactive stream piping (not a real TTY). Returns CommandOutput.
+// Stdout/Stderr are empty because the streams go to the terminal.
+CommandOutput passthrough = await Shell.Builder("fzf").PassthroughAsync();
 
-// TtyPassthroughAsync - TTY-aware interactive passthrough
-ExecutionResult result = await Shell.Builder("fzf").TtyPassthroughAsync();
+// TtyPassthroughAsync - real TTY inheritance for TUI apps (vim, nano). Returns CommandOutput.
+// Never throws on a non-zero exit, even with WithZeroExitCodeValidation.
+CommandOutput tty = await Shell.Builder("vim").WithArguments("file.txt").TtyPassthroughAsync();
 ```
 
 ### CommandOutput Properties
@@ -57,16 +62,19 @@ ExecutionResult result = await Shell.Builder("fzf").TtyPassthroughAsync();
 ```csharp
 CommandOutput output = await Shell.Builder("git").WithArguments("log").CaptureAsync();
 
-output.ExitCode      // int - process exit code
+output.ExitCode      // int - process exit code (CommandResult.NeverRanExitCode / -1 if it never ran)
 output.Success       // bool - true if ExitCode == 0
+output.RunTime       // TimeSpan - zero for mocks and commands that never ran
 output.Stdout        // string - captured stdout (lazy, thread-safe)
 output.Stderr        // string - captured stderr (lazy, thread-safe)
 output.Combined      // string - interleaved stdout+stderr (lazy, thread-safe)
 output.OutputLines   // IReadOnlyList<OutputLine> - timestamped lines
 
-output.GetLines()        // string[] - combined output lines
-output.GetStdoutLines()  // string[] - stdout lines only
-output.GetStderrLines()  // string[] - stderr lines only
+output.GetLines()          // string[] - combined output lines
+output.GetStdoutLines()    // string[] - stdout lines only
+output.GetStderrLines()    // string[] - stderr lines only
+output.ToSummary()         // string - one-line summary
+output.ToDetailedString()  // string - multi-line details
 ```
 
 ### Builder Configuration
@@ -77,7 +85,7 @@ await Shell.Builder("myapp")
   .WithWorkingDirectory("/path/to/dir")     // Set working directory
   .WithEnvironmentVariable("KEY", "value")  // Set env var
   .WithStandardInput("input text")          // Pipe string to stdin
-  .WithNoValidation()                       // Don't throw on non-zero exit
+  .WithNoValidation()                       // Explicit default: non-zero exit is not thrown
   .RunAsync(cancellationToken);             // All methods accept CancellationToken
 ```
 
@@ -116,17 +124,6 @@ string selected = await Shell.Builder("git").WithArguments("branch", "--list")
   .SelectAsync();
 ```
 
-### Conditional Configuration
-
-```csharp
-await Shell.Builder("dotnet")
-  .WithArguments("build")
-  .When(isRelease, b => b.WithArguments("-c", "Release"))
-  .WhenNotNull(outputPath, (b, path) => b.WithArguments("-o", path))
-  .Unless(skipRestore, b => b.WithArguments("--no-restore"))
-  .RunAsync();
-```
-
 ## DotNet Commands
 
 Typed builders for `dotnet` CLI subcommands with IntelliSense-friendly options.
@@ -143,8 +140,8 @@ await DotNet.Build("MyProject.csproj")
 await DotNet.Publish("MyProject.csproj")
   .WithConfiguration("Release")
   .WithSelfContained()
-  .WithPublishSingleFile()
-  .WithPublishTrimmed()
+  .WithSingleFile()
+  .WithTrimmed()
   .WithRuntime("linux-x64")
   .RunAsync();
 
@@ -161,16 +158,19 @@ CommandOutput version = await DotNet.WithVersion().CaptureAsync();
 High-level Git operations with typed results.
 
 ```csharp
-// Find repo root
+// Find repo root. Synchronous only.
 string? root = Git.FindRoot();
-string? root = await Git.FindRootAsync();
 
 // Branch operations
 GitBranchUpdateResult result = await Git.UpdateBranchAsync("main");
 // result.Success, result.BranchPath, result.ErrorMessage
 
-string? defaultBranch = await Git.GetDefaultBranchAsync();
-int ahead = await Git.GetCommitsAheadAsync();
+GitDefaultBranchResult defaultBranch = await Git.GetDefaultBranchAsync();
+// defaultBranch.Success, defaultBranch.BranchName, defaultBranch.ErrorMessage
+
+GitCommitCountResult ahead = await Git.GetCommitsAheadOfDefaultBranchAsync();
+// ahead.Success, ahead.Count, ahead.ErrorMessage
+
 string? repoName = await Git.GetRepositoryNameAsync();
 
 // Worktree operations
@@ -188,13 +188,13 @@ Interactive selection with fzf.
 ```csharp
 // Select from items
 string selected = await Fzf.Builder()
-  .WithInputItems("option1", "option2", "option3")
+  .FromInput("option1", "option2", "option3")
   .WithHeader("Pick one")
   .SelectAsync();
 
 // Select from command output
 string selected = await Fzf.Builder()
-  .WithInputCommand("find . -name '*.cs'")
+  .FromCommand("find . -name '*.cs'")
   .WithPreview("cat {}")
   .SelectAsync();
 
@@ -203,19 +203,6 @@ string file = await Shell.Builder("git").WithArguments("ls-files")
   .Build()
   .SelectWithFzf()
   .SelectAsync();
-```
-
-## JSON-RPC Client
-
-Start a JSON-RPC subprocess and communicate via stdin/stdout.
-
-```csharp
-await using IJsonRpcClient client = await Shell.Builder("my-rpc-server")
-  .AsJsonRpcClient()
-  .WithTimeout(TimeSpan.FromSeconds(30))
-  .StartAsync();
-
-var response = await client.SendRequestAsync<MyResponse>("methodName", new { param1 = "value" });
 ```
 
 ## ScriptContext
@@ -267,38 +254,26 @@ CliConfiguration.Reset();
 
 ## Error Handling
 
-By default, commands throw on non-zero exit codes. Use `WithNoValidation()` to handle errors manually:
+Default validation is `None`. A non-zero exit is reported on `CommandOutput.ExitCode` and `Success`. It is not thrown. `WithNoValidation()` states that default explicitly. `WithZeroExitCodeValidation()` opts into throwing. A command that never ran reports `CommandResult.NeverRanExitCode` (`-1`), not success.
+
+`TtyPassthroughAsync` is the exception: it never throws on a non-zero exit, even when zero-exit validation is set. Inspect `ExitCode` / `Success`.
 
 ```csharp
-CommandOutput output = await Shell.Builder("might-fail")
-  .WithNoValidation()
-  .CaptureAsync();
+CommandOutput output = await Shell.Builder("might-fail").CaptureAsync();
 
 if (!output.Success)
 {
-  Console.Error.WriteLine($"Failed (exit {output.ExitCode}): {output.Stderr}");
+  // output.ExitCode and output.Stderr describe the failure. Nothing was thrown.
 }
-```
 
-## ExecutionResult (from PassthroughAsync)
-
-```csharp
-ExecutionResult result = await Shell.Builder("interactive-tool").PassthroughAsync();
-
-result.ExitCode        // int
-result.IsSuccess       // bool
-result.StandardOutput  // string
-result.StandardError   // string
-result.StartTime       // DateTimeOffset
-result.ExitTime        // DateTimeOffset
-result.RunTime         // TimeSpan
-result.ToSummary()     // string - brief summary
-result.ToDetailedString() // string - full details
+CommandOutput strict = await Shell.Builder("must-succeed")
+  .WithZeroExitCodeValidation()
+  .CaptureAsync();
 ```
 
 ## Documentation
 
-Amuru is in beta - refer to source for current API:
+Stable 1.0 contract. This skill matches `AGENTS.md`. If they diverge, the library source wins:
 
 - **Local**: Repository root (this is the source of truth for Amuru)
 - **GitHub**: https://github.com/TimeWarpEngineering/timewarp-amuru

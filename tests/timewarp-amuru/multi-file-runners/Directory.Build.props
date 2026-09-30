@@ -11,17 +11,9 @@
     <ExperimentalFileBasedProgramEnableTransitiveDirectives>true</ExperimentalFileBasedProgramEnableTransitiveDirectives>
   </PropertyGroup>
 
-    <ItemGroup>
-    <!-- Include all test files for multi-mode compilation -->
-    <Compile Include="../single-file-tests/core/*.cs" />
-    <Compile Include="../single-file-tests/configuration/*.cs" />
-    <Compile Include="../single-file-tests/dot-net-commands/*.cs" />
-    <Compile Include="../single-file-tests/git-commands/*.cs" />
-    <Compile Include="../single-file-tests/script-support/*.cs" />
-    <Compile Include="../single-file-tests/fzf-command/*.cs" />
-    <Compile Include="../single-file-tests/native/file-system/*.cs" />
-    <Compile Include="../single-file-tests/native/*.cs" />
-    <Compile Include="../single-file-tests/repo-services/*.cs" />
+  <ItemGroup>
+    <!-- Recursive: a new sibling folder under single-file-tests is part of the aggregate run. -->
+    <Compile Include="../single-file-tests/**/*.cs" />
   </ItemGroup>
 
 </Project>
