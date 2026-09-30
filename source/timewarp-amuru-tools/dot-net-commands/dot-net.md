@@ -1,373 +1,247 @@
 # DotNet Fluent API Reference
 
-The `DotNet` class provides a comprehensive fluent API for executing .NET CLI commands. It wraps the standard `dotnet` command-line interface with strongly-typed, discoverable methods that follow the same graceful error handling philosophy as the rest of TimeWarp.Cli.
+The `DotNet` class in `TimeWarp.Amuru` is a fluent wrapper over the `dotnet` CLI. Builders run through `RunAsync` (streams to the terminal, returns the exit code) and `CaptureAsync` (returns `CommandOutput`). There is no `ExecuteAsync`, `GetStringAsync`, or `GetLinesAsync`.
 
-## Overview
+Default validation is `None`: a non-zero exit is the returned exit code or `CommandOutput.Success == false`. It is not thrown, and it is not rewritten into an empty string.
 
-All DotNet commands follow a consistent fluent builder pattern:
+## Execution
 
 ```csharp
-// Basic usage
-await DotNet.Build().ExecuteAsync();
+int exitCode = await DotNet.Build()
+  .WithProject("MyApp.csproj")
+  .WithConfiguration("Release")
+  .WithNoRestore()
+  .RunAsync();
 
-// With configuration
-await DotNet.Build()
-    .WithProject("MyApp.csproj")
-    .WithConfiguration("Release")
-    .WithNoRestore()
-    .ExecuteAsync();
+CommandOutput output = await DotNet.Build()
+  .WithProject("MyApp.csproj")
+  .CaptureAsync();
 
-// Capture output
-var testResults = await DotNet.Test()
-    .WithProject("MyApp.Tests.csproj")
-    .WithFilter("Category=Unit")
-    .GetStringAsync();
+string stdout = output.Stdout;
+string[] lines = output.GetLines();
+bool succeeded = output.Success;
 ```
 
-## Available Commands
+`RunAndCaptureAsync` is available on the build and clean builders and on `DotNet.WithVersion()` / `WithListSdks()` / `WithInfo()`. Other builders expose `RunAsync` and `CaptureAsync`.
 
-### Core Development Commands
+## Commands
 
-#### `DotNet.Run()`
-Execute applications with full configuration support including launch profiles, architecture targeting, and environment variables.
+### `DotNet.Run()`
 
 ```csharp
-// Basic application execution
-await DotNet.Run().ExecuteAsync();
+await DotNet.Run().RunAsync();
 
-// Run specific project with configuration
 await DotNet.Run()
-    .WithProject("MyApp.csproj")
-    .WithConfiguration("Release")
-    .WithLaunchProfile("Production")
-    .ExecuteAsync();
+  .WithProject("MyApp.csproj")
+  .WithConfiguration("Release")
+  .WithLaunchProfile("Production")
+  .RunAsync();
 
-// Run with environment variables and arguments
 await DotNet.Run()
-    .WithEnvironmentVariable("NODE_ENV", "development")
-    .WithArguments("--verbose", "--port", "8080")
-    .ExecuteAsync();
+  .WithEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development")
+  .WithArguments("--verbose", "--port", "8080")
+  .RunAsync();
 ```
 
-**Key Features:**
-- Launch profile configuration from `launchSettings.json`
-- Architecture and OS targeting (`--arch`, `--os`)
-- Environment variable configuration
-- Program argument passing
-- Build and restore control
+### `DotNet.Build()`
 
-#### `DotNet.Build()`
-Build projects with comprehensive configuration options.
+`Build()` and `Build(string project)` both exist. The string overload is `WithProject`.
 
 ```csharp
-// Basic build
-await DotNet.Build().ExecuteAsync();
+await DotNet.Build().RunAsync();
 
-// Advanced build configuration
 await DotNet.Build("MyApp.csproj")
-    .WithConfiguration("Release")
-    .WithFramework("net10.0")
-    .WithRuntime("win-x64")
-    .WithProperty("Version", "1.0.0")
-    .WithNoRestore()
-    .ExecuteAsync();
+  .WithConfiguration("Release")
+  .WithFramework("net10.0")
+  .WithRuntime("win-x64")
+  .WithProperty("Version", "1.0.0")
+  .WithNoRestore()
+  .RunAsync();
 ```
 
-**Key Features:**
-- Multi-framework targeting
-- Runtime-specific builds
-- MSBuild property configuration
-- Verbosity control
-- Terminal logger integration
-
-#### `DotNet.Test()`
-Run tests with filtering, logging, and blame detection.
+### `DotNet.Test()`
 
 ```csharp
-// Run all tests
-await DotNet.Test().ExecuteAsync();
+await DotNet.Test().RunAsync();
 
-// Advanced test configuration
-var testResults = await DotNet.Test()
-    .WithProject("MyApp.Tests.csproj")
-    .WithConfiguration("Release")
-    .WithFilter("Category=Unit&Priority=High")
-    .WithLogger("trx;LogFileName=TestResults.trx")
-    .WithBlame()
-    .GetStringAsync();
+CommandOutput testOutput = await DotNet.Test()
+  .WithProject("MyApp.Tests.csproj")
+  .WithConfiguration("Release")
+  .WithFilter("Category=Unit")
+  .WithLogger("trx;LogFileName=TestResults.trx")
+  .WithBlame()
+  .CaptureAsync();
 ```
 
-**Key Features:**
-- Test filtering with complex expressions
-- Multiple logger support
-- Blame detection for crash analysis
-- Coverage collection
-- Results file generation
-
-### Maintenance Commands
-
-#### `DotNet.Clean()`
-Clean build outputs with targeted framework and runtime support.
+### `DotNet.Clean()`
 
 ```csharp
-// Clean all outputs
-await DotNet.Clean().ExecuteAsync();
+await DotNet.Clean().RunAsync();
 
-// Clean specific configuration
 await DotNet.Clean("MyApp.csproj")
-    .WithConfiguration("Release")
-    .WithFramework("net10.0")
-    .WithRuntime("win-x64")
-    .ExecuteAsync();
+  .WithConfiguration("Release")
+  .WithFramework("net10.0")
+  .WithRuntime("win-x64")
+  .RunAsync();
 ```
 
-#### `DotNet.Restore()`
-Restore dependencies with cache control and source configuration.
+### `DotNet.Restore()`
+
+Lock-file restore is `WithLockedMode()`, not `WithLockMode()`.
 
 ```csharp
-// Basic restore
-await DotNet.Restore().ExecuteAsync();
+await DotNet.Restore().RunAsync();
 
-// Advanced restore with cache control
 await DotNet.Restore()
-    .WithProject("MyApp.csproj")
-    .WithSource("https://api.nuget.org/v3/index.json")
-    .WithSource("https://my-private-feed.com/v3/index.json")
-    .WithNoCache()
-    .WithLockMode()
-    .ExecuteAsync();
+  .WithProject("MyApp.csproj")
+  .WithSource("https://api.nuget.org/v3/index.json")
+  .WithNoCache()
+  .WithLockedMode()
+  .RunAsync();
 ```
 
-**Key Features:**
-- Multiple package source support
-- Cache control (`--no-cache`)
-- Lock file management
-- Package directory configuration
-- Force resolution
+### `DotNet.Publish()`
 
-### Publishing Commands
-
-#### `DotNet.Publish()`
-Publish applications with deployment configuration including self-contained, ReadyToRun, and single-file options.
+Single-file and trimming are `WithSingleFile()` and `WithTrimmed()`.
 
 ```csharp
-// Basic publish
-await DotNet.Publish().ExecuteAsync();
+await DotNet.Publish().RunAsync();
 
-// Production deployment
 await DotNet.Publish("MyApp.csproj")
-    .WithConfiguration("Release")
-    .WithRuntime("win-x64")
-    .WithSelfContained()
-    .WithReadyToRun()
-    .WithSingleFile()
-    .WithTrimmed()
-    .WithOutput("./publish")
-    .ExecuteAsync();
+  .WithConfiguration("Release")
+  .WithRuntime("win-x64")
+  .WithSelfContained()
+  .WithReadyToRun()
+  .WithSingleFile()
+  .WithTrimmed()
+  .WithOutput("./publish")
+  .RunAsync();
 ```
 
-**Key Features:**
-- Self-contained deployment
-- ReadyToRun optimization
-- Single-file publishing
-- Code trimming
-- Framework-dependent deployment
-
-#### `DotNet.Pack()`
-Create NuGet packages with symbol and source support.
+### `DotNet.Pack()`
 
 ```csharp
-// Basic package creation
-await DotNet.Pack().ExecuteAsync();
+await DotNet.Pack().RunAsync();
 
-// Package with symbols and metadata
 await DotNet.Pack("MyLibrary.csproj")
-    .WithConfiguration("Release")
-    .WithOutput("./packages")
-    .WithVersionSuffix("beta")
-    .IncludeSymbols()
-    .IncludeSource()
-    .WithServiceable()
-    .ExecuteAsync();
+  .WithConfiguration("Release")
+  .WithOutput("./packages")
+  .WithVersionSuffix("beta")
+  .IncludeSymbols()
+  .IncludeSource()
+  .WithServiceable()
+  .RunAsync();
 ```
 
-### Package Management Commands
+### `DotNet.ListPackages()`
 
-#### `DotNet.ListPackages()`
-List package references with vulnerability and outdated package detection.
+Outdated and vulnerable listings are `Outdated()` and `Vulnerable()`, not `WithOutdated()` / `WithVulnerable()`. `ToListAsync()` returns stdout lines.
 
 ```csharp
-// List all packages
-var packages = await DotNet.ListPackages().ToListAsync();
+string[] packages = await DotNet.ListPackages().ToListAsync();
 
-// Find outdated packages
-var outdatedPackages = await DotNet.ListPackages()
-    .WithProject("MyApp.csproj")
-    .WithOutdated()
-    .IncludeTransitive()
-    .GetLinesAsync();
+string[] outdated = await DotNet.ListPackages()
+  .WithProject("MyApp.csproj")
+  .Outdated()
+  .IncludeTransitive()
+  .ToListAsync();
 
-// Check for vulnerabilities
-var vulnerablePackages = await DotNet.ListPackages()
-    .WithVulnerable()
-    .WithFormat("json")
-    .GetStringAsync();
+CommandOutput vulnerable = await DotNet.ListPackages()
+  .Vulnerable()
+  .WithFormat("json")
+  .CaptureAsync();
 ```
 
-**Key Features:**
-- Outdated package detection
-- Vulnerability scanning
-- Transitive dependency analysis
-- JSON output format
-- Prerelease package inclusion
-
-#### `DotNet.AddPackage()`
-Add NuGet package references with version and source control.
+### `DotNet.AddPackage()` / `DotNet.RemovePackage()`
 
 ```csharp
-// Add latest package
-await DotNet.AddPackage("Newtonsoft.Json").ExecuteAsync();
+await DotNet.AddPackage("Newtonsoft.Json").RunAsync();
+await DotNet.AddPackage("Newtonsoft.Json", "13.0.3").RunAsync();
 
-// Add specific version
-await DotNet.AddPackage("Newtonsoft.Json", "13.0.3").ExecuteAsync();
-
-// Add with specific configuration
 await DotNet.AddPackage("Microsoft.Extensions.Logging")
-    .WithProject("MyApp.csproj")
-    .WithFramework("net10.0")
-    .WithPrerelease()
-    .WithSource("https://api.nuget.org/v3/index.json")
-    .WithNoRestore()
-    .ExecuteAsync();
-```
+  .WithProject("MyApp.csproj")
+  .WithFramework("net10.0")
+  .WithPrerelease()
+  .WithSource("https://api.nuget.org/v3/index.json")
+  .WithNoRestore()
+  .RunAsync();
 
-#### `DotNet.RemovePackage()`
-Remove NuGet package references.
+await DotNet.RemovePackage("Newtonsoft.Json").RunAsync();
 
-```csharp
-// Remove package
-await DotNet.RemovePackage("Newtonsoft.Json").ExecuteAsync();
-
-// Remove from specific project
 await DotNet.RemovePackage("Microsoft.Extensions.Logging")
-    .WithProject("MyApp.csproj")
-    .ExecuteAsync();
+  .WithProject("MyApp.csproj")
+  .RunAsync();
 ```
 
-## Universal Features
+## Shared builder members
 
-All DotNet commands support these common features:
+These exist on the builders above:
 
-### Working Directory Configuration
 ```csharp
 await DotNet.Build()
-    .WithWorkingDirectory("/path/to/project")
-    .ExecuteAsync();
+  .WithWorkingDirectory("/path/to/project")
+  .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+  .WithProperty("Version", "1.0.0")
+  .WithNoValidation()
+  .RunAsync();
 ```
 
-### Environment Variables
-```csharp
-await DotNet.Run()
-    .WithEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production")
-    .WithEnvironmentVariable("ConnectionString", "...")
-    .ExecuteAsync();
-```
+`WithNoValidation()` is the default made explicit. DotNet builders do not expose `WithZeroExitCodeValidation()`.
 
-### MSBuild Properties
-```csharp
-await DotNet.Build()
-    .WithProperty("Version", "1.0.0")
-    .WithProperty("AssemblyVersion", "1.0.0.0")
-    .ExecuteAsync();
-```
-
-### Execution Methods
-All commands provide three execution methods:
+Query helpers on `DotNet`:
 
 ```csharp
-// Execute without capturing output
-await DotNet.Build().ExecuteAsync();
-
-// Capture output as string
-var output = await DotNet.Build().GetStringAsync();
-
-// Capture output as line array
-var lines = await DotNet.Build().GetLinesAsync();
+CommandOutput sdks = await DotNet.WithListSdks().CaptureAsync();
+CommandOutput version = await DotNet.WithVersion().CaptureAsync();
 ```
 
-## Error Handling
-
-DotNet commands follow TimeWarp.Cli's graceful error handling philosophy:
-
-- **No exceptions thrown** for command failures
-- **Empty results** returned instead of throwing
-- **Validation errors** return safe defaults
-- **Non-zero exit codes** don't cause exceptions
+## Error handling
 
 ```csharp
-// Safe execution - won't throw even if command fails
-var testResults = await DotNet.Test()
-    .WithProject("NonExistentProject.csproj")
-    .GetStringAsync(); // Returns empty string on failure
+CommandOutput failed = await DotNet.Test()
+  .WithProject("NonExistentProject.csproj")
+  .CaptureAsync();
 
-var buildOutput = await DotNet.Build()
-    .WithConfiguration("InvalidConfig")
-    .GetLinesAsync(); // Returns empty array on failure
+if (!failed.Success)
+{
+  int exitCode = failed.ExitCode;
+  string stderr = failed.Stderr;
+}
 ```
 
-## Integration with Microsoft Documentation
+`CaptureAsync` still returns the real stdout, stderr, and exit code. It does not collapse failure into an empty string. `RunAsync` returns that same exit code and does not throw.
 
-For detailed information about specific command options and their behavior, refer to the official Microsoft documentation:
+A command that never ran reports `CommandResult.NeverRanExitCode` (`-1`).
 
-- [dotnet run command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-run)
-- [dotnet build command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build)
-- [dotnet test command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test)
-- [dotnet clean command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-clean)
-- [dotnet restore command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore)
-- [dotnet publish command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish)
-- [dotnet pack command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-pack)
-- [dotnet list package command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-list-package)
-- [dotnet add package command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package)
-- [dotnet remove package command](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-remove-package)
+## Pipelines
 
-The TimeWarp.Cli DotNet API provides a fluent, strongly-typed interface over these standard CLI commands while maintaining full compatibility with their documented behavior and options.
-
-## Pipeline Integration
-
-DotNet commands integrate with TimeWarp.Cli's pipeline system through their `CommandResult` return values:
+Builders do not pipe directly. `Build()` returns a `CommandResult`, which does.
 
 ```csharp
-// Chain dotnet commands with other commands
-var filteredOutput = await DotNet.ListPackages()
-    .WithOutdated()
-    .Pipe("grep", "Microsoft")
-    .GetLinesAsync();
+CommandOutput filtered = await DotNet.ListPackages()
+  .Outdated()
+  .Build()
+  .Pipe("grep", "Microsoft")
+  .CaptureAsync();
 
-// Process test results
-var failedTests = await DotNet.Test()
-    .WithLogger("console;verbosity=detailed")
-    .Pipe("grep", "Failed")
-    .GetLinesAsync();
+string[] failedTests = (await DotNet.Test()
+  .WithLogger("console;verbosity=detailed")
+  .Build()
+  .Pipe("grep", "Failed")
+  .CaptureAsync()).GetLines();
 ```
 
-## Best Practices
+## Microsoft documentation
 
-### Command Selection
-- Use `ExecuteAsync()` for commands that perform actions (build, clean, publish)
-- Use `GetStringAsync()` for formatted output that should be displayed
-- Use `GetLinesAsync()` for output that needs line-by-line processing
+Option meanings match the `dotnet` CLI:
 
-### Configuration
-- Always specify project files explicitly in multi-project solutions
-- Use configuration-specific settings for different environments
-- Leverage MSBuild properties for version and metadata control
-
-### Error Handling
-- Check for empty results to detect command failures
-- Use appropriate timeouts for long-running operations
-- Consider the graceful failure philosophy in your application logic
-
-### Performance
-- Use `WithNoRestore()` when appropriate to skip redundant restores
-- Consider `WithNoLogo()` to reduce output verbosity
-- Use cached commands for expensive operations that are repeated
+- [dotnet run](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-run)
+- [dotnet build](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build)
+- [dotnet test](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test)
+- [dotnet clean](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-clean)
+- [dotnet restore](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore)
+- [dotnet publish](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish)
+- [dotnet pack](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-pack)
+- [dotnet list package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-list-package)
+- [dotnet add package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package)
+- [dotnet remove package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-remove-package)

@@ -21,6 +21,10 @@ on:
       - 'msbuild/**'
       - 'nuget.config'
       - 'global.json'
+      - 'BannedSymbols.txt'
+      - '.editorconfig'
+      - 'source/.editorconfig'
+      - 'timewarp-amuru.slnx'
   release:
     types: [published]
   workflow_dispatch:
