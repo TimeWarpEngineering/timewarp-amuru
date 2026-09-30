@@ -22,7 +22,7 @@ string[] lines = output.GetLines();
 bool succeeded = output.Success;
 ```
 
-`RunAndCaptureAsync` is available on the build and clean builders and on `DotNet.WithVersion()` / `WithListSdks()` / `WithInfo()`. Other builders expose `RunAsync` and `CaptureAsync`.
+`RunAndCaptureAsync` is on the build, clean, and pack builders, and on `DotNet.WithVersion()` / `WithListSdks()` / `WithInfo()` (`DotNetBuilder`). Test, Run, Publish, Restore, ListPackages, AddPackage, and RemovePackage expose `RunAsync` and `CaptureAsync` only.
 
 ## Commands
 
@@ -175,7 +175,9 @@ await DotNet.RemovePackage("Microsoft.Extensions.Logging")
 
 ## Shared builder members
 
-These exist on the builders above:
+`WithWorkingDirectory`, `WithEnvironmentVariable`, and `WithNoValidation` exist on every builder in this reference.
+
+`WithProperty` exists on Build, Clean, Restore, Run, Test, Publish, and Pack. It does not exist on ListPackages, AddPackage, or RemovePackage.
 
 ```csharp
 await DotNet.Build()

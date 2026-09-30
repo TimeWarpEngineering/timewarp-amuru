@@ -15,7 +15,10 @@ In a runfile:
 
 ```csharp
 #:package TimeWarp.Amuru
+#:package TimeWarp.Amuru.Tools
 ```
+
+`Shell`, `CommandOutput`, `CommandMock`, `ScriptContext`, and `CliConfiguration` are `TimeWarp.Amuru`. `DotNet`, `Git`, and `Fzf` are `TimeWarp.Amuru.Tools`. Both use the `TimeWarp.Amuru` namespace.
 
 Or via Central Package Management in `Directory.Packages.props`:
 
@@ -185,13 +188,13 @@ Interactive selection with fzf.
 ```csharp
 // Select from items
 string selected = await Fzf.Builder()
-  .WithInputItems("option1", "option2", "option3")
+  .FromInput("option1", "option2", "option3")
   .WithHeader("Pick one")
   .SelectAsync();
 
 // Select from command output
 string selected = await Fzf.Builder()
-  .WithInputCommand("find . -name '*.cs'")
+  .FromCommand("find . -name '*.cs'")
   .WithPreview("cat {}")
   .SelectAsync();
 
