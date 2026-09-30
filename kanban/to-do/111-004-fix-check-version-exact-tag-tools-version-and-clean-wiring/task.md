@@ -22,10 +22,12 @@ Pinned tree: `fbd5d276fc5a936136a55d981fc121a23b991493`. Evidence: parent `revie
 - [x] M19 `dev clean` uses RepoCleanService (keep nupkg/feed-cache extra)
 - [x] M20 root-bin children get tracked-file + reparse guards
 - [x] `## Results` + `### How to validate`
+- [x] Review disposition (2 rounds, effort 1, clean)
 
 ## Session
 
 - Implementer: Grok session (2026-09-30)
+- Review: Grok session 01a0efe0-95ac-7b52-8bd8-1212d18c3d0c (2026-09-30)
 
 ## Results
 
@@ -57,12 +59,24 @@ dotnet build tools/dev-cli/dev.cs --nologo
 **Expect**
 
 - repo-check-version-service: 13 passed, including older exact tag `v1.0.0` with latest `v1.1.0` → `IsNewVersion=false`, unlisted feed version → already published, csproj `<Version>1.0.0-beta.2</Version>` compared instead of props `1.0.0`.
-- repo-clean-service: 5 passed. Root `bin` keeps `dev`, `dev.exe`, tracked paths, and symlinks; deletes only untracked non-reparse children. Local feed deletes `TimeWarp.Amuru.*.nupkg` and `timewarp.amuru` but keeps tracked nupkgs and symlink nupkgs.
+- repo-clean-service: 5 passed. Root `bin` keeps `dev`, `dev.exe`, tracked paths, and symlinks; deletes only untracked non-reparse children. Local feed deletes `TimeWarp.Amuru.*.nupkg` and `timewarp.amuru` but keeps tracked nupkgs, symlink nupkgs, and files reached only through a directory symlink (`linked-tree` → outside nupkg and `timewarp.amuru` survive).
 - nuget-package-service: 31 passed. `Newtonsoft.Json` `6.0.1-beta1` is returned with `Listed=false`; latest stable/prerelease stay listed.
 - Both builds: 0 warnings, 0 errors.
 
 **Not in scope:** `dev check-version` against the live nuget.org feed (DevCli still uses the lockstep props version). Do not run `dev clean` on a checkout whose `artifacts/packages` or root `bin` you need to keep.
 
+### Review disposition
+
+Effort 1, roster `general`, 2 rounds. Final counts: bug 0 open / 1 fixed / 0 wontfix; suggestion 0; nit 0. Outcome **clean**. No wontfix and no escalation.
+
+Round 1 filed **M1**: `CleanLocalFeedAsync` used `SearchOption.AllDirectories`, which follows directory symlinks, and the tracked-file guard did not stop deletion of the outside target. Fixed on this task (`DeleteLocalFeedEntriesAsync` does not descend into reparse points). Round 2 re-checked M1; `repo-clean-service.cs` 5 passed.
+
+- Framework: `kanban/to-do/111-004-fix-check-version-exact-tag-tools-version-and-clean-wiring/review/review-framework.md`
+- Last merged: `kanban/to-do/111-004-fix-check-version-exact-tag-tools-version-and-clean-wiring/review/round-2/merged.md`
+- Disposition: `kanban/to-do/111-004-fix-check-version-exact-tag-tools-version-and-clean-wiring/review/disposition.md`
+
 ## Notes
 
 Parent: **111**. Source: `review/round-1/tools-services.md`. 098/076 are prior art; this task is the remaining holes, not a reopen of 098’s FindDirectories walk.
+
+Review trail: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`. M1 fixed here; disposition clean.
