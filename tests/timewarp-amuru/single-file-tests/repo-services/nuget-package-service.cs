@@ -98,9 +98,31 @@ namespace Repo_Services
       NuGetSearchResult? result = await service.SearchAsync("NuGet.Versioning");
 
       result.ShouldNotBeNull();
-      // Unlisted versions are filtered from registration results, so the listed
-      // count is lower than the raw version history; 50 is comfortably "high count"
       result.Versions.Count.ShouldBeGreaterThan(50);
+    }
+
+    public static async Task SearchAsync_Should_IncludeUnlistedVersionsMarkedUnlisted()
+    {
+      NuGetPackageService service = new();
+
+      NuGetSearchResult? result = await service.SearchAsync("Newtonsoft.Json");
+      result.ShouldNotBeNull();
+
+      NuGetPackageVersion? unlisted = result.Versions.FirstOrDefault
+      (
+        static version => string.Equals(version.Version, "6.0.1-beta1", StringComparison.OrdinalIgnoreCase)
+      );
+      unlisted.ShouldNotBeNull();
+      unlisted.Listed.ShouldBeFalse();
+
+      PackageVersionInfo? latest = await service.GetLatestVersionsAsync("Newtonsoft.Json");
+      latest.ShouldNotBeNull();
+      latest.StableVersion.ShouldNotBeNull();
+      result.Versions.First(version => version.Version == latest.StableVersion).Listed.ShouldBeTrue();
+      if (latest.PrereleaseVersion != null)
+      {
+        result.Versions.First(version => version.Version == latest.PrereleaseVersion).Listed.ShouldBeTrue();
+      }
     }
   }
 

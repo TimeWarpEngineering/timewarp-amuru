@@ -5,12 +5,19 @@
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Represents a NuGet package version from search results.
+/// Represents a NuGet package version from registration results.
 /// </summary>
+/// <param name="Version">Normalized version string.</param>
+/// <param name="Description">Optional description.</param>
+/// <param name="Listed">
+/// False when the registration catalog entry is unlisted. Unlisted versions
+/// remain on the feed and a republish of the same id and version is rejected.
+/// </param>
 public sealed record NuGetPackageVersion
 (
   string Version,
-  string? Description = null
+  string? Description = null,
+  bool Listed = true
 );
 
 /// <summary>
