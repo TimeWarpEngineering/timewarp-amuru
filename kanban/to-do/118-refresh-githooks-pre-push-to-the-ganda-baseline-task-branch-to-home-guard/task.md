@@ -34,7 +34,7 @@ lacks the guard.
 - [x] Hook smoke test: task→home refused, raw sha→home allowed (stdin simulation only)
 - [x] Gates per this repo's `tw-pr` (a hook-only change needs no full build unless the skill's
       scope table says otherwise)
-- [ ] Implementation review; host `open-pr`
+- [x] Implementation review; host `open-pr`
 
 ## Notes
 
@@ -53,6 +53,10 @@ lacks the guard.
   `dotnet run --file tools/dev-cli/dev.cs -- self-install`. Audit now passes all checks.
 - Gates: this is a hook-only change, so no product build or tests were needed. The hook runfile
   compiled and ran during the smoke test below.
+
+- Review: 1 round, effort 1, roster general. Final counts: 0 bug / 0 suggestion / 0 nit (0 open,
+  0 fixed, 0 wontfix). Disposition **clean**. Artifacts: `review/review-framework.md`,
+  `review/round-1/merged.md`, `review/disposition.md`.
 
 ### How to validate
 
@@ -86,3 +90,4 @@ exit=0
 
 - Created: 2026-10-01
 - 2026-10-01: implement — hook refreshed via audit --fix, bin/dev self-installed, audit clean, smoke test passed
+- 2026-10-01: review — effort 1 (general), round 1 no findings, disposition clean
