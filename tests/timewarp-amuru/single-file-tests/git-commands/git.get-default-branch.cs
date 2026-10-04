@@ -103,6 +103,22 @@ namespace Git_
       await Task.CompletedTask;
     }
 
+    public static async Task SymbolicRefWithOriginInsideBranchName_Should_StripOnlyLeadingPrefix()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "symbolic-ref", "refs/remotes/origin/HEAD", "--short")
+          .Returns("origin/feature/origin/topic");
+
+        GitDefaultBranchResult result = await Git.GetDefaultBranchAsync();
+
+        result.Success.ShouldBeTrue();
+        result.BranchName.ShouldBe("feature/origin/topic");
+      }
+
+      await Task.CompletedTask;
+    }
+
     public static async Task NoBranchFound_Should_ReturnError()
     {
       using (CommandMock.Enable())

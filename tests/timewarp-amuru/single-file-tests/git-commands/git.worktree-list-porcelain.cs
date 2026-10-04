@@ -40,10 +40,30 @@ detached
         CommandMock.Setup("git", "worktree", "list", "--porcelain")
           .Returns(porcelainOutput);
 
-        string result = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
+        GitWorktreeListResult result = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
 
-        result.ShouldNotBeNullOrWhiteSpace();
-        result.ShouldContain("worktree");
+        result.Success.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
+        result.Porcelain.ShouldNotBeNullOrWhiteSpace();
+        result.Porcelain!.ShouldContain("worktree");
+      }
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task GitFailure_Should_ReturnErrorInsteadOfEmptyString()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("git", "worktree", "list", "--porcelain")
+          .ReturnsError("fatal: not a git repository", 128);
+
+        GitWorktreeListResult result = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
+
+        result.Success.ShouldBeFalse();
+        result.Porcelain.ShouldBeNull();
+        result.ErrorMessage.ShouldNotBeNull();
+        result.ErrorMessage!.ShouldContain("not a git repository");
       }
 
       await Task.CompletedTask;

@@ -160,22 +160,28 @@ High-level Git operations with typed results.
 ```csharp
 // Find repo root. Synchronous only.
 string? root = Git.FindRoot();
+string repositoryPath = root ?? Directory.GetCurrentDirectory();
 
 // Branch operations
-GitBranchUpdateResult result = await Git.UpdateBranchAsync("main");
+GitBranchUpdateResult result = await Git.UpdateBranchAsync("main", repositoryPath);
 // result.Success, result.BranchPath, result.ErrorMessage
 
-GitDefaultBranchResult defaultBranch = await Git.GetDefaultBranchAsync();
+GitDefaultBranchResult defaultBranch = await Git.GetDefaultBranchAsync(repositoryPath);
 // defaultBranch.Success, defaultBranch.BranchName, defaultBranch.ErrorMessage
 
-GitCommitCountResult ahead = await Git.GetCommitsAheadOfDefaultBranchAsync();
+GitCommitCountResult ahead = await Git.GetCommitsAheadOfDefaultBranchAsync(repositoryPath);
 // ahead.Success, ahead.Count, ahead.ErrorMessage
 
-string? repoName = await Git.GetRepositoryNameAsync();
+GitFetchResult fetched = await Git.FetchAsync(repositoryPath);
+// fetched.Success, fetched.ErrorMessage
+
+string? repoName = await Git.GetRepositoryNameAsync(repositoryPath);
 
 // Worktree operations
-bool isWorktree = Git.IsWorktree();
-string? worktreePath = await Git.GetWorktreePathAsync();
+bool isWorktree = Git.IsWorktree(repositoryPath);
+string? worktreePath = await Git.GetWorktreePathAsync("main", repositoryPath);
+GitWorktreeListResult listed = await Git.WorktreeListPorcelainAsync(repositoryPath);
+// listed.Success, listed.Porcelain, listed.ErrorMessage
 
 // For other git commands, use Shell.Builder
 CommandOutput log = await Shell.Builder("git").WithArguments("log", "--oneline", "-10").CaptureAsync();

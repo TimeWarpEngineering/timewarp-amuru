@@ -21,9 +21,11 @@
   <ItemGroup>
     <!-- Shared test helpers compiled into all test files -->
     <Compile Include="$(MSBuildThisFileDirectory)TestHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)git-repository-fixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Global usings for all test projects -->
+    <Using Include="TimeWarp.Amuru.Testing" />
     <Using Include="TimeWarp.Amuru.Testing.TestHelpers" Static="true" />
     <Using Include="System.Diagnostics" />
     <Using Include="System.Reflection" />

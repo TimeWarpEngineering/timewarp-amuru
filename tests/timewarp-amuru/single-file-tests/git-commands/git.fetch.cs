@@ -30,9 +30,10 @@ namespace Git_
         CommandMock.Setup("git", "fetch", "origin")
           .Returns("");
 
-        bool result = await Git.FetchAsync("/path/to/repo.git");
+        GitFetchResult result = await Git.FetchAsync("/path/to/repo.git");
 
-        result.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -45,9 +46,10 @@ namespace Git_
         CommandMock.Setup("git", "fetch", "upstream")
           .Returns("");
 
-        bool result = await Git.FetchAsync("/path/to/repo.git", "upstream");
+        GitFetchResult result = await Git.FetchAsync("/path/to/repo.git", "upstream");
 
-        result.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -60,9 +62,11 @@ namespace Git_
         CommandMock.Setup("git", "fetch", "origin")
           .ReturnsError("fatal: not a git repository", 128);
 
-        bool result = await Git.FetchAsync("/path/to/repo.git");
+        GitFetchResult result = await Git.FetchAsync("/path/to/repo.git");
 
-        result.ShouldBeFalse();
+        result.Success.ShouldBeFalse();
+        result.ErrorMessage.ShouldNotBeNull();
+        result.ErrorMessage!.ShouldContain("not a git repository");
       }
 
       await Task.CompletedTask;

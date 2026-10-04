@@ -1,8 +1,20 @@
 #region Purpose
-// TODO: Add purpose description
+// Configures origin's fetch refspec and returns the git failure text.
+#endregion
+
+#region Design
+// Bare clones need `+refs/heads/*:refs/remotes/origin/*` before worktree operations can see every branch.
+// The result record keeps git's message when `git config` fails.
 #endregion
 
 namespace TimeWarp.Amuru;
+
+/// <summary>
+/// Represents the result of configuring the origin fetch refspec.
+/// </summary>
+/// <param name="Success">True if configuration succeeded, false otherwise.</param>
+/// <param name="ErrorMessage">Error message if failed (null if succeeded).</param>
+public record GitConfigureFetchRefspecResult(bool Success, string? ErrorMessage);
 
 /// <summary>
 /// Git operations - FetchRefspec configuration implementation.
@@ -16,22 +28,31 @@ public static partial class Git
   /// </summary>
   /// <param name="repositoryPath">The path to the bare repository.</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
-  /// <returns>True if configuration succeeded, false otherwise.</returns>
+  /// <returns>GitConfigureFetchRefspecResult containing success status and any error message.</returns>
   /// <example>
-  /// bool configured = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
-  /// if (configured)
+  /// GitConfigureFetchRefspecResult configured = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
+  /// if (configured.Success)
   /// {
   ///   Console.WriteLine("Fetch refspec configured successfully");
   /// }
   /// </example>
-  public static async Task<bool> ConfigureFetchRefspecAsync(string repositoryPath, CancellationToken cancellationToken = default)
+  public static async Task<GitConfigureFetchRefspecResult> ConfigureFetchRefspecAsync(
+    string repositoryPath,
+    CancellationToken cancellationToken = default)
   {
-    CommandOutput result = await Shell.Builder("git")
-      .WithArguments("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
-      .WithWorkingDirectory(repositoryPath)
-      .WithNoValidation()
-      .CaptureAsync(cancellationToken).ConfigureAwait(false);
+    CommandOutput result = await GitBuilder(
+        repositoryPath,
+        "config",
+        "remote.origin.fetch",
+        "+refs/heads/*:refs/remotes/origin/*")
+      .CaptureAsync(cancellationToken)
+      .ConfigureAwait(false);
 
-    return result.Success;
+    if (result.Success)
+    {
+      return new GitConfigureFetchRefspecResult(true, null);
+    }
+
+    return new GitConfigureFetchRefspecResult(false, ErrorTextOr(result, "Failed to configure fetch refspec"));
   }
 }

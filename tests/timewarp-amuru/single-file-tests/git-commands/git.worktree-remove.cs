@@ -35,5 +35,33 @@ namespace Git_
 
       await Task.CompletedTask;
     }
+
+    public static async Task RelativeGitdirAndForeignWorkingDirectory_Should_RemoveWorktree()
+    {
+      string repository = await GitRepositoryFixture.CreateRepositoryAsync("worktree-remove");
+      string worktree = Path.Combine(Path.GetTempPath(), "amuru-git-wt-" + Guid.NewGuid().ToString("N"));
+      string unrelated = Directory.CreateTempSubdirectory("amuru-git-cwd-").FullName;
+      string originalDirectory = Directory.GetCurrentDirectory();
+      try
+      {
+        await GitRepositoryFixture.CommitFileAsync(repository, "a.txt", "a", "A");
+        await GitRepositoryFixture.GitAsync(repository, "branch", "feature");
+        await GitRepositoryFixture.GitAsync(repository, "worktree", "add", worktree, "feature");
+        GitRepositoryFixture.MakeGitdirRelative(worktree);
+
+        Directory.SetCurrentDirectory(unrelated);
+        GitWorktreeRemoveResult result = await Git.WorktreeRemoveAsync(worktree);
+
+        result.Success.ShouldBeTrue(result.ErrorMessage);
+        Directory.Exists(worktree).ShouldBeFalse();
+      }
+      finally
+      {
+        Directory.SetCurrentDirectory(originalDirectory);
+        GitRepositoryFixture.Delete(worktree);
+        GitRepositoryFixture.Delete(repository);
+        GitRepositoryFixture.Delete(unrelated);
+      }
+    }
   }
 }

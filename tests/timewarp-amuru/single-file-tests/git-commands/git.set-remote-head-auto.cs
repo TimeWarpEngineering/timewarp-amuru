@@ -30,9 +30,10 @@ namespace Git_
         CommandMock.Setup("git", "remote", "set-head", "origin", "--auto")
           .Returns("origin/HEAD set to main");
 
-        bool result = await Git.SetRemoteHeadAutoAsync("/path/to/repo.git");
+        GitSetRemoteHeadResult result = await Git.SetRemoteHeadAutoAsync("/path/to/repo.git");
 
-        result.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -45,9 +46,11 @@ namespace Git_
         CommandMock.Setup("git", "remote", "set-head", "origin", "--auto")
           .ReturnsError("fatal: not a git repository", 128);
 
-        bool result = await Git.SetRemoteHeadAutoAsync("/path/to/repo.git");
+        GitSetRemoteHeadResult result = await Git.SetRemoteHeadAutoAsync("/path/to/repo.git");
 
-        result.ShouldBeFalse();
+        result.Success.ShouldBeFalse();
+        result.ErrorMessage.ShouldNotBeNull();
+        result.ErrorMessage!.ShouldContain("not a git repository");
       }
 
       await Task.CompletedTask;

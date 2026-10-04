@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Lists worktrees and keeps a failed git invocation distinct from an empty list.
+#endregion
+
+#region Design
+// Success with an empty Porcelain string means git printed no worktrees.
+// Failure sets Success false, Porcelain null, and ErrorMessage from git.
+// Callers parse Porcelain only after Success is true.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -12,6 +18,14 @@ namespace TimeWarp.Amuru;
 /// <param name="BranchRef">The branch reference (null if detached HEAD).</param>
 /// <param name="IsBare">True if this is a bare repository.</param>
 public record WorktreeEntry(string Path, string? HeadCommit, string? BranchRef, bool IsBare);
+
+/// <summary>
+/// Represents the result of listing worktrees in porcelain format.
+/// </summary>
+/// <param name="Success">True when git produced a listing, false when the command failed.</param>
+/// <param name="Porcelain">Porcelain stdout when Success is true (may be empty). Null when Success is false.</param>
+/// <param name="ErrorMessage">Error message when the command failed (null when Success is true).</param>
+public record GitWorktreeListResult(bool Success, string? Porcelain, string? ErrorMessage);
 
 /// <summary>
 /// Git operations - WorktreeList implementation.
@@ -32,23 +46,27 @@ public static partial class Git
   /// </summary>
   /// <param name="repositoryPath">The path to the repository.</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
-  /// <returns>The raw porcelain output from git worktree list.</returns>
+  /// <returns>GitWorktreeListResult with porcelain stdout on success, or an error message on failure.</returns>
   /// <example>
-  /// string porcelain = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
-  /// IReadOnlyList&lt;WorktreeEntry&gt; worktrees = Git.ParseWorktreeList(porcelain);
-  /// foreach (WorktreeEntry wt in worktrees)
+  /// GitWorktreeListResult listed = await Git.WorktreeListPorcelainAsync("/path/to/repo.git");
+  /// if (listed.Success)
   /// {
-  ///   Console.WriteLine($"Worktree: {wt.Path} - Branch: {wt.BranchRef}");
+  ///   IReadOnlyList&lt;WorktreeEntry&gt; worktrees = Git.ParseWorktreeList(listed.Porcelain ?? "");
   /// }
   /// </example>
-  public static async Task<string> WorktreeListPorcelainAsync(string repositoryPath, CancellationToken cancellationToken = default)
+  public static async Task<GitWorktreeListResult> WorktreeListPorcelainAsync(
+    string repositoryPath,
+    CancellationToken cancellationToken = default)
   {
-    CommandOutput result = await Shell.Builder("git")
-      .WithArguments("worktree", "list", "--porcelain")
-      .WithWorkingDirectory(repositoryPath)
-      .WithNoValidation()
-      .CaptureAsync(cancellationToken).ConfigureAwait(false);
+    CommandOutput result = await GitBuilder(repositoryPath, "worktree", "list", "--porcelain")
+      .CaptureAsync(cancellationToken)
+      .ConfigureAwait(false);
 
-    return result.Success ? result.Stdout : string.Empty;
+    if (!result.Success)
+    {
+      return new GitWorktreeListResult(false, null, ErrorTextOr(result, "Failed to list worktrees"));
+    }
+
+    return new GitWorktreeListResult(true, result.Stdout, null);
   }
 }
