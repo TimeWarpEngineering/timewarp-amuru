@@ -89,5 +89,115 @@ namespace FzfBuilder_
 
       await Task.CompletedTask;
     }
+
+    public static async Task EchoFlagItems_Should_StayOnStdin()
+    {
+      string mockFzfPath = await CreateStdinCatMock();
+
+      try
+      {
+        CliConfiguration.SetCommandPath("fzf", mockFzfPath);
+
+        string result = await Fzf.Builder()
+          .FromInput("-n", "-e", "-E", "keep")
+          .SelectAsync();
+
+        result.ShouldBe("-n\n-e\n-E\nkeep");
+      }
+      finally
+      {
+        CliConfiguration.Reset();
+        if (File.Exists(mockFzfPath))
+        {
+          File.Delete(mockFzfPath);
+        }
+      }
+    }
+
+    public static async Task QuotedCommand_Should_KeepSpacesInOneArgument()
+    {
+      string mockFzfPath = await CreateStdinCatMock();
+
+      try
+      {
+        CliConfiguration.SetCommandPath("fzf", mockFzfPath);
+
+        string result = await Fzf.Builder()
+          .FromCommand("printf %s \"--format=%h %s\"")
+          .SelectAsync();
+
+        result.ShouldBe("--format=%h %s");
+      }
+      finally
+      {
+        CliConfiguration.Reset();
+        if (File.Exists(mockFzfPath))
+        {
+          File.Delete(mockFzfPath);
+        }
+      }
+    }
+
+    public static async Task Files_Should_ListMatchingNamesOnly()
+    {
+      string root = Path.Combine(Path.GetTempPath(), "fzf-from-files-" + Guid.NewGuid().ToString("N"));
+      Directory.CreateDirectory(Path.Combine(root, "nested"));
+      await File.WriteAllTextAsync(Path.Combine(root, "one.cs"), "1");
+      await File.WriteAllTextAsync(Path.Combine(root, "nested", "two.cs"), "2");
+      await File.WriteAllTextAsync(Path.Combine(root, "skip.txt"), "s");
+      string mockFzfPath = await CreateStdinCatMock();
+
+      try
+      {
+        CliConfiguration.SetCommandPath("fzf", mockFzfPath);
+
+        string result = await Fzf.Builder()
+          .WithWorkingDirectory(root)
+          .FromFiles("*.cs")
+          .SelectAsync();
+
+        result.ShouldContain("./one.cs");
+        result.ShouldContain("./nested/two.cs");
+        result.ShouldNotContain("skip.txt");
+      }
+      finally
+      {
+        CliConfiguration.Reset();
+        if (File.Exists(mockFzfPath))
+        {
+          File.Delete(mockFzfPath);
+        }
+
+        if (Directory.Exists(root))
+        {
+          Directory.Delete(root, recursive: true);
+        }
+      }
+    }
+
+    public static async Task DirectoryGlob_Should_Throw()
+    {
+      Should.Throw<ArgumentException>(() => Fzf.Builder().FromFiles("src/*.cs").Build());
+      await Task.CompletedTask;
+    }
+
+    private static async Task<string> CreateStdinCatMock()
+    {
+      string mockPath = Path.GetTempFileName();
+      File.Delete(mockPath);
+      mockPath += ".sh";
+
+      const string mockScript = "#!/bin/sh\ncat\n";
+      await File.WriteAllTextAsync(mockPath, mockScript);
+
+      if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+      {
+        await Shell.Builder("chmod")
+          .WithArguments("+x", mockPath)
+          .RunAsync();
+      }
+
+      return mockPath;
+    }
   }
 }

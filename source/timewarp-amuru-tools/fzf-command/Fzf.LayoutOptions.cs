@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Layout, border, and prompt options for the fzf builder.
+#endregion
+
+#region Design
+// --border-label-pos accepts the same N[:top|bottom] text as --preview-label-pos.
+// The string overload is the fzf form; the int overload is a column shorthand.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -86,12 +91,22 @@ public partial class FzfBuilder
   /// <summary>
   /// Specifies the border label position.
   /// </summary>
-  /// <param name="position">Position of the border label</param>
+  /// <param name="position">Column, or fzf's <c>N[:top|bottom]</c> form</param>
   /// <returns>The builder instance for method chaining</returns>
   public FzfBuilder WithBorderLabelPos(string position)
   {
     Arguments.Add($"--border-label-pos={position}");
     return this;
+  }
+
+  /// <summary>
+  /// Specifies the border label position as a column number.
+  /// </summary>
+  /// <param name="position">Column number</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public FzfBuilder WithBorderLabelPos(int position)
+  {
+    return WithBorderLabelPos(position.ToString(CultureInfo.InvariantCulture));
   }
 
   /// <summary>

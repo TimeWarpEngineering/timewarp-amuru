@@ -11,7 +11,9 @@
 // - Mock matching uses the caller's logical executable name, captured before GetCommandPath and before .cs host rewrite.
 // - Inserts "--" for .cs targets so dotnet file-based apps receive arguments correctly.
 // - Applies CommandOptions in one place to keep ShellBuilder and other builders thin.
-// - Optional standardInput is attached as a PipeSource only when explicitly provided.
+// - Optional standardInput is attached whenever the caller passes a string, including empty.
+//   Null means "do not replace stdin". Empty means immediate EOF, so a command that was given
+//   no items does not fall through to the terminal.
 #endregion
 
 #region Responsibilities
@@ -92,7 +94,7 @@ internal static class CommandExtensions
     cliCommand = commandOptions.ApplyTo(cliCommand);
 
     // Apply standard input if provided
-    if (!string.IsNullOrEmpty(standardInput))
+    if (standardInput is not null)
     {
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }

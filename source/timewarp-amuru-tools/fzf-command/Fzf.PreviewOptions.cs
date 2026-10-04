@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Preview-window options for the fzf builder.
+#endregion
+
+#region Design
+// --preview-label-pos accepts the same N[:top|bottom] text as --border-label-pos.
+// The int overload is a column shorthand; the string overload carries the anchor.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -43,11 +48,21 @@ public partial class FzfBuilder
   /// <summary>
   /// Specifies the preview window label position.
   /// </summary>
-  /// <param name="position">Label position</param>
+  /// <param name="position">Column, or fzf's <c>N[:top|bottom]</c> form</param>
   /// <returns>The builder instance for method chaining</returns>
-  public FzfBuilder WithPreviewLabelPos(int position)
+  public FzfBuilder WithPreviewLabelPos(string position)
   {
     Arguments.Add($"--preview-label-pos={position}");
     return this;
+  }
+
+  /// <summary>
+  /// Specifies the preview window label position as a column number.
+  /// </summary>
+  /// <param name="position">Column number</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public FzfBuilder WithPreviewLabelPos(int position)
+  {
+    return WithPreviewLabelPos(position.ToString(CultureInfo.InvariantCulture));
   }
 }

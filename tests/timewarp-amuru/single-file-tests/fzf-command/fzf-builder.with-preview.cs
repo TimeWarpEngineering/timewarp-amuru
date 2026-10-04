@@ -54,5 +54,21 @@ namespace FzfBuilder_
 
       await Task.CompletedTask;
     }
+
+    public static async Task LabelPositionText_Should_AddAnchorFlag()
+    {
+      string command = Fzf.Builder()
+        .WithPreviewLabelPos("2:bottom")
+        .FromInput("file1.txt")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe(
+        "fzf --preview-label-pos=2:bottom",
+        $"Expected preview label position text, got '{command}'"
+      );
+
+      await Task.CompletedTask;
+    }
   }
 }

@@ -63,6 +63,22 @@ namespace FzfBuilder_
       await Task.CompletedTask;
     }
 
+    public static async Task BorderLabelColumn_Should_AddPositionFlag()
+    {
+      string command = Fzf.Builder()
+        .WithBorderLabelPos(2)
+        .FromInput("advanced1")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe(
+        "fzf --border-label-pos=2",
+        $"Expected border label column, got '{command}'"
+      );
+
+      await Task.CompletedTask;
+    }
+
     public static async Task ScrollbarAndEllipsis_Should_AddFlags()
     {
       string command = Fzf.Builder()

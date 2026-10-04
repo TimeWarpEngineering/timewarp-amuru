@@ -1,5 +1,16 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder that turns fzf options and an input source into a runnable command.
+#endregion
+
+#region Design
+// Option flags live in Arguments. SelectWithFzf forwards that list and nothing else.
+// FromInput writes each item as its own stdin line. Echo is not used, so a value such as
+// "-n" stays data, and Windows does not need an echo executable.
+// FromFiles walks the working directory in-process for a file-name glob and feeds relative
+// paths on stdin. Unix find is not used: Windows find searches file contents, not names.
+// FromCommand splits on unquoted whitespace. Single and double quotes group one argument,
+// and backslashes stay literal so Windows paths are not treated as escapes.
+// The file list and stdin text are captured when Build runs.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -56,41 +67,31 @@ public partial class FzfBuilder
 
   public CommandResult Build()
   {
-    List<string> arguments = new() { "fzf" };
-    arguments.AddRange(Arguments);
+    string[] fzfArguments = CopyArguments();
 
-    CommandResult command = Shell.Run("fzf", arguments.Skip(1).ToArray(), Options);
-
-    // Handle input sources
     if (InputItems.Count > 0)
     {
-      // Create a pipeline with echo for the input items
-      string input = string.Join("\n", InputItems);
-      command = Shell.Run("echo", new[] { input }, Options).Pipe("fzf", arguments.Skip(1).ToArray());
-    }
-    else if (!string.IsNullOrEmpty(InputGlob))
-    {
-      // Use find command for file glob
-      command = Shell.Run("find", new[] { ".", "-name", InputGlob }, Options).Pipe("fzf", arguments.Skip(1).ToArray());
-    }
-    else if (!string.IsNullOrEmpty(InputCommand))
-    {
-      // Parse and execute the input command
-      string[] parts = InputCommand.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      if (parts.Length > 0)
-      {
-        string exe = parts[0];
-        string[] args = parts.Skip(1).ToArray();
-        command = Shell.Run(exe, args, Options).Pipe("fzf", arguments.Skip(1).ToArray());
-      }
-    }
-    else if (UseStdin)
-    {
-      // Use fzf directly with stdin (no pipeline needed)
-      command = Shell.Run("fzf", arguments.Skip(1).ToArray(), Options);
+      return Shell.Run("fzf", fzfArguments, Options, BuildStdin(InputItems));
     }
 
-    return command;
+    if (!string.IsNullOrEmpty(InputGlob))
+    {
+      return Shell.Run("fzf", fzfArguments, Options, BuildFileListInput(InputGlob));
+    }
+
+    if (!string.IsNullOrEmpty(InputCommand)
+      && TrySplitCommand(InputCommand, out string executable, out string[] commandArguments))
+    {
+      return Shell.Run(executable, commandArguments, Options).Pipe("fzf", fzfArguments);
+    }
+
+    // FromStdin and the default path both leave stdin to the caller.
+    if (UseStdin)
+    {
+      return Shell.Run("fzf", fzfArguments, Options);
+    }
+
+    return Shell.Run("fzf", fzfArguments, Options);
   }
 
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
@@ -107,7 +108,7 @@ public partial class FzfBuilder
   {
     return await Build().RunAndCaptureAsync(cancellationToken).ConfigureAwait(false);
   }
-  
+
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.
   /// This allows fzf to work with user input and terminal UI.
@@ -118,7 +119,7 @@ public partial class FzfBuilder
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
-  
+
   /// <summary>
   /// Executes the command with true TTY passthrough for TUI applications.
   /// Unlike PassthroughAsync which pipes Console streams, this method
@@ -130,7 +131,7 @@ public partial class FzfBuilder
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
-  
+
   /// <summary>
   /// Executes fzf interactively and returns the selected item(s).
   /// The fzf UI is displayed on the console, but the selection is captured and returned.
@@ -140,5 +141,140 @@ public partial class FzfBuilder
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  internal string[] CopyArguments() => [.. Arguments];
+
+  private static string BuildStdin(List<string> items)
+  {
+    StringBuilder builder = new();
+    foreach (string item in items)
+    {
+      builder.Append(item);
+      builder.Append('\n');
+    }
+
+    return builder.ToString();
+  }
+
+  private string BuildFileListInput(string pattern)
+  {
+    if (pattern.Contains('/', StringComparison.Ordinal) || pattern.Contains('\\', StringComparison.Ordinal))
+    {
+      throw new ArgumentException
+      (
+        "FromFiles expects a file-name glob such as \"*.cs\", not a directory path.",
+        nameof(pattern)
+      );
+    }
+
+    string searchRoot = string.IsNullOrEmpty(Options.WorkingDirectory)
+      ? Directory.GetCurrentDirectory()
+      : Options.WorkingDirectory;
+
+    EnumerationOptions enumerationOptions = new()
+    {
+      RecurseSubdirectories = true,
+      IgnoreInaccessible = true,
+      AttributesToSkip = FileAttributes.None,
+      MatchType = MatchType.Simple,
+      ReturnSpecialDirectories = false
+    };
+
+    StringBuilder builder = new();
+    foreach (string filePath in Directory.EnumerateFiles(searchRoot, pattern, enumerationOptions))
+    {
+      string relative = Path.GetRelativePath(searchRoot, filePath);
+      builder.Append("./");
+      builder.Append(relative.Replace('\\', '/'));
+      builder.Append('\n');
+    }
+
+    return builder.ToString();
+  }
+
+  private static bool TrySplitCommand(string command, out string executable, out string[] arguments)
+  {
+    List<string> tokens = [];
+    StringBuilder current = new();
+    bool inSingle = false;
+    bool inDouble = false;
+    bool tokenStarted = false;
+
+    foreach (char c in command)
+    {
+      if (inSingle)
+      {
+        if (c == '\'')
+        {
+          inSingle = false;
+        }
+        else
+        {
+          current.Append(c);
+        }
+
+        continue;
+      }
+
+      if (inDouble)
+      {
+        if (c == '"')
+        {
+          inDouble = false;
+        }
+        else
+        {
+          current.Append(c);
+        }
+
+        continue;
+      }
+
+      if (c == '\'')
+      {
+        inSingle = true;
+        tokenStarted = true;
+        continue;
+      }
+
+      if (c == '"')
+      {
+        inDouble = true;
+        tokenStarted = true;
+        continue;
+      }
+
+      if (char.IsWhiteSpace(c))
+      {
+        if (tokenStarted)
+        {
+          tokens.Add(current.ToString());
+          current.Clear();
+          tokenStarted = false;
+        }
+
+        continue;
+      }
+
+      current.Append(c);
+      tokenStarted = true;
+    }
+
+    if (tokenStarted)
+    {
+      tokens.Add(current.ToString());
+    }
+
+    if (tokens.Count == 0 || string.IsNullOrWhiteSpace(tokens[0]))
+    {
+      executable = string.Empty;
+      arguments = [];
+      return false;
+    }
+
+    executable = tokens[0];
+    arguments = tokens.Count == 1 ? [] : [.. tokens.Skip(1)];
+    return true;
   }
 }
