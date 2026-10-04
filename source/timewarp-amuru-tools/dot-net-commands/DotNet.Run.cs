@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet run.
+#endregion
+
+#region Design
+// --project and --file are mutually exclusive. The builder throws before it emits both.
+// Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -24,6 +29,9 @@ public static partial class DotNet
 /// </summary>
 public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
 {
+  private const string ProjectAndFileExclusiveMessage =
+    "WithProject and WithFile cannot be used together. dotnet run rejects --project and --file on the same command.";
+
   private string? Project;
   private string? File;
   private string? Configuration;
@@ -50,8 +58,14 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   /// </summary>
   /// <param name="project">Path to the project file (.csproj, .fsproj, .vbproj) or directory containing one</param>
   /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="InvalidOperationException">Thrown when a file-based app is already set.</exception>
   public DotNetRunBuilder WithProject(string project)
   {
+    if (!string.IsNullOrWhiteSpace(File))
+    {
+      throw new InvalidOperationException(ProjectAndFileExclusiveMessage);
+    }
+
     Project = project;
     return this;
   }
@@ -61,8 +75,14 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   /// </summary>
   /// <param name="filePath">Path to the file-based app to run</param>
   /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="InvalidOperationException">Thrown when a project is already set.</exception>
   public DotNetRunBuilder WithFile(string filePath)
   {
+    if (!string.IsNullOrWhiteSpace(Project))
+    {
+      throw new InvalidOperationException(ProjectAndFileExclusiveMessage);
+    }
+
     File = filePath;
     return this;
   }
@@ -303,8 +323,14 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   /// Builds the command arguments and executes the dotnet run command.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
+  /// <exception cref="InvalidOperationException">Thrown when both a project and a file-based app are set.</exception>
   public CommandResult Build()
   {
+    if (!string.IsNullOrWhiteSpace(Project) && !string.IsNullOrWhiteSpace(File))
+    {
+      throw new InvalidOperationException(ProjectAndFileExclusiveMessage);
+    }
+
     List<string> arguments = new() { "run" };
 
     // Add project if specified
@@ -373,8 +399,7 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
     // Add terminal logger if specified
     if (!string.IsNullOrWhiteSpace(TerminalLogger))
     {
-      arguments.Add("--tl");
-      arguments.Add(TerminalLogger);
+      arguments.Add($"--tl:{TerminalLogger}");
     }
 
     // Add boolean flags

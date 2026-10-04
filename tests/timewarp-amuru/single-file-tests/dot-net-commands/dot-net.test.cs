@@ -77,13 +77,23 @@ namespace DotNet_
         .WithLogger("trx")
         .WithLogger("html")
         .WithBlame()
-        .WithCollect()
+        .WithCollect("XPlat Code Coverage")
         .WithResultsDirectory("TestResults")
         .WithProperty("Platform", "AnyCPU")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet test test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --filter TestCategory=Integration --results-directory TestResults --logger trx --logger html --no-restore --no-build --blame --collect --property:Platform=AnyCPU");
+      command.ShouldBe("dotnet test test.csproj --configuration Release --arch x64 --os linux --verbosity minimal --filter TestCategory=Integration --results-directory TestResults --logger trx --logger html --no-restore --no-build --blame --collect \"XPlat Code Coverage\" --property:Platform=AnyCPU");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithCollectMissingName_Should_Throw()
+    {
+      DotNetTestBuilder builder = DotNet.Test();
+
+      Should.Throw<ArgumentException>(() => builder.WithCollect(""));
+      Should.Throw<ArgumentException>(() => builder.WithCollect(" "));
 
       await Task.CompletedTask;
     }

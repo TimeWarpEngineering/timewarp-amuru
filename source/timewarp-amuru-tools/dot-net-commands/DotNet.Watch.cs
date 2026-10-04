@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet watch.
+#endregion
+
+#region Design
+// Include, exclude, and property flags are omitted. dotnet watch does not define them and ignores those arguments.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -33,9 +37,6 @@ public class DotNetWatchBuilder
   private bool NoLaunchProfile;
   private bool NoHotReload;
   private bool NoBuild;
-  private List<string> Include = new();
-  private List<string> Exclude = new();
-  private List<string> Properties = new();
   private string? TargetFramework;
   private string? Configuration;
   private string? Runtime;
@@ -144,39 +145,6 @@ public class DotNetWatchBuilder
   public DotNetWatchBuilder WithNoBuild()
   {
     NoBuild = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Adds a file pattern to include in watching.
-  /// </summary>
-  /// <param name="pattern">The file pattern to include</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetWatchBuilder WithInclude(string pattern)
-  {
-    Include.Add(pattern);
-    return this;
-  }
-
-  /// <summary>
-  /// Adds a file pattern to exclude from watching.
-  /// </summary>
-  /// <param name="pattern">The file pattern to exclude</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetWatchBuilder WithExclude(string pattern)
-  {
-    Exclude.Add(pattern);
-    return this;
-  }
-
-  /// <summary>
-  /// Adds a build property.
-  /// </summary>
-  /// <param name="property">The build property in key=value format</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetWatchBuilder WithProperty(string property)
-  {
-    Properties.Add(property);
     return this;
   }
 
@@ -327,24 +295,6 @@ public class DotNetWatchBuilder
     if (NoBuild)
     {
       arguments.Add("--no-build");
-    }
-
-    foreach (string pattern in Include)
-    {
-      arguments.Add("--include");
-      arguments.Add(pattern);
-    }
-
-    foreach (string pattern in Exclude)
-    {
-      arguments.Add("--exclude");
-      arguments.Add(pattern);
-    }
-
-    foreach (string property in Properties)
-    {
-      arguments.Add("--property");
-      arguments.Add(property);
     }
 
     if (!string.IsNullOrWhiteSpace(TargetFramework))

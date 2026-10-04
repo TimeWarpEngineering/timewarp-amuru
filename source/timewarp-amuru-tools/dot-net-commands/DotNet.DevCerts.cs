@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet dev-certs.
+#endregion
+
+#region Design
+// HTTPS export is --export-path. There is no --export switch. WithExport requires WithExportPath.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -102,9 +106,10 @@ public class DotNetDevCertsHttpsBuilder
   }
 
   /// <summary>
-  /// Exports the certificate to a file.
+  /// Marks the command as a certificate export. Pair with WithExportPath.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="InvalidOperationException">Thrown by Build when an export path is missing.</exception>
   public DotNetDevCertsHttpsBuilder WithExport()
   {
     Export = true;
@@ -126,8 +131,10 @@ public class DotNetDevCertsHttpsBuilder
   /// </summary>
   /// <param name="exportPath">The path to export the certificate to</param>
   /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="exportPath"/> is null or whitespace.</exception>
   public DotNetDevCertsHttpsBuilder WithExportPath(string exportPath)
   {
+    ArgumentException.ThrowIfNullOrWhiteSpace(exportPath);
     ExportPath = exportPath;
     return this;
   }
@@ -198,9 +205,10 @@ public class DotNetDevCertsHttpsBuilder
       arguments.Add("--clean");
     }
 
-    if (Export)
+    if (Export && string.IsNullOrWhiteSpace(ExportPath))
     {
-      arguments.Add("--export");
+      throw new InvalidOperationException(
+        "WithExport requires WithExportPath. dotnet dev-certs https exports with --export-path.");
     }
 
     if (Trust)

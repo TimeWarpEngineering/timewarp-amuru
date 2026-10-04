@@ -51,14 +51,13 @@ namespace DotNet_
       string command = DotNet.Pack()
         .WithProject("test.csproj")
         .WithConfiguration("Release")
-        .WithFramework("net10.0")
         .WithRuntime("win-x64")
         .WithOutput("./packages")
         .WithNoRestore()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet pack test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./packages --no-restore");
+      command.ShouldBe("dotnet pack test.csproj --configuration Release --runtime win-x64 --output ./packages --no-restore");
 
       await Task.CompletedTask;
     }
@@ -92,7 +91,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet pack test.csproj --verbosity detailed --tl on");
+      command.ShouldBe("dotnet pack test.csproj --verbosity detailed --tl:on");
 
       await Task.CompletedTask;
     }

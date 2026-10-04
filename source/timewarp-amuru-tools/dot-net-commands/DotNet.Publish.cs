@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet publish.
+#endregion
+
+#region Design
+// Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -430,8 +434,7 @@ public class DotNetPublishBuilder : ICommandBuilder<DotNetPublishBuilder>
     // Add terminal logger if specified
     if (!string.IsNullOrWhiteSpace(TerminalLogger))
     {
-      arguments.Add("--tl");
-      arguments.Add(TerminalLogger);
+      arguments.Add($"--tl:{TerminalLogger}");
     }
 
     // Add manifest file if specified

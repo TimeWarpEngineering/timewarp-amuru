@@ -62,6 +62,32 @@ namespace DotNet_
       await Task.CompletedTask;
     }
 
+    public static async Task DeleteWithNonInteractive_Should_IncludeNonInteractiveOption()
+    {
+      string command = DotNet.NuGet()
+        .Delete("MyPackage", "1.0.0")
+        .WithSource("https://api.nuget.org/v3/index.json")
+        .WithNonInteractive()
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet nuget delete MyPackage 1.0.0 --source https://api.nuget.org/v3/index.json --non-interactive");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task DeleteWithInteractiveAndNonInteractive_Should_Throw()
+    {
+      DotNetNuGetDeleteBuilder builder = DotNet.NuGet()
+        .Delete("MyPackage", "1.0.0")
+        .WithInteractive()
+        .WithNonInteractive();
+
+      Should.Throw<InvalidOperationException>(() => builder.Build());
+
+      await Task.CompletedTask;
+    }
+
     public static async Task ListSources_Should_BuildListSourcesCommand()
     {
       string command = DotNet.NuGet()
@@ -126,7 +152,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet nuget why --project MyApp.csproj --framework net10.0 Microsoft.Extensions.Logging");
+      command.ShouldBe("dotnet nuget why MyApp.csproj Microsoft.Extensions.Logging --framework net10.0");
 
       await Task.CompletedTask;
     }

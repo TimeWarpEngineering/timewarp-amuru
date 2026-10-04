@@ -112,22 +112,6 @@ namespace DotNet_
       await Task.CompletedTask;
     }
 
-    public static async Task IncludeExcludePatterns_Should_IncludePatterns()
-    {
-      string command = DotNet.Watch()
-        .WithInclude("**/*.cs")
-        .WithInclude("**/*.cshtml")
-        .WithExclude("**/bin/**")
-        .WithExclude("**/obj/**")
-        .Run()
-        .Build()
-        .ToCommandString();
-
-      command.ShouldBe("dotnet watch --include **/*.cs --include **/*.cshtml --exclude **/bin/** --exclude **/obj/** run");
-
-      await Task.CompletedTask;
-    }
-
     public static async Task BuildConfiguration_Should_IncludeOptions()
     {
       string command = DotNet.Watch()
@@ -144,17 +128,15 @@ namespace DotNet_
       await Task.CompletedTask;
     }
 
-    public static async Task PropertiesAndLaunchProfile_Should_IncludeOptions()
+    public static async Task LaunchProfile_Should_IncludeLaunchProfile()
     {
       string command = DotNet.Watch()
-        .WithProperty("Configuration=Debug")
-        .WithProperty("Platform=x64")
         .WithLaunchProfile("Development")
         .Run()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet watch --property Configuration=Debug --property Platform=x64 --launch-profile Development run");
+      command.ShouldBe("dotnet watch --launch-profile Development run");
 
       await Task.CompletedTask;
     }
@@ -195,16 +177,13 @@ namespace DotNet_
         .WithConfiguration("Release")
         .WithTargetFramework("net10.0")
         .WithVerbosity("minimal")
-        .WithInclude("**/*.cs")
-        .WithExclude("**/bin/**")
-        .WithProperty("DefineConstants=RELEASE")
         .WithNoRestore()
         .WithArguments("--environment", "Production")
         .Run()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet watch --project MyApp.csproj --no-restore --include **/*.cs --exclude **/bin/** --property DefineConstants=RELEASE --framework net10.0 --configuration Release --verbosity minimal run --environment Production");
+      command.ShouldBe("dotnet watch --project MyApp.csproj --no-restore --framework net10.0 --configuration Release --verbosity minimal run --environment Production");
 
       await Task.CompletedTask;
     }
