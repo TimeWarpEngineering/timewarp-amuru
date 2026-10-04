@@ -34,6 +34,16 @@ Expect: both files pass. `ConfiguredOptions_Should_ReachTheFzfProcess` shows the
 
 The aggregate runner is `dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs`. On 2026-10-04 it reported 530 passed, 1 skipped, 0 failed. The skip is the pre-existing `GetCommitsAheadOfDefaultBranch` case.
 
+### Review disposition
+
+- Rounds: 1. Effort 2, roster: general.
+- Final counts: bug 0. Suggestion 0 open, 2 wontfix. Nit 0 open, 1 wontfix.
+- Disposition: **accepted-exceptions**, 0 open.
+  - M1: `WithStandardInput("")` now means immediate EOF. The change is intended and documented; the changelog note belongs to the release PR.
+  - M2: Passthrough and TtyPassthrough drop configured stdin. This predates the task and lives in core, so it is out of scope.
+  - M3: The redundant `UseStdin` branch stays. Removing it causes CS0414.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Notes
 
 Found by multi-agent release review (2026-07-04). All other fzf flags were verified correct against fzf's real option set. Existing fzf tests cover arg-building well but only one test executes fzf for real. Paths relative to `source/timewarp-amuru-tools/` (fzf moved to the Tools package in the 094 split). Tests live under `tests/timewarp-amuru/single-file-tests/`.
@@ -42,3 +52,4 @@ Found by multi-agent release review (2026-07-04). All other fzf flags were verif
 
 - Kitchen refresh: 522eb63d (2026-10-04)
 - Implementation: grok task-work (2026-10-04)
+- Review: claude review oracle, effort 2, general (2026-10-04)
