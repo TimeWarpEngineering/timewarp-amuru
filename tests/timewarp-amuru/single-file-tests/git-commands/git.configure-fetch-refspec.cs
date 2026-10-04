@@ -30,9 +30,10 @@ namespace Git_
         CommandMock.Setup("git", "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
           .Returns("");
 
-        bool result = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
+        GitConfigureFetchRefspecResult result = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
 
-        result.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -45,9 +46,11 @@ namespace Git_
         CommandMock.Setup("git", "config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*")
           .ReturnsError("fatal: not a git repository", 128);
 
-        bool result = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
+        GitConfigureFetchRefspecResult result = await Git.ConfigureFetchRefspecAsync("/path/to/repo.git");
 
-        result.ShouldBeFalse();
+        result.Success.ShouldBeFalse();
+        result.ErrorMessage.ShouldNotBeNull();
+        result.ErrorMessage!.ShouldContain("not a git repository");
       }
 
       await Task.CompletedTask;

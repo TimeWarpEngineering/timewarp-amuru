@@ -8,8 +8,8 @@
 // Naming convention: SUT_Action_Given_Should_Result
 // SUT: Git (the static class providing git operations)
 // Action: BranchExists (the method being tested)
-// Tests verify existing branches return true, non-existing return false,
-// and invalid repos return false using CommandMock
+// Tests verify existing branches set Exists, a missing ref is Exists false with Success true,
+// and an invalid repo is Success false with the git message.
 #endregion
 
 #if !JARIBU_MULTI
@@ -31,9 +31,11 @@ namespace Git_
         CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/main")
           .Returns("abc123 refs/heads/main");
 
-        bool result = await Git.BranchExistsAsync("/path/to/repo", "main");
+        GitBranchExistsResult result = await Git.BranchExistsAsync("/path/to/repo", "main");
 
-        result.ShouldBeTrue();
+        result.Success.ShouldBeTrue();
+        result.Exists.ShouldBeTrue();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -46,9 +48,11 @@ namespace Git_
         CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/nonexistent")
           .ReturnsError("fatal: 'refs/heads/nonexistent' - not a valid ref", 1);
 
-        bool result = await Git.BranchExistsAsync("/path/to/repo", "nonexistent");
+        GitBranchExistsResult result = await Git.BranchExistsAsync("/path/to/repo", "nonexistent");
 
-        result.ShouldBeFalse();
+        result.Success.ShouldBeTrue();
+        result.Exists.ShouldBeFalse();
+        result.ErrorMessage.ShouldBeNull();
       }
 
       await Task.CompletedTask;
@@ -61,9 +65,12 @@ namespace Git_
         CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/main")
           .ReturnsError("fatal: not a git repository", 128);
 
-        bool result = await Git.BranchExistsAsync("/invalid/path", "main");
+        GitBranchExistsResult result = await Git.BranchExistsAsync("/invalid/path", "main");
 
-        result.ShouldBeFalse();
+        result.Success.ShouldBeFalse();
+        result.Exists.ShouldBeFalse();
+        result.ErrorMessage.ShouldNotBeNull();
+        result.ErrorMessage!.ShouldContain("not a git repository");
       }
 
       await Task.CompletedTask;

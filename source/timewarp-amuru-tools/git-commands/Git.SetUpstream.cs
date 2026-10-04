@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Sets upstream tracking for a branch, optionally fetching first.
+#endregion
+
+#region Design
+// fetchFirst uses FetchAsync and keeps that call's error text when the fetch fails.
+// The branch tracking command still runs only after a successful fetch.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -48,10 +53,13 @@ public static partial class Git
   {
     if (fetchFirst)
     {
-      bool fetchResult = await FetchAsync(worktreePath, remote, cancellationToken).ConfigureAwait(false);
-      if (!fetchResult)
+      GitFetchResult fetchResult = await FetchAsync(worktreePath, remote, cancellationToken).ConfigureAwait(false);
+      if (!fetchResult.Success)
       {
-        return new GitSetUpstreamResult(false, $"Failed to fetch from {remote} before setting upstream");
+        string message = string.IsNullOrWhiteSpace(fetchResult.ErrorMessage)
+          ? $"Failed to fetch from {remote} before setting upstream"
+          : $"Failed to fetch from {remote} before setting upstream: {fetchResult.ErrorMessage}";
+        return new GitSetUpstreamResult(false, message);
       }
     }
 

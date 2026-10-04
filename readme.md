@@ -149,8 +149,10 @@ await DotNet.Test()
 
 // Git operations with typed results
 string? repoRoot = Git.FindRoot();
-string porcelain = await Git.WorktreeListPorcelainAsync("/my/repo");
-IReadOnlyList<WorktreeEntry> worktrees = Git.ParseWorktreeList(porcelain);
+GitWorktreeListResult listed = await Git.WorktreeListPorcelainAsync("/my/repo");
+IReadOnlyList<WorktreeEntry> worktrees = listed.Success
+    ? Git.ParseWorktreeList(listed.Porcelain ?? "")
+    : [];
 
 // Interactive selection with Fzf
 string selectedFile = await Fzf.Builder()

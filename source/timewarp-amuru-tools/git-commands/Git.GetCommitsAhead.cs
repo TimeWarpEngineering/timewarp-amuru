@@ -1,5 +1,12 @@
 #region Purpose
-// TODO: Add purpose description
+// Counts commits the checked-out branch is ahead of another branch.
+#endregion
+
+#region Design
+// `git rev-list --count branch..HEAD` is the count. The branch argument still defaults to
+// master on the working-directory overload; GetCommitsAheadOfDefaultBranchAsync is the
+// entry point that resolves the default branch first.
+// repositoryPath selects the repository on the three-argument overload.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -18,37 +25,48 @@ public record GitCommitCountResult(bool Success, int Count, string? ErrorMessage
 public static partial class Git
 {
   /// <summary>
-  /// Gets the number of commits the current branch is ahead of the specified branch.
-  /// Uses 'git rev-list --count branch..HEAD' to count commits.
+  /// Gets the number of commits the current branch is ahead of <paramref name="branchName"/>
+  /// in the process working directory.
   /// </summary>
   /// <param name="branchName">The branch to compare against (defaults to "master").</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>GitCommitCountResult containing success status, commit count, and any error message.</returns>
-  /// <example>
-  /// GitCommitCountResult result = await Git.GetCommitsAheadAsync("master");
-  /// if (result.Success)
-  /// {
-  ///   Console.WriteLine($"Commits ahead of master: {result.Count}");
-  /// }
-  ///
-  /// // Compare against a different branch
-  /// GitCommitCountResult devResult = await Git.GetCommitsAheadAsync("develop");
-  /// </example>
-  public static async Task<GitCommitCountResult> GetCommitsAheadAsync(
+  /// <exception cref="ArgumentException">Thrown when <paramref name="branchName"/> is null or whitespace.</exception>
+  public static Task<GitCommitCountResult> GetCommitsAheadAsync(
     string branchName = "master",
     CancellationToken cancellationToken = default)
+    => GetCommitsAheadAsync(branchName, repositoryPath: null, cancellationToken);
+
+  /// <summary>
+  /// Gets the number of commits the current branch is ahead of the specified branch.
+  /// Uses <c>git rev-list --count branch..HEAD</c>.
+  /// </summary>
+  /// <param name="branchName">The branch to compare against.</param>
+  /// <param name="repositoryPath">Repository to inspect. Null uses the process working directory.</param>
+  /// <param name="cancellationToken">Cancellation token for the operation.</param>
+  /// <returns>GitCommitCountResult containing success status, commit count, and any error message.</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="branchName"/> is null or whitespace.</exception>
+  /// <example>
+  /// GitCommitCountResult result = await Git.GetCommitsAheadAsync("main", "/path/to/repo");
+  /// if (result.Success)
+  /// {
+  ///   Console.WriteLine($"Commits ahead of main: {result.Count}");
+  /// }
+  /// </example>
+  public static async Task<GitCommitCountResult> GetCommitsAheadAsync(
+    string branchName,
+    string? repositoryPath,
+    CancellationToken cancellationToken = default)
   {
-    CommandOutput result = await Shell.Builder("git")
-      .WithArguments("rev-list", "--count", $"{branchName}..HEAD")
-      .WithNoValidation()
-      .CaptureAsync(cancellationToken).ConfigureAwait(false);
+    ArgumentException.ThrowIfNullOrWhiteSpace(branchName);
+
+    CommandOutput result = await GitBuilder(repositoryPath, "rev-list", "--count", $"{branchName}..HEAD")
+      .CaptureAsync(cancellationToken)
+      .ConfigureAwait(false);
 
     if (!result.Success)
     {
-      string errorMessage = string.IsNullOrWhiteSpace(result.Stderr)
-        ? result.Stdout
-        : result.Stderr;
-      return new GitCommitCountResult(false, 0, errorMessage.Trim());
+      return new GitCommitCountResult(false, 0, ErrorTextOr(result, "Failed to count commits"));
     }
 
     string output = result.Stdout.Trim();
@@ -56,33 +74,46 @@ public static partial class Git
     {
       return new GitCommitCountResult(true, count, null);
     }
-    else
-    {
-      return new GitCommitCountResult(false, 0, $"Failed to parse commit count: '{output}'");
-    }
+
+    return new GitCommitCountResult(false, 0, $"Failed to parse commit count: '{output}'");
   }
+
+  /// <summary>
+  /// Gets the number of commits the current branch is ahead of the default branch
+  /// in the process working directory.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation.</param>
+  /// <returns>GitCommitCountResult containing success status, commit count, and any error message.</returns>
+  public static Task<GitCommitCountResult> GetCommitsAheadOfDefaultBranchAsync(
+    CancellationToken cancellationToken = default)
+    => GetCommitsAheadOfDefaultBranchAsync(repositoryPath: null, cancellationToken);
 
   /// <summary>
   /// Gets the number of commits the current branch is ahead of the default branch (main/master/dev).
   /// Auto-detects the default branch using GetDefaultBranchAsync, then counts commits.
   /// </summary>
+  /// <param name="repositoryPath">Repository to inspect. Null uses the process working directory.</param>
   /// <param name="cancellationToken">Cancellation token for the operation.</param>
   /// <returns>GitCommitCountResult containing success status, commit count, and any error message.</returns>
   /// <example>
-  /// GitCommitCountResult result = await Git.GetCommitsAheadOfDefaultBranchAsync();
+  /// GitCommitCountResult result = await Git.GetCommitsAheadOfDefaultBranchAsync("/path/to/repo");
   /// if (result.Success)
   /// {
   ///   Console.WriteLine($"Commits ahead of default branch: {result.Count}");
   /// }
   /// </example>
-  public static async Task<GitCommitCountResult> GetCommitsAheadOfDefaultBranchAsync(CancellationToken cancellationToken = default)
+  public static async Task<GitCommitCountResult> GetCommitsAheadOfDefaultBranchAsync(
+    string? repositoryPath,
+    CancellationToken cancellationToken = default)
   {
-    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(cancellationToken).ConfigureAwait(false);
+    GitDefaultBranchResult defaultBranchResult = await GetDefaultBranchAsync(repositoryPath, cancellationToken)
+      .ConfigureAwait(false);
     if (!defaultBranchResult.Success || defaultBranchResult.BranchName is null)
     {
       return new GitCommitCountResult(false, 0, defaultBranchResult.ErrorMessage ?? "Failed to detect default branch");
     }
 
-    return await GetCommitsAheadAsync(defaultBranchResult.BranchName, cancellationToken).ConfigureAwait(false);
+    return await GetCommitsAheadAsync(defaultBranchResult.BranchName, repositoryPath, cancellationToken)
+      .ConfigureAwait(false);
   }
 }
