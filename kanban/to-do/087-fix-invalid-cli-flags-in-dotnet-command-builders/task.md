@@ -53,9 +53,18 @@ Expect: all 10 smoke tests pass. Each one runs the builder against the SDK selec
 
 Snapshot coverage is in the existing `dot-net.*.cs` command tests. The aggregate runner is `cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs`.
 
+### Review disposition
+
+- Rounds: 1. Effort 2. Roster: general.
+- Final counts: bug 0, suggestion 0, nit 1 (wontfix). Open: 0.
+- Disposition: accepted-exceptions. M1 (nit): the dev-certs smoke does not run the export form, because export changes the user certificate store. The snapshot test covers `--export-path`.
+- Verified during review: `dot-net.cli-smoke.cs` passed 10/10 and `ganda repo audit` passed.
+- Artifacts: `review/review-framework.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Implementation: grok task-work (2026-10-04)
+- Review: claude review oracle, effort 2, general (2026-10-04)
 
 ## Notes
 
