@@ -80,7 +80,16 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pfx --password testpassword --format Pfx");
+      command.ShouldBe("dotnet dev-certs https --export-path ./localhost.pfx --password testpassword --format Pfx");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task HttpsWithExportWithoutPath_Should_Throw()
+    {
+      DotNetDevCertsHttpsBuilder builder = DotNet.DevCerts().Https().WithExport();
+
+      Should.Throw<InvalidOperationException>(() => builder.Build());
 
       await Task.CompletedTask;
     }
@@ -108,7 +117,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pfx --no-password");
+      command.ShouldBe("dotnet dev-certs https --export-path ./localhost.pfx --no-password");
 
       await Task.CompletedTask;
     }
@@ -135,7 +144,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet dev-certs https --export --export-path ./localhost.pem --format Pem --no-password");
+      command.ShouldBe("dotnet dev-certs https --export-path ./localhost.pem --format Pem --no-password");
 
       await Task.CompletedTask;
     }

@@ -64,7 +64,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet restore test.csproj --tl auto --source https://api.nuget.org/v3/index.json --source https://nuget.pkg.github.com/MyOrg/index.json --no-dependencies --interactive --property:RestoreNoCache=true --property:RestoreIgnoreFailedSources=true");
+      command.ShouldBe("dotnet restore test.csproj --tl:auto --source https://api.nuget.org/v3/index.json --source https://nuget.pkg.github.com/MyOrg/index.json --no-dependencies --interactive --property:RestoreNoCache=true --property:RestoreIgnoreFailedSources=true");
 
       await Task.CompletedTask;
     }

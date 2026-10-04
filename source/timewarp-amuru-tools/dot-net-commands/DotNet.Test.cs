@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet test.
+#endregion
+
+#region Design
+// --collect requires a data collector name, so WithCollect takes that name.
+// Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -41,7 +46,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   private bool NoBuild;
   private bool NoLogo;
   private bool Blame;
-  private bool Collect;
+  private string? Collect;
   private List<string> Loggers = new();
   private Dictionary<string, string> Properties = new();
   private CommandOptions Options = new();
@@ -241,12 +246,15 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   }
 
   /// <summary>
-  /// Enables code coverage data collection.
+  /// Collects data with the named data collector.
   /// </summary>
+  /// <param name="dataCollector">The data collector friendly name, for example "XPlat Code Coverage".</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithCollect()
+  /// <exception cref="ArgumentException">Thrown when <paramref name="dataCollector"/> is null or whitespace.</exception>
+  public DotNetTestBuilder WithCollect(string dataCollector)
   {
-    Collect = true;
+    ArgumentException.ThrowIfNullOrWhiteSpace(dataCollector);
+    Collect = dataCollector;
     return this;
   }
 
@@ -377,8 +385,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
     // Add terminal logger if specified
     if (!string.IsNullOrWhiteSpace(TerminalLogger))
     {
-      arguments.Add("--tl");
-      arguments.Add(TerminalLogger);
+      arguments.Add($"--tl:{TerminalLogger}");
     }
 
     // Add filter if specified
@@ -437,9 +444,10 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
       arguments.Add("--blame");
     }
 
-    if (Collect)
+    if (!string.IsNullOrWhiteSpace(Collect))
     {
       arguments.Add("--collect");
+      arguments.Add(Collect);
     }
 
     // Add MSBuild properties

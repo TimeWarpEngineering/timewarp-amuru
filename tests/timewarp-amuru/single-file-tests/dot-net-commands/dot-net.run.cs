@@ -98,7 +98,32 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet run --project test.csproj --arch x64 --os linux --launch-profile Development --tl auto --no-launch-profile --force --interactive --property:Configuration=Debug --property:Platform=AnyCPU -e ASPNETCORE_ENVIRONMENT=Development");
+      command.ShouldBe("dotnet run --project test.csproj --arch x64 --os linux --launch-profile Development --tl:auto --no-launch-profile --force --interactive --property:Configuration=Debug --property:Platform=AnyCPU -e ASPNETCORE_ENVIRONMENT=Development");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithFile_Should_IncludeFileOption()
+    {
+      string command = DotNet.Run()
+        .WithFile("app.cs")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet run --file app.cs");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithProjectAndWithFile_Should_Throw()
+    {
+      DotNetRunBuilder builder = DotNet.Run().WithProject("test.csproj");
+
+      Should.Throw<InvalidOperationException>(() => builder.WithFile("app.cs"));
+
+      DotNetRunBuilder fileBuilder = DotNet.Run().WithFile("app.cs");
+
+      Should.Throw<InvalidOperationException>(() => fileBuilder.WithProject("test.csproj"));
 
       await Task.CompletedTask;
     }

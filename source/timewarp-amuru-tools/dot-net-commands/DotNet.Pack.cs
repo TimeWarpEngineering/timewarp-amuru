@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for dotnet pack.
+#endregion
+
+#region Design
+// dotnet pack has no --framework switch (MSB1001). Terminal logger is one argument, --tl:<mode>.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -36,7 +40,6 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
 {
   private string? Project;
   private string? Configuration;
-  private string? Framework;
   private string? Runtime;
   private string? OutputPath;
   private string? Verbosity;
@@ -74,17 +77,6 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
   public DotNetPackBuilder WithConfiguration(string configuration)
   {
     Configuration = configuration;
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the target framework to pack for.
-  /// </summary>
-  /// <param name="framework">The target framework moniker (e.g., "net8.0", "net10.0")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetPackBuilder WithFramework(string framework)
-  {
-    Framework = framework;
     return this;
   }
 
@@ -310,13 +302,6 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
       arguments.Add(Configuration);
     }
 
-    // Add framework if specified
-    if (!string.IsNullOrWhiteSpace(Framework))
-    {
-      arguments.Add("--framework");
-      arguments.Add(Framework);
-    }
-
     // Add runtime if specified
     if (!string.IsNullOrWhiteSpace(Runtime))
     {
@@ -341,8 +326,7 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
     // Add terminal logger if specified
     if (!string.IsNullOrWhiteSpace(TerminalLogger))
     {
-      arguments.Add("--tl");
-      arguments.Add(TerminalLogger);
+      arguments.Add($"--tl:{TerminalLogger}");
     }
 
     // Add version suffix if specified

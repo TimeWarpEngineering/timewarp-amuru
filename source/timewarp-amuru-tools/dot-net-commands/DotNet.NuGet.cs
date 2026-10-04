@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for dotnet nuget subcommands.
+#endregion
+
+#region Design
+// nuget why takes the project as a positional argument before the package id.
+// nuget delete does not accept --configfile. WithNonInteractive emits --non-interactive so a captured delete does not wait on the confirmation prompt.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -421,7 +426,7 @@ public class DotNetNuGetDeleteBuilder
   private string? Source;
   private string? ApiKey;
   private bool Interactive;
-  private string? ConfigFile;
+  private bool NonInteractive;
 
   public DotNetNuGetDeleteBuilder(string packageName, string version, CommandOptions options)
   {
@@ -456,6 +461,7 @@ public class DotNetNuGetDeleteBuilder
   /// Allows the command to block and require manual action for operations like authentication.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="InvalidOperationException">Thrown by Build when WithNonInteractive is also set.</exception>
   public DotNetNuGetDeleteBuilder WithInteractive()
   {
     Interactive = true;
@@ -463,13 +469,13 @@ public class DotNetNuGetDeleteBuilder
   }
 
   /// <summary>
-  /// Specifies the NuGet configuration file to use.
+  /// Skips the delete confirmation prompt.
   /// </summary>
-  /// <param name="configFile">The NuGet configuration file path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetNuGetDeleteBuilder WithConfigFile(string configFile)
+  /// <exception cref="InvalidOperationException">Thrown by Build when WithInteractive is also set.</exception>
+  public DotNetNuGetDeleteBuilder WithNonInteractive()
   {
-    ConfigFile = configFile;
+    NonInteractive = true;
     return this;
   }
 
@@ -489,10 +495,15 @@ public class DotNetNuGetDeleteBuilder
       arguments.Add(ApiKey);
     }
 
-    if (!string.IsNullOrWhiteSpace(ConfigFile))
+    if (Interactive && NonInteractive)
     {
-      arguments.Add("--configfile");
-      arguments.Add(ConfigFile);
+      throw new InvalidOperationException(
+        "WithInteractive and WithNonInteractive cannot be used together.");
+    }
+
+    if (NonInteractive)
+    {
+      arguments.Add("--non-interactive");
     }
 
     if (Interactive)
@@ -1152,7 +1163,7 @@ public class DotNetNuGetWhyBuilder
   }
 
   /// <summary>
-  /// Specifies the project file to analyze.
+  /// Specifies the project, solution, or directory to analyze. The path is a positional argument.
   /// </summary>
   /// <param name="project">The project file path</param>
   /// <returns>The builder instance for method chaining</returns>
@@ -1179,17 +1190,16 @@ public class DotNetNuGetWhyBuilder
 
     if (!string.IsNullOrWhiteSpace(Project))
     {
-      arguments.Add("--project");
       arguments.Add(Project);
     }
+
+    arguments.Add(PackageName);
 
     if (!string.IsNullOrWhiteSpace(Framework))
     {
       arguments.Add("--framework");
       arguments.Add(Framework);
     }
-
-    arguments.Add(PackageName);
 
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }

@@ -177,7 +177,9 @@ await DotNet.RemovePackage("Microsoft.Extensions.Logging")
 
 `WithWorkingDirectory`, `WithEnvironmentVariable`, and `WithNoValidation` exist on every builder in this reference.
 
-`WithProperty` exists on Build, Clean, Restore, Run, Test, Publish, and Pack. It does not exist on ListPackages, AddPackage, or RemovePackage.
+`WithProperty` exists on Build, Clean, Restore, Run, Test, Publish, and Pack. It does not exist on ListPackages, AddPackage, RemovePackage, or Watch.
+
+`WithTerminalLogger` emits one argument, `--tl:<mode>`, on build, restore, run, test, publish, and pack. `dotnet pack` has no framework switch. `dotnet test` data collection is `WithCollect(dataCollector)`. `dotnet dev-certs https` export is `WithExport().WithExportPath(path)` and emits `--export-path`. `dotnet nuget why` takes the project as a positional argument. `dotnet nuget delete` uses `WithNonInteractive()` and has no config-file option. `dotnet run` rejects `WithProject` together with `WithFile`.
 
 ```csharp
 await DotNet.Build()
