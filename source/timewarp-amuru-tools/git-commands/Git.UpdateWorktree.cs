@@ -7,6 +7,7 @@
 // so no method hardcodes "master".
 // repositoryPath selects which repository's worktree list is searched. The pull itself runs
 // in the worktree directory (`git -C`), because that directory holds the checked-out branch.
+// The pull is the shared fast-forward-only pull (PullFastForwardAsync) used by UpdateBranchAsync.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -37,7 +38,7 @@ public static partial class Git
     => UpdateWorktreeAsync(branchName, repositoryPath: null, cancellationToken);
 
   /// <summary>
-  /// Updates a branch in its worktree by pulling from origin.
+  /// Updates a branch in its worktree by fast-forward pulling from origin.
   /// This is useful when working in other worktrees and needing to sync a branch without switching directories.
   /// </summary>
   /// <param name="branchName">The branch name to update.</param>
@@ -70,8 +71,7 @@ public static partial class Git
         $"{branchName} worktree not found. Ensure {branchName} branch is checked out in a worktree.");
     }
 
-    CommandOutput result = await GitBuilder(null, "-C", branchPath, "pull", "origin", branchName)
-      .CaptureAsync(cancellationToken)
+    CommandOutput result = await PullFastForwardAsync(branchPath, branchName, cancellationToken)
       .ConfigureAwait(false);
 
     if (result.Success)

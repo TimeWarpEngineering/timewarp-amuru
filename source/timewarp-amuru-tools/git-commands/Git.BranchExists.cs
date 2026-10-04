@@ -3,7 +3,8 @@
 #endregion
 
 #region Design
-// `git show-ref --verify` exits 0 when the ref exists and 1 when it does not.
+// `git show-ref --verify --quiet` exits 0 when the ref exists and 1 when it does not.
+// Without `--quiet`, git exits 128 ("not a valid ref") for a missing ref, so `--quiet` is required.
 // Exit 1 is a completed check with Exists false, not an error.
 // Any other non-zero exit (for example, not a repository) sets Success false and keeps the git message.
 #endregion
@@ -25,7 +26,7 @@ public static partial class Git
 {
   /// <summary>
   /// Checks if a branch exists in the repository.
-  /// Uses <c>git show-ref --verify refs/heads/{branch}</c>.
+  /// Uses <c>git show-ref --verify --quiet refs/heads/{branch}</c>.
   /// A missing ref is <see cref="GitBranchExistsResult.Exists"/> false with Success true.
   /// </summary>
   /// <param name="repoPath">The path to the repository.</param>
@@ -40,7 +41,7 @@ public static partial class Git
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(branchName);
 
-    CommandOutput result = await GitBuilder(repoPath, "show-ref", "--verify", $"refs/heads/{branchName}")
+    CommandOutput result = await GitBuilder(repoPath, "show-ref", "--verify", "--quiet", $"refs/heads/{branchName}")
       .CaptureAsync(cancellationToken)
       .ConfigureAwait(false);
 

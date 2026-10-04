@@ -69,8 +69,8 @@ public static async Task<GitBranchExistsResult> BranchExistsAsync(
 - `ErrorMessage` - Git message when the check failed (null when Success is true)
 
 **Behavior:**
-- Uses `git show-ref --verify refs/heads/{branchName}` to verify branch existence
-- A missing ref is `Success` true and `Exists` false (git exit code 1)
+- Uses `git show-ref --verify --quiet refs/heads/{branchName}` to verify branch existence
+- A missing ref is `Success` true and `Exists` false (git exit code 1 with `--quiet`; without it git exits 128)
 - Any other git failure is `Success` false with `ErrorMessage` set
 
 **Example:**
@@ -115,13 +115,12 @@ public static async Task<GitBranchUpdateResult> UpdateBranchAsync(
 
 **Returns:** `GitBranchUpdateResult`
 - `Success` - True if the update succeeded
-- `BranchPath` - Path to the branch's worktree (null if not using worktrees)
+- `BranchPath` - Path of the work tree where the branch is checked out (null when it is not checked out and the ref was updated by fetch)
 - `ErrorMessage` - Error message if failed (null if succeeded)
 
 **Behavior:**
-- If the repository path is a linked worktree, updates the branch in the worktree that has it checked out
-- If `branchName` is the checked-out branch, runs `git pull --ff-only origin <branch>` (`pull.rebase` forced off)
-- Otherwise, uses `git fetch origin <branch>:<branch>` to update the local ref
+- If `branchName` is checked out in any work tree (main or linked), runs `git -C <worktree> -c pull.rebase=false pull --ff-only origin <branch>` in that work tree
+- Otherwise (including a bare repository), uses `git fetch origin <branch>:<branch>` to update the local ref
 
 **Example:**
 ```csharp
@@ -152,7 +151,7 @@ public static async Task<GitBranchUpdateResult> UpdateDefaultBranchAsync(
 
 **Returns:** `GitBranchUpdateResult`
 - `Success` - True if the update succeeded
-- `BranchPath` - Path to the branch's worktree (null if not using worktrees)
+- `BranchPath` - Path of the work tree where the branch is checked out (null when it is not checked out and the ref was updated by fetch)
 - `ErrorMessage` - Error message if failed (null if succeeded)
 
 **Behavior:**

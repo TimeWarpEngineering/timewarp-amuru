@@ -33,7 +33,12 @@ Found by multi-agent release review (2026-07-04). Verified clean: worktree add `
 
 ## Results
 
-Checked-out `UpdateBranchAsync` now fast-forwards with `git pull --ff-only` (`pull.rebase` forced off for that invocation). A branch that is not checked out still uses `git fetch origin <branch>:<branch>`. A linked worktree still delegates to `UpdateWorktreeAsync`.
+`UpdateBranchAsync` looks up the branch in the porcelain worktree list (`GetWorktreePathAsync`).
+
+- **Checked out in any work tree (main or linked):** it runs `git -C <path> -c pull.rebase=false pull --ff-only origin <branch>` there and sets `BranchPath` to that path. Before, `BranchPath` was null for a normal repository.
+- **Not checked out:** it runs `git fetch origin <branch>:<branch>`, which also covers the HEAD branch of a bare repository.
+
+`UpdateWorktreeAsync` uses the same fast-forward-only pull. Before, it ran a plain `git pull`, so it could create a merge or rebase depending on config.
 
 `GetDefaultBranchAsync` strips only a leading `origin/` prefix. `FindMainRepositoryFromWorktree` resolves a relative `gitdir:` against the worktree directory and returns the repository directory (the parent of `.git` for a non-bare repo).
 
@@ -46,7 +51,7 @@ Package `<Version>` is still `1.1.1`. The release that ships this commit needs a
 - `Git.GetWorktreePathAsync`, `Git.UpdateBranchAsync`, and `Git.UpdateWorktreeAsync` no longer default `branchName` to `"master"`. The branch name is required. Working-directory overloads remain: `(string branchName, CancellationToken cancellationToken = default)`.
 - Added repository-path overloads (null path means process working directory) for `GetDefaultBranchAsync`, `UpdateDefaultBranchAsync`, `GetCommitsAheadAsync`, `GetCommitsAheadOfDefaultBranchAsync`, `GetWorktreePathAsync`, `GetDefaultWorktreePathAsync`, `UpdateBranchAsync`, `UpdateDefaultBranchAsync`, `UpdateWorktreeAsync`, and `UpdateDefaultWorktreeAsync`. Existing zero-argument and `(CancellationToken)` calls of the default-branch helpers still compile.
 - `FetchAsync` returns `GitFetchResult` instead of `bool`.
-- `BranchExistsAsync` returns `GitBranchExistsResult` (`Success`, `Exists`, `ErrorMessage`) instead of `bool`. Exit code 1 (missing ref) is `Success` true and `Exists` false. Other failures set `Success` false and keep the git message.
+- `BranchExistsAsync` returns `GitBranchExistsResult` (`Success`, `Exists`, `ErrorMessage`) instead of `bool`. It runs `git show-ref --verify --quiet`. Exit code 1 (missing ref) is `Success` true and `Exists` false. Other failures set `Success` false and keep the git message.
 - `ConfigureFetchRefspecAsync` returns `GitConfigureFetchRefspecResult` instead of `bool`.
 - `SetRemoteHeadAutoAsync` returns `GitSetRemoteHeadResult` instead of `bool`.
 - `WorktreeListPorcelainAsync` returns `GitWorktreeListResult` (`Success`, `Porcelain`, `ErrorMessage`) instead of `string`. Failure is `Success` false and `Porcelain` null, not `string.Empty`.
@@ -70,9 +75,28 @@ dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs
 - `UpdateBranch_Given_.OtherBranch_Should_UpdateRefWithoutLeavingMaster`: exit 0. `HEAD` stays on `master` and `refs/heads/feature` matches origin.
 - `WorktreeRemove_Given_.RelativeGitdirAndForeignWorkingDirectory_Should_RemoveWorktree`: exit 0. Removal succeeds while process CWD is not the repository, after the worktree `.git` file is rewritten to a relative `gitdir:`.
 - `SymbolicRefWithOriginInsideBranchName_Should_StripOnlyLeadingPrefix`: branch name is `feature/origin/topic`.
-- Full runner: Failed 0. This session: Passed 547, Skipped 1, Total 548.
+- `UpdateBranch_Given_.BareRepository_Should_UpdateHeadBranchByFetch` and `.BranchCheckedOutInLinkedWorktree_Should_PullInThatWorktree`: exit 0.
+- `BranchExists_Given_.RealMissingBranch_Should_ReturnFalseWithoutError`: exit 0.
+- Full runner: Failed 0. After the review fixes: Passed 551, Skipped 1, Total 552.
+
+### Review disposition
+
+- **Process:** effort 3 (by-diff budget, 1804 lines). Roster: general. 2 rounds.
+- **Final counts:**
+  - bug: 2 fixed
+  - suggestion: 1 fixed
+  - nit: 1 fixed, 1 wontfix
+  - open: 0
+- **Disposition:** `accepted-exceptions`. M5 (a test changes the process CWD) is wontfix because changing the CWD is what the relative-gitdir regression test checks. It follows the existing repo pattern and restores the CWD in `finally`.
+- **Fixes made on this task:**
+  - `BranchExistsAsync` adds `--quiet`. Without it, real git exits 128 for a missing ref.
+  - `UpdateBranchAsync` handles bare repositories and branches checked out in another linked worktree.
+  - The worktree pull is fast-forward only.
+- **Artifacts:** `review/review-framework.md`, `review/round-1/{general,merged}.md`, `review/round-2/{general,merged}.md`, `review/disposition.md`.
+- `ganda repo audit`: passes.
 
 ## Session
 
 - Kitchen refresh: 522eb63d (2026-10-04)
 - Implementation: grok 01a1076b-f96a-78c1-b878-cca5d62d7d80 (2026-10-04)
+- Review oracle: claude-opus-5-5 (2026-10-04). General reviewer and fix pass ran as Claude Sonnet subagents. Effort 3, 2 rounds, accepted-exceptions.

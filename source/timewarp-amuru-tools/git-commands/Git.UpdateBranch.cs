@@ -3,14 +3,14 @@
 #endregion
 
 #region Design
-// `git fetch origin <branch>:<branch>` refuses to update the branch that is checked out.
-// That refusal is the common case: a normal repository on its current branch.
-// When the requested branch is the checked-out branch, update with
-// `git pull --ff-only` so the ref and the work tree move together.
-// `pull.rebase` is forced off for that invocation so a machine-level rebase setting
+// `git fetch origin <branch>:<branch>` refuses to update a branch that is checked out in any work tree.
+// GetWorktreePathAsync (porcelain worktree list) finds the work tree holding the branch, whether it is the
+// main work tree of repositoryPath, a different linked worktree, or none.
+// A bare repository is listed as `bare` with no branch line, so its HEAD branch is not treated as checked out.
+// Checked out: `git -C <worktreePath> -c pull.rebase=false pull --ff-only origin <branch>` (PullFastForwardAsync),
+// so the ref and the work tree move together. pull.rebase is forced off so a machine-level rebase setting
 // cannot rewrite commits; a non-fast-forward still fails, matching the refspec update.
-// Any other branch keeps the refspec fetch, which updates the ref without touching the work tree.
-// A linked worktree delegates to UpdateWorktreeAsync, which pulls inside the worktree that has the branch.
+// Not checked out: the refspec fetch in repositoryPath, which updates the ref without touching any work tree.
 // repositoryPath selects the repository; null uses the process working directory.
 #endregion
 
@@ -20,7 +20,7 @@ namespace TimeWarp.Amuru;
 /// Represents the result of a git branch update operation.
 /// </summary>
 /// <param name="Success">True if the update succeeded, false otherwise.</param>
-/// <param name="BranchPath">The path to the branch's worktree (null if not using worktrees).</param>
+/// <param name="BranchPath">The path of the work tree where the branch is checked out (null when it is not checked out and the ref was updated by fetch).</param>
 /// <param name="ErrorMessage">Error message if failed (null if succeeded).</param>
 public record GitBranchUpdateResult(bool Success, string? BranchPath, string? ErrorMessage);
 
@@ -42,9 +42,9 @@ public static partial class Git
     => UpdateBranchAsync(branchName, repositoryPath: null, cancellationToken);
 
   /// <summary>
-  /// Updates a branch from origin, handling both worktree and regular repository configurations.
-  /// A checked-out branch is updated with <c>git pull --ff-only</c>. Any other branch is updated
-  /// with <c>git fetch origin &lt;branch&gt;:&lt;branch&gt;</c>.
+  /// Updates a branch from origin, handling worktree, regular and bare repository configurations.
+  /// A branch checked out in any work tree (main or linked) is updated with <c>git pull --ff-only</c> in that
+  /// work tree. Any other branch is updated with <c>git fetch origin &lt;branch&gt;:&lt;branch&gt;</c>.
   /// </summary>
   /// <param name="branchName">The branch name to update.</param>
   /// <param name="repositoryPath">Repository to update. Null uses the process working directory.</param>
@@ -69,28 +69,17 @@ public static partial class Git
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(branchName);
 
-    if (IsWorktree(repositoryPath))
-    {
-      GitWorktreeUpdateResult worktreeResult = await UpdateWorktreeAsync(branchName, repositoryPath, cancellationToken)
-        .ConfigureAwait(false);
-      return new GitBranchUpdateResult(worktreeResult.Success, worktreeResult.BranchPath, worktreeResult.ErrorMessage);
-    }
+    string? worktreePath = await GetWorktreePathAsync(branchName, repositoryPath, cancellationToken)
+      .ConfigureAwait(false);
 
-    string? checkedOutBranch = await GetCheckedOutBranchAsync(repositoryPath, cancellationToken).ConfigureAwait(false);
-    if (string.Equals(checkedOutBranch, branchName, StringComparison.Ordinal))
+    if (worktreePath is not null)
     {
-      CommandOutput pullResult = await GitBuilder(
-          repositoryPath,
-          "-c",
-          "pull.rebase=false",
-          "pull",
-          "--ff-only",
-          "origin",
-          branchName)
-        .CaptureAsync(cancellationToken)
+      CommandOutput pullResult = await PullFastForwardAsync(worktreePath, branchName, cancellationToken)
         .ConfigureAwait(false);
 
-      return FromBranchCommand(pullResult);
+      return pullResult.Success
+        ? new GitBranchUpdateResult(true, worktreePath, null)
+        : new GitBranchUpdateResult(false, worktreePath, ErrorTextOr(pullResult, "Failed to update branch"));
     }
 
     CommandOutput fetchResult = await GitBuilder(
@@ -153,25 +142,19 @@ public static partial class Git
     return new GitBranchUpdateResult(false, null, ErrorTextOr(result, "Failed to update branch"));
   }
 
-  private static async Task<string?> GetCheckedOutBranchAsync(
-    string? repositoryPath,
+  private static Task<CommandOutput> PullFastForwardAsync(
+    string worktreePath,
+    string branchName,
     CancellationToken cancellationToken)
-  {
-    CommandOutput result = await GitBuilder(repositoryPath, "rev-parse", "--abbrev-ref", "HEAD")
-      .CaptureAsync(cancellationToken)
-      .ConfigureAwait(false);
-
-    if (!result.Success)
-    {
-      return null;
-    }
-
-    string name = result.Stdout.Trim();
-    if (string.IsNullOrWhiteSpace(name) || string.Equals(name, "HEAD", StringComparison.Ordinal))
-    {
-      return null;
-    }
-
-    return name;
-  }
+    => GitBuilder(
+        null,
+        "-C",
+        worktreePath,
+        "-c",
+        "pull.rebase=false",
+        "pull",
+        "--ff-only",
+        "origin",
+        branchName)
+      .CaptureAsync(cancellationToken);
 }

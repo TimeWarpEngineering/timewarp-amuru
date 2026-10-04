@@ -10,6 +10,7 @@
 // Action: BranchExists (the method being tested)
 // Tests verify existing branches set Exists, a missing ref is Exists false with Success true,
 // and an invalid repo is Success false with the git message.
+// Real-execution tests (outside CommandMock) confirm real git behavior for the exact command line.
 #endregion
 
 #if !JARIBU_MULTI
@@ -28,7 +29,7 @@ namespace Git_
     {
       using (CommandMock.Enable())
       {
-        CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/main")
+        CommandMock.Setup("git", "show-ref", "--verify", "--quiet", "refs/heads/main")
           .Returns("abc123 refs/heads/main");
 
         GitBranchExistsResult result = await Git.BranchExistsAsync("/path/to/repo", "main");
@@ -45,8 +46,8 @@ namespace Git_
     {
       using (CommandMock.Enable())
       {
-        CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/nonexistent")
-          .ReturnsError("fatal: 'refs/heads/nonexistent' - not a valid ref", 1);
+        CommandMock.Setup("git", "show-ref", "--verify", "--quiet", "refs/heads/nonexistent")
+          .ReturnsError(string.Empty, 1);
 
         GitBranchExistsResult result = await Git.BranchExistsAsync("/path/to/repo", "nonexistent");
 
@@ -62,7 +63,7 @@ namespace Git_
     {
       using (CommandMock.Enable())
       {
-        CommandMock.Setup("git", "show-ref", "--verify", "refs/heads/main")
+        CommandMock.Setup("git", "show-ref", "--verify", "--quiet", "refs/heads/main")
           .ReturnsError("fatal: not a git repository", 128);
 
         GitBranchExistsResult result = await Git.BranchExistsAsync("/invalid/path", "main");
@@ -74,6 +75,43 @@ namespace Git_
       }
 
       await Task.CompletedTask;
+    }
+
+    public static async Task RealExistingBranch_Should_ReturnTrue()
+    {
+      string repository = await GitRepositoryFixture.CreateRepositoryAsync("branch-exists-real");
+      try
+      {
+        await GitRepositoryFixture.CommitFileAsync(repository, "a.txt", "a", "A");
+
+        GitBranchExistsResult result = await Git.BranchExistsAsync(repository, "master");
+
+        result.Success.ShouldBeTrue(result.ErrorMessage);
+        result.Exists.ShouldBeTrue();
+      }
+      finally
+      {
+        GitRepositoryFixture.Delete(repository);
+      }
+    }
+
+    public static async Task RealMissingBranch_Should_ReturnFalseWithoutError()
+    {
+      string repository = await GitRepositoryFixture.CreateRepositoryAsync("branch-missing-real");
+      try
+      {
+        await GitRepositoryFixture.CommitFileAsync(repository, "a.txt", "a", "A");
+
+        GitBranchExistsResult result = await Git.BranchExistsAsync(repository, "nope");
+
+        result.Success.ShouldBeTrue(result.ErrorMessage);
+        result.Exists.ShouldBeFalse();
+        result.ErrorMessage.ShouldBeNull();
+      }
+      finally
+      {
+        GitRepositoryFixture.Delete(repository);
+      }
     }
   }
 }

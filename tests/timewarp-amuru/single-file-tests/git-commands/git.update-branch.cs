@@ -8,6 +8,8 @@
 // The checked-out test is the case `git fetch origin <branch>:<branch>` refuses:
 // origin has a new commit and the clone has that branch checked out.
 // The non-checked-out test updates a different branch ref and leaves HEAD on master.
+// The bare-repo test checks that a bare repository's HEAD branch is updated by refspec fetch.
+// The linked-worktree test checks a branch checked out in another worktree is pulled there.
 // Both pass an explicit repository path so process CWD is not the repository under test.
 #endregion
 
@@ -78,6 +80,72 @@ namespace Git_
       }
       finally
       {
+        GitRepositoryFixture.Delete(clone);
+        GitRepositoryFixture.Delete(origin);
+      }
+    }
+
+    public static async Task BareRepository_Should_UpdateHeadBranchByFetch()
+    {
+      string origin = await GitRepositoryFixture.CreateRepositoryAsync("update-bare-origin");
+      string? bare = null;
+      try
+      {
+        await GitRepositoryFixture.CommitFileAsync(origin, "a.txt", "a", "A");
+        string parent = Directory.CreateTempSubdirectory("amuru-git-update-bare-").FullName;
+        bare = parent;
+        string bareClone = Path.Combine(parent, "bareclone");
+        await GitRepositoryFixture.GitAsync(parent, "clone", "--bare", origin, bareClone);
+        await GitRepositoryFixture.CommitFileAsync(origin, "b.txt", "b", "B");
+
+        GitBranchUpdateResult result = await Git.UpdateBranchAsync("master", bareClone);
+
+        result.Success.ShouldBeTrue(result.ErrorMessage);
+        result.BranchPath.ShouldBeNull();
+        string originHead = await GitRepositoryFixture.RevParseAsync(origin, "HEAD");
+        string bareMaster = await GitRepositoryFixture.RevParseAsync(bareClone, "refs/heads/master");
+        bareMaster.ShouldBe(originHead);
+      }
+      finally
+      {
+        GitRepositoryFixture.Delete(bare);
+        GitRepositoryFixture.Delete(origin);
+      }
+    }
+
+    public static async Task BranchCheckedOutInLinkedWorktree_Should_PullInThatWorktree()
+    {
+      string origin = await GitRepositoryFixture.CreateRepositoryAsync("update-linked-origin");
+      string? clone = null;
+      string? worktreeParent = null;
+      try
+      {
+        await GitRepositoryFixture.CommitFileAsync(origin, "a.txt", "a", "A");
+        await GitRepositoryFixture.GitAsync(origin, "branch", "feature");
+        clone = await GitRepositoryFixture.CloneAsync(origin, "update-linked-clone");
+
+        worktreeParent = Directory.CreateTempSubdirectory("amuru-git-update-linked-wt-").FullName;
+        string worktreePath = Path.Combine(worktreeParent, "feature-wt");
+        await GitRepositoryFixture.GitAsync(clone, "worktree", "add", worktreePath, "feature");
+
+        await GitRepositoryFixture.GitAsync(origin, "checkout", "feature");
+        await GitRepositoryFixture.CommitFileAsync(origin, "f.txt", "f", "F");
+        await GitRepositoryFixture.GitAsync(origin, "checkout", "master");
+
+        GitBranchUpdateResult result = await Git.UpdateBranchAsync("feature", clone);
+
+        result.Success.ShouldBeTrue(result.ErrorMessage);
+        result.BranchPath.ShouldNotBeNull();
+        Path.GetFullPath(result.BranchPath!).TrimEnd('/').ShouldBe(Path.GetFullPath(worktreePath).TrimEnd('/'));
+        string worktreeHead = await GitRepositoryFixture.RevParseAsync(worktreePath, "HEAD");
+        string originFeature = await GitRepositoryFixture.RevParseAsync(origin, "refs/heads/feature");
+        worktreeHead.ShouldBe(originFeature);
+        string cloneBranch = await GitRepositoryFixture.RevParseAsync(clone, "--abbrev-ref", "HEAD");
+        cloneBranch.ShouldBe("master");
+      }
+      finally
+      {
+        GitRepositoryFixture.Delete(worktreeParent);
         GitRepositoryFixture.Delete(clone);
         GitRepositoryFixture.Delete(origin);
       }
