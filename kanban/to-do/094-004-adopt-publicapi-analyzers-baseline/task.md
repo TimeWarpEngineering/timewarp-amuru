@@ -83,3 +83,10 @@ ganda repo audit
 Expect the runner to finish with 0 failed (this session: 552 total, 551 passed, 1 skipped) and the audit to report Failed: 0.
 
 **Not in scope:** reconstructing the 1.1.1 surface. Removed members from tasks 087, 088, and 099 stay recorded on those tasks. This baseline is the pending 2.0 surface.
+
+### Review
+
+- Rounds: 1; effort 3 (by-diff); roster: general (review oracle, claude-opus-5-5, 2026-10-05)
+- Final counts: bug 0, suggestion 0, nit 0 (0 open, 0 fixed, 0 wontfix)
+- Disposition: **clean**
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
