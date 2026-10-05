@@ -67,8 +67,17 @@ Smoke: `./bin/dev build` and `dotnet run --file tests/timewarp-amuru/multi-file-
 
 Expect: `./bin/dev build` exits 0 with 0 warnings. The suite exits 0. `PassthroughAsync_Given_.ConfiguredStandardInput_Should_ReachTheChild` passes (`sort -o` writes `a`, `b`, `c` from stdin `b\na\nc\n`). `TtyPassthroughAsync_Given_.ConfiguredStandardInput_Should_Throw` passes with the message above. `Enable_Given_.PassthroughConfiguredStdin_Should_RecordTheSameInput` and `TtyConfiguredStdin_Should_ThrowBeforeTheMockRuns` pass. `Pipe_Given_.DownstreamZeroExitCodeValidation_Should_Throw` throws, and `DownstreamWithoutValidation_Should_ReportExitCode` reports exit code 7. Full suite on 2026-10-05: 565 passed, 1 skipped, 0 failed. `ganda repo audit`: 32 passed, 0 failed.
 
+### Review disposition
+
+- Rounds: 2. Roster: general. Effort: 2 (by-diff budget, 659 lines).
+- Final counts: bug 1 fixed, suggestion 0, nit 0. Open 0, wontfix 0.
+- Disposition: **clean**.
+- M1 (bug, fixed): `PassthroughAsync` replaced a pipe's upstream stage with console stdin, and `TtyPassthroughAsync` ran only the last stage. `Pipe` compositions now set `IsPipeline`. PassthroughAsync keeps the upstream stage as stdin. TtyPassthroughAsync throws `TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped`. Tests: `PassthroughAsync_Given_.Pipeline_Should_FeedTheUpstreamStage` and `TtyPassthroughAsync_Given_.Pipeline_Should_Throw`. Suite after fix: 567 passed, 1 skipped, 0 failed.
+- Artifacts: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Created: 522eb63d (2026-10-04)
 - Kitchen refresh (Pipe options scope): 522eb63d (2026-10-05)
 - Implementation: grok implementer (2026-10-05)
+- Review: claude review oracle, effort 2, general roster, 2 rounds (2026-10-05)

@@ -64,6 +64,28 @@ namespace ShellBuilder_
       }
     }
 
+    public static async Task Pipeline_Should_FeedTheUpstreamStage()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-passthrough-pipe-").FullName;
+      string outputPath = Path.Combine(directory, "sorted.txt");
+      try
+      {
+        CommandOutput result = await Shell.Builder("printf")
+          .WithArguments("b\na\nc\n")
+          .Pipe("sort", "-o", outputPath)
+          .PassthroughAsync();
+
+        result.ExitCode.ShouldBe(0);
+        string[] lines = (await File.ReadAllTextAsync(outputPath))
+          .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        lines.ShouldBe(["a", "b", "c"]);
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
     public static async Task EmptyStandardInput_Should_SendImmediateEof()
     {
       string directory = Directory.CreateTempSubdirectory("amuru-passthrough-empty-").FullName;

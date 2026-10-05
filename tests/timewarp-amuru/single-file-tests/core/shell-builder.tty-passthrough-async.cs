@@ -72,6 +72,21 @@ namespace ShellBuilder_
         "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY");
     }
 
+    public static async Task Pipeline_Should_Throw()
+    {
+      InvalidOperationException exception = await Should.ThrowAsync<InvalidOperationException>
+      (
+        async () =>
+          await Shell.Builder("echo")
+            .WithArguments("hello")
+            .Pipe("cat")
+            .TtyPassthroughAsync()
+      );
+
+      exception.Message.ShouldBe(
+        "TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped");
+    }
+
     public static async Task WorkingDirectory_Should_Work()
     {
       string tempDir = Path.GetTempPath();

@@ -17,10 +17,13 @@
 // - Configured standard input is a string on the command, including empty (immediate EOF).
 //   Null means the caller owns stdin. Capture, run, select, and stream modes pass that string through.
 //   PassthroughAsync keeps it and sends stdout and stderr to the console. Console stdin is opened
-//   only when no string was configured. TtyPassthroughAsync throws InvalidOperationException when a
+//   only when no string was configured and the command is not a pipeline (the upstream stage owns
+//   stdin there). TtyPassthroughAsync throws InvalidOperationException when a
 //   string is configured: redirecting stdin would clear isatty on that stream, and inheriting the
 //   console would drop the text with no error. CommandMock records the string on matched calls.
 //   The TTY refusal runs before mock matching, so both paths refuse instead of dropping the text.
+//   TtyPassthroughAsync also throws for Pipe compositions: it starts one process, so the upstream
+//   stage would be dropped.
 // - CaptureAsync and RunAndCaptureAsync set CommandOutput.RunTime from CliWrap, matching PassthroughAsync and TtyPassthroughAsync. Mocks and Empty stay at zero.
 // - SelectAsync lets CommandExecutionException (zero-exit-code validation) and cancellation propagate; only unexpected runtime failures degrade to empty. TtyPassthroughAsync remains the documented validation exemption.
 // - Streaming methods use CliWrap event streams for low-buffer processing.
@@ -71,6 +74,9 @@ public class CommandResult
   private const string TtyConfiguredStandardInputMessage =
     "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY";
 
+  private const string TtyPipelineMessage =
+    "TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped";
+
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
 
@@ -84,6 +90,8 @@ public class CommandResult
   private string[]? MockArguments { get; }
   // Null: caller owns stdin. A string, including empty, is already attached to the CliWrap command.
   private string? ConfiguredStandardInput { get; }
+  // True for Pipe compositions: the upstream stage owns stdin of the last stage.
+  private bool IsPipeline { get; }
 
   internal CommandResult(Command? command)
   {
@@ -93,6 +101,12 @@ public class CommandResult
   internal CommandResult(Command? command, string? configuredStandardInput) : this(command)
   {
     ConfiguredStandardInput = configuredStandardInput;
+  }
+
+  private CommandResult(Command? command, string? configuredStandardInput, bool isPipeline)
+    : this(command, configuredStandardInput)
+  {
+    IsPipeline = isPipeline;
   }
 
   internal CommandResult(Command? command, string executable, string[] arguments, string? configuredStandardInput)
@@ -189,7 +203,8 @@ public class CommandResult
   /// <para>
   /// When standard input was configured (including an empty string, which is immediate EOF),
   /// that text is the child's stdin. Stdout and stderr still go to the console.
-  /// Console stdin is opened only when no standard input was configured.
+  /// Console stdin is opened only when no standard input was configured. For a
+  /// <see cref="Pipe(string, string[])"/> composition, the upstream stage stays the stdin.
   /// </para>
   /// <para>
   /// Caveat: when stdin comes from the console, a child that exits without draining it can leave
@@ -230,13 +245,14 @@ public class CommandResult
     Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
     await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
-    // Keep a configured string pipe (including empty). Replace stdin only when the caller owns it.
+    // Keep a configured string pipe (including empty) or the upstream pipe stage.
+    // Replace stdin only when the caller owns it.
     Command interactiveCommand = InternalCommand
       .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
     Stream? stdIn = null;
-    if (ConfiguredStandardInput is null)
+    if (ConfiguredStandardInput is null && !IsPipeline)
     {
       stdIn = TimeWarpTerminal.Default.OpenStandardInput();
       interactiveCommand = interactiveCommand.WithStandardInputPipe(PipeSource.FromStream(stdIn));
@@ -291,6 +307,7 @@ public class CommandResult
   /// <exception cref="InvalidOperationException">
   /// Standard input was configured. The message is
   /// "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY".
+  /// Also thrown for a <see cref="Pipe(string, string[])"/> composition, which this method cannot run.
   /// </exception>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -308,6 +325,11 @@ public class CommandResult
     if (ConfiguredStandardInput is not null)
     {
       throw new InvalidOperationException(TtyConfiguredStandardInputMessage);
+    }
+
+    if (IsPipeline)
+    {
+      throw new InvalidOperationException(TtyPipelineMessage);
     }
 
     Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
@@ -521,7 +543,7 @@ public class CommandResult
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = InternalCommand | nextCommandResult.InternalCommand;
 
-      return new CommandResult(pipedCommand, ConfiguredStandardInput);
+      return new CommandResult(pipedCommand, ConfiguredStandardInput, isPipeline: true);
     }
     catch
     {
