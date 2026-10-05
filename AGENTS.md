@@ -12,14 +12,14 @@ This file provides guidance to agents when working with code in this repository.
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
 
 ## Package Layout
-- `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system ops, ScriptContext. Stable-1.0 track; XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
+- `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system ops, ScriptContext. XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
 - `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Ships at the same `<Version>` as core (inherited from `source/Directory.Build.props`); no per-csproj version
 
 ## Public API surface
 
 `Microsoft.CodeAnalysis.PublicApiAnalyzers` 5.6.0 (CPM) is referenced only by the packable projects `source/timewarp-amuru/timewarp-amuru.csproj` and `source/timewarp-amuru-tools/timewarp-amuru-tools.csproj`, with `PrivateAssets=all`. Tests, samples, and `tools/dev-cli` do not reference it. RS0016 (public API missing from the files) and RS0017 (file entry missing from source) are warnings; root `TreatWarningsAsErrors` turns them into build errors, including in CI.
 
-Each packable project has `public-api/PublicAPI.Shipped.txt` (surface already in a release) and `public-api/PublicAPI.Unshipped.txt` (changes not yet released). Roslyn requires those basenames. The `public-api` folder is in `kebab-path-names.prune` so the audit allows them, and each csproj lists them as `AdditionalFiles`. Both files start with `#nullable enable`. Unshipped is only that header when nothing is pending. The baseline in Shipped is the current master surface (the pending 2.0 surface).
+Each packable project has `public-api/PublicAPI.Shipped.txt` (surface already in a release) and `public-api/PublicAPI.Unshipped.txt` (changes not yet released). Roslyn requires those basenames. The `public-api` folder is in `kebab-path-names.prune` so the audit allows them, and each csproj lists them as `AdditionalFiles`. Both files start with `#nullable enable`. Unshipped is only that header when nothing is pending. The baseline in Shipped is the `2.0.0-beta.1` surface. Later additions stay in Unshipped until the next version bump.
 
 - **Add a public member:** add its line to that project's `PublicAPI.Unshipped.txt`. In the IDE, the RS0016 code fix "Add all items to public API" (or the single-symbol fix) writes the line. From the CLI: `dotnet format analyzers <project>.csproj --diagnostics RS0016 --severity warn`.
 - **Remove a public member:** delete it from source and add the same line to `PublicAPI.Unshipped.txt` with a `*REMOVED*` prefix. Leave the original line in `PublicAPI.Shipped.txt`. A `*REMOVED*` line whose symbol is still in source is RS0050. `PublicAPI.Shipped.txt` cannot contain `*REMOVED*` (RS0024).

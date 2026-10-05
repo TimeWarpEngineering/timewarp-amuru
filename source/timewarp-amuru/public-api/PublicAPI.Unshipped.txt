@@ -1,4 +1,1 @@
 #nullable enable
-TimeWarp.Amuru.CommandResult.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
-TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
-static TimeWarp.Amuru.Testing.CommandMock.GetConfiguredStandardInput(string! executable, params string![]! arguments) -> string?

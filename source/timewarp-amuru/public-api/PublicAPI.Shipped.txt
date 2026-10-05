@@ -1,4 +1,6 @@
 #nullable enable
+TimeWarp.Amuru.CommandResult.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
 const TimeWarp.Amuru.CommandResult.NeverRanExitCode = -1 -> int
 override TimeWarp.Amuru.CommandOutput.ToString() -> string!
 override TimeWarp.Amuru.OutputLine.Equals(object? obj) -> bool
@@ -102,6 +104,7 @@ static TimeWarp.Amuru.Shell.Builder(string! executable) -> TimeWarp.Amuru.ShellB
 static TimeWarp.Amuru.Shell.Run(string! executable, string![]? arguments, TimeWarp.Amuru.CommandOptions! options, string? standardInput = null) -> TimeWarp.Amuru.CommandResult!
 static TimeWarp.Amuru.Testing.CommandMock.CallCount(string! executable, params string![]! arguments) -> int
 static TimeWarp.Amuru.Testing.CommandMock.Enable(TimeWarp.Amuru.Testing.MockBehavior behavior = TimeWarp.Amuru.Testing.MockBehavior.Strict) -> System.IDisposable!
+static TimeWarp.Amuru.Testing.CommandMock.GetConfiguredStandardInput(string! executable, params string![]! arguments) -> string?
 static TimeWarp.Amuru.Testing.CommandMock.Reset() -> void
 static TimeWarp.Amuru.Testing.CommandMock.Setup(string! executable, params string![]! arguments) -> TimeWarp.Amuru.Testing.MockSetup!
 static TimeWarp.Amuru.Testing.CommandMock.VerifyCalled(string! executable, params string![]! arguments) -> void
