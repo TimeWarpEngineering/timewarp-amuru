@@ -20,6 +20,15 @@ Found by the task 088 review (finding M2, pre-existing, out of scope there).
 - Update the Purpose/Design header comment in `command-result.cs` to state how each execution mode treats configured stdin.
 - Tests: real-execution tests for `PassthroughAsync` with configured stdin (e.g. `cat` / `sort` reading from the string) proving the input reaches the child; a test that `TtyPassthroughAsync` with configured stdin behaves per the recorded decision; mock-path parity test.
 
+## Added scope (2026-10-05, from task 100 review finding M1)
+
+`CommandResult.Pipe(string executable, params string[] args)` has no overload that accepts `CommandOptions`, so a piped stage cannot carry validation, working directory, or environment. Visible effect: `Fzf.FromCommand(...)` applies validation and options to the source command only; the fzf stage runs with defaults. Documented today as a limitation in `source/timewarp-amuru-tools/fzf-command/Fzf.cs`.
+
+- Add a `Pipe` overload on `CommandResult` that accepts `CommandOptions` (or the builder-style equivalent used elsewhere in core) and applies it to the piped stage.
+- Update `Fzf.FromCommand` / `SelectWithFzf` to pass the fzf builder's options through to the pipe stage, and remove the limitation note.
+- Test: a piped stage with `WithZeroExitCodeValidation` throws when the downstream command fails; the same without validation reports the exit code.
+- PublicAPI: new core member goes in `source/timewarp-amuru/public-api/PublicAPI.Unshipped.txt`.
+
 ## Checklist
 
 - [ ] Read `command-result.cs` PassthroughAsync / TtyPassthroughAsync and `command-extensions.cs` stdin attachment; confirm how CliWrap exposes the configured `PipeSource` (may need to track "stdin configured" on CommandResult rather than inspect CliWrap internals).
@@ -28,6 +37,8 @@ Found by the task 088 review (finding M2, pre-existing, out of scope there).
 - [ ] CommandMock parity for both modes.
 - [ ] Tests under `tests/timewarp-amuru/single-file-tests/core/` (or the existing command-result test files): passthrough honors stdin; tty decision covered; mock parity.
 - [ ] Update header Design comment and XML docs on both methods.
+- [ ] `Pipe` overload with options (see Added scope); fzf passes options through; limitation note removed
+- [ ] PublicAPI Unshipped updated for every new core member (analyzer is live; RS0016 fails the build otherwise)
 - [ ] `dev build` warnings-as-errors clean; `dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs` green.
 
 ## Notes
@@ -39,3 +50,4 @@ Found by the task 088 review (finding M2, pre-existing, out of scope there).
 ## Session
 
 - Created: 522eb63d (2026-10-04)
+- Kitchen refresh (Pipe options scope): 522eb63d (2026-10-05)
