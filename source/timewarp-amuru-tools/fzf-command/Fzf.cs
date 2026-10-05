@@ -11,6 +11,7 @@
 // FromCommand splits on unquoted whitespace. Single and double quotes group one argument,
 // and backslashes stay literal so Windows paths are not treated as escapes.
 // The file list and stdin text are captured when Build runs.
+// WithNoValidation and WithZeroExitCodeValidation replace CommandOptions the same way ShellBuilder does.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -62,6 +63,27 @@ public partial class FzfBuilder
   public FzfBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
+    return this;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public FzfBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public FzfBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 

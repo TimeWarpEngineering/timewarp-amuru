@@ -116,7 +116,7 @@ namespace DotNet_
     {
       string command = DotNet.Watch()
         .WithConfiguration("Release")
-        .WithTargetFramework("net10.0")
+        .WithFramework("net10.0")
         .WithRuntime("linux-x64")
         .WithVerbosity("detailed")
         .Run()
@@ -175,7 +175,7 @@ namespace DotNet_
       string command = DotNet.Watch()
         .WithProject("MyApp.csproj")
         .WithConfiguration("Release")
-        .WithTargetFramework("net10.0")
+        .WithFramework("net10.0")
         .WithVerbosity("minimal")
         .WithNoRestore()
         .WithArguments("--environment", "Production")

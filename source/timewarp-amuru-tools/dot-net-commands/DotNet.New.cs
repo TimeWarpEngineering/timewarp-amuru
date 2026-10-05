@@ -196,6 +196,17 @@ public class DotNetNewBuilder : ICommandBuilder<DotNetNewBuilder>
   }
 
   /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Creates a fluent builder for the 'dotnet new list' command.
   /// </summary>
   /// <param name="templateName">Optional template name to filter by</param>
@@ -366,12 +377,33 @@ public class DotNetNewBuilder : ICommandBuilder<DotNetNewBuilder>
 public class DotNetNewListBuilder
 {
   private readonly string? TemplateName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetNewListBuilder(string? templateName, CommandOptions options)
   {
     TemplateName = templateName;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -418,12 +450,33 @@ public class DotNetNewListBuilder
 public class DotNetNewSearchBuilder
 {
   private readonly string TemplateName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetNewSearchBuilder(string templateName, CommandOptions options)
   {
     TemplateName = templateName ?? throw new ArgumentNullException(nameof(templateName));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewSearchBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewSearchBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -464,12 +517,33 @@ public class DotNetNewSearchBuilder
 public class DotNetNewInstallBuilder
 {
   private readonly string PackageName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetNewInstallBuilder(string packageName, CommandOptions options)
   {
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewInstallBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewInstallBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -510,12 +584,33 @@ public class DotNetNewInstallBuilder
 public class DotNetNewUninstallBuilder
 {
   private readonly string PackageName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetNewUninstallBuilder(string packageName, CommandOptions options)
   {
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewUninstallBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewUninstallBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -555,11 +650,32 @@ public class DotNetNewUninstallBuilder
 /// </summary>
 public class DotNetNewUpdateBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetNewUpdateBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewUpdateBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNewUpdateBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()

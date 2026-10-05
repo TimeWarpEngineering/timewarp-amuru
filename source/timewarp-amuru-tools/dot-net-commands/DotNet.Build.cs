@@ -277,6 +277,17 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
   }
 
   /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetBuildBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Builds the command arguments and executes the dotnet build command.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>

@@ -4,6 +4,7 @@
 
 #region Design
 // HTTPS export is --export-path. There is no --export switch. WithExport requires WithExportPath.
+// Validation methods replace the options instance. Child builders keep a writable copy so a later call still applies.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -54,6 +55,27 @@ public class DotNetDevCertsBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetDevCertsBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetDevCertsBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Creates a fluent builder for the 'dotnet dev-certs https' command.
   /// </summary>
   /// <returns>A DotNetDevCertsHttpsBuilder for configuring the https command</returns>
@@ -68,7 +90,7 @@ public class DotNetDevCertsBuilder
 /// </summary>
 public class DotNetDevCertsHttpsBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private bool Check;
   private bool Clean;
   private bool Export;
@@ -83,6 +105,27 @@ public class DotNetDevCertsHttpsBuilder
   public DotNetDevCertsHttpsBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetDevCertsHttpsBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetDevCertsHttpsBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
