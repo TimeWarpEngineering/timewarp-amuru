@@ -54,7 +54,15 @@ ganda repo audit
 # expect: exit 0
 ```
 
+### Review disposition
+
+- Rounds: 1. Effort 3, roster: general.
+- Final counts: bug 0. Suggestion 1 wontfix. Nit 2 fixed, 1 wontfix. Open 0.
+- Disposition: **accepted-exceptions**. Fixed: tool smokes set `DOTNET_CLI_UI_LANGUAGE=en` (M2), and the NuGet config source path is XML-escaped (M3). Wontfix: the tool search smoke needs nuget.org because search has no source option (M1). The macOS `/tmp` symlink path compare is moot because CI is ubuntu-only (M4).
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
+
 ## Session
 
 - Kitchen trim: 522eb63d (2026-10-05)
 - Implementation: task 105 tests (2026-10-05)
+- Review: claude review oracle, effort 3, general reviewer subagent (2026-10-05)

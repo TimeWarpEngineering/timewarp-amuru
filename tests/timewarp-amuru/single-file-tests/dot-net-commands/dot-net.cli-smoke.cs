@@ -11,6 +11,7 @@
 // Tool smokes stay out of the user tool store: list/restore/run/uninstall use the empty directory,
 // and install/update use a NuGet config whose sources are cleared to an empty local folder.
 // Search queries the public feed for a term with no hits and does not install anything.
+// Tool smokes force DOTNET_CLI_UI_LANGUAGE=en because they assert SDK message text.
 #endregion
 
 #if !JARIBU_MULTI
@@ -244,6 +245,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .List()
           .WithToolPath(directory)
           .Build();
@@ -271,6 +273,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .Restore()
           .Build();
 
@@ -297,6 +300,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .Run("not-a-real-tool")
           .Build();
 
@@ -318,6 +322,7 @@ namespace DotNet_
       CommandResult command = DotNet.Tool()
         .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
         .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+        .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
         .Search("zzznone-amuru")
         .WithDetail()
         .WithSkip(0)
@@ -342,6 +347,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .Uninstall("NotARealPackage.Amuru.Test")
           .WithToolPath(directory)
           .Build();
@@ -372,6 +378,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .Install("NotARealPackage.Amuru.Test")
           .WithToolPath(toolPath)
           .WithConfigFile(WriteClearedNuGetConfig(directory, sourceDirectory))
@@ -409,6 +416,7 @@ namespace DotNet_
           .WithWorkingDirectory(directory)
           .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
           .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
           .Update("NotARealPackage.Amuru.Test")
           .WithToolPath(directory)
           .WithConfigFile(WriteClearedNuGetConfig(directory, sourceDirectory))
@@ -475,7 +483,7 @@ namespace DotNet_
         + "<configuration>\n"
         + "  <packageSources>\n"
         + "    <clear />\n"
-        + "    <add key=\"local\" value=\"" + sourceDirectory + "\" />\n"
+        + "    <add key=\"local\" value=\"" + System.Security.SecurityElement.Escape(sourceDirectory) + "\" />\n"
         + "  </packageSources>\n"
         + "</configuration>\n");
       return configPath;
