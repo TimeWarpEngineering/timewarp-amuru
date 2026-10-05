@@ -8,6 +8,10 @@
 // Each smoke runs in an empty directory that copies global.json, so roll-forward stays on the 10.0 feature band
 // and dotnet does not select a project from the repo. Assertions require the CLI to accept the emitted flag:
 // a missing project is MSB1003, not MSB1009 from a terminal-logger mode token.
+// Tool smokes stay out of the user tool store: list/restore/run/uninstall use the empty directory,
+// and install/update use a NuGet config whose sources are cleared to an empty local folder.
+// Search queries the public feed for a term with no hits and does not install anything.
+// Tool smokes force DOTNET_CLI_UI_LANGUAGE=en because they assert SDK message text.
 #endregion
 
 #if !JARIBU_MULTI
@@ -231,6 +235,213 @@ namespace DotNet_
       }
     }
 
+    [Timeout(60000)]
+    public static async Task ToolList_Should_ListEmptyToolPath()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .List()
+          .WithToolPath(directory)
+          .Build();
+
+        command.ToCommandString().ShouldContain("--tool-path");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.Success.ShouldBeTrue();
+        output.Stdout.ShouldContain("Package Id");
+        output.Combined.ShouldNotContain("Unrecognized");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolRestore_Should_ReportMissingManifest()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .Restore()
+          .Build();
+
+        command.ToCommandString().ShouldBe("dotnet tool restore");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.ExitCode.ShouldBe(0);
+        output.Combined.ShouldContain("Cannot find a manifest file");
+        output.Combined.ShouldContain("No tools were restored.");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolRun_Should_ReportMissingCommand()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .Run("not-a-real-tool")
+          .Build();
+
+        command.ToCommandString().ShouldBe("dotnet tool run not-a-real-tool");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.Success.ShouldBeFalse();
+        output.Combined.ShouldContain("Cannot find a tool in the manifest file that has a command named 'not-a-real-tool'");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolSearch_Should_AcceptDetailSkipAndTake()
+    {
+      CommandResult command = DotNet.Tool()
+        .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+        .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+        .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+        .Search("zzznone-amuru")
+        .WithDetail()
+        .WithSkip(0)
+        .WithTake(1)
+        .WithPrerelease()
+        .Build();
+
+      command.ToCommandString().ShouldBe("dotnet tool search zzznone-amuru --detail --skip 0 --take 1 --prerelease");
+
+      CommandOutput output = await command.CaptureAsync();
+      output.ExitCode.ShouldBe(0);
+      output.Combined.ShouldContain("Could not find any results.");
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolUninstall_Should_ReportMissingPackage()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .Uninstall("NotARealPackage.Amuru.Test")
+          .WithToolPath(directory)
+          .Build();
+
+        command.ToCommandString().ShouldContain("tool uninstall");
+        command.ToCommandString().ShouldContain("--tool-path");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.Success.ShouldBeFalse();
+        output.Combined.ShouldContain("could not be found");
+        output.Combined.ShouldNotContain("Unrecognized");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolInstall_Should_RejectUnknownPackageWithoutInstalling()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      string sourceDirectory = Directory.CreateTempSubdirectory("amuru-tool-source-").FullName;
+      try
+      {
+        string toolPath = Path.Combine(directory, "tools");
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .Install("NotARealPackage.Amuru.Test")
+          .WithToolPath(toolPath)
+          .WithConfigFile(WriteClearedNuGetConfig(directory, sourceDirectory))
+          .WithIgnoreFailedSources()
+          .Build();
+
+        string commandText = command.ToCommandString();
+        commandText.ShouldContain("tool install");
+        commandText.ShouldContain("--configfile");
+        commandText.ShouldContain("--ignore-failed-sources");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.Success.ShouldBeFalse();
+        output.Combined.ShouldContain("is not found in NuGet feeds");
+        output.Combined.ShouldContain(sourceDirectory);
+        output.Combined.ShouldNotContain("api.nuget.org");
+        output.Combined.ShouldNotContain("Unrecognized");
+        Directory.Exists(toolPath).ShouldBeFalse();
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+        Directory.Delete(sourceDirectory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
+    public static async Task ToolUpdate_Should_RejectUnknownPackageWithoutUpdating()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      string sourceDirectory = Directory.CreateTempSubdirectory("amuru-tool-source-").FullName;
+      try
+      {
+        CommandResult command = DotNet.Tool()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .WithEnvironmentVariable("DOTNET_CLI_UI_LANGUAGE", "en")
+          .Update("NotARealPackage.Amuru.Test")
+          .WithToolPath(directory)
+          .WithConfigFile(WriteClearedNuGetConfig(directory, sourceDirectory))
+          .WithIgnoreFailedSources()
+          .Build();
+
+        string commandText = command.ToCommandString();
+        commandText.ShouldContain("tool update");
+        commandText.ShouldContain("--configfile");
+        commandText.ShouldContain("--ignore-failed-sources");
+
+        CommandOutput output = await command.CaptureAsync();
+        output.Success.ShouldBeFalse();
+        output.Combined.ShouldContain("is not found in NuGet feeds");
+        output.Combined.ShouldContain(sourceDirectory);
+        output.Combined.ShouldNotContain("api.nuget.org");
+        output.Combined.ShouldNotContain("Unrecognized");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+        Directory.Delete(sourceDirectory, recursive: true);
+      }
+    }
+
     private static async Task AssertMissingProjectAcceptsTerminalLoggerAsync(
       Func<string, CommandResult> createCommand,
       string acceptedError = "MSB1003")
@@ -261,6 +472,21 @@ namespace DotNet_
       string directory = Directory.CreateTempSubdirectory("amuru-cli-smoke-").FullName;
       File.Copy(Path.Combine(FindRepoRoot(), "global.json"), Path.Combine(directory, "global.json"));
       return directory;
+    }
+
+    private static string WriteClearedNuGetConfig(string directory, string sourceDirectory)
+    {
+      string configPath = Path.Combine(directory, "nuget.config");
+      File.WriteAllText(
+        configPath,
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+        + "<configuration>\n"
+        + "  <packageSources>\n"
+        + "    <clear />\n"
+        + "    <add key=\"local\" value=\"" + System.Security.SecurityElement.Escape(sourceDirectory) + "\" />\n"
+        + "  </packageSources>\n"
+        + "</configuration>\n");
+      return configPath;
     }
 
     private static string FindRepoRoot()
