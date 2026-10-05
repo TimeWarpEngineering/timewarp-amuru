@@ -15,6 +15,16 @@
     <PackageReference Include="TimeWarp.Terminal" />
   </ItemGroup>
 
+  <!-- Surface guard for this packable project only. PrivateAssets keeps it out of the nupkg.
+       buildtransitive is required: the package ships its props/targets only under buildTransitive/. -->
+  <ItemGroup Label="Public API analyzers">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+    <!-- Basenames are Roslyn-mandated and not kebab-case. The public-api folder is pruned
+         from kebab-path-names; the analyzer matches these files by basename. -->
+    <AdditionalFiles Include="public-api/PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="public-api/PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="" />
   </ItemGroup>

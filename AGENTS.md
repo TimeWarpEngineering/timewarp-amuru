@@ -15,6 +15,18 @@ This file provides guidance to agents when working with code in this repository.
 - `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system ops, ScriptContext. Stable-1.0 track; XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
 - `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Ships at the same `<Version>` as core (inherited from `source/Directory.Build.props`); no per-csproj version
 
+## Public API surface
+
+`Microsoft.CodeAnalysis.PublicApiAnalyzers` 5.6.0 (CPM) is referenced only by the packable projects `source/timewarp-amuru/timewarp-amuru.csproj` and `source/timewarp-amuru-tools/timewarp-amuru-tools.csproj`, with `PrivateAssets=all`. Tests, samples, and `tools/dev-cli` do not reference it. RS0016 (public API missing from the files) and RS0017 (file entry missing from source) are warnings; root `TreatWarningsAsErrors` turns them into build errors, including in CI.
+
+Each packable project has `public-api/PublicAPI.Shipped.txt` (surface already in a release) and `public-api/PublicAPI.Unshipped.txt` (changes not yet released). Roslyn requires those basenames. The `public-api` folder is in `kebab-path-names.prune` so the audit allows them, and each csproj lists them as `AdditionalFiles`. Both files start with `#nullable enable`. Unshipped is only that header when nothing is pending. The baseline in Shipped is the current master surface (the pending 2.0 surface).
+
+- **Add a public member:** add its line to that project's `PublicAPI.Unshipped.txt`. In the IDE, the RS0016 code fix "Add all items to public API" (or the single-symbol fix) writes the line. From the CLI: `dotnet format analyzers <project>.csproj --diagnostics RS0016 --severity warn`.
+- **Remove a public member:** delete it from source and add the same line to `PublicAPI.Unshipped.txt` with a `*REMOVED*` prefix. Leave the original line in `PublicAPI.Shipped.txt`. A `*REMOVED*` line whose symbol is still in source is RS0050. `PublicAPI.Shipped.txt` cannot contain `*REMOVED*` (RS0024).
+- **Release:** in the version-bump PR, move added Unshipped lines into that project's Shipped file. For each `*REMOVED*` line, delete the matching Shipped line and drop the `*REMOVED*` line. Leave Unshipped as only `#nullable enable`.
+
+`source/.editorconfig` sets RS0026 to `none`. That rule rejects multiple public overloads with optional parameters; the baseline includes those overload sets (`GetChildItem` and several `Git` helpers), and splitting them is a breaking redesign.
+
 ## Non-Obvious Patterns
 - **Build scripts and dev-cli should use TimeWarp.Amuru**: Prefer `Shell.Builder` over raw `System.Diagnostics.Process`; only use raw process APIs in rare implementation boundaries like true TTY passthrough (`System.Console` and `ProcessStartInfo` are banned via BannedSymbols.txt)
 - **Error-handling contract**: default validation is `None` — non-zero exits are reported via `CommandOutput.ExitCode`/`Success`, never thrown; `WithZeroExitCodeValidation()` opts into throwing. Commands that never ran report `CommandResult.NeverRanExitCode` (-1)

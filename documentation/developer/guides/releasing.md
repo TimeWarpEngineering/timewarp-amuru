@@ -37,7 +37,13 @@ only what is actually implemented here.
 ### 1. Bump the version and merge to master
 
 Open a PR that changes `<Version>` in `source/Directory.Build.props` (it may ride a
-feature PR or stand alone). Once it merges, the `push` event runs `workflow.yml` in
+feature PR or stand alone). In that same PR, promote each packable project's
+`public-api/PublicAPI.Unshipped.txt` into its `public-api/PublicAPI.Shipped.txt`: move added lines across,
+and for each `*REMOVED*` line delete the matching Shipped entry and drop the
+`*REMOVED*` line (Shipped cannot contain `*REMOVED*`; RS0024). Leave Unshipped as
+only `#nullable enable`. Day-to-day add and remove steps are in `AGENTS.md`.
+
+Once it merges, the `push` event runs `workflow.yml` in
 **merge** mode: `dev workflow` executes `clean → build → verify-samples → test`
 (`GeneratePackageOnBuild` produces the nupkgs during Build). On success the
 `Packages-{run_number}` artifact with every `artifacts/packages/*.nupkg` is uploaded.

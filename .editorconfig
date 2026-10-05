@@ -334,4 +334,5 @@ dotnet_diagnostic.CA1062.severity = suggestion
 [ganda.audit]
 # .agent/workspace reports follow tw-analysis-report's mandated ISO-8601 prefix
 # (YYYY-MM-DDTHH-MM-SS_slug.md), which is intentionally not kebab-case.
-kebab-path-names.prune = .agent
+# public-api holds Roslyn-mandated PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt.
+kebab-path-names.prune = .agent, public-api
