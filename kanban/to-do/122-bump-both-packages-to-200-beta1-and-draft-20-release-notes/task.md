@@ -26,14 +26,14 @@ This task bumps both packages (lockstep, task 117) to `2.0.0-beta.1`, promotes t
 
 ## Checklist
 
-- [ ] `source/Directory.Build.props`: `<Version>2.0.0-beta.1</Version>`
-- [ ] `dev check-version` green (safe to release, both packages, exit 0); paste output into Results
-- [ ] PublicAPI promotion for core and Tools; Unshipped files reduced to the header; `./bin/dev build` clean
-- [ ] Release notes file written from the six kitchens above; every removed/renamed member appears in the Upgrade guide
-- [ ] `readme.md` / `AGENTS.md`: fix any text that still says 1.x-only or implies the old API names (spot-check `WithConfig`, `GetMasterWorktreePath`, `UpdateMasterWorktree`, `WithTargetFramework`, `SelectWithFzf` prose)
-- [ ] `dev workflow --mode merge` green: build, verify-samples, test (expect 604 passed, 1 skipped), nupkgs for both packages at 2.0.0-beta.1 under `artifacts/packages/`
-- [ ] `ganda repo audit` clean
-- [ ] Results: gate log (check-version, workflow, audit), release-notes path, post-publish follow-up note for the consumed pins
+- [x] `source/Directory.Build.props`: `<Version>2.0.0-beta.1</Version>`
+- [x] `dev check-version` green (safe to release, both packages, exit 0); paste output into Results
+- [x] PublicAPI promotion for core and Tools; Unshipped files reduced to the header; `./bin/dev build` clean
+- [x] Release notes file written from the six kitchens above; every removed/renamed member appears in the Upgrade guide
+- [x] `readme.md` / `AGENTS.md`: fix any text that still says 1.x-only or implies the old API names (spot-check `WithConfig`, `GetMasterWorktreePath`, `UpdateMasterWorktree`, `WithTargetFramework`, `SelectWithFzf` prose)
+- [x] `dev workflow --mode merge` green: build, verify-samples, test (expect 604 passed, 1 skipped), nupkgs for both packages at 2.0.0-beta.1 under `artifacts/packages/`
+- [x] `ganda repo audit` clean
+- [x] Results: gate log (check-version, workflow, audit), release-notes path, post-publish follow-up note for the consumed pins
 
 ## Notes
 
@@ -42,6 +42,58 @@ This task bumps both packages (lockstep, task 117) to `2.0.0-beta.1`, promotes t
 - After this merges, the cockpit runs the tw-release flow: `dev release` from a clean synced master cuts `v2.0.0-beta.1`, CI promotes the artifacts. Further changes before 2.0.0 GA go into Unshipped again and get promoted at the next bump.
 - Why beta first: master has had five breaking PRs in two days with worker-authored tests; a prerelease lets consumers (ganda, nuru, flow) validate before 2.0.0 is final.
 
+## Results
+
+Both packages are `2.0.0-beta.1` from `source/Directory.Build.props`. No per-project `<Version>`. PublicAPI Unshipped for core and Tools is only `#nullable enable`. Shipped line counts (`wc -l`, header included): core 253 (was 250; three additions), Tools 1620 (was 1491; two `*REMOVED*` lines dropped, 131 additions). `./bin/dev build`: 0 warnings, 0 errors.
+
+Release notes: `documentation/release-notes/2.0.0.md`. There was no `documentation/release-notes/` tree. Task 101 keeps GitHub Release bodies as the channel and does not set `PackageReleaseNotes`. Blips under `documentation/posts/blips/` are announcements, not a changelog. The new file is the draft for the `v2.0.0-beta.1` GitHub Release body. It is titled for the beta and lists breaking changes per package, behavior changes, new members, fixes, and an upgrade guide. Every removed or renamed member from kitchens 087, 088, 099, 100, and 121 is in that guide, including `WithStandardInput("")` and the `TtyPassthroughAsync` throw. Task 094-004 is a contributor note, not a user-facing API change. Ganda 332/333 are omitted.
+
+Spot-check: `readme.md` and `AGENTS.md` do not mention `WithConfig`, `GetMasterWorktreePath`, `UpdateMasterWorktree`, or `WithTargetFramework`. `SelectWithFzf` remains the real API (task 088 implemented it). `AGENTS.md` no longer says "Stable-1.0 track" or "pending 2.0 surface"; Shipped is the `2.0.0-beta.1` baseline. `readme.md` no longer passes `--prerelease` on Tools alone or calls only core "stable". `skills/amuru/SKILL.md` no longer says "1.0 contract"; it points at the release notes.
+
+Not changed on purpose: `Directory.Packages.props` still pins the consumed packages at `TimeWarp.Amuru` `1.0.0` and `TimeWarp.Amuru.Tools` `1.0.0-beta.2` (`.githooks` runfiles). `2.0.0-beta.1` does not exist on NuGet until the cockpit cuts the release. Post-publish follow-up: bump those consumed pins after `v2.0.0-beta.1` is on NuGet, the same follow-up task 117 recorded for `1.1.1`.
+
+No tag. `dev release` was not run.
+
+Gate log (2026-10-05, this worktree):
+
+`./bin/dev check-version` exit 0:
+
+```text
+Version in source: 2.0.0-beta.1
+Latest NuGet version: 1.1.1
+Packages checked: TimeWarp.Amuru, TimeWarp.Amuru.Tools
+
+✓ Version in source is new — safe to release.
+```
+
+`./bin/dev workflow --mode merge` exit 0. Pipeline `clean -> build -> verify-samples -> test` succeeded. Build 0 warnings, 0 errors. Both samples compiled. Tests: Passed 620, Failed 0, Skipped 1, Total 621. The kitchen's "604 passed" was the count when the task was written; the suite has grown (including task 105) and still has a single skip and zero failures. `artifacts/packages/` contains `TimeWarp.Amuru.2.0.0-beta.1.nupkg` and `TimeWarp.Amuru.Tools.2.0.0-beta.1.nupkg`.
+
+`ganda repo audit`: Passed 32, Failed 0. "Repository passes all audit checks."
+
+### How to validate
+
+Smoke:
+
+```bash
+grep -n '<Version>' source/Directory.Build.props
+./bin/dev check-version
+test "$(wc -l < source/timewarp-amuru/public-api/PublicAPI.Unshipped.txt)" = 1
+test "$(wc -l < source/timewarp-amuru-tools/public-api/PublicAPI.Unshipped.txt)" = 1
+./bin/dev workflow --mode merge
+ls artifacts/packages/TimeWarp.Amuru.2.0.0-beta.1.nupkg artifacts/packages/TimeWarp.Amuru.Tools.2.0.0-beta.1.nupkg
+ganda repo audit
+```
+
+Expect:
+
+- `<Version>2.0.0-beta.1</Version>` is the only `<Version>` under `source/`.
+- check-version prints `Version in source: 2.0.0-beta.1`, `Latest NuGet version: 1.1.1`, both packages, and `safe to release`, exit 0.
+- Each Unshipped file is only `#nullable enable`. Shipped contains no `*REMOVED*`.
+- Merge workflow prints `Pipeline SUCCEEDED`. The suite prints Passed 620, Skipped 1, Failed 0.
+- Both `2.0.0-beta.1` nupkgs exist.
+- `ganda repo audit` prints Failed: 0.
+
 ## Session
 
 - Created: 522eb63d (2026-10-05)
+- Implementation: 01a10a53-3590-78c2-a429-c41a30400516 (2026-10-05)
