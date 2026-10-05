@@ -6,7 +6,8 @@
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// PassthroughAsync connects stdin/stdout/stderr to console for interactive commands
+// PassthroughAsync sends stdout and stderr to the console.
+// Configured standard input is kept; console stdin is used only when none was configured.
 #endregion
 
 #if !JARIBU_MULTI
@@ -39,6 +40,71 @@ namespace ShellBuilder_
 
       execResult.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
       execResult.Success.ShouldBeFalse();
+    }
+
+    public static async Task ConfiguredStandardInput_Should_ReachTheChild()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-passthrough-").FullName;
+      string outputPath = Path.Combine(directory, "sorted.txt");
+      try
+      {
+        CommandOutput result = await Shell.Builder("sort")
+          .WithArguments("-o", outputPath)
+          .WithStandardInput("b\na\nc\n")
+          .PassthroughAsync();
+
+        result.ExitCode.ShouldBe(0);
+        string[] lines = (await File.ReadAllTextAsync(outputPath))
+          .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        lines.ShouldBe(["a", "b", "c"]);
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    public static async Task Pipeline_Should_FeedTheUpstreamStage()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-passthrough-pipe-").FullName;
+      string outputPath = Path.Combine(directory, "sorted.txt");
+      try
+      {
+        CommandOutput result = await Shell.Builder("printf")
+          .WithArguments("b\na\nc\n")
+          .Pipe("sort", "-o", outputPath)
+          .PassthroughAsync();
+
+        result.ExitCode.ShouldBe(0);
+        string[] lines = (await File.ReadAllTextAsync(outputPath))
+          .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        lines.ShouldBe(["a", "b", "c"]);
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    public static async Task EmptyStandardInput_Should_SendImmediateEof()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-passthrough-empty-").FullName;
+      string outputPath = Path.Combine(directory, "sorted.txt");
+      try
+      {
+        CommandOutput result = await Shell.Builder("sort")
+          .WithArguments("-o", outputPath)
+          .WithStandardInput("")
+          .PassthroughAsync();
+
+        result.ExitCode.ShouldBe(0);
+        string written = await File.ReadAllTextAsync(outputPath);
+        written.ShouldBeEmpty();
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
     }
   }
 }

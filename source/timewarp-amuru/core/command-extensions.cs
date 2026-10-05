@@ -99,6 +99,6 @@ internal static class CommandExtensions
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }
 
-    return new CommandResult(cliCommand, mockExecutable, mockArguments);
+    return new CommandResult(cliCommand, mockExecutable, mockArguments, standardInput);
   }
 }

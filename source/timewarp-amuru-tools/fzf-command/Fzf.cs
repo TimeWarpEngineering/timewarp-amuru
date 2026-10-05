@@ -3,7 +3,8 @@
 #endregion
 
 #region Design
-// Option flags live in Arguments. SelectWithFzf forwards that list and nothing else.
+// Option flags live in Arguments. SelectWithFzf forwards that list and the builder's
+// CommandOptions (validation, working directory, environment) to the fzf stage.
 // FromInput writes each item as its own stdin line. Echo is not used, so a value such as
 // "-n" stays data, and Windows does not need an echo executable.
 // FromFiles walks the working directory in-process for a file-name glob and feeds relative
@@ -44,6 +45,8 @@ public partial class FzfBuilder
   private string? InputCommand;
   private string? InputGlob;
   private bool UseStdin;
+
+  internal CommandOptions StageOptions => Options;
 
   /// <summary>
   /// Specifies the working directory for the command.
@@ -108,7 +111,7 @@ public partial class FzfBuilder
     if (!string.IsNullOrEmpty(InputCommand)
       && TrySplitCommand(InputCommand, out string executable, out string[] commandArguments))
     {
-      return Shell.Run(executable, commandArguments, Options).Pipe("fzf", fzfArguments);
+      return Shell.Run(executable, commandArguments, Options).Pipe("fzf", Options, fzfArguments);
     }
 
     // FromStdin and the default path both leave stdin to the caller.

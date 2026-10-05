@@ -6,7 +6,8 @@
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// Pipe chains commands, passing stdout of one to stdin of next
+// Pipe chains commands, passing stdout of one to stdin of next.
+// The options overload applies validation, working directory, and environment to the next stage.
 #endregion
 
 #if !JARIBU_MULTI
@@ -147,6 +148,59 @@ namespace ShellBuilder_
 
       lines.Length.ShouldBe(3);
       lines[0].Trim().ShouldBe("apple");
+    }
+
+    public static async Task DownstreamZeroExitCodeValidation_Should_Throw()
+    {
+      CommandOptions options = new CommandOptions().WithZeroExitCodeValidation();
+      await Should.ThrowAsync<Exception>
+      (
+        async () =>
+          await Shell.Builder("echo")
+            .WithArguments("test")
+            .Build()
+            .Pipe("sh", options, "-c", "exit 7")
+            .CaptureAsync()
+      );
+    }
+
+    public static async Task DownstreamWithoutValidation_Should_ReportExitCode()
+    {
+      CommandOptions options = new CommandOptions().WithNoValidation();
+      CommandOutput output = await Shell.Builder("echo")
+        .WithArguments("test")
+        .Build()
+        .Pipe("sh", options, "-c", "exit 7")
+        .CaptureAsync();
+
+      output.Success.ShouldBeFalse();
+      output.ExitCode.ShouldBe(7);
+    }
+
+    public static async Task DownstreamOptions_Should_ApplyWorkingDirectoryAndEnvironment()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-pipe-options-").FullName;
+      try
+      {
+        CommandOptions options = new CommandOptions()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("PIPE_STAGE", "from-options");
+
+        CommandOutput output = await Shell.Builder("echo")
+          .WithArguments("x")
+          .Build()
+          .Pipe("sh", options, "-c", "printf '%s\\n%s' \"$PWD\" \"$PIPE_STAGE\"")
+          .CaptureAsync();
+
+        output.ExitCode.ShouldBe(0);
+        string[] lines = output.GetLines();
+        lines[0].ShouldBe(directory);
+        lines[1].ShouldBe("from-options");
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
     }
   }
 }
