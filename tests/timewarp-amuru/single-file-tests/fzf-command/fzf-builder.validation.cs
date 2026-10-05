@@ -20,6 +20,7 @@ namespace FzfBuilder_
     [ModuleInitializer]
     internal static void Register() => RegisterTests<Validation_Given_>();
 
+    [Timeout(30000)]
     public static async Task FilterMiss_Should_ReportFailureUnlessZeroExitValidation()
     {
       CommandOutput output = await Fzf.Builder()

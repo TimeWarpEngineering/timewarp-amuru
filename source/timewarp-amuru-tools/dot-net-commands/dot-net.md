@@ -192,6 +192,8 @@ await DotNet.Build()
 
 `WithNoValidation()` is the default made explicit. `WithZeroExitCodeValidation()` opts into throwing when the exit code is not zero.
 
+A sub-builder (`DotNet.Sln().List()`, `DotNet.DevCerts().Https()`, `DotNet.Tool().Install(...)`, and similar) copies the parent's options when it is created. Set validation on the parent before creating the sub-builder, or on the sub-builder itself.
+
 `DotNet.ListPackages()` takes a NuGet config file with `WithConfigFile`. `DotNet.Watch()` takes a target framework with `WithFramework`.
 
 Query helpers on `DotNet`:

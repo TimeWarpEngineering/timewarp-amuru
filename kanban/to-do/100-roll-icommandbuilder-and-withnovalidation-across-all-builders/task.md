@@ -63,14 +63,24 @@ dotnet run tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.cli-s
 
 ```bash
 cd tests/timewarp-amuru/multi-file-runners && dotnet run run-tests.cs
-# expect: Failed: 0 (this session: Passed 563, Skipped 1)
+# expect: Failed: 0 (after review: Passed 565, Skipped 1)
 ./bin/dev build
 # expect: 0 Warning(s), 0 Error(s)
 ganda repo audit
 # expect: Passed 32, Failed 0
 ```
 
+### Review disposition
+
+- Effort 3, roster: general. Rounds: 2 (round 2 = re-verify of fix delta).
+- Final counts: bug 1 wontfix; suggestion 2 fixed; nit 1 fixed; 0 open.
+- Disposition: **accepted-exceptions**. M1 (`Fzf.FromCommand` validation and options apply to the source command only, because `CommandResult.Pipe` has no options overload) predates this task and needs a new core API. It is documented in `Fzf.cs` and is not fixed here.
+- Review fixes: parent-then-child and revert-to-no-validation tests in `dot-net.validation.cs` (12 passed), `[Timeout]` on the fzf validation test, and a sub-builder option-snapshot note in `dot-net.md`.
+- Post-fix gates: `./bin/dev build` 0 warnings / 0 errors; full runner Passed 565, Skipped 1, Failed 0; `ganda repo audit` passes.
+- Artifacts: `review/review-framework.md`, `review/round-1/{general,merged}.md`, `review/round-2/{general,merged}.md`, `review/disposition.md`.
+
 ## Session
 
 - Kitchen refresh: 522eb63d (2026-10-05)
 - Implementation: implementer-grok (2026-10-05)
+- Review: review oracle Claude Opus 5.5 + general subagent (Sonnet) accaaa8e773eeec7f (2026-10-05)

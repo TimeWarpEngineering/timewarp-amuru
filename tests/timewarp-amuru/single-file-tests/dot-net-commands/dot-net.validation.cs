@@ -218,6 +218,49 @@ namespace DotNet_
       });
     }
 
+    [Timeout(60000)]
+    public static async Task SlnParent_Should_PassValidationToChildCreatedAfterIt()
+    {
+      await AssertValidationAsync(static (directory, strict) =>
+      {
+        DotNetSlnBuilder builder = DotNet.Sln()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1");
+        if (strict)
+        {
+          builder = builder.WithZeroExitCodeValidation();
+        }
+
+        return builder.List().Build();
+      });
+    }
+
+    [Timeout(60000)]
+    public static async Task NoValidationAfterStrict_Should_RestoreReportedFailure()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        CommandOutput output = await DotNet.Sln()
+          .WithWorkingDirectory(directory)
+          .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+          .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+          .List()
+          .WithZeroExitCodeValidation()
+          .WithNoValidation()
+          .Build()
+          .CaptureAsync();
+
+        output.Success.ShouldBeFalse();
+        output.ExitCode.ShouldNotBe(0);
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
     private static async Task AssertValidationAsync(Func<string, bool, CommandResult> create)
     {
       ArgumentNullException.ThrowIfNull(create);
