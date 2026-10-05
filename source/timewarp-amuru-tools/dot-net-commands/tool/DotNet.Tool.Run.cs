@@ -10,13 +10,34 @@ namespace TimeWarp.Amuru;
 public class DotNetToolRunBuilder
 {
   private readonly string CommandName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private List<string> ToolArguments = new();
 
   public DotNetToolRunBuilder(string commandName, CommandOptions options)
   {
     CommandName = commandName ?? throw new ArgumentNullException(nameof(commandName));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolRunBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolRunBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>

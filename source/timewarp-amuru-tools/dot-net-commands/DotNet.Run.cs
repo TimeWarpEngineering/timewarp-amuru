@@ -308,6 +308,17 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   }
 
   /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetRunBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Sets an environment variable for the running process (uses -e option).
   /// </summary>
   /// <param name="key">The environment variable name</param>

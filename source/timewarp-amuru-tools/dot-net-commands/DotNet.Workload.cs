@@ -50,6 +50,27 @@ public class DotNetWorkloadBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Shows detailed information about installed workloads.
   /// </summary>
   /// <returns>A DotNetWorkloadInfoBuilder for configuring the info command</returns>
@@ -176,11 +197,32 @@ public class DotNetWorkloadBuilder
 /// </summary>
 public class DotNetWorkloadInfoBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetWorkloadInfoBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadInfoBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadInfoBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -220,11 +262,32 @@ public class DotNetWorkloadInfoBuilder
 /// </summary>
 public class DotNetWorkloadVersionBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetWorkloadVersionBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadVersionBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadVersionBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -265,7 +328,7 @@ public class DotNetWorkloadVersionBuilder
 public class DotNetWorkloadInstallBuilder
 {
   private readonly string[] WorkloadIds;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
   private bool IncludePreview;
   private bool SkipManifestUpdate;
@@ -276,6 +339,27 @@ public class DotNetWorkloadInstallBuilder
   {
     WorkloadIds = workloadIds ?? throw new ArgumentNullException(nameof(workloadIds));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadInstallBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadInstallBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -398,12 +482,33 @@ public class DotNetWorkloadInstallBuilder
 /// </summary>
 public class DotNetWorkloadListBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Verbosity;
 
   public DotNetWorkloadListBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -462,13 +567,34 @@ public class DotNetWorkloadListBuilder
 public class DotNetWorkloadSearchBuilder
 {
   private readonly string? SearchString;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Verbosity;
 
   public DotNetWorkloadSearchBuilder(string? searchString, CommandOptions options)
   {
     SearchString = searchString;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadSearchBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadSearchBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -532,12 +658,33 @@ public class DotNetWorkloadSearchBuilder
 public class DotNetWorkloadUninstallBuilder
 {
   private readonly string[] WorkloadIds;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetWorkloadUninstallBuilder(string[] workloadIds, CommandOptions options)
   {
     WorkloadIds = workloadIds ?? throw new ArgumentNullException(nameof(workloadIds));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadUninstallBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadUninstallBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -579,7 +726,7 @@ public class DotNetWorkloadUninstallBuilder
 /// </summary>
 public class DotNetWorkloadUpdateBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private bool AdvertisingManifestsOnly;
   private string? ConfigFile;
   private bool DisableParallel;
@@ -594,6 +741,27 @@ public class DotNetWorkloadUpdateBuilder
   public DotNetWorkloadUpdateBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadUpdateBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadUpdateBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -792,7 +960,7 @@ public class DotNetWorkloadUpdateBuilder
 /// </summary>
 public class DotNetWorkloadRepairBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
   private bool DisableParallel;
   private bool IgnoreFailedSources;
@@ -805,6 +973,27 @@ public class DotNetWorkloadRepairBuilder
   public DotNetWorkloadRepairBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadRepairBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadRepairBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -973,12 +1162,33 @@ public class DotNetWorkloadRepairBuilder
 /// </summary>
 public class DotNetWorkloadCleanBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private bool All;
 
   public DotNetWorkloadCleanBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadCleanBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadCleanBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -1035,7 +1245,7 @@ public class DotNetWorkloadCleanBuilder
 public class DotNetWorkloadRestoreBuilder
 {
   private readonly string? ProjectOrSolution;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
   private bool DisableParallel;
   private bool IncludePreview;
@@ -1050,6 +1260,27 @@ public class DotNetWorkloadRestoreBuilder
   {
     ProjectOrSolution = projectOrSolution;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadRestoreBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadRestoreBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -1240,12 +1471,33 @@ public class DotNetWorkloadRestoreBuilder
 /// </summary>
 public class DotNetWorkloadConfigBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? UpdateMode;
 
   public DotNetWorkloadConfigBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadConfigBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWorkloadConfigBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>

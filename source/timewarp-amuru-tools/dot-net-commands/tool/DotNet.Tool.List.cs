@@ -9,7 +9,7 @@ namespace TimeWarp.Amuru;
 /// </summary>
 public class DotNetToolListBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private bool IsGlobal;
   private bool IsLocal;
   private string? ToolPath;
@@ -17,6 +17,27 @@ public class DotNetToolListBuilder
   public DotNetToolListBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>

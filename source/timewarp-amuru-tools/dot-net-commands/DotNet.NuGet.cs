@@ -81,6 +81,27 @@ public class DotNetNuGetBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Creates a fluent builder for the 'dotnet nuget push' command.
   /// </summary>
   /// <param name="packagePath">The path to the package to push</param>
@@ -186,7 +207,7 @@ public class DotNetNuGetBuilder
 public class DotNetNuGetPushBuilder
 {
   private readonly string PackagePath;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Source;
   private string? SymbolSource;
   private int? Timeout;
@@ -203,6 +224,27 @@ public class DotNetNuGetPushBuilder
   {
     PackagePath = packagePath ?? throw new ArgumentNullException(nameof(packagePath));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetPushBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetPushBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -422,7 +464,7 @@ public class DotNetNuGetDeleteBuilder
 {
   private readonly string PackageName;
   private readonly string Version;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Source;
   private string? ApiKey;
   private bool Interactive;
@@ -433,6 +475,27 @@ public class DotNetNuGetDeleteBuilder
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
     Version = version ?? throw new ArgumentNullException(nameof(version));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetDeleteBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetDeleteBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -545,13 +608,34 @@ public class DotNetNuGetDeleteBuilder
 /// </summary>
 public class DotNetNuGetListSourceBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Format;
   private string? ConfigFile;
 
   public DotNetNuGetListSourceBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetListSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetListSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -627,7 +711,7 @@ public class DotNetNuGetListSourceBuilder
 public class DotNetNuGetAddSourceBuilder
 {
   private readonly string Source;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Name;
   private string? Username;
   private string? Password;
@@ -637,6 +721,27 @@ public class DotNetNuGetAddSourceBuilder
   {
     Source = source ?? throw new ArgumentNullException(nameof(source));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetAddSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetAddSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -746,13 +851,34 @@ public class DotNetNuGetAddSourceBuilder
 public class DotNetNuGetRemoveSourceBuilder
 {
   private readonly string Name;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
 
   public DotNetNuGetRemoveSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetRemoveSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetRemoveSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -811,7 +937,7 @@ public class DotNetNuGetRemoveSourceBuilder
 public class DotNetNuGetUpdateSourceBuilder
 {
   private readonly string Name;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Source;
   private string? Username;
   private string? Password;
@@ -821,6 +947,27 @@ public class DotNetNuGetUpdateSourceBuilder
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetUpdateSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetUpdateSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -930,13 +1077,34 @@ public class DotNetNuGetUpdateSourceBuilder
 public class DotNetNuGetEnableSourceBuilder
 {
   private readonly string Name;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
 
   public DotNetNuGetEnableSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetEnableSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetEnableSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -995,13 +1163,34 @@ public class DotNetNuGetEnableSourceBuilder
 public class DotNetNuGetDisableSourceBuilder
 {
   private readonly string Name;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? ConfigFile;
 
   public DotNetNuGetDisableSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetDisableSourceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetDisableSourceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -1059,13 +1248,34 @@ public class DotNetNuGetDisableSourceBuilder
 /// </summary>
 public class DotNetNuGetLocalsBuilder
 {
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private NuGetCacheType? ClearCacheType;
   private NuGetCacheType? ListCacheType;
 
   public DotNetNuGetLocalsBuilder(CommandOptions options)
   {
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetLocalsBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetLocalsBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>
@@ -1152,7 +1362,7 @@ public class DotNetNuGetLocalsBuilder
 public class DotNetNuGetWhyBuilder
 {
   private readonly string PackageName;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private string? Project;
   private string? Framework;
 
@@ -1160,6 +1370,27 @@ public class DotNetNuGetWhyBuilder
   {
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetWhyBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetNuGetWhyBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>

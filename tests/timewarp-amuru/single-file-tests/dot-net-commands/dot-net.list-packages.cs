@@ -74,7 +74,7 @@ namespace DotNet_
         .WithProject("test.csproj")
         .WithFormat("json")
         .WithOutputVersion("1")
-        .WithConfig("nuget.config")
+        .WithConfigFile("nuget.config")
         .Outdated()
         .HighestMinor()
         .HighestPatch()

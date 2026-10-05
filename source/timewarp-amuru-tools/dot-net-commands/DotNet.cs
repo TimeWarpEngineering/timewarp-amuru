@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Marker partial for the DotNet fluent API. Subcommand builders live in the other partial files.
+#endregion
+
+#region Design
+// Each builder exposes WithNoValidation and WithZeroExitCodeValidation on its own type.
+// This partial holds no command options.
 #endregion
 
 namespace TimeWarp.Amuru;

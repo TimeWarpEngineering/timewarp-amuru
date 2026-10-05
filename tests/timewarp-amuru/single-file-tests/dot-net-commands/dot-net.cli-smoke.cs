@@ -36,6 +36,27 @@ namespace DotNet_
     }
 
     [Timeout(60000)]
+    public static async Task Build_WithZeroExitCodeValidation_Should_ThrowWhenProjectIsMissing()
+    {
+      string directory = CreatePinnedEmptyDirectory();
+      try
+      {
+        await Should.ThrowAsync<CliWrap.Exceptions.CommandExecutionException>(async () =>
+          await DotNet.Build()
+            .WithWorkingDirectory(directory)
+            .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
+            .WithEnvironmentVariable("DOTNET_NOLOGO", "1")
+            .WithZeroExitCodeValidation()
+            .Build()
+            .CaptureAsync());
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
+    }
+
+    [Timeout(60000)]
     public static async Task Restore_Should_AcceptTerminalLogger()
     {
       await AssertMissingProjectAcceptsTerminalLoggerAsync(directory =>

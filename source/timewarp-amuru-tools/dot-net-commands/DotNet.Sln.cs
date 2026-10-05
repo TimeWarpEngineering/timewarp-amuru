@@ -72,6 +72,27 @@ public class DotNetSlnBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Creates a fluent builder for the 'dotnet sln add' command.
   /// </summary>
   /// <param name="projectPath">The project path to add to the solution</param>
@@ -137,13 +158,34 @@ public class DotNetSlnAddBuilder
 {
   private readonly string[] ProjectPaths;
   private readonly string? SlnFile;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetSlnAddBuilder(string projectPath, string? slnFile, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
     SlnFile = slnFile;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnAddBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnAddBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public DotNetSlnAddBuilder(string[] projectPaths, string? slnFile, CommandOptions options)
@@ -201,12 +243,33 @@ public class DotNetSlnAddBuilder
 public class DotNetSlnListBuilder
 {
   private readonly string? SlnFile;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetSlnListBuilder(string? slnFile, CommandOptions options)
   {
     SlnFile = slnFile;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -257,13 +320,34 @@ public class DotNetSlnRemoveBuilder
 {
   private readonly string[] ProjectPaths;
   private readonly string? SlnFile;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetSlnRemoveBuilder(string projectPath, string? slnFile, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
     SlnFile = slnFile;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnRemoveBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnRemoveBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public DotNetSlnRemoveBuilder(string[] projectPaths, string? slnFile, CommandOptions options)
@@ -321,12 +405,33 @@ public class DotNetSlnRemoveBuilder
 public class DotNetSlnMigrateBuilder
 {
   private readonly string? SlnFile;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetSlnMigrateBuilder(string? slnFile, CommandOptions options)
   {
     SlnFile = slnFile;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnMigrateBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetSlnMigrateBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()

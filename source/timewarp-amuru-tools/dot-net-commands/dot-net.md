@@ -175,7 +175,7 @@ await DotNet.RemovePackage("Microsoft.Extensions.Logging")
 
 ## Shared builder members
 
-`WithWorkingDirectory`, `WithEnvironmentVariable`, and `WithNoValidation` exist on every builder in this reference.
+`WithWorkingDirectory`, `WithEnvironmentVariable`, `WithNoValidation`, and `WithZeroExitCodeValidation` exist on every builder in this reference.
 
 `WithProperty` exists on Build, Clean, Restore, Run, Test, Publish, and Pack. It does not exist on ListPackages, AddPackage, RemovePackage, or Watch.
 
@@ -190,7 +190,11 @@ await DotNet.Build()
   .RunAsync();
 ```
 
-`WithNoValidation()` is the default made explicit. DotNet builders do not expose `WithZeroExitCodeValidation()`.
+`WithNoValidation()` is the default made explicit. `WithZeroExitCodeValidation()` opts into throwing when the exit code is not zero.
+
+A sub-builder (`DotNet.Sln().List()`, `DotNet.DevCerts().Https()`, `DotNet.Tool().Install(...)`, and similar) copies the parent's options when it is created. Set validation on the parent before creating the sub-builder, or on the sub-builder itself.
+
+`DotNet.ListPackages()` takes a NuGet config file with `WithConfigFile`. `DotNet.Watch()` takes a target framework with `WithFramework`.
 
 Query helpers on `DotNet`:
 

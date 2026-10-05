@@ -52,6 +52,27 @@ public class DotNetUserSecretsBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Specifies the project file to use.
   /// </summary>
   /// <param name="project">The project file path</param>
@@ -129,13 +150,34 @@ public class DotNetUserSecretsInitBuilder
 {
   private readonly string? Project;
   private readonly string? Id;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetUserSecretsInitBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
     Id = id;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsInitBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsInitBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -192,7 +234,7 @@ public class DotNetUserSecretsSetBuilder
   private readonly string Value;
   private readonly string? Project;
   private readonly string? Id;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetUserSecretsSetBuilder(string key, string value, string? project, string? id, CommandOptions options)
   {
@@ -201,6 +243,27 @@ public class DotNetUserSecretsSetBuilder
     Project = project;
     Id = id;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsSetBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsSetBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -256,7 +319,7 @@ public class DotNetUserSecretsRemoveBuilder
   private readonly string Key;
   private readonly string? Project;
   private readonly string? Id;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetUserSecretsRemoveBuilder(string key, string? project, string? id, CommandOptions options)
   {
@@ -264,6 +327,27 @@ public class DotNetUserSecretsRemoveBuilder
     Project = project;
     Id = id;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsRemoveBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsRemoveBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -318,13 +402,34 @@ public class DotNetUserSecretsListBuilder
 {
   private readonly string? Project;
   private readonly string? Id;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetUserSecretsListBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
     Id = id;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -379,13 +484,34 @@ public class DotNetUserSecretsClearBuilder
 {
   private readonly string? Project;
   private readonly string? Id;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetUserSecretsClearBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
     Id = id;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsClearBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetUserSecretsClearBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()

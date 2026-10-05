@@ -111,7 +111,7 @@ public class DotNetListPackagesBuilder : ICommandBuilder<DotNetListPackagesBuild
   /// </summary>
   /// <param name="config">The configuration file path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetListPackagesBuilder WithConfig(string config)
+  public DotNetListPackagesBuilder WithConfigFile(string config)
   {
     Config = config;
     return this;
@@ -249,6 +249,17 @@ public class DotNetListPackagesBuilder : ICommandBuilder<DotNetListPackagesBuild
   public DotNetListPackagesBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetListPackagesBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 

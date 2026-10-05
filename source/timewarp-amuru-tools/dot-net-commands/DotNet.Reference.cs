@@ -72,6 +72,27 @@ public class DotNetReferenceBuilder
   }
 
   /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
   /// Creates a fluent builder for the 'dotnet reference add' command.
   /// </summary>
   /// <param name="projectPath">The project path to add as a reference</param>
@@ -128,13 +149,34 @@ public class DotNetReferenceAddBuilder
 {
   private readonly string[] ProjectPaths;
   private readonly string? Project;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetReferenceAddBuilder(string projectPath, string? project, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
     Project = project;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceAddBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceAddBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public DotNetReferenceAddBuilder(string[] projectPaths, string? project, CommandOptions options)
@@ -193,12 +235,33 @@ public class DotNetReferenceAddBuilder
 public class DotNetReferenceListBuilder
 {
   private readonly string? Project;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetReferenceListBuilder(string? project, CommandOptions options)
   {
     Project = project;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceListBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceListBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
@@ -250,13 +313,34 @@ public class DotNetReferenceRemoveBuilder
 {
   private readonly string[] ProjectPaths;
   private readonly string? Project;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
 
   public DotNetReferenceRemoveBuilder(string projectPath, string? project, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
     Project = project;
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceRemoveBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetReferenceRemoveBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   public DotNetReferenceRemoveBuilder(string[] projectPaths, string? project, CommandOptions options)

@@ -10,7 +10,7 @@ namespace TimeWarp.Amuru;
 public class DotNetToolUninstallBuilder
 {
   private readonly string PackageId;
-  private readonly CommandOptions Options;
+  private CommandOptions Options;
   private bool IsGlobal;
   private bool IsLocal;
   private string? ToolPath;
@@ -20,6 +20,27 @@ public class DotNetToolUninstallBuilder
   {
     PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
     Options = options;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolUninstallBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetToolUninstallBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
+    return this;
   }
 
   /// <summary>

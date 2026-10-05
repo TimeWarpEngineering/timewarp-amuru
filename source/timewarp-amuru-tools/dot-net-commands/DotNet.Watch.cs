@@ -4,6 +4,8 @@
 
 #region Design
 // Include, exclude, and property flags are omitted. dotnet watch does not define them and ignores those arguments.
+// Run, test, and build builders forward validation to the parent. Build reads options after that update.
+// The target framework method is WithFramework, matching the other dotnet builders.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -64,6 +66,27 @@ public class DotNetWatchBuilder
   public DotNetWatchBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
+    return this;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchBuilder WithNoValidation()
+  {
+    Options = Options.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchBuilder WithZeroExitCodeValidation()
+  {
+    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
@@ -153,7 +176,7 @@ public class DotNetWatchBuilder
   /// </summary>
   /// <param name="framework">The target framework moniker</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetWatchBuilder WithTargetFramework(string framework)
+  public DotNetWatchBuilder WithFramework(string framework)
   {
     TargetFramework = framework;
     return this;
@@ -346,6 +369,27 @@ public class DotNetWatchRunBuilder
     WatchBuilder = watchBuilder;
   }
 
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchRunBuilder WithNoValidation()
+  {
+    WatchBuilder.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchRunBuilder WithZeroExitCodeValidation()
+  {
+    WatchBuilder.WithZeroExitCodeValidation();
+    return this;
+  }
+
   public CommandResult Build()
   {
     List<string> arguments = WatchBuilder.BuildBaseArguments();
@@ -393,6 +437,27 @@ public class DotNetWatchTestBuilder
     WatchBuilder = watchBuilder;
   }
 
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchTestBuilder WithNoValidation()
+  {
+    WatchBuilder.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchTestBuilder WithZeroExitCodeValidation()
+  {
+    WatchBuilder.WithZeroExitCodeValidation();
+    return this;
+  }
+
   public CommandResult Build()
   {
     List<string> arguments = WatchBuilder.BuildBaseArguments();
@@ -438,6 +503,27 @@ public class DotNetWatchBuildBuilder
   public DotNetWatchBuildBuilder(DotNetWatchBuilder watchBuilder)
   {
     WatchBuilder = watchBuilder;
+  }
+
+  /// <summary>
+  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchBuildBuilder WithNoValidation()
+  {
+    WatchBuilder.WithNoValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Enables strict validation: a non-zero exit code causes the execution to throw
+  /// instead of reporting the failure via the result's exit code.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetWatchBuildBuilder WithZeroExitCodeValidation()
+  {
+    WatchBuilder.WithZeroExitCodeValidation();
+    return this;
   }
 
   public CommandResult Build()
