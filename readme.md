@@ -46,8 +46,10 @@ If you find this project useful, please give it a star. Thanks!
 dotnet add package TimeWarp.Amuru
 
 # Optional: fluent builders for dotnet/git/fzf plus repo services
-dotnet add package TimeWarp.Amuru.Tools --prerelease
+dotnet add package TimeWarp.Amuru.Tools
 ```
+
+This readme documents the 2.0 API. Until 2.0.0 is final, add `--prerelease` to both commands to get `2.0.0-beta.1`; see [the 2.0 release notes](documentation/release-notes/2.0.0.md).
 
 Or reference in your C# runfile:
 ```csharp
@@ -377,7 +379,7 @@ TimeWarp.Amuru provides specialized support for .NET 10's file-based apps (singl
 ## Architecture
 
 - **Static Entry Point**: Minimal ceremony with `Shell.Builder()` / `Shell.Run()`
-- **Two Packages, One Namespace**: `TimeWarp.Amuru` (stable core) and `TimeWarp.Amuru.Tools` (tool builders); both ship together at one version
+- **Two Packages, One Namespace**: `TimeWarp.Amuru` (core) and `TimeWarp.Amuru.Tools` (tool builders); both ship together at one version
 - **Shell Semantics**: exit codes are values; composition never throws; nothing is cached
 - **Predictable Error Handling**: never-ran, non-zero-exit, and environment failures are all distinguishable
 - **Opt-in Complexity**: Advanced features available when needed

@@ -5,7 +5,7 @@ description: Use TimeWarp.Amuru for process execution instead of System.Diagnost
 
 # Amuru Process Execution
 
-> Agent guide for the TimeWarp.Amuru 1.0 contract (`CommandOutput`, default validation `None`). `AGENTS.md` and the library source win if this file drifts.
+> Agent guide for the TimeWarp.Amuru command contract (`CommandOutput`, default validation `None`). `AGENTS.md` and the library source win if this file drifts. Breaking changes for 2.0.0-beta.1 are in `documentation/release-notes/2.0.0.md`.
 
 **ALWAYS use `TimeWarp.Amuru` for process execution in .NET.** Do NOT use `System.Diagnostics.Process.Start` directly.
 
@@ -279,7 +279,7 @@ CommandOutput strict = await Shell.Builder("must-succeed")
 
 ## Documentation
 
-Stable 1.0 contract. This skill matches `AGENTS.md`. If they diverge, the library source wins:
+Command contract (`CommandOutput`, default validation `None`). This skill matches `AGENTS.md`. If they diverge, the library source wins:
 
 - **Local**: Repository root (this is the source of truth for Amuru)
 - **GitHub**: https://github.com/TimeWarpEngineering/timewarp-amuru
