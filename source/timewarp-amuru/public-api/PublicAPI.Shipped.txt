@@ -1,0 +1,250 @@
+#nullable enable
+const TimeWarp.Amuru.CommandResult.NeverRanExitCode = -1 -> int
+override TimeWarp.Amuru.CommandOutput.ToString() -> string!
+override TimeWarp.Amuru.OutputLine.Equals(object? obj) -> bool
+override TimeWarp.Amuru.OutputLine.GetHashCode() -> int
+override TimeWarp.Amuru.OutputLine.ToString() -> string!
+static TimeWarp.Amuru.AppContextExtensions.EntryPointFileDirectoryPath() -> string?
+static TimeWarp.Amuru.AppContextExtensions.EntryPointFilePath() -> string?
+static TimeWarp.Amuru.AppContextExtensions.extension(System.AppContext!).EntryPointFileDirectoryPath() -> string?
+static TimeWarp.Amuru.AppContextExtensions.extension(System.AppContext!).EntryPointFilePath() -> string?
+static TimeWarp.Amuru.CliConfiguration.AllCommandPaths.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+static TimeWarp.Amuru.CliConfiguration.ClearCommandPath(string! command) -> void
+static TimeWarp.Amuru.CliConfiguration.HasCustomPath(string! command) -> bool
+static TimeWarp.Amuru.CliConfiguration.Reset() -> void
+static TimeWarp.Amuru.CliConfiguration.SetCommandPath(string! command, string! path) -> void
+static TimeWarp.Amuru.CommandOutput.Empty(int exitCode = 0) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.Cat(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.CatDirect(string! path) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+static TimeWarp.Amuru.Native.Aliases.Bash.Cd(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.CdDirect(string! path) -> void
+static TimeWarp.Amuru.Native.Aliases.Bash.Cp(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.CpDirect(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> void
+static TimeWarp.Amuru.Native.Aliases.Bash.Find(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.FindDirect(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.Aliases.Bash.Ls(string! path = ".") -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.LsDirect(string! path = ".") -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.Aliases.Bash.Mkdir(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.MkdirDirect(string! path) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.Native.Aliases.Bash.Mv(string! source, string! destination, bool overwrite = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.MvDirect(string! source, string! destination, bool overwrite = false) -> void
+static TimeWarp.Amuru.Native.Aliases.Bash.Pwd() -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.PwdDirect() -> string!
+static TimeWarp.Amuru.Native.Aliases.Bash.Rm(string! path, bool recursive = false, bool force = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.RmDirect(string! path, bool recursive = false, bool force = false) -> void
+static TimeWarp.Amuru.Native.Aliases.Bash.Stat(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.StatDirect(string! path) -> TimeWarp.Amuru.Native.FileSystem.ItemProperty!
+static TimeWarp.Amuru.Native.Aliases.Bash.Test(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.Test(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.TestDirect(string! path) -> bool
+static TimeWarp.Amuru.Native.Aliases.Bash.Touch(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.TouchDirect(string! path) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Cat(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Cd(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.CopyItem(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Cp(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Dir(string! path = ".", bool recursive = false, string? pattern = null, string? exclude = null, bool includeHidden = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Find(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.FindItem(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.GetChildItem(string! path = ".", bool recursive = false, string? pattern = null, string? exclude = null, bool includeHidden = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.GetContent(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.GetItemProperty(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.GetLocation() -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Ls(string! path = ".", bool recursive = false, string? pattern = null, string? exclude = null, bool includeHidden = true) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Mkdir(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.MoveItem(string! source, string! destination, bool overwrite = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Mv(string! source, string! destination, bool overwrite = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.NewItem(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Pwd() -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.RemoveItem(string! path, bool recursive = false, bool force = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Rm(string! path, bool recursive = false, bool force = false) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.SetLocation(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Stat(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Test(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Test(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.TestPath(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.TestPath(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Commands.Touch(string! path) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Cat(string! path) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Cd(string! path) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.CopyItem(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.Cp(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.Dir(string! path = ".") -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Find(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.FindItem(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.GetChildItem(string! path = ".", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.GetChildItem(string! path, bool recursive, string? pattern = null, string? exclude = null, bool includeHidden = true, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.GetContent(string! path, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.GetItemProperty(string! path) -> TimeWarp.Amuru.Native.FileSystem.ItemProperty!
+static TimeWarp.Amuru.Native.FileSystem.Direct.GetLocation() -> string!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Ls(string! path = ".") -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Mkdir(string! path) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.Native.FileSystem.Direct.MoveItem(string! source, string! destination, bool overwrite = false) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.Mv(string! source, string! destination, bool overwrite = false) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.NewItem(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Pwd() -> string!
+static TimeWarp.Amuru.Native.FileSystem.Direct.RemoveItem(string! path, bool recursive = false, bool force = false) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.Rm(string! path, bool recursive = false, bool force = false) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.SetLocation(string! path) -> void
+static TimeWarp.Amuru.Native.FileSystem.Direct.Stat(string! path) -> TimeWarp.Amuru.Native.FileSystem.ItemProperty!
+static TimeWarp.Amuru.Native.FileSystem.Direct.Test(string! path) -> bool
+static TimeWarp.Amuru.Native.FileSystem.Direct.Test(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> bool
+static TimeWarp.Amuru.Native.FileSystem.Direct.TestPath(string! path) -> bool
+static TimeWarp.Amuru.Native.FileSystem.Direct.TestPath(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> bool
+static TimeWarp.Amuru.Native.FileSystem.Direct.Touch(string! path) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.OutputLine.operator !=(TimeWarp.Amuru.OutputLine? left, TimeWarp.Amuru.OutputLine? right) -> bool
+static TimeWarp.Amuru.OutputLine.operator ==(TimeWarp.Amuru.OutputLine? left, TimeWarp.Amuru.OutputLine? right) -> bool
+static TimeWarp.Amuru.PathResolver.ResolveAllExecutables(string! name) -> System.Collections.Generic.IReadOnlyList<string!>!
+static TimeWarp.Amuru.PathResolver.ResolveExecutable(string! name) -> string?
+static TimeWarp.Amuru.ScriptContext.FromEntryPoint(bool changeToScriptDirectory = true, System.Action? onExit = null) -> TimeWarp.Amuru.ScriptContext!
+static TimeWarp.Amuru.ScriptContext.FromRelativePath(string! relativePath = "..", bool changeToTargetDirectory = true, System.Action? onExit = null) -> TimeWarp.Amuru.ScriptContext!
+static TimeWarp.Amuru.Shell.Builder(string! executable) -> TimeWarp.Amuru.ShellBuilder!
+static TimeWarp.Amuru.Shell.Run(string! executable, string![]? arguments, TimeWarp.Amuru.CommandOptions! options, string? standardInput = null) -> TimeWarp.Amuru.CommandResult!
+static TimeWarp.Amuru.Testing.CommandMock.CallCount(string! executable, params string![]! arguments) -> int
+static TimeWarp.Amuru.Testing.CommandMock.Enable(TimeWarp.Amuru.Testing.MockBehavior behavior = TimeWarp.Amuru.Testing.MockBehavior.Strict) -> System.IDisposable!
+static TimeWarp.Amuru.Testing.CommandMock.Reset() -> void
+static TimeWarp.Amuru.Testing.CommandMock.Setup(string! executable, params string![]! arguments) -> TimeWarp.Amuru.Testing.MockSetup!
+static TimeWarp.Amuru.Testing.CommandMock.VerifyCalled(string! executable, params string![]! arguments) -> void
+TimeWarp.Amuru.AppContextExtensions
+TimeWarp.Amuru.AppContextExtensions.extension(System.AppContext!)
+TimeWarp.Amuru.CliConfiguration
+TimeWarp.Amuru.CommandOptions
+TimeWarp.Amuru.CommandOptions.CommandOptions() -> void
+TimeWarp.Amuru.CommandOptions.EnvironmentVariables.get -> System.Collections.Generic.Dictionary<string!, string?>?
+TimeWarp.Amuru.CommandOptions.EnvironmentVariables.init -> void
+TimeWarp.Amuru.CommandOptions.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithEnvironmentVariables(System.Collections.Generic.Dictionary<string!, string?>! variables) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithNoValidation() -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithZeroExitCodeValidation() -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WorkingDirectory.get -> string?
+TimeWarp.Amuru.CommandOptions.WorkingDirectory.set -> void
+TimeWarp.Amuru.CommandOutput
+TimeWarp.Amuru.CommandOutput.Combined.get -> string!
+TimeWarp.Amuru.CommandOutput.CommandOutput(string! stdoutText, string! stderrText, int exitCode) -> void
+TimeWarp.Amuru.CommandOutput.CommandOutput(System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.OutputLine!>! outputLines, int exitCode) -> void
+TimeWarp.Amuru.CommandOutput.ExitCode.get -> int
+TimeWarp.Amuru.CommandOutput.GetLines() -> string![]!
+TimeWarp.Amuru.CommandOutput.GetStderrLines() -> string![]!
+TimeWarp.Amuru.CommandOutput.GetStdoutLines() -> string![]!
+TimeWarp.Amuru.CommandOutput.OutputLines.get -> System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.OutputLine!>!
+TimeWarp.Amuru.CommandOutput.RunTime.get -> System.TimeSpan
+TimeWarp.Amuru.CommandOutput.RunTime.init -> void
+TimeWarp.Amuru.CommandOutput.Stderr.get -> string!
+TimeWarp.Amuru.CommandOutput.Stdout.get -> string!
+TimeWarp.Amuru.CommandOutput.Success.get -> bool
+TimeWarp.Amuru.CommandOutput.ToDetailedString() -> string!
+TimeWarp.Amuru.CommandOutput.ToSummary() -> string!
+TimeWarp.Amuru.CommandOutput.WriteToConsole() -> void
+TimeWarp.Amuru.CommandResult
+TimeWarp.Amuru.CommandResult.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.CommandResult.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.CommandResult.Pipe(string! executable, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.CommandResult.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.CommandResult.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.CommandResult.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.CommandResult.StreamCombinedAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.OutputLine!>!
+TimeWarp.Amuru.CommandResult.StreamStderrAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+TimeWarp.Amuru.CommandResult.StreamStdoutAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+TimeWarp.Amuru.CommandResult.StreamToFileAsync(string! filePath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TimeWarp.Amuru.CommandResult.ToCommandString() -> string!
+TimeWarp.Amuru.CommandResult.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.ICommandBuilder<TBuilder>
+TimeWarp.Amuru.ICommandBuilder<TBuilder>.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.ICommandBuilder<TBuilder>.WithEnvironmentVariable(string! key, string? value) -> TBuilder
+TimeWarp.Amuru.ICommandBuilder<TBuilder>.WithNoValidation() -> TBuilder
+TimeWarp.Amuru.ICommandBuilder<TBuilder>.WithWorkingDirectory(string! directory) -> TBuilder
+TimeWarp.Amuru.Native.Aliases.Bash
+TimeWarp.Amuru.Native.FileSystem.Commands
+TimeWarp.Amuru.Native.FileSystem.Direct
+TimeWarp.Amuru.Native.FileSystem.FindCriteria
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.Attributes.get -> System.IO.FileAttributes?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.Attributes.init -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.FindCriteria() -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.MaxSize.get -> long?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.MaxSize.init -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.MinSize.get -> long?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.MinSize.init -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.ModifiedAfter.get -> System.DateTimeOffset?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.ModifiedAfter.init -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.ModifiedBefore.get -> System.DateTimeOffset?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.ModifiedBefore.init -> void
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.Name.get -> string?
+TimeWarp.Amuru.Native.FileSystem.FindCriteria.Name.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Attributes.get -> System.IO.FileAttributes
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Attributes.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.CreationTime.get -> System.DateTimeOffset
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.CreationTime.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Exists.get -> bool
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Exists.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.FullName.get -> string!
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.FullName.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsDirectory.get -> bool
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsDirectory.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsFile.get -> bool
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsFile.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsReparsePoint.get -> bool
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.IsReparsePoint.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.ItemProperty() -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LastAccessTime.get -> System.DateTimeOffset
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LastAccessTime.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LastWriteTime.get -> System.DateTimeOffset
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LastWriteTime.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Length.get -> long
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Length.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LinkTarget.get -> string?
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.LinkTarget.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Name.get -> string!
+TimeWarp.Amuru.Native.FileSystem.ItemProperty.Name.init -> void
+TimeWarp.Amuru.Native.FileSystem.ItemType
+TimeWarp.Amuru.Native.FileSystem.ItemType.Directory = 1 -> TimeWarp.Amuru.Native.FileSystem.ItemType
+TimeWarp.Amuru.Native.FileSystem.ItemType.File = 0 -> TimeWarp.Amuru.Native.FileSystem.ItemType
+TimeWarp.Amuru.OutputLine
+TimeWarp.Amuru.OutputLine.<Clone>$() -> TimeWarp.Amuru.OutputLine!
+TimeWarp.Amuru.OutputLine.Deconstruct(out string! Text, out bool IsError, out System.DateTimeOffset Timestamp) -> void
+TimeWarp.Amuru.OutputLine.Equals(TimeWarp.Amuru.OutputLine? other) -> bool
+TimeWarp.Amuru.OutputLine.IsError.get -> bool
+TimeWarp.Amuru.OutputLine.IsError.init -> void
+TimeWarp.Amuru.OutputLine.OutputLine(string! text, bool isError) -> void
+TimeWarp.Amuru.OutputLine.OutputLine(string! Text, bool IsError, System.DateTimeOffset Timestamp) -> void
+TimeWarp.Amuru.OutputLine.Text.get -> string!
+TimeWarp.Amuru.OutputLine.Text.init -> void
+TimeWarp.Amuru.OutputLine.Timestamp.get -> System.DateTimeOffset
+TimeWarp.Amuru.OutputLine.Timestamp.init -> void
+TimeWarp.Amuru.PathResolver
+TimeWarp.Amuru.ScriptContext
+TimeWarp.Amuru.ScriptContext.Dispose() -> void
+TimeWarp.Amuru.ScriptContext.ScriptDirectory.get -> string!
+TimeWarp.Amuru.ScriptContext.ScriptFilePath.get -> string!
+TimeWarp.Amuru.Shell
+TimeWarp.Amuru.ShellBuilder
+TimeWarp.Amuru.ShellBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.ShellBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.ShellBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.ShellBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.ShellBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.ShellBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.ShellBuilder.ShellBuilder(string! executable) -> void
+TimeWarp.Amuru.ShellBuilder.StreamCombinedAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.OutputLine!>!
+TimeWarp.Amuru.ShellBuilder.StreamStderrAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+TimeWarp.Amuru.ShellBuilder.StreamStdoutAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<string!>!
+TimeWarp.Amuru.ShellBuilder.StreamToFileAsync(string! filePath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TimeWarp.Amuru.ShellBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.ShellBuilder.WithArguments(params string![]! arguments) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithNoValidation() -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.Testing.CommandMock
+TimeWarp.Amuru.Testing.MockBehavior
+TimeWarp.Amuru.Testing.MockBehavior.Loose = 1 -> TimeWarp.Amuru.Testing.MockBehavior
+TimeWarp.Amuru.Testing.MockBehavior.Strict = 0 -> TimeWarp.Amuru.Testing.MockBehavior
+TimeWarp.Amuru.Testing.MockSetup
+TimeWarp.Amuru.Testing.MockSetup.Delays(System.TimeSpan delay) -> TimeWarp.Amuru.Testing.MockSetup!
+TimeWarp.Amuru.Testing.MockSetup.Returns(string! stdout, string? stderr = null, int exitCode = 0) -> TimeWarp.Amuru.Testing.MockSetup!
+TimeWarp.Amuru.Testing.MockSetup.ReturnsError(string! stderr, int exitCode = 1) -> TimeWarp.Amuru.Testing.MockSetup!
+TimeWarp.Amuru.Testing.MockSetup.Throws(System.Exception! exception) -> TimeWarp.Amuru.Testing.MockSetup!
+TimeWarp.Amuru.Testing.MockSetup.Throws<TException>() -> TimeWarp.Amuru.Testing.MockSetup!

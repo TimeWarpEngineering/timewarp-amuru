@@ -2,3 +2,8 @@
 [*.cs]
 # Require ConfigureAwait(false) — this is a library; consumers may block on a SynchronizationContext
 dotnet_diagnostic.CA2007.severity = error
+
+# RS0026 flags multiple public overloads that take optional parameters.
+# The shipped surface includes those overload sets (GetChildItem and several Git helpers).
+# Splitting them would be a breaking redesign, which this baseline does not do.
+dotnet_diagnostic.RS0026.severity = none

@@ -1,0 +1,1491 @@
+#nullable enable
+override TimeWarp.Amuru.CleanResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.CleanResult.GetHashCode() -> int
+override TimeWarp.Amuru.CleanResult.ToString() -> string!
+override TimeWarp.Amuru.GitBranchExistsResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitBranchExistsResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitBranchExistsResult.ToString() -> string!
+override TimeWarp.Amuru.GitBranchUpdateResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitBranchUpdateResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitBranchUpdateResult.ToString() -> string!
+override TimeWarp.Amuru.GitCloneResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitCloneResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitCloneResult.ToString() -> string!
+override TimeWarp.Amuru.GitCommitCountResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitCommitCountResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitCommitCountResult.ToString() -> string!
+override TimeWarp.Amuru.GitConfigureFetchRefspecResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitConfigureFetchRefspecResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitConfigureFetchRefspecResult.ToString() -> string!
+override TimeWarp.Amuru.GitDefaultBranchResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitDefaultBranchResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitDefaultBranchResult.ToString() -> string!
+override TimeWarp.Amuru.GitFetchResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitFetchResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitFetchResult.ToString() -> string!
+override TimeWarp.Amuru.GitSetRemoteHeadResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitSetRemoteHeadResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitSetRemoteHeadResult.ToString() -> string!
+override TimeWarp.Amuru.GitSetUpstreamResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitSetUpstreamResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitSetUpstreamResult.ToString() -> string!
+override TimeWarp.Amuru.GitTagCheckResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitTagCheckResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitTagCheckResult.ToString() -> string!
+override TimeWarp.Amuru.GitWorktreeAddResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitWorktreeAddResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitWorktreeAddResult.ToString() -> string!
+override TimeWarp.Amuru.GitWorktreeListResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitWorktreeListResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitWorktreeListResult.ToString() -> string!
+override TimeWarp.Amuru.GitWorktreeRemoveResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitWorktreeRemoveResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitWorktreeRemoveResult.ToString() -> string!
+override TimeWarp.Amuru.GitWorktreeUpdateResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GitWorktreeUpdateResult.GetHashCode() -> int
+override TimeWarp.Amuru.GitWorktreeUpdateResult.ToString() -> string!
+override TimeWarp.Amuru.NuGetCheckResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.NuGetCheckResult.GetHashCode() -> int
+override TimeWarp.Amuru.NuGetCheckResult.ToString() -> string!
+override TimeWarp.Amuru.NuGetPackageVersion.Equals(object? obj) -> bool
+override TimeWarp.Amuru.NuGetPackageVersion.GetHashCode() -> int
+override TimeWarp.Amuru.NuGetPackageVersion.ToString() -> string!
+override TimeWarp.Amuru.NuGetSearchResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.NuGetSearchResult.GetHashCode() -> int
+override TimeWarp.Amuru.NuGetSearchResult.ToString() -> string!
+override TimeWarp.Amuru.PackageVersionInfo.Equals(object? obj) -> bool
+override TimeWarp.Amuru.PackageVersionInfo.GetHashCode() -> int
+override TimeWarp.Amuru.PackageVersionInfo.ToString() -> string!
+override TimeWarp.Amuru.WorktreeEntry.Equals(object? obj) -> bool
+override TimeWarp.Amuru.WorktreeEntry.GetHashCode() -> int
+override TimeWarp.Amuru.WorktreeEntry.ToString() -> string!
+static TimeWarp.Amuru.CleanResult.operator !=(TimeWarp.Amuru.CleanResult? left, TimeWarp.Amuru.CleanResult? right) -> bool
+static TimeWarp.Amuru.CleanResult.operator ==(TimeWarp.Amuru.CleanResult? left, TimeWarp.Amuru.CleanResult? right) -> bool
+static TimeWarp.Amuru.DotNet.AddPackage(string! packageName) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+static TimeWarp.Amuru.DotNet.AddPackage(string! packageName, string! version) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+static TimeWarp.Amuru.DotNet.Build() -> TimeWarp.Amuru.DotNetBuildBuilder!
+static TimeWarp.Amuru.DotNet.Build(string! project) -> TimeWarp.Amuru.DotNetBuildBuilder!
+static TimeWarp.Amuru.DotNet.Builder() -> TimeWarp.Amuru.DotNetBuilder!
+static TimeWarp.Amuru.DotNet.Clean() -> TimeWarp.Amuru.DotNetCleanBuilder!
+static TimeWarp.Amuru.DotNet.Clean(string! project) -> TimeWarp.Amuru.DotNetCleanBuilder!
+static TimeWarp.Amuru.DotNet.DevCerts() -> TimeWarp.Amuru.DotNetDevCertsBuilder!
+static TimeWarp.Amuru.DotNet.ListPackages() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+static TimeWarp.Amuru.DotNet.ListPackages(string! project) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+static TimeWarp.Amuru.DotNet.New() -> TimeWarp.Amuru.DotNetNewBuilder!
+static TimeWarp.Amuru.DotNet.New(string! templateName) -> TimeWarp.Amuru.DotNetNewBuilder!
+static TimeWarp.Amuru.DotNet.NuGet() -> TimeWarp.Amuru.DotNetNuGetBuilder!
+static TimeWarp.Amuru.DotNet.Pack() -> TimeWarp.Amuru.DotNetPackBuilder!
+static TimeWarp.Amuru.DotNet.Pack(string! project) -> TimeWarp.Amuru.DotNetPackBuilder!
+static TimeWarp.Amuru.DotNet.PackageSearch() -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+static TimeWarp.Amuru.DotNet.PackageSearch(string! searchTerm) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+static TimeWarp.Amuru.DotNet.Publish() -> TimeWarp.Amuru.DotNetPublishBuilder!
+static TimeWarp.Amuru.DotNet.Publish(string! project) -> TimeWarp.Amuru.DotNetPublishBuilder!
+static TimeWarp.Amuru.DotNet.Reference() -> TimeWarp.Amuru.DotNetReferenceBuilder!
+static TimeWarp.Amuru.DotNet.Reference(string! project) -> TimeWarp.Amuru.DotNetReferenceBuilder!
+static TimeWarp.Amuru.DotNet.RemovePackage(string! packageName) -> TimeWarp.Amuru.DotNetRemovePackageBuilder!
+static TimeWarp.Amuru.DotNet.Restore() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+static TimeWarp.Amuru.DotNet.Restore(string! project) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+static TimeWarp.Amuru.DotNet.Run() -> TimeWarp.Amuru.DotNetRunBuilder!
+static TimeWarp.Amuru.DotNet.Sln() -> TimeWarp.Amuru.DotNetSlnBuilder!
+static TimeWarp.Amuru.DotNet.Sln(string! slnFile) -> TimeWarp.Amuru.DotNetSlnBuilder!
+static TimeWarp.Amuru.DotNet.Test() -> TimeWarp.Amuru.DotNetTestBuilder!
+static TimeWarp.Amuru.DotNet.Tool() -> TimeWarp.Amuru.DotNetToolBuilder!
+static TimeWarp.Amuru.DotNet.UserSecrets() -> TimeWarp.Amuru.DotNetUserSecretsBuilder!
+static TimeWarp.Amuru.DotNet.Watch() -> TimeWarp.Amuru.DotNetWatchBuilder!
+static TimeWarp.Amuru.DotNet.WithInfo() -> TimeWarp.Amuru.DotNetBuilder!
+static TimeWarp.Amuru.DotNet.WithListRuntimes() -> TimeWarp.Amuru.DotNetBuilder!
+static TimeWarp.Amuru.DotNet.WithListSdks() -> TimeWarp.Amuru.DotNetBuilder!
+static TimeWarp.Amuru.DotNet.WithVersion() -> TimeWarp.Amuru.DotNetBuilder!
+static TimeWarp.Amuru.DotNet.Workload() -> TimeWarp.Amuru.DotNetWorkloadBuilder!
+static TimeWarp.Amuru.Fzf.Builder() -> TimeWarp.Amuru.FzfBuilder!
+static TimeWarp.Amuru.FzfExtensions.SelectWithFzf(this TimeWarp.Amuru.CommandResult! command, System.Action<TimeWarp.Amuru.FzfBuilder!>? configure = null) -> TimeWarp.Amuru.CommandResult!
+static TimeWarp.Amuru.Git.BranchExistsAsync(string! repoPath, string! branchName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitBranchExistsResult!>!
+static TimeWarp.Amuru.Git.CloneBareAsync(string! repositoryUrl, string! targetPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitCloneResult!>!
+static TimeWarp.Amuru.Git.ConfigureFetchRefspecAsync(string! repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitConfigureFetchRefspecResult!>!
+static TimeWarp.Amuru.Git.FetchAsync(string! repositoryPath, string! remote = "origin", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitFetchResult!>!
+static TimeWarp.Amuru.Git.FindRoot(string? startPath = null) -> string?
+static TimeWarp.Amuru.Git.GetCommitsAheadAsync(string! branchName = "master", System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitCommitCountResult!>!
+static TimeWarp.Amuru.Git.GetCommitsAheadAsync(string! branchName, string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitCommitCountResult!>!
+static TimeWarp.Amuru.Git.GetCommitsAheadOfDefaultBranchAsync(string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitCommitCountResult!>!
+static TimeWarp.Amuru.Git.GetCommitsAheadOfDefaultBranchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitCommitCountResult!>!
+static TimeWarp.Amuru.Git.GetDefaultBranchAsync(string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitDefaultBranchResult!>!
+static TimeWarp.Amuru.Git.GetDefaultBranchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitDefaultBranchResult!>!
+static TimeWarp.Amuru.Git.GetDefaultWorktreePathAsync(string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string?>!
+static TimeWarp.Amuru.Git.GetDefaultWorktreePathAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string?>!
+static TimeWarp.Amuru.Git.GetRepositoryNameAsync(string? gitRoot = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string?>!
+static TimeWarp.Amuru.Git.GetWorktreePathAsync(string! branchName, string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string?>!
+static TimeWarp.Amuru.Git.GetWorktreePathAsync(string! branchName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string?>!
+static TimeWarp.Amuru.Git.IsWorktree(string? path = null) -> bool
+static TimeWarp.Amuru.Git.ParseWorktreeList(string! porcelainOutput) -> System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.WorktreeEntry!>!
+static TimeWarp.Amuru.Git.SetRemoteHeadAutoAsync(string! repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitSetRemoteHeadResult!>!
+static TimeWarp.Amuru.Git.SetUpstreamAsync(string! worktreePath, string! branchName, string! remote = "origin", bool fetchFirst = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitSetUpstreamResult!>!
+static TimeWarp.Amuru.Git.UpdateBranchAsync(string! branchName, string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitBranchUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateBranchAsync(string! branchName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitBranchUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateDefaultBranchAsync(string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitBranchUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateDefaultBranchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitBranchUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateDefaultWorktreeAsync(string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateDefaultWorktreeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateWorktreeAsync(string! branchName, string? repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeUpdateResult!>!
+static TimeWarp.Amuru.Git.UpdateWorktreeAsync(string! branchName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeUpdateResult!>!
+static TimeWarp.Amuru.Git.WorktreeAddAsync(string! repositoryPath, string! worktreePath, string! branchName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeAddResult!>!
+static TimeWarp.Amuru.Git.WorktreeAddNewBranchAsync(string! repositoryPath, string! worktreePath, string! newBranchName, string? startPoint = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeAddResult!>!
+static TimeWarp.Amuru.Git.WorktreeListPorcelainAsync(string! repositoryPath, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeListResult!>!
+static TimeWarp.Amuru.Git.WorktreeRemoveAsync(string! worktreePath, bool force = false, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitWorktreeRemoveResult!>!
+static TimeWarp.Amuru.GitBranchExistsResult.operator !=(TimeWarp.Amuru.GitBranchExistsResult? left, TimeWarp.Amuru.GitBranchExistsResult? right) -> bool
+static TimeWarp.Amuru.GitBranchExistsResult.operator ==(TimeWarp.Amuru.GitBranchExistsResult? left, TimeWarp.Amuru.GitBranchExistsResult? right) -> bool
+static TimeWarp.Amuru.GitBranchUpdateResult.operator !=(TimeWarp.Amuru.GitBranchUpdateResult? left, TimeWarp.Amuru.GitBranchUpdateResult? right) -> bool
+static TimeWarp.Amuru.GitBranchUpdateResult.operator ==(TimeWarp.Amuru.GitBranchUpdateResult? left, TimeWarp.Amuru.GitBranchUpdateResult? right) -> bool
+static TimeWarp.Amuru.GitCloneResult.operator !=(TimeWarp.Amuru.GitCloneResult? left, TimeWarp.Amuru.GitCloneResult? right) -> bool
+static TimeWarp.Amuru.GitCloneResult.operator ==(TimeWarp.Amuru.GitCloneResult? left, TimeWarp.Amuru.GitCloneResult? right) -> bool
+static TimeWarp.Amuru.GitCommitCountResult.operator !=(TimeWarp.Amuru.GitCommitCountResult? left, TimeWarp.Amuru.GitCommitCountResult? right) -> bool
+static TimeWarp.Amuru.GitCommitCountResult.operator ==(TimeWarp.Amuru.GitCommitCountResult? left, TimeWarp.Amuru.GitCommitCountResult? right) -> bool
+static TimeWarp.Amuru.GitConfigureFetchRefspecResult.operator !=(TimeWarp.Amuru.GitConfigureFetchRefspecResult? left, TimeWarp.Amuru.GitConfigureFetchRefspecResult? right) -> bool
+static TimeWarp.Amuru.GitConfigureFetchRefspecResult.operator ==(TimeWarp.Amuru.GitConfigureFetchRefspecResult? left, TimeWarp.Amuru.GitConfigureFetchRefspecResult? right) -> bool
+static TimeWarp.Amuru.GitDefaultBranchResult.operator !=(TimeWarp.Amuru.GitDefaultBranchResult? left, TimeWarp.Amuru.GitDefaultBranchResult? right) -> bool
+static TimeWarp.Amuru.GitDefaultBranchResult.operator ==(TimeWarp.Amuru.GitDefaultBranchResult? left, TimeWarp.Amuru.GitDefaultBranchResult? right) -> bool
+static TimeWarp.Amuru.GitFetchResult.operator !=(TimeWarp.Amuru.GitFetchResult? left, TimeWarp.Amuru.GitFetchResult? right) -> bool
+static TimeWarp.Amuru.GitFetchResult.operator ==(TimeWarp.Amuru.GitFetchResult? left, TimeWarp.Amuru.GitFetchResult? right) -> bool
+static TimeWarp.Amuru.GitSetRemoteHeadResult.operator !=(TimeWarp.Amuru.GitSetRemoteHeadResult? left, TimeWarp.Amuru.GitSetRemoteHeadResult? right) -> bool
+static TimeWarp.Amuru.GitSetRemoteHeadResult.operator ==(TimeWarp.Amuru.GitSetRemoteHeadResult? left, TimeWarp.Amuru.GitSetRemoteHeadResult? right) -> bool
+static TimeWarp.Amuru.GitSetUpstreamResult.operator !=(TimeWarp.Amuru.GitSetUpstreamResult? left, TimeWarp.Amuru.GitSetUpstreamResult? right) -> bool
+static TimeWarp.Amuru.GitSetUpstreamResult.operator ==(TimeWarp.Amuru.GitSetUpstreamResult? left, TimeWarp.Amuru.GitSetUpstreamResult? right) -> bool
+static TimeWarp.Amuru.GitTagCheckResult.operator !=(TimeWarp.Amuru.GitTagCheckResult? left, TimeWarp.Amuru.GitTagCheckResult? right) -> bool
+static TimeWarp.Amuru.GitTagCheckResult.operator ==(TimeWarp.Amuru.GitTagCheckResult? left, TimeWarp.Amuru.GitTagCheckResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeAddResult.operator !=(TimeWarp.Amuru.GitWorktreeAddResult? left, TimeWarp.Amuru.GitWorktreeAddResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeAddResult.operator ==(TimeWarp.Amuru.GitWorktreeAddResult? left, TimeWarp.Amuru.GitWorktreeAddResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeListResult.operator !=(TimeWarp.Amuru.GitWorktreeListResult? left, TimeWarp.Amuru.GitWorktreeListResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeListResult.operator ==(TimeWarp.Amuru.GitWorktreeListResult? left, TimeWarp.Amuru.GitWorktreeListResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeRemoveResult.operator !=(TimeWarp.Amuru.GitWorktreeRemoveResult? left, TimeWarp.Amuru.GitWorktreeRemoveResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeRemoveResult.operator ==(TimeWarp.Amuru.GitWorktreeRemoveResult? left, TimeWarp.Amuru.GitWorktreeRemoveResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeUpdateResult.operator !=(TimeWarp.Amuru.GitWorktreeUpdateResult? left, TimeWarp.Amuru.GitWorktreeUpdateResult? right) -> bool
+static TimeWarp.Amuru.GitWorktreeUpdateResult.operator ==(TimeWarp.Amuru.GitWorktreeUpdateResult? left, TimeWarp.Amuru.GitWorktreeUpdateResult? right) -> bool
+static TimeWarp.Amuru.NuGetCheckResult.operator !=(TimeWarp.Amuru.NuGetCheckResult? left, TimeWarp.Amuru.NuGetCheckResult? right) -> bool
+static TimeWarp.Amuru.NuGetCheckResult.operator ==(TimeWarp.Amuru.NuGetCheckResult? left, TimeWarp.Amuru.NuGetCheckResult? right) -> bool
+static TimeWarp.Amuru.NuGetPackageVersion.operator !=(TimeWarp.Amuru.NuGetPackageVersion? left, TimeWarp.Amuru.NuGetPackageVersion? right) -> bool
+static TimeWarp.Amuru.NuGetPackageVersion.operator ==(TimeWarp.Amuru.NuGetPackageVersion? left, TimeWarp.Amuru.NuGetPackageVersion? right) -> bool
+static TimeWarp.Amuru.NuGetSearchResult.operator !=(TimeWarp.Amuru.NuGetSearchResult? left, TimeWarp.Amuru.NuGetSearchResult? right) -> bool
+static TimeWarp.Amuru.NuGetSearchResult.operator ==(TimeWarp.Amuru.NuGetSearchResult? left, TimeWarp.Amuru.NuGetSearchResult? right) -> bool
+static TimeWarp.Amuru.PackageVersionInfo.operator !=(TimeWarp.Amuru.PackageVersionInfo? left, TimeWarp.Amuru.PackageVersionInfo? right) -> bool
+static TimeWarp.Amuru.PackageVersionInfo.operator ==(TimeWarp.Amuru.PackageVersionInfo? left, TimeWarp.Amuru.PackageVersionInfo? right) -> bool
+static TimeWarp.Amuru.WorktreeEntry.operator !=(TimeWarp.Amuru.WorktreeEntry? left, TimeWarp.Amuru.WorktreeEntry? right) -> bool
+static TimeWarp.Amuru.WorktreeEntry.operator ==(TimeWarp.Amuru.WorktreeEntry? left, TimeWarp.Amuru.WorktreeEntry? right) -> bool
+TimeWarp.Amuru.CleanResult
+TimeWarp.Amuru.CleanResult.<Clone>$() -> TimeWarp.Amuru.CleanResult!
+TimeWarp.Amuru.CleanResult.BinDirectoriesDeleted.get -> int
+TimeWarp.Amuru.CleanResult.BinDirectoriesDeleted.init -> void
+TimeWarp.Amuru.CleanResult.CleanResult(int ObjDirectoriesDeleted, int BinDirectoriesDeleted, int RootBinFilesCleaned) -> void
+TimeWarp.Amuru.CleanResult.Deconstruct(out int ObjDirectoriesDeleted, out int BinDirectoriesDeleted, out int RootBinFilesCleaned) -> void
+TimeWarp.Amuru.CleanResult.Equals(TimeWarp.Amuru.CleanResult? other) -> bool
+TimeWarp.Amuru.CleanResult.ObjDirectoriesDeleted.get -> int
+TimeWarp.Amuru.CleanResult.ObjDirectoriesDeleted.init -> void
+TimeWarp.Amuru.CleanResult.RootBinFilesCleaned.get -> int
+TimeWarp.Amuru.CleanResult.RootBinFilesCleaned.init -> void
+TimeWarp.Amuru.DotNet
+TimeWarp.Amuru.DotNetAddPackageBuilder
+TimeWarp.Amuru.DotNetAddPackageBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetAddPackageBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetAddPackageBuilder.DotNetAddPackageBuilder(string! packageName) -> void
+TimeWarp.Amuru.DotNetAddPackageBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetAddPackageBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetAddPackageBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetAddPackageBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithPackageDirectory(string! directory) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithPrerelease() -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithSources(params string![]! sources) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithVersion(string! version) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetAddPackageBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetAddPackageBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder
+TimeWarp.Amuru.DotNetBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuildBuilder.DotNetBuildBuilder() -> void
+TimeWarp.Amuru.DotNetBuildBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuildBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuildBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetBuildBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetBuildBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuildBuilder.WithArchitecture(string! architecture) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithForce() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithNoDependencies() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithNoIncremental() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithOperatingSystem(string! operatingSystem) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithOutput(string! outputPath) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuilder
+TimeWarp.Amuru.DotNetBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuilder.DotNetBuilder() -> void
+TimeWarp.Amuru.DotNetBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetBuilder.WithArguments(params string![]! arguments) -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder
+TimeWarp.Amuru.DotNetCleanBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetCleanBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetCleanBuilder.DotNetCleanBuilder() -> void
+TimeWarp.Amuru.DotNetCleanBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetCleanBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetCleanBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetCleanBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetCleanBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetCleanBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithOutput(string! outputPath) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetCleanBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetCleanBuilder!
+TimeWarp.Amuru.DotNetDevCertsBuilder
+TimeWarp.Amuru.DotNetDevCertsBuilder.DotNetDevCertsBuilder() -> void
+TimeWarp.Amuru.DotNetDevCertsBuilder.Https() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetDevCertsBuilder!
+TimeWarp.Amuru.DotNetDevCertsBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetDevCertsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.DotNetDevCertsHttpsBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithCheck() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithClean() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithExport() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithExportPath(string! exportPath) -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithFormat(string! format) -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithNoPassword() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithPassword(string! password) -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithQuiet() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithTrust() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetDevCertsHttpsBuilder.WithVerbose() -> TimeWarp.Amuru.DotNetDevCertsHttpsBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder
+TimeWarp.Amuru.DotNetListPackagesBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetListPackagesBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.Deprecated() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.DotNetListPackagesBuilder() -> void
+TimeWarp.Amuru.DotNetListPackagesBuilder.HighestMinor() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.HighestPatch() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.IncludePrerelease() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.IncludeTransitive() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.Outdated() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.ToListAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string![]!>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetListPackagesBuilder.Vulnerable() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithConfig(string! config) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithFormat(string! format) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithOutputVersion(string! version) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithSources(params string![]! sources) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetListPackagesBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetListPackagesBuilder!
+TimeWarp.Amuru.DotNetNewBuilder
+TimeWarp.Amuru.DotNetNewBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewBuilder.DotNetNewBuilder(string? templateName = null) -> void
+TimeWarp.Amuru.DotNetNewBuilder.Install(string! packageName) -> TimeWarp.Amuru.DotNetNewInstallBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.List(string? templateName = null) -> TimeWarp.Amuru.DotNetNewListBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewBuilder.Search(string! templateName) -> TimeWarp.Amuru.DotNetNewSearchBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewBuilder.Uninstall(string! packageName) -> TimeWarp.Amuru.DotNetNewUninstallBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.Update() -> TimeWarp.Amuru.DotNetNewUpdateBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithDiagnostics() -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithDryRun() -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithForce() -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithName(string! name) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithNoUpdateCheck() -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithOutput(string! output) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithTemplateArg(string! templateArg) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithTemplateArgs(params string![]! templateArgs) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetNewBuilder!
+TimeWarp.Amuru.DotNetNewInstallBuilder
+TimeWarp.Amuru.DotNetNewInstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewInstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewInstallBuilder.DotNetNewInstallBuilder(string! packageName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNewInstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewInstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewInstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewInstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewListBuilder
+TimeWarp.Amuru.DotNetNewListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewListBuilder.DotNetNewListBuilder(string? templateName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNewListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewSearchBuilder
+TimeWarp.Amuru.DotNetNewSearchBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewSearchBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewSearchBuilder.DotNetNewSearchBuilder(string! templateName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNewSearchBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewSearchBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewSearchBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewSearchBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUninstallBuilder
+TimeWarp.Amuru.DotNetNewUninstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewUninstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUninstallBuilder.DotNetNewUninstallBuilder(string! packageName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNewUninstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUninstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewUninstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewUninstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUpdateBuilder
+TimeWarp.Amuru.DotNetNewUpdateBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNewUpdateBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUpdateBuilder.DotNetNewUpdateBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNewUpdateBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNewUpdateBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNewUpdateBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNewUpdateBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.DotNetNuGetAddSourceBuilder(string! source, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetAddSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.WithName(string! name) -> TimeWarp.Amuru.DotNetNuGetAddSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.WithPassword(string! password) -> TimeWarp.Amuru.DotNetNuGetAddSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetAddSourceBuilder.WithUsername(string! username) -> TimeWarp.Amuru.DotNetNuGetAddSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder
+TimeWarp.Amuru.DotNetNuGetBuilder.AddSource(string! source) -> TimeWarp.Amuru.DotNetNuGetAddSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Delete(string! packageName, string! version) -> TimeWarp.Amuru.DotNetNuGetDeleteBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.DisableSource(string! name) -> TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.DotNetNuGetBuilder() -> void
+TimeWarp.Amuru.DotNetNuGetBuilder.EnableSource(string! name) -> TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.ListSources() -> TimeWarp.Amuru.DotNetNuGetListSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Locals() -> TimeWarp.Amuru.DotNetNuGetLocalsBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Push(string! packagePath) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.RemoveSource(string! name) -> TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.UpdateSource(string! name) -> TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Why(string! packageName) -> TimeWarp.Amuru.DotNetNuGetWhyBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetNuGetBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetNuGetBuilder!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.DotNetNuGetDeleteBuilder(string! packageName, string! version, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.WithApiKey(string! apiKey) -> TimeWarp.Amuru.DotNetNuGetDeleteBuilder!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetNuGetDeleteBuilder!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.WithNonInteractive() -> TimeWarp.Amuru.DotNetNuGetDeleteBuilder!
+TimeWarp.Amuru.DotNetNuGetDeleteBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetNuGetDeleteBuilder!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.DotNetNuGetDisableSourceBuilder(string! name, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetDisableSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.DotNetNuGetEnableSourceBuilder(string! name, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetEnableSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.DotNetNuGetListSourceBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetListSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetListSourceBuilder.WithFormat(string! format) -> TimeWarp.Amuru.DotNetNuGetListSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.Clear(TimeWarp.Amuru.NuGetCacheType cacheType) -> TimeWarp.Amuru.DotNetNuGetLocalsBuilder!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.DotNetNuGetLocalsBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.List(TimeWarp.Amuru.NuGetCacheType cacheType) -> TimeWarp.Amuru.DotNetNuGetLocalsBuilder!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetLocalsBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder
+TimeWarp.Amuru.DotNetNuGetPushBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.DotNetNuGetPushBuilder(string! packagePath, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetPushBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithApiKey(string! apiKey) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithDisableBuffering() -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithNoServiceEndpoint() -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithNoSymbols() -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithSkipDuplicate() -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithSymbolApiKey(string! symbolApiKey) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithSymbolSource(string! symbolSource) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetPushBuilder.WithTimeout(int timeout) -> TimeWarp.Amuru.DotNetNuGetPushBuilder!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.DotNetNuGetRemoveSourceBuilder(string! name, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetRemoveSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.DotNetNuGetUpdateSourceBuilder(string! name, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.WithPassword(string! password) -> TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder.WithUsername(string! username) -> TimeWarp.Amuru.DotNetNuGetUpdateSourceBuilder!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.DotNetNuGetWhyBuilder(string! packageName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetNuGetWhyBuilder!
+TimeWarp.Amuru.DotNetNuGetWhyBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetNuGetWhyBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder
+TimeWarp.Amuru.DotNetPackageSearchBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.DotNetPackageSearchBuilder(string? searchTerm = null) -> void
+TimeWarp.Amuru.DotNetPackageSearchBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithExactMatch() -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithFormat(string! format) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithPrerelease() -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithSkip(int skip) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithSources(params string![]! sources) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithTake(int take) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackageSearchBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetPackageSearchBuilder!
+TimeWarp.Amuru.DotNetPackBuilder
+TimeWarp.Amuru.DotNetPackBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetPackBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackBuilder.DotNetPackBuilder() -> void
+TimeWarp.Amuru.DotNetPackBuilder.IncludeSource() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.IncludeSymbols() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetPackBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetPackBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPackBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithForce() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithNoBuild() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithNoDependencies() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithOutput(string! outputPath) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithServiceable() -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithVersionSuffix(string! suffix) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder
+TimeWarp.Amuru.DotNetPublishBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetPublishBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPublishBuilder.DotNetPublishBuilder() -> void
+TimeWarp.Amuru.DotNetPublishBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPublishBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetPublishBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetPublishBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetPublishBuilder.WithArchitecture(string! architecture) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithForce() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithManifest(string! manifestFile) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoBuild() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoDependencies() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoSelfContained() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithOperatingSystem(string! operatingSystem) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithOutput(string! outputPath) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithReadyToRun() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithSelfContained() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithSingleFile() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithSources(params string![]! sources) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithTrimmed() -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetReferenceAddBuilder
+TimeWarp.Amuru.DotNetReferenceAddBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetReferenceAddBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceAddBuilder.DotNetReferenceAddBuilder(string! projectPath, string? project, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetReferenceAddBuilder.DotNetReferenceAddBuilder(string![]! projectPaths, string? project, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetReferenceAddBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceAddBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetReferenceAddBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetReferenceAddBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceBuilder
+TimeWarp.Amuru.DotNetReferenceBuilder.Add(params string![]! projectPaths) -> TimeWarp.Amuru.DotNetReferenceAddBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.Add(string! projectPath) -> TimeWarp.Amuru.DotNetReferenceAddBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.DotNetReferenceBuilder() -> void
+TimeWarp.Amuru.DotNetReferenceBuilder.List() -> TimeWarp.Amuru.DotNetReferenceListBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.Remove(params string![]! projectPaths) -> TimeWarp.Amuru.DotNetReferenceRemoveBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.Remove(string! projectPath) -> TimeWarp.Amuru.DotNetReferenceRemoveBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetReferenceBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetReferenceBuilder!
+TimeWarp.Amuru.DotNetReferenceBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetReferenceBuilder!
+TimeWarp.Amuru.DotNetReferenceListBuilder
+TimeWarp.Amuru.DotNetReferenceListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetReferenceListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceListBuilder.DotNetReferenceListBuilder(string? project, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetReferenceListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetReferenceListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetReferenceListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.DotNetReferenceRemoveBuilder(string! projectPath, string? project, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.DotNetReferenceRemoveBuilder(string![]! projectPaths, string? project, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetReferenceRemoveBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder
+TimeWarp.Amuru.DotNetRemovePackageBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.DotNetRemovePackageBuilder(string! packageName) -> void
+TimeWarp.Amuru.DotNetRemovePackageBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetRemovePackageBuilder!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetRemovePackageBuilder!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetRemovePackageBuilder!
+TimeWarp.Amuru.DotNetRemovePackageBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetRemovePackageBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder
+TimeWarp.Amuru.DotNetRestoreBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetRestoreBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRestoreBuilder.DotNetRestoreBuilder() -> void
+TimeWarp.Amuru.DotNetRestoreBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRestoreBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetRestoreBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetRestoreBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithForce() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithLockedMode() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithLockFilePath(string! lockFilePath) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithNoDependencies() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithPackagesDirectory(string! directory) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithSources(params string![]! sources) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRestoreBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetRestoreBuilder!
+TimeWarp.Amuru.DotNetRunBuilder
+TimeWarp.Amuru.DotNetRunBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetRunBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRunBuilder.DotNetRunBuilder() -> void
+TimeWarp.Amuru.DotNetRunBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRunBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetRunBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetRunBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetRunBuilder.WithArchitecture(string! architecture) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithArguments(params string![]? arguments) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithFile(string! filePath) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithForce() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithLaunchProfile(string! profileName) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoBuild() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoDependencies() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoLaunchProfile() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithOperatingSystem(string! operatingSystem) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithProcessEnvironmentVariable(string! key, string! value) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetSlnAddBuilder
+TimeWarp.Amuru.DotNetSlnAddBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetSlnAddBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnAddBuilder.DotNetSlnAddBuilder(string! projectPath, string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnAddBuilder.DotNetSlnAddBuilder(string![]! projectPaths, string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnAddBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnAddBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetSlnAddBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetSlnAddBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnBuilder
+TimeWarp.Amuru.DotNetSlnBuilder.Add(params string![]! projectPaths) -> TimeWarp.Amuru.DotNetSlnAddBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.Add(string! projectPath) -> TimeWarp.Amuru.DotNetSlnAddBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.DotNetSlnBuilder() -> void
+TimeWarp.Amuru.DotNetSlnBuilder.List() -> TimeWarp.Amuru.DotNetSlnListBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.Migrate() -> TimeWarp.Amuru.DotNetSlnMigrateBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.Remove(params string![]! projectPaths) -> TimeWarp.Amuru.DotNetSlnRemoveBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.Remove(string! projectPath) -> TimeWarp.Amuru.DotNetSlnRemoveBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetSlnBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.WithSolutionFile(string! slnFile) -> TimeWarp.Amuru.DotNetSlnBuilder!
+TimeWarp.Amuru.DotNetSlnBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetSlnBuilder!
+TimeWarp.Amuru.DotNetSlnListBuilder
+TimeWarp.Amuru.DotNetSlnListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetSlnListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnListBuilder.DotNetSlnListBuilder(string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetSlnListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetSlnListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.DotNetSlnMigrateBuilder(string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetSlnMigrateBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.DotNetSlnRemoveBuilder(string! projectPath, string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.DotNetSlnRemoveBuilder(string![]! projectPaths, string? slnFile, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetSlnRemoveBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetTestBuilder
+TimeWarp.Amuru.DotNetTestBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetTestBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetTestBuilder.DotNetTestBuilder() -> void
+TimeWarp.Amuru.DotNetTestBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetTestBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetTestBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetTestBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetTestBuilder.WithArchitecture(string! architecture) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithBlame() -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithCollect(string! dataCollector) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithFilter(string! filter) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithLogger(string! logger) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithNoBuild() -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithOperatingSystem(string! operatingSystem) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithOutput(string! outputPath) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithProperties(System.Collections.Generic.Dictionary<string!, string!>! properties) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithResultsDirectory(string! directory) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithSettings(string! settingsFile) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTerminalLogger(string! mode) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTestAdapterPath(string! path) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetToolBuilder
+TimeWarp.Amuru.DotNetToolBuilder.DotNetToolBuilder() -> void
+TimeWarp.Amuru.DotNetToolBuilder.Install(string! packageId) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.List() -> TimeWarp.Amuru.DotNetToolListBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.Restore() -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.Run(string! commandName) -> TimeWarp.Amuru.DotNetToolRunBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.Search(string! searchTerm) -> TimeWarp.Amuru.DotNetToolSearchBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.Uninstall(string! packageId) -> TimeWarp.Amuru.DotNetToolUninstallBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.Update(string! packageId) -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetToolBuilder!
+TimeWarp.Amuru.DotNetToolBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetToolBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder
+TimeWarp.Amuru.DotNetToolInstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolInstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolInstallBuilder.DotNetToolInstallBuilder(string! packageId, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolInstallBuilder.Global() -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.Local() -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolInstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolInstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolInstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithArchitecture(string! arch) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithFramework(string! framework) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithIgnoreFailedSources() -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithPrerelease() -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithToolManifest(string! toolManifest) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithToolPath(string! toolPath) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolInstallBuilder.WithVersion(string! version) -> TimeWarp.Amuru.DotNetToolInstallBuilder!
+TimeWarp.Amuru.DotNetToolListBuilder
+TimeWarp.Amuru.DotNetToolListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolListBuilder.DotNetToolListBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolListBuilder.Global() -> TimeWarp.Amuru.DotNetToolListBuilder!
+TimeWarp.Amuru.DotNetToolListBuilder.Local() -> TimeWarp.Amuru.DotNetToolListBuilder!
+TimeWarp.Amuru.DotNetToolListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolListBuilder.WithToolPath(string! toolPath) -> TimeWarp.Amuru.DotNetToolListBuilder!
+TimeWarp.Amuru.DotNetToolRestoreBuilder
+TimeWarp.Amuru.DotNetToolRestoreBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.DotNetToolRestoreBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolRestoreBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.WithIgnoreFailedSources() -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolRestoreBuilder.WithToolManifest(string! toolManifest) -> TimeWarp.Amuru.DotNetToolRestoreBuilder!
+TimeWarp.Amuru.DotNetToolRunBuilder
+TimeWarp.Amuru.DotNetToolRunBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolRunBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRunBuilder.DotNetToolRunBuilder(string! commandName, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolRunBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRunBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolRunBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolRunBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolRunBuilder.WithArgument(string! argument) -> TimeWarp.Amuru.DotNetToolRunBuilder!
+TimeWarp.Amuru.DotNetToolRunBuilder.WithArguments(params string![]! arguments) -> TimeWarp.Amuru.DotNetToolRunBuilder!
+TimeWarp.Amuru.DotNetToolSearchBuilder
+TimeWarp.Amuru.DotNetToolSearchBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolSearchBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolSearchBuilder.DotNetToolSearchBuilder(string! searchTerm, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolSearchBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolSearchBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolSearchBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolSearchBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolSearchBuilder.WithDetail() -> TimeWarp.Amuru.DotNetToolSearchBuilder!
+TimeWarp.Amuru.DotNetToolSearchBuilder.WithPrerelease() -> TimeWarp.Amuru.DotNetToolSearchBuilder!
+TimeWarp.Amuru.DotNetToolSearchBuilder.WithSkip(int skip) -> TimeWarp.Amuru.DotNetToolSearchBuilder!
+TimeWarp.Amuru.DotNetToolSearchBuilder.WithTake(int take) -> TimeWarp.Amuru.DotNetToolSearchBuilder!
+TimeWarp.Amuru.DotNetToolUninstallBuilder
+TimeWarp.Amuru.DotNetToolUninstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.DotNetToolUninstallBuilder(string! packageId, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolUninstallBuilder.Global() -> TimeWarp.Amuru.DotNetToolUninstallBuilder!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.Local() -> TimeWarp.Amuru.DotNetToolUninstallBuilder!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.WithToolManifest(string! toolManifest) -> TimeWarp.Amuru.DotNetToolUninstallBuilder!
+TimeWarp.Amuru.DotNetToolUninstallBuilder.WithToolPath(string! toolPath) -> TimeWarp.Amuru.DotNetToolUninstallBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder
+TimeWarp.Amuru.DotNetToolUpdateBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.DotNetToolUpdateBuilder(string! packageId, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetToolUpdateBuilder.Global() -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.Local() -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithIgnoreFailedSources() -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithPrerelease() -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithToolManifest(string! toolManifest) -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetToolUpdateBuilder.WithToolPath(string! toolPath) -> TimeWarp.Amuru.DotNetToolUpdateBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder
+TimeWarp.Amuru.DotNetUserSecretsBuilder.Clear() -> TimeWarp.Amuru.DotNetUserSecretsClearBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.DotNetUserSecretsBuilder() -> void
+TimeWarp.Amuru.DotNetUserSecretsBuilder.Init() -> TimeWarp.Amuru.DotNetUserSecretsInitBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.List() -> TimeWarp.Amuru.DotNetUserSecretsListBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.Remove(string! key) -> TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.Set(string! key, string! value) -> TimeWarp.Amuru.DotNetUserSecretsSetBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetUserSecretsBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.WithId(string! id) -> TimeWarp.Amuru.DotNetUserSecretsBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetUserSecretsBuilder!
+TimeWarp.Amuru.DotNetUserSecretsBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetUserSecretsBuilder!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.DotNetUserSecretsClearBuilder(string? project, string? id, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetUserSecretsClearBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.DotNetUserSecretsInitBuilder(string? project, string? id, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetUserSecretsInitBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.DotNetUserSecretsListBuilder(string? project, string? id, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetUserSecretsListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.DotNetUserSecretsRemoveBuilder(string! key, string? project, string? id, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetUserSecretsRemoveBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.DotNetUserSecretsSetBuilder(string! key, string! value, string? project, string? id, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetUserSecretsSetBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchBuildBuilder
+TimeWarp.Amuru.DotNetWatchBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWatchBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchBuildBuilder.DotNetWatchBuildBuilder(TimeWarp.Amuru.DotNetWatchBuilder! watchBuilder) -> void
+TimeWarp.Amuru.DotNetWatchBuildBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchBuildBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWatchBuildBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWatchBuildBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchBuilder
+TimeWarp.Amuru.DotNetWatchBuilder.Build() -> TimeWarp.Amuru.DotNetWatchBuildBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.DotNetWatchBuilder() -> void
+TimeWarp.Amuru.DotNetWatchBuilder.Run() -> TimeWarp.Amuru.DotNetWatchRunBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.Test() -> TimeWarp.Amuru.DotNetWatchTestBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithArgument(string! argument) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithArguments(params string![]! arguments) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithConfiguration(string! configuration) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithLaunchProfile(string! launchProfile) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithList() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithNoBuild() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithNoHotReload() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithNoLaunchProfile() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithNoRestore() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithQuiet() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithRuntime(string! runtime) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithTargetFramework(string! framework) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithVerbose() -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetWatchBuilder!
+TimeWarp.Amuru.DotNetWatchRunBuilder
+TimeWarp.Amuru.DotNetWatchRunBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWatchRunBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchRunBuilder.DotNetWatchRunBuilder(TimeWarp.Amuru.DotNetWatchBuilder! watchBuilder) -> void
+TimeWarp.Amuru.DotNetWatchRunBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchRunBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWatchRunBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWatchRunBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchTestBuilder
+TimeWarp.Amuru.DotNetWatchTestBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWatchTestBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchTestBuilder.DotNetWatchTestBuilder(TimeWarp.Amuru.DotNetWatchBuilder! watchBuilder) -> void
+TimeWarp.Amuru.DotNetWatchTestBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWatchTestBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWatchTestBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWatchTestBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadBuilder
+TimeWarp.Amuru.DotNetWorkloadBuilder.Clean() -> TimeWarp.Amuru.DotNetWorkloadCleanBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Config() -> TimeWarp.Amuru.DotNetWorkloadConfigBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.DotNetWorkloadBuilder() -> void
+TimeWarp.Amuru.DotNetWorkloadBuilder.Info() -> TimeWarp.Amuru.DotNetWorkloadInfoBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Install(params string![]! workloadIds) -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.List() -> TimeWarp.Amuru.DotNetWorkloadListBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Repair() -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Restore() -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Restore(string! projectOrSolution) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Search() -> TimeWarp.Amuru.DotNetWorkloadSearchBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Search(string! searchString) -> TimeWarp.Amuru.DotNetWorkloadSearchBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Uninstall(params string![]! workloadIds) -> TimeWarp.Amuru.DotNetWorkloadUninstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Update() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.Version() -> TimeWarp.Amuru.DotNetWorkloadVersionBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetWorkloadBuilder!
+TimeWarp.Amuru.DotNetWorkloadBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetWorkloadBuilder!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.DotNetWorkloadCleanBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadCleanBuilder.WithAll() -> TimeWarp.Amuru.DotNetWorkloadCleanBuilder!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.DotNetWorkloadConfigBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.WithUpdateMode(string! updateMode) -> TimeWarp.Amuru.DotNetWorkloadConfigBuilder!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.WithUpdateModeManifests() -> TimeWarp.Amuru.DotNetWorkloadConfigBuilder!
+TimeWarp.Amuru.DotNetWorkloadConfigBuilder.WithUpdateModeWorkloadSet() -> TimeWarp.Amuru.DotNetWorkloadConfigBuilder!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.DotNetWorkloadInfoBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadInfoBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.DotNetWorkloadInstallBuilder(string![]! workloadIds, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.WithIncludePreview() -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.WithSkipManifestUpdate() -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadInstallBuilder.WithVersion(string! version) -> TimeWarp.Amuru.DotNetWorkloadInstallBuilder!
+TimeWarp.Amuru.DotNetWorkloadListBuilder
+TimeWarp.Amuru.DotNetWorkloadListBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.DotNetWorkloadListBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadListBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadListBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWorkloadListBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.DotNetWorkloadRepairBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithDisableParallel() -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithIgnoreFailedSources() -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithTempDir(string! tempDir) -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRepairBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWorkloadRepairBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.DotNetWorkloadRestoreBuilder(string? projectOrSolution, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithDisableParallel() -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithIncludePreview() -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithTempDir(string! tempDir) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadRestoreBuilder.WithVersion(string! version) -> TimeWarp.Amuru.DotNetWorkloadRestoreBuilder!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.DotNetWorkloadSearchBuilder(string? searchString, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadSearchBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWorkloadSearchBuilder!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.DotNetWorkloadUninstallBuilder(string![]! workloadIds, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadUninstallBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.DotNetWorkloadUpdateBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithAdvertisingManifestsOnly() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithDisableParallel() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithFromPreviousSdk() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithIncludePreview() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithInteractive() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithSource(string! source) -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithTempDir(string! tempDir) -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadUpdateBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetWorkloadUpdateBuilder!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.DotNetWorkloadVersionBuilder(TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetWorkloadVersionBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.Fzf
+TimeWarp.Amuru.FzfBuilder
+TimeWarp.Amuru.FzfBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.FzfBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.FzfBuilder.FromCommand(string! command) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.FromFiles(string! pattern) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.FromInput(params string![]! items) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.FromInput(System.Collections.Generic.IEnumerable<string!>! items) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.FromStdin() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.FzfBuilder() -> void
+TimeWarp.Amuru.FzfBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.FzfBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.FzfBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.FzfBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.FzfBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.FzfBuilder.WithAnsi() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBind(string! bindings) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBorder() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBorder(string! style) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBorderLabel(string! label) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBorderLabelPos(int position) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithBorderLabelPos(string! position) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithCaseInsensitive() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithCaseSensitive() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithColor(string! colors) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithCycle() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithDelimiter(string! delimiter) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithDisabled() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithEllipsis(string! ellipsis) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithExact() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithExit0() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithExpect(string! keys) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithExtended() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithFilepathWord() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithFilter(string! filter) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHeader(string! header) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHeaderFirst() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHeaderLines(int lines) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHeight(int height) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHeightPercent(int heightPercent) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHistory(string! file) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHistorySize(int size) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithHScrollOff(int cols) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithInfo(string! style) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithJumpLabels(string! chars) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithKeepRight() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithLayout(string! layout) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithListen() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithListen(int port) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithListen(string! address) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithLiteral() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithMargin(string! margin) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithMarker(string! marker) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithMinHeight(int minHeight) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithMulti() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithMulti(int max) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoBold() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoExtended() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoHScroll() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoMouse() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoScrollbar() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoSeparator() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNoSort() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithNth(string! nth) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPadding(string! padding) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPointer(string! pointerString) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPreview(string! command) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPreviewLabel(string! label) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPreviewLabelPos(int position) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPreviewLabelPos(string! position) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPreviewWindow(string! options) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPrint0() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPrintQuery() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithPrompt(string! prompt) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithQuery(string! query) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithRead0() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithScheme(string! scheme) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithScrollbar() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithScrollbar(string! chars) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithScrollOff(int lines) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithSelect1() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithSeparator(string! separator) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithSync() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithTabstop(int spaces) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithTac() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithTiebreak(string! tiebreak) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithTrack() -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithWithNth(string! withNth) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.FzfBuilder!
+TimeWarp.Amuru.FzfExtensions
+TimeWarp.Amuru.Git
+TimeWarp.Amuru.GitBranchExistsResult
+TimeWarp.Amuru.GitBranchExistsResult.Deconstruct(out bool Success, out bool Exists, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitBranchExistsResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitBranchExistsResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitBranchExistsResult.Exists.get -> bool
+TimeWarp.Amuru.GitBranchExistsResult.Exists.init -> void
+TimeWarp.Amuru.GitBranchExistsResult.GitBranchExistsResult(bool Success, bool Exists, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitBranchExistsResult.GitBranchExistsResult(TimeWarp.Amuru.GitBranchExistsResult! original) -> void
+TimeWarp.Amuru.GitBranchExistsResult.Success.get -> bool
+TimeWarp.Amuru.GitBranchExistsResult.Success.init -> void
+TimeWarp.Amuru.GitBranchUpdateResult
+TimeWarp.Amuru.GitBranchUpdateResult.BranchPath.get -> string?
+TimeWarp.Amuru.GitBranchUpdateResult.BranchPath.init -> void
+TimeWarp.Amuru.GitBranchUpdateResult.Deconstruct(out bool Success, out string? BranchPath, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitBranchUpdateResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitBranchUpdateResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitBranchUpdateResult.GitBranchUpdateResult(bool Success, string? BranchPath, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitBranchUpdateResult.GitBranchUpdateResult(TimeWarp.Amuru.GitBranchUpdateResult! original) -> void
+TimeWarp.Amuru.GitBranchUpdateResult.Success.get -> bool
+TimeWarp.Amuru.GitBranchUpdateResult.Success.init -> void
+TimeWarp.Amuru.GitCloneResult
+TimeWarp.Amuru.GitCloneResult.Deconstruct(out bool Success, out string? Path, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitCloneResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitCloneResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitCloneResult.GitCloneResult(bool Success, string? Path, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitCloneResult.GitCloneResult(TimeWarp.Amuru.GitCloneResult! original) -> void
+TimeWarp.Amuru.GitCloneResult.Path.get -> string?
+TimeWarp.Amuru.GitCloneResult.Path.init -> void
+TimeWarp.Amuru.GitCloneResult.Success.get -> bool
+TimeWarp.Amuru.GitCloneResult.Success.init -> void
+TimeWarp.Amuru.GitCommitCountResult
+TimeWarp.Amuru.GitCommitCountResult.Count.get -> int
+TimeWarp.Amuru.GitCommitCountResult.Count.init -> void
+TimeWarp.Amuru.GitCommitCountResult.Deconstruct(out bool Success, out int Count, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitCommitCountResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitCommitCountResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitCommitCountResult.GitCommitCountResult(bool Success, int Count, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitCommitCountResult.GitCommitCountResult(TimeWarp.Amuru.GitCommitCountResult! original) -> void
+TimeWarp.Amuru.GitCommitCountResult.Success.get -> bool
+TimeWarp.Amuru.GitCommitCountResult.Success.init -> void
+TimeWarp.Amuru.GitConfigureFetchRefspecResult
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.Deconstruct(out bool Success, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.GitConfigureFetchRefspecResult(bool Success, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.GitConfigureFetchRefspecResult(TimeWarp.Amuru.GitConfigureFetchRefspecResult! original) -> void
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.Success.get -> bool
+TimeWarp.Amuru.GitConfigureFetchRefspecResult.Success.init -> void
+TimeWarp.Amuru.GitDefaultBranchResult
+TimeWarp.Amuru.GitDefaultBranchResult.BranchName.get -> string?
+TimeWarp.Amuru.GitDefaultBranchResult.BranchName.init -> void
+TimeWarp.Amuru.GitDefaultBranchResult.Deconstruct(out bool Success, out string? BranchName, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitDefaultBranchResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitDefaultBranchResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitDefaultBranchResult.GitDefaultBranchResult(bool Success, string? BranchName, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitDefaultBranchResult.GitDefaultBranchResult(TimeWarp.Amuru.GitDefaultBranchResult! original) -> void
+TimeWarp.Amuru.GitDefaultBranchResult.Success.get -> bool
+TimeWarp.Amuru.GitDefaultBranchResult.Success.init -> void
+TimeWarp.Amuru.GitFetchResult
+TimeWarp.Amuru.GitFetchResult.Deconstruct(out bool Success, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitFetchResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitFetchResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitFetchResult.GitFetchResult(bool Success, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitFetchResult.GitFetchResult(TimeWarp.Amuru.GitFetchResult! original) -> void
+TimeWarp.Amuru.GitFetchResult.Success.get -> bool
+TimeWarp.Amuru.GitFetchResult.Success.init -> void
+TimeWarp.Amuru.GitSetRemoteHeadResult
+TimeWarp.Amuru.GitSetRemoteHeadResult.Deconstruct(out bool Success, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitSetRemoteHeadResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitSetRemoteHeadResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitSetRemoteHeadResult.GitSetRemoteHeadResult(bool Success, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitSetRemoteHeadResult.GitSetRemoteHeadResult(TimeWarp.Amuru.GitSetRemoteHeadResult! original) -> void
+TimeWarp.Amuru.GitSetRemoteHeadResult.Success.get -> bool
+TimeWarp.Amuru.GitSetRemoteHeadResult.Success.init -> void
+TimeWarp.Amuru.GitSetUpstreamResult
+TimeWarp.Amuru.GitSetUpstreamResult.Deconstruct(out bool Success, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitSetUpstreamResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitSetUpstreamResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitSetUpstreamResult.GitSetUpstreamResult(bool Success, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitSetUpstreamResult.GitSetUpstreamResult(TimeWarp.Amuru.GitSetUpstreamResult! original) -> void
+TimeWarp.Amuru.GitSetUpstreamResult.Success.get -> bool
+TimeWarp.Amuru.GitSetUpstreamResult.Success.init -> void
+TimeWarp.Amuru.GitTagCheckResult
+TimeWarp.Amuru.GitTagCheckResult.<Clone>$() -> TimeWarp.Amuru.GitTagCheckResult!
+TimeWarp.Amuru.GitTagCheckResult.Deconstruct(out bool IsNewVersion, out string! Version, out string? LatestReleaseTag) -> void
+TimeWarp.Amuru.GitTagCheckResult.Equals(TimeWarp.Amuru.GitTagCheckResult? other) -> bool
+TimeWarp.Amuru.GitTagCheckResult.GitTagCheckResult(bool IsNewVersion, string! Version, string? LatestReleaseTag) -> void
+TimeWarp.Amuru.GitTagCheckResult.IsNewVersion.get -> bool
+TimeWarp.Amuru.GitTagCheckResult.IsNewVersion.init -> void
+TimeWarp.Amuru.GitTagCheckResult.LatestReleaseTag.get -> string?
+TimeWarp.Amuru.GitTagCheckResult.LatestReleaseTag.init -> void
+TimeWarp.Amuru.GitTagCheckResult.Version.get -> string!
+TimeWarp.Amuru.GitTagCheckResult.Version.init -> void
+TimeWarp.Amuru.GitWorktreeAddResult
+TimeWarp.Amuru.GitWorktreeAddResult.Deconstruct(out bool Success, out string? WorktreePath, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeAddResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitWorktreeAddResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitWorktreeAddResult.GitWorktreeAddResult(bool Success, string? WorktreePath, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeAddResult.GitWorktreeAddResult(TimeWarp.Amuru.GitWorktreeAddResult! original) -> void
+TimeWarp.Amuru.GitWorktreeAddResult.Success.get -> bool
+TimeWarp.Amuru.GitWorktreeAddResult.Success.init -> void
+TimeWarp.Amuru.GitWorktreeAddResult.WorktreePath.get -> string?
+TimeWarp.Amuru.GitWorktreeAddResult.WorktreePath.init -> void
+TimeWarp.Amuru.GitWorktreeListResult
+TimeWarp.Amuru.GitWorktreeListResult.Deconstruct(out bool Success, out string? Porcelain, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeListResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitWorktreeListResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitWorktreeListResult.GitWorktreeListResult(bool Success, string? Porcelain, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeListResult.GitWorktreeListResult(TimeWarp.Amuru.GitWorktreeListResult! original) -> void
+TimeWarp.Amuru.GitWorktreeListResult.Porcelain.get -> string?
+TimeWarp.Amuru.GitWorktreeListResult.Porcelain.init -> void
+TimeWarp.Amuru.GitWorktreeListResult.Success.get -> bool
+TimeWarp.Amuru.GitWorktreeListResult.Success.init -> void
+TimeWarp.Amuru.GitWorktreeRemoveResult
+TimeWarp.Amuru.GitWorktreeRemoveResult.Deconstruct(out bool Success, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeRemoveResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitWorktreeRemoveResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitWorktreeRemoveResult.GitWorktreeRemoveResult(bool Success, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeRemoveResult.GitWorktreeRemoveResult(TimeWarp.Amuru.GitWorktreeRemoveResult! original) -> void
+TimeWarp.Amuru.GitWorktreeRemoveResult.Success.get -> bool
+TimeWarp.Amuru.GitWorktreeRemoveResult.Success.init -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult
+TimeWarp.Amuru.GitWorktreeUpdateResult.BranchPath.get -> string?
+TimeWarp.Amuru.GitWorktreeUpdateResult.BranchPath.init -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult.Deconstruct(out bool Success, out string? BranchPath, out string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult.ErrorMessage.get -> string?
+TimeWarp.Amuru.GitWorktreeUpdateResult.ErrorMessage.init -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult.GitWorktreeUpdateResult(bool Success, string? BranchPath, string? ErrorMessage) -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult.GitWorktreeUpdateResult(TimeWarp.Amuru.GitWorktreeUpdateResult! original) -> void
+TimeWarp.Amuru.GitWorktreeUpdateResult.Success.get -> bool
+TimeWarp.Amuru.GitWorktreeUpdateResult.Success.init -> void
+TimeWarp.Amuru.INuGetPackageService
+TimeWarp.Amuru.INuGetPackageService.CompareVersions(string! version1, string! version2) -> int
+TimeWarp.Amuru.INuGetPackageService.GetLatestVersionsAsync(string! packageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.PackageVersionInfo?>!
+TimeWarp.Amuru.INuGetPackageService.GetUpdateType(string! currentVersion, string! latestVersion) -> string!
+TimeWarp.Amuru.INuGetPackageService.ParseVersion(string! version) -> string?
+TimeWarp.Amuru.INuGetPackageService.SearchAsync(string! packageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.NuGetSearchResult?>!
+TimeWarp.Amuru.IRepoCheckVersionService
+TimeWarp.Amuru.IRepoCheckVersionService.CheckGitTagVersionAsync(string? tag = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitTagCheckResult!>!
+TimeWarp.Amuru.IRepoCheckVersionService.CheckNuGetVersionAsync(System.Collections.Generic.IReadOnlyList<string!>! packages, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.NuGetCheckResult!>!
+TimeWarp.Amuru.IRepoCleanService
+TimeWarp.Amuru.IRepoCleanService.CleanAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CleanResult!>!
+TimeWarp.Amuru.IRepoCleanService.CleanLocalFeedAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.NuGetCacheType
+TimeWarp.Amuru.NuGetCacheType.All = 0 -> TimeWarp.Amuru.NuGetCacheType
+TimeWarp.Amuru.NuGetCacheType.GlobalPackages = 2 -> TimeWarp.Amuru.NuGetCacheType
+TimeWarp.Amuru.NuGetCacheType.HttpCache = 1 -> TimeWarp.Amuru.NuGetCacheType
+TimeWarp.Amuru.NuGetCacheType.Temp = 3 -> TimeWarp.Amuru.NuGetCacheType
+TimeWarp.Amuru.NuGetCheckResult
+TimeWarp.Amuru.NuGetCheckResult.<Clone>$() -> TimeWarp.Amuru.NuGetCheckResult!
+TimeWarp.Amuru.NuGetCheckResult.AlreadyPublishedPackages.get -> System.Collections.Generic.IReadOnlyList<string!>?
+TimeWarp.Amuru.NuGetCheckResult.AlreadyPublishedPackages.init -> void
+TimeWarp.Amuru.NuGetCheckResult.CheckedPackages.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.NuGetCheckResult.CheckedPackages.init -> void
+TimeWarp.Amuru.NuGetCheckResult.Deconstruct(out bool IsNewVersion, out string! Version, out string? LatestNuGetVersion, out System.Collections.Generic.IReadOnlyList<string!>! CheckedPackages, out System.Collections.Generic.IReadOnlyList<string!>? AlreadyPublishedPackages) -> void
+TimeWarp.Amuru.NuGetCheckResult.Equals(TimeWarp.Amuru.NuGetCheckResult? other) -> bool
+TimeWarp.Amuru.NuGetCheckResult.IsNewVersion.get -> bool
+TimeWarp.Amuru.NuGetCheckResult.IsNewVersion.init -> void
+TimeWarp.Amuru.NuGetCheckResult.LatestNuGetVersion.get -> string?
+TimeWarp.Amuru.NuGetCheckResult.LatestNuGetVersion.init -> void
+TimeWarp.Amuru.NuGetCheckResult.NuGetCheckResult(bool IsNewVersion, string! Version, string? LatestNuGetVersion, System.Collections.Generic.IReadOnlyList<string!>! CheckedPackages, System.Collections.Generic.IReadOnlyList<string!>? AlreadyPublishedPackages) -> void
+TimeWarp.Amuru.NuGetCheckResult.Version.get -> string!
+TimeWarp.Amuru.NuGetCheckResult.Version.init -> void
+TimeWarp.Amuru.NuGetPackageService
+TimeWarp.Amuru.NuGetPackageService.CompareVersions(string! version1, string! version2) -> int
+TimeWarp.Amuru.NuGetPackageService.GetLatestVersionsAsync(string! packageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.PackageVersionInfo?>!
+TimeWarp.Amuru.NuGetPackageService.GetUpdateType(string! currentVersion, string! latestVersion) -> string!
+TimeWarp.Amuru.NuGetPackageService.NuGetPackageService() -> void
+TimeWarp.Amuru.NuGetPackageService.ParseVersion(string! version) -> string?
+TimeWarp.Amuru.NuGetPackageService.SearchAsync(string! packageId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.NuGetSearchResult?>!
+TimeWarp.Amuru.NuGetPackageVersion
+TimeWarp.Amuru.NuGetPackageVersion.<Clone>$() -> TimeWarp.Amuru.NuGetPackageVersion!
+TimeWarp.Amuru.NuGetPackageVersion.Deconstruct(out string! Version, out string? Description, out bool Listed) -> void
+TimeWarp.Amuru.NuGetPackageVersion.Description.get -> string?
+TimeWarp.Amuru.NuGetPackageVersion.Description.init -> void
+TimeWarp.Amuru.NuGetPackageVersion.Equals(TimeWarp.Amuru.NuGetPackageVersion? other) -> bool
+TimeWarp.Amuru.NuGetPackageVersion.Listed.get -> bool
+TimeWarp.Amuru.NuGetPackageVersion.Listed.init -> void
+TimeWarp.Amuru.NuGetPackageVersion.NuGetPackageVersion(string! Version, string? Description = null, bool Listed = true) -> void
+TimeWarp.Amuru.NuGetPackageVersion.Version.get -> string!
+TimeWarp.Amuru.NuGetPackageVersion.Version.init -> void
+TimeWarp.Amuru.NuGetSearchResult
+TimeWarp.Amuru.NuGetSearchResult.<Clone>$() -> TimeWarp.Amuru.NuGetSearchResult!
+TimeWarp.Amuru.NuGetSearchResult.Deconstruct(out string! PackageId, out System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.NuGetPackageVersion!>! Versions) -> void
+TimeWarp.Amuru.NuGetSearchResult.Equals(TimeWarp.Amuru.NuGetSearchResult? other) -> bool
+TimeWarp.Amuru.NuGetSearchResult.NuGetSearchResult(string! PackageId, System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.NuGetPackageVersion!>! Versions) -> void
+TimeWarp.Amuru.NuGetSearchResult.PackageId.get -> string!
+TimeWarp.Amuru.NuGetSearchResult.PackageId.init -> void
+TimeWarp.Amuru.NuGetSearchResult.Versions.get -> System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.NuGetPackageVersion!>!
+TimeWarp.Amuru.NuGetSearchResult.Versions.init -> void
+TimeWarp.Amuru.PackageVersionInfo
+TimeWarp.Amuru.PackageVersionInfo.<Clone>$() -> TimeWarp.Amuru.PackageVersionInfo!
+TimeWarp.Amuru.PackageVersionInfo.Deconstruct(out string? StableVersion, out string? PrereleaseVersion) -> void
+TimeWarp.Amuru.PackageVersionInfo.Equals(TimeWarp.Amuru.PackageVersionInfo? other) -> bool
+TimeWarp.Amuru.PackageVersionInfo.PackageVersionInfo(string? StableVersion, string? PrereleaseVersion) -> void
+TimeWarp.Amuru.PackageVersionInfo.PrereleaseVersion.get -> string?
+TimeWarp.Amuru.PackageVersionInfo.PrereleaseVersion.init -> void
+TimeWarp.Amuru.PackageVersionInfo.StableVersion.get -> string?
+TimeWarp.Amuru.PackageVersionInfo.StableVersion.init -> void
+TimeWarp.Amuru.RepoCheckVersionService
+TimeWarp.Amuru.RepoCheckVersionService.CheckGitTagVersionAsync(string? tag = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GitTagCheckResult!>!
+TimeWarp.Amuru.RepoCheckVersionService.CheckNuGetVersionAsync(System.Collections.Generic.IReadOnlyList<string!>! packages, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.NuGetCheckResult!>!
+TimeWarp.Amuru.RepoCheckVersionService.RepoCheckVersionService(TimeWarp.Amuru.INuGetPackageService! nuGetPackageService) -> void
+TimeWarp.Amuru.RepoCleanService
+TimeWarp.Amuru.RepoCleanService.CleanAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CleanResult!>!
+TimeWarp.Amuru.RepoCleanService.CleanLocalFeedAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.RepoCleanService.RepoCleanService(TimeWarp.Terminal.ITerminal! terminal) -> void
+TimeWarp.Amuru.WorktreeEntry
+TimeWarp.Amuru.WorktreeEntry.BranchRef.get -> string?
+TimeWarp.Amuru.WorktreeEntry.BranchRef.init -> void
+TimeWarp.Amuru.WorktreeEntry.Deconstruct(out string! Path, out string? HeadCommit, out string? BranchRef, out bool IsBare) -> void
+TimeWarp.Amuru.WorktreeEntry.HeadCommit.get -> string?
+TimeWarp.Amuru.WorktreeEntry.HeadCommit.init -> void
+TimeWarp.Amuru.WorktreeEntry.IsBare.get -> bool
+TimeWarp.Amuru.WorktreeEntry.IsBare.init -> void
+TimeWarp.Amuru.WorktreeEntry.Path.get -> string!
+TimeWarp.Amuru.WorktreeEntry.Path.init -> void
+TimeWarp.Amuru.WorktreeEntry.WorktreeEntry(string! Path, string? HeadCommit, string? BranchRef, bool IsBare) -> void
+TimeWarp.Amuru.WorktreeEntry.WorktreeEntry(TimeWarp.Amuru.WorktreeEntry! original) -> void
+virtual TimeWarp.Amuru.GitBranchExistsResult.<Clone>$() -> TimeWarp.Amuru.GitBranchExistsResult!
+virtual TimeWarp.Amuru.GitBranchExistsResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitBranchExistsResult.Equals(TimeWarp.Amuru.GitBranchExistsResult? other) -> bool
+virtual TimeWarp.Amuru.GitBranchExistsResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitBranchUpdateResult.<Clone>$() -> TimeWarp.Amuru.GitBranchUpdateResult!
+virtual TimeWarp.Amuru.GitBranchUpdateResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitBranchUpdateResult.Equals(TimeWarp.Amuru.GitBranchUpdateResult? other) -> bool
+virtual TimeWarp.Amuru.GitBranchUpdateResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitCloneResult.<Clone>$() -> TimeWarp.Amuru.GitCloneResult!
+virtual TimeWarp.Amuru.GitCloneResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitCloneResult.Equals(TimeWarp.Amuru.GitCloneResult? other) -> bool
+virtual TimeWarp.Amuru.GitCloneResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitCommitCountResult.<Clone>$() -> TimeWarp.Amuru.GitCommitCountResult!
+virtual TimeWarp.Amuru.GitCommitCountResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitCommitCountResult.Equals(TimeWarp.Amuru.GitCommitCountResult? other) -> bool
+virtual TimeWarp.Amuru.GitCommitCountResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitConfigureFetchRefspecResult.<Clone>$() -> TimeWarp.Amuru.GitConfigureFetchRefspecResult!
+virtual TimeWarp.Amuru.GitConfigureFetchRefspecResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitConfigureFetchRefspecResult.Equals(TimeWarp.Amuru.GitConfigureFetchRefspecResult? other) -> bool
+virtual TimeWarp.Amuru.GitConfigureFetchRefspecResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitDefaultBranchResult.<Clone>$() -> TimeWarp.Amuru.GitDefaultBranchResult!
+virtual TimeWarp.Amuru.GitDefaultBranchResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitDefaultBranchResult.Equals(TimeWarp.Amuru.GitDefaultBranchResult? other) -> bool
+virtual TimeWarp.Amuru.GitDefaultBranchResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitFetchResult.<Clone>$() -> TimeWarp.Amuru.GitFetchResult!
+virtual TimeWarp.Amuru.GitFetchResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitFetchResult.Equals(TimeWarp.Amuru.GitFetchResult? other) -> bool
+virtual TimeWarp.Amuru.GitFetchResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitSetRemoteHeadResult.<Clone>$() -> TimeWarp.Amuru.GitSetRemoteHeadResult!
+virtual TimeWarp.Amuru.GitSetRemoteHeadResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitSetRemoteHeadResult.Equals(TimeWarp.Amuru.GitSetRemoteHeadResult? other) -> bool
+virtual TimeWarp.Amuru.GitSetRemoteHeadResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitSetUpstreamResult.<Clone>$() -> TimeWarp.Amuru.GitSetUpstreamResult!
+virtual TimeWarp.Amuru.GitSetUpstreamResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitSetUpstreamResult.Equals(TimeWarp.Amuru.GitSetUpstreamResult? other) -> bool
+virtual TimeWarp.Amuru.GitSetUpstreamResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitWorktreeAddResult.<Clone>$() -> TimeWarp.Amuru.GitWorktreeAddResult!
+virtual TimeWarp.Amuru.GitWorktreeAddResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitWorktreeAddResult.Equals(TimeWarp.Amuru.GitWorktreeAddResult? other) -> bool
+virtual TimeWarp.Amuru.GitWorktreeAddResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitWorktreeListResult.<Clone>$() -> TimeWarp.Amuru.GitWorktreeListResult!
+virtual TimeWarp.Amuru.GitWorktreeListResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitWorktreeListResult.Equals(TimeWarp.Amuru.GitWorktreeListResult? other) -> bool
+virtual TimeWarp.Amuru.GitWorktreeListResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitWorktreeRemoveResult.<Clone>$() -> TimeWarp.Amuru.GitWorktreeRemoveResult!
+virtual TimeWarp.Amuru.GitWorktreeRemoveResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitWorktreeRemoveResult.Equals(TimeWarp.Amuru.GitWorktreeRemoveResult? other) -> bool
+virtual TimeWarp.Amuru.GitWorktreeRemoveResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.GitWorktreeUpdateResult.<Clone>$() -> TimeWarp.Amuru.GitWorktreeUpdateResult!
+virtual TimeWarp.Amuru.GitWorktreeUpdateResult.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.GitWorktreeUpdateResult.Equals(TimeWarp.Amuru.GitWorktreeUpdateResult? other) -> bool
+virtual TimeWarp.Amuru.GitWorktreeUpdateResult.PrintMembers(System.Text.StringBuilder! builder) -> bool
+virtual TimeWarp.Amuru.WorktreeEntry.<Clone>$() -> TimeWarp.Amuru.WorktreeEntry!
+virtual TimeWarp.Amuru.WorktreeEntry.EqualityContract.get -> System.Type!
+virtual TimeWarp.Amuru.WorktreeEntry.Equals(TimeWarp.Amuru.WorktreeEntry? other) -> bool
+virtual TimeWarp.Amuru.WorktreeEntry.PrintMembers(System.Text.StringBuilder! builder) -> bool
