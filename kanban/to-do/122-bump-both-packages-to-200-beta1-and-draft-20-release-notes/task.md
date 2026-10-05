@@ -93,7 +93,17 @@ Expect:
 - Both `2.0.0-beta.1` nupkgs exist.
 - `ganda repo audit` prints Failed: 0.
 
+### Review disposition
+
+- Rounds: 1. Effort 2 (by-diff, 486 lines). Roster: general.
+- Final counts: bug 0. Suggestion 1 fixed. Nit 1 fixed. Open 0. Wontfix 0.
+- Disposition: **clean**.
+- M1 (suggestion): `readme.md` now says it documents the 2.0 API and to add `--prerelease` until 2.0.0 GA, and links the release notes.
+- M2 (nit): the release notes qualify `DotNetDevCertsHttpsBuilder.WithExport()`.
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Created: 522eb63d (2026-10-05)
 - Implementation: 01a10a53-3590-78c2-a429-c41a30400516 (2026-10-05)
+- Review (general, effort 2): review oracle session (2026-10-05)
