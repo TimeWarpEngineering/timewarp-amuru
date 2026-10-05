@@ -105,7 +105,8 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
 
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.
-  /// This allows commands like vim, fzf, or REPLs to work with user input and terminal UI.
+  /// Configured standard input is kept. Console stdin is used only when none was configured.
+  /// Stdout and stderr go to the console. This is not a TTY; see <see cref="TtyPassthroughAsync"/>.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
@@ -118,6 +119,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// Executes the command with true TTY passthrough for TUI applications.
   /// Unlike PassthroughAsync which pipes Console streams, this method
   /// allows the child process to inherit the terminal's TTY characteristics.
+  /// Throws <see cref="InvalidOperationException"/> when standard input was configured.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
@@ -147,6 +149,19 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public CommandResult Pipe(string executable, params string[] arguments)
   {
     return Build().Pipe(executable, arguments);
+  }
+
+  /// <summary>
+  /// Creates a pipeline by chaining this command with another command and applies
+  /// <paramref name="options"/> to that stage.
+  /// </summary>
+  /// <param name="executable">The next command in the pipeline</param>
+  /// <param name="options">Options applied to the next stage</param>
+  /// <param name="arguments">Arguments for the next command</param>
+  /// <returns>A CommandResult representing the pipeline</returns>
+  public CommandResult Pipe(string executable, CommandOptions options, params string[] arguments)
+  {
+    return Build().Pipe(executable, options, arguments);
   }
 
   /// <summary>

@@ -6,7 +6,7 @@
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// TtyPassthroughAsync connects stdin/stdout/stderr directly to console (no capture)
+// TtyPassthroughAsync inherits the console. Configured standard input is refused.
 #endregion
 
 #if !JARIBU_MULTI
@@ -40,6 +40,36 @@ namespace ShellBuilder_
 
       result.ExitCode.ShouldBe(CommandResult.NeverRanExitCode);
       result.Success.ShouldBeFalse();
+    }
+
+    public static async Task ConfiguredStandardInput_Should_Throw()
+    {
+      InvalidOperationException exception = await Should.ThrowAsync<InvalidOperationException>
+      (
+        async () =>
+          await Shell.Builder("echo")
+            .WithArguments("hello")
+            .WithStandardInput("data")
+            .TtyPassthroughAsync()
+      );
+
+      exception.Message.ShouldBe(
+        "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY");
+    }
+
+    public static async Task EmptyStandardInput_Should_Throw()
+    {
+      InvalidOperationException exception = await Should.ThrowAsync<InvalidOperationException>
+      (
+        async () =>
+          await Shell.Builder("echo")
+            .WithArguments("hello")
+            .WithStandardInput("")
+            .TtyPassthroughAsync()
+      );
+
+      exception.Message.ShouldBe(
+        "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY");
     }
 
     public static async Task WorkingDirectory_Should_Work()

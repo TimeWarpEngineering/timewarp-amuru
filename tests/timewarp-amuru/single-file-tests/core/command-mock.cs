@@ -6,7 +6,8 @@
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// CommandMock allows mocking command responses without executing real commands
+// CommandMock allows mocking command responses without executing real commands.
+// Matched calls record configured standard input the same way the real path receives it.
 #endregion
 
 #if !JARIBU_MULTI
@@ -312,6 +313,84 @@ namespace CommandMock_
         {
           File.Delete(overridePath);
         }
+      }
+    }
+
+    public static async Task PassthroughConfiguredStdin_Should_RecordTheSameInput()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("sort").Returns("sorted");
+
+        CommandOutput result = await Shell.Builder("sort")
+          .WithStandardInput("b\na\n")
+          .PassthroughAsync();
+
+        result.ExitCode.ShouldBe(0);
+        CommandMock.GetConfiguredStandardInput("sort").ShouldBe("b\na\n");
+      }
+    }
+
+    public static async Task PassthroughEmptyStdin_Should_RecordImmediateEof()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("sort").Returns("");
+
+        await Shell.Builder("sort")
+          .WithStandardInput("")
+          .PassthroughAsync();
+
+        CommandMock.GetConfiguredStandardInput("sort").ShouldBe(string.Empty);
+      }
+    }
+
+    public static async Task PassthroughWithoutStdin_Should_RecordNull()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("echo", "hi").Returns("hi");
+
+        await Shell.Builder("echo")
+          .WithArguments("hi")
+          .PassthroughAsync();
+
+        CommandMock.GetConfiguredStandardInput("echo", "hi").ShouldBeNull();
+      }
+    }
+
+    public static async Task CaptureConfiguredStdin_Should_RecordTheSameInput()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("cat").Returns("hello");
+
+        await Shell.Builder("cat")
+          .WithStandardInput("hello")
+          .CaptureAsync();
+
+        CommandMock.GetConfiguredStandardInput("cat").ShouldBe("hello");
+      }
+    }
+
+    public static async Task TtyConfiguredStdin_Should_ThrowBeforeTheMockRuns()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("echo", "hi").Returns("hi");
+
+        InvalidOperationException exception = await Should.ThrowAsync<InvalidOperationException>
+        (
+          async () =>
+            await Shell.Builder("echo")
+              .WithArguments("hi")
+              .WithStandardInput("data")
+              .TtyPassthroughAsync()
+        );
+
+        exception.Message.ShouldBe(
+          "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY");
+        CommandMock.CallCount("echo", "hi").ShouldBe(0);
       }
     }
   }

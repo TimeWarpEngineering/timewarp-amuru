@@ -5,6 +5,8 @@
 #region Design
 // Tombstoned on MockScope dispose (IsDisposed) so leftover AsyncLocal pointers cannot reuse setups.
 // Keys use NUL separators so argument lists cannot collide.
+// Each recorded call stores the configured standard input. Null means none was configured;
+// empty means immediate EOF.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
@@ -78,13 +80,13 @@ internal sealed class MockState
   }
   
   /// <summary>
-  /// Records that a command was called.
+  /// Records that a command was called and the standard input configured for that call.
   /// </summary>
-  internal void RecordCall(string executable, string[] arguments)
+  internal void RecordCall(string executable, string[] arguments, string? standardInput)
   {
     using (syncLock.EnterScope())
     {
-      calls.Add(new MockCall(executable, arguments, DateTime.UtcNow));
+      calls.Add(new MockCall(executable, arguments, standardInput, DateTime.UtcNow));
     }
   }
   
@@ -111,6 +113,35 @@ internal sealed class MockState
       return calls.Count(c => CreateKey(c.Executable, c.Arguments) == key);
     }
   }
+
+  /// <summary>
+  /// Gets the configured standard input from the most recent matching call.
+  /// </summary>
+  /// <returns>False when no matching call was recorded.</returns>
+  internal bool TryGetLastConfiguredStandardInput(string executable, string[] arguments, out string? standardInput)
+  {
+    using (syncLock.EnterScope())
+    {
+      string key = CreateKey(executable, arguments);
+      MockCall? match = null;
+      foreach (MockCall call in calls)
+      {
+        if (CreateKey(call.Executable, call.Arguments) == key)
+        {
+          match = call;
+        }
+      }
+
+      if (match is null)
+      {
+        standardInput = null;
+        return false;
+      }
+
+      standardInput = match.StandardInput;
+      return true;
+    }
+  }
   
   /// <summary>
   /// Resets all setups and call history.
@@ -134,7 +165,7 @@ internal sealed class MockState
   /// <summary>
   /// Represents a recorded command call.
   /// </summary>
-  private sealed record MockCall(string Executable, string[] Arguments, DateTime Timestamp);
+  private sealed record MockCall(string Executable, string[] Arguments, string? StandardInput, DateTime Timestamp);
 }
 
 /// <summary>

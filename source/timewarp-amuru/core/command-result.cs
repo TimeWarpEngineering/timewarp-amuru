@@ -14,14 +14,24 @@
 //   * PassthroughAsync: interactive stream piping without true TTY
 //   * TtyPassthroughAsync: real terminal inheritance for TUI apps
 //   * SelectAsync: capture stdout while leaving interactive UI on stderr
+// - Configured standard input is a string on the command, including empty (immediate EOF).
+//   Null means the caller owns stdin. Capture, run, select, and stream modes pass that string through.
+//   PassthroughAsync keeps it and sends stdout and stderr to the console. Console stdin is opened
+//   only when no string was configured. TtyPassthroughAsync throws InvalidOperationException when a
+//   string is configured: redirecting stdin would clear isatty on that stream, and inheriting the
+//   console would drop the text with no error. CommandMock records the string on matched calls.
+//   The TTY refusal runs before mock matching, so both paths refuse instead of dropping the text.
 // - CaptureAsync and RunAndCaptureAsync set CommandOutput.RunTime from CliWrap, matching PassthroughAsync and TtyPassthroughAsync. Mocks and Empty stay at zero.
 // - SelectAsync lets CommandExecutionException (zero-exit-code validation) and cancellation propagate; only unexpected runtime failures degrade to empty. TtyPassthroughAsync remains the documented validation exemption.
 // - Streaming methods use CliWrap event streams for low-buffer processing.
 // - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
+//   The options overload applies working directory, environment, and validation to that stage.
+//   Upstream configured stdin stays the pipeline stdin.
 // - Mock support applies to ALL execution modes (run, capture, stream, select, passthrough, TTY).
 //   Strict mode (the default) throws on unmocked commands so tests can never silently run real processes.
 //   Pipe compositions are the exception: they bypass mock matching (use MockBehavior.Loose for pipelines).
 //   Piped CommandResults have no mock identity; ResolveMockSetup must not fall back to last-stage CliWrap TargetFilePath.
+//   Matched calls record configured standard input (empty included). Null means none was configured.
 // - Null commands never throw, preserving shell-like composition, but they report FAILURE:
 //   NeverRanExitCode (-1) via ExitCode/Success so a command that never ran is distinguishable from one that succeeded.
 #endregion
@@ -58,6 +68,9 @@ public class CommandResult
   /// </summary>
   public const int NeverRanExitCode = -1;
 
+  private const string TtyConfiguredStandardInputMessage =
+    "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY";
+
   // Singleton for failed commands to avoid creating multiple identical null instances
   internal static readonly CommandResult NullCommandResult = new(null);
 
@@ -69,13 +82,21 @@ public class CommandResult
   // containing spaces, so the raw array must be carried through (null for piped compositions).
   private string? MockExecutable { get; }
   private string[]? MockArguments { get; }
+  // Null: caller owns stdin. A string, including empty, is already attached to the CliWrap command.
+  private string? ConfiguredStandardInput { get; }
 
   internal CommandResult(Command? command)
   {
     InternalCommand = command;
   }
 
-  internal CommandResult(Command? command, string executable, string[] arguments) : this(command)
+  internal CommandResult(Command? command, string? configuredStandardInput) : this(command)
+  {
+    ConfiguredStandardInput = configuredStandardInput;
+  }
+
+  internal CommandResult(Command? command, string executable, string[] arguments, string? configuredStandardInput)
+    : this(command, configuredStandardInput)
   {
     MockExecutable = executable;
     MockArguments = arguments;
@@ -112,7 +133,7 @@ public class CommandResult
 
     if (state.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
     {
-      state.RecordCall(executable, arguments);
+      state.RecordCall(executable, arguments, ConfiguredStandardInput);
       return setupData;
     }
 
@@ -166,8 +187,13 @@ public class CommandResult
   /// - Applications that call isatty() to verify terminal
   /// </para>
   /// <para>
-  /// Caveat: the child's stdin is piped from the console. If the child exits without draining
-  /// stdin, a pending console read can remain and swallow the parent's next line of input.
+  /// When standard input was configured (including an empty string, which is immediate EOF),
+  /// that text is the child's stdin. Stdout and stderr still go to the console.
+  /// Console stdin is opened only when no standard input was configured.
+  /// </para>
+  /// <para>
+  /// Caveat: when stdin comes from the console, a child that exits without draining it can leave
+  /// a pending console read that swallows the parent's next line of input.
   /// Prefer TtyPassthroughAsync (stream inheritance, no pending reads) when the child may
   /// ignore stdin.
   /// </para>
@@ -199,21 +225,36 @@ public class CommandResult
     }
 
     // Open console streams for interactive piping
-    Stream stdIn = TimeWarpTerminal.Default.OpenStandardInput();
-    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdInScope = stdIn.ConfigureAwait(false);
     Stream stdOut = TimeWarpTerminal.Default.OpenStandardOutput();
     await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdOutScope = stdOut.ConfigureAwait(false);
     Stream stdErr = TimeWarpTerminal.Default.OpenStandardError();
     await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable stdErrScope = stdErr.ConfigureAwait(false);
 
-    // Configure command with console pipes
+    // Keep a configured string pipe (including empty). Replace stdin only when the caller owns it.
     Command interactiveCommand = InternalCommand
-      .WithStandardInputPipe(PipeSource.FromStream(stdIn))
       .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
+    Stream? stdIn = null;
+    if (ConfiguredStandardInput is null)
+    {
+      stdIn = TimeWarpTerminal.Default.OpenStandardInput();
+      interactiveCommand = interactiveCommand.WithStandardInputPipe(PipeSource.FromStream(stdIn));
+    }
+
     // Execute interactively
-    CliWrap.CommandResult result = await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+    CliWrap.CommandResult result;
+    try
+    {
+      result = await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+    }
+    finally
+    {
+      if (stdIn is not null)
+      {
+        await stdIn.DisposeAsync().ConfigureAwait(false);
+      }
+    }
 
     // Return result with empty output strings (output went to console)
     return new CommandOutput(string.Empty, string.Empty, result.ExitCode) { RunTime = result.RunTime };
@@ -237,12 +278,20 @@ public class CommandResult
   /// where you want stream access.
   /// </para>
   /// <para>
+  /// Configured standard input is refused. Redirecting only stdin would make isatty fail on
+  /// that stream, and leaving stdin inherited would discard the configured text.
+  /// </para>
+  /// <para>
   /// Validation options do not apply here: this method never throws on a
   /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
   /// the returned CommandOutput's ExitCode/Success instead.
   /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <exception cref="InvalidOperationException">
+  /// Standard input was configured. The message is
+  /// "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY".
+  /// </exception>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
@@ -254,6 +303,11 @@ public class CommandResult
     if (InternalCommand == null)
     {
       return CommandOutput.Empty(NeverRanExitCode);
+    }
+
+    if (ConfiguredStandardInput is not null)
+    {
+      throw new InvalidOperationException(TtyConfiguredStandardInputMessage);
     }
 
     Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
@@ -396,15 +450,48 @@ public class CommandResult
   /// <param name="executable">The next command in the pipeline</param>
   /// <param name="arguments">Arguments for the next command</param>
   /// <returns>A CommandResult representing the composed pipeline</returns>
+  public CommandResult Pipe
+  (
+    string executable,
+    params string[]? arguments
+  )
+  {
+    return PipeCore(executable, arguments, options: null);
+  }
+
+  /// <summary>
+  /// Chains this command's stdout into another command and applies <paramref name="options"/>
+  /// to that stage (working directory, environment, and validation).
+  /// Composition never throws: an invalid stage yields a command that reports
+  /// <see cref="NeverRanExitCode"/> when executed. Pipe compositions bypass
+  /// <see cref="Testing.CommandMock"/> matching (use loose mode when testing pipelines).
+  /// Upstream configured standard input stays the pipeline stdin.
+  /// </summary>
+  /// <param name="executable">The next command in the pipeline</param>
+  /// <param name="options">Options applied to the next stage</param>
+  /// <param name="arguments">Arguments for the next command</param>
+  /// <returns>A CommandResult representing the composed pipeline</returns>
+  public CommandResult Pipe
+  (
+    string executable,
+    CommandOptions options,
+    params string[]? arguments
+  )
+  {
+    ArgumentNullException.ThrowIfNull(options);
+    return PipeCore(executable, arguments, options);
+  }
+
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
     Justification = "CLI composition boundary: invalid or unavailable pipeline commands intentionally degrade to NullCommandResult instead of throwing."
   )]
-  public CommandResult Pipe
+  private CommandResult PipeCore
   (
     string executable,
-    params string[]? arguments
+    string[]? arguments,
+    CommandOptions? options
   )
   {
     // Input validation
@@ -421,7 +508,9 @@ public class CommandResult
     try
     {
       // Use Run() to create the next command instead of duplicating logic
-      CommandResult nextCommandResult = CommandExtensions.Run(executable, arguments);
+      CommandResult nextCommandResult = options is null
+        ? CommandExtensions.Run(executable, arguments)
+        : CommandExtensions.Run(executable, arguments, options);
 
       // If Run() failed, it returned a CommandResult with null Command
       if (nextCommandResult.InternalCommand == null)
@@ -432,7 +521,7 @@ public class CommandResult
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = InternalCommand | nextCommandResult.InternalCommand;
 
-      return new CommandResult(pipedCommand);
+      return new CommandResult(pipedCommand, ConfiguredStandardInput);
     }
     catch
     {

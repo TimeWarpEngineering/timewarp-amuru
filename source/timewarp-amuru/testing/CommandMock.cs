@@ -6,6 +6,7 @@
 // Enable captures the MockState and tombstones it on dispose. AsyncLocal cannot be cleared from
 // another async context, so State/IsEnabled ignore disposed instances even if the pointer remains.
 // Pipe compositions have no mock identity and never match last-stage setups.
+// Matched calls record configured standard input. Null means none was configured; empty means immediate EOF.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
@@ -118,7 +119,38 @@ public static class CommandMock
     
     return state.GetCallCount(executable, arguments);
   }
-  
+
+  /// <summary>
+  /// Gets the configured standard input recorded for the most recent matching call.
+  /// </summary>
+  /// <param name="executable">The command that was called</param>
+  /// <param name="arguments">The arguments to match</param>
+  /// <returns>
+  /// The configured standard input. Null means the call did not configure stdin.
+  /// An empty string means immediate EOF.
+  /// </returns>
+  /// <exception cref="InvalidOperationException">Mocking is off, or the command was not called.</exception>
+  public static string? GetConfiguredStandardInput(string executable, params string[] arguments)
+  {
+    ArgumentNullException.ThrowIfNull(arguments);
+
+    MockState? state = State;
+    if (state is null)
+    {
+      throw new InvalidOperationException(
+        "CommandMock is not enabled. Cannot read configured standard input.");
+    }
+
+    if (!state.TryGetLastConfiguredStandardInput(executable, arguments, out string? standardInput))
+    {
+      string argString = arguments.Length > 0 ? string.Join(" ", arguments) : "(no arguments)";
+      throw new InvalidOperationException(
+        $"Expected command '{executable} {argString}' was not called.");
+    }
+
+    return standardInput;
+  }
+
   /// <summary>
   /// Resets all mock setups and call history.
   /// </summary>

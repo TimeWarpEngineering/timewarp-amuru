@@ -99,6 +99,44 @@ namespace FzfExtensions_
       return null;
     }
 
+    public static async Task CommandOptions_Should_ReachTheFzfStage()
+    {
+      string root = Directory.CreateTempSubdirectory("fzf-select-options-").FullName;
+      string mockFzfPath = await CreateStageProbeMock();
+      try
+      {
+        CliConfiguration.SetCommandPath("fzf", mockFzfPath);
+
+        CommandOutput output = await Shell.Builder("printf")
+          .WithArguments("%s", "alpha\n")
+          .Build()
+          .SelectWithFzf(fzf => fzf
+            .WithWorkingDirectory(root)
+            .WithEnvironmentVariable("FZF_STAGE_MARKER", "stage-ok")
+            .WithMulti())
+          .CaptureAsync();
+
+        output.Success.ShouldBeTrue(output.Stderr);
+        string[] lines = output.GetLines();
+        lines.ShouldContain(root);
+        lines.ShouldContain("stage-ok");
+        lines.ShouldContain("--multi");
+      }
+      finally
+      {
+        CliConfiguration.Reset();
+        if (File.Exists(mockFzfPath))
+        {
+          File.Delete(mockFzfPath);
+        }
+
+        if (Directory.Exists(root))
+        {
+          Directory.Delete(root, recursive: true);
+        }
+      }
+    }
+
     private static async Task<string> CreateArgumentEchoMock()
     {
       string mockPath = Path.GetTempFileName();
@@ -106,6 +144,25 @@ namespace FzfExtensions_
       mockPath += ".sh";
 
       const string mockScript = "#!/bin/sh\nprintf '%s\\n' \"$@\"\n";
+      await File.WriteAllTextAsync(mockPath, mockScript);
+
+      if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+      {
+        await Shell.Builder("chmod")
+          .WithArguments("+x", mockPath)
+          .RunAsync();
+      }
+
+      return mockPath;
+    }
+
+    private static async Task<string> CreateStageProbeMock()
+    {
+      string mockPath = Path.GetTempFileName();
+      File.Delete(mockPath);
+      mockPath += ".sh";
+
+      const string mockScript = "#!/bin/sh\nprintf '%s\\n' \"$PWD\"\nprintf '%s\\n' \"$FZF_STAGE_MARKER\"\nprintf '%s\\n' \"$@\"\n";
       await File.WriteAllTextAsync(mockPath, mockScript);
 
       if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
