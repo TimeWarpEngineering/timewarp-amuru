@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Parses `git worktree list --porcelain` into WorktreeEntry values.
+#endregion
+
+#region Design
+// The type is internal. Git.ParseWorktreeList is the public entry. A record starts at a `worktree ` line,
+// `detached` clears the branch, and `bare` is its own flag. Empty lines are discarded by the split,
+// so the final record is flushed after the loop rather than on a blank separator.
 #endregion
 
 namespace TimeWarp.Amuru;

@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Walks parent directories to the git root without invoking git.
+#endregion
+
+#region Design
+// Both a `.git` directory and a `.git` file count. A linked worktree's `.git` is a file,
+// so a directory-only check would stop short of the root.
 #endregion
 
 namespace TimeWarp.Amuru;

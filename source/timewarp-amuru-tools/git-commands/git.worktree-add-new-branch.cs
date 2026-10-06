@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Adds a worktree and creates its branch with `git worktree add -b`.
+#endregion
+
+#region Design
+// Argument order is `-b <name> <path>` and startPoint is appended only when it is non-null.
+// Omitting startPoint makes git create the branch from HEAD.
 #endregion
 
 namespace TimeWarp.Amuru;

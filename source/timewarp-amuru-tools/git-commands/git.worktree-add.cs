@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Adds a worktree checked out at an existing branch.
+#endregion
+
+#region Design
+// The command is `git worktree add <path> <branch>` with no `-b`. Creating the branch is
+// WorktreeAddNewBranchAsync. Success carries the requested path; failure carries stderr.
 #endregion
 
 namespace TimeWarp.Amuru;

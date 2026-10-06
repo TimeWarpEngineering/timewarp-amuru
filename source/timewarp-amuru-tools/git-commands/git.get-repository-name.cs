@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Resolves the repository name from origin, then from the directory name.
+#endregion
+
+#region Design
+// An SSH URL is detected by `@` plus `:` and no `://`; the name is the last segment after the colon.
+// Other URLs use the last path segment. A trailing `.git` is stripped. A missing or unparsable origin
+// falls back to the directory name.
 #endregion
 
 namespace TimeWarp.Amuru;

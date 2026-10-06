@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Reports whether a checkout is a linked git worktree.
+#endregion
+
+#region Design
+// FindRoot accepts both a `.git` file and a `.git` directory. This method returns true only when
+// `.git` is a file, which is how a linked worktree points at the common git directory.
 #endregion
 
 namespace TimeWarp.Amuru;

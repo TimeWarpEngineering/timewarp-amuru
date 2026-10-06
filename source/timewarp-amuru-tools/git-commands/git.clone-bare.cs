@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Clones a repository with `git clone --bare` and returns a result record.
+#endregion
+
+#region Design
+// The URL stays a string. CA1054 is suppressed because git accepts scp-style SSH URLs that are not System.Uri.
+// A non-zero exit is a GitCloneResult; validation is off so the failure is data, not a throw.
 #endregion
 
 namespace TimeWarp.Amuru;
