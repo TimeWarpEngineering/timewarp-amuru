@@ -64,6 +64,7 @@ Scope deliberately excludes JSON conversion (System.Text.Json exists), `wc`, sor
 - Rewritten and 023 folded in: 522eb63d (2026-10-06)
 - Implemented SelectString and ReplaceInFiles (2026-10-06)
 - Implementation review (2026-10-06): review oracle, Claude Code headless (ganda task work); effort 3, general axis; reviewers general + general-tests (round 1), general (rounds 2–3)
+- Review oracle: review by implementer-claude (claude, model claude-opus-5-5), session not reported, max-turns 200 — 2026-10-06T09:40:52Z
 
 ## Results
 
