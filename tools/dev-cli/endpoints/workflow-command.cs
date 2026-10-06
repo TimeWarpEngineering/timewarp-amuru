@@ -39,7 +39,7 @@ using System.Globalization;
 using DevCli.Endpoints;
 
 [NuruRoute("workflow", Description = "Run full CI/CD pipeline")]
-internal sealed class WorkflowCommand : ICommand<Unit>
+public sealed class WorkflowCommand : ICommand<Unit>
 {
   [Option("mode", "m", Description = "CI mode: pr, merge, or release (auto-detected from GITHUB_EVENT_NAME if not specified)")]
   public string? Mode { get; set; }
@@ -47,7 +47,7 @@ internal sealed class WorkflowCommand : ICommand<Unit>
   [Option("api-key", Description = "NuGet API key for publishing (from OIDC Trusted Publishing)")]
   public string? ApiKey { get; set; }
 
-  internal sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
+  public sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
   {
     private const string ArtifactsSubPath = "artifacts/packages";
 
@@ -73,8 +73,10 @@ internal sealed class WorkflowCommand : ICommand<Unit>
       PackableProjectService = packableProjectService;
     }
 
-    public async ValueTask<Unit> Handle(WorkflowCommand command, CancellationToken ct)
+    public async Task<Unit> Handle(WorkflowCommand command, CancellationToken cancellationToken)
     {
+      ArgumentNullException.ThrowIfNull(command);
+
       string? eventName = Environment.GetEnvironmentVariable("GITHUB_EVENT_NAME");
       CiMode mode = CiModeDetector.DetermineMode(command.Mode, eventName);
 
@@ -91,14 +93,14 @@ internal sealed class WorkflowCommand : ICommand<Unit>
 
       if (mode == CiMode.Release)
       {
-        await RunReleaseWorkflowAsync(command.ApiKey, ct);
+        await RunReleaseWorkflowAsync(command.ApiKey, cancellationToken);
       }
       else
       {
-        await RunPrWorkflowAsync(ct);
+        await RunPrWorkflowAsync(cancellationToken);
       }
 
-      return Value;
+      return Unit.Value;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
