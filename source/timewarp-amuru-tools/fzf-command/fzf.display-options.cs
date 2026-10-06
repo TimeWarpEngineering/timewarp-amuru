@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// ANSI, tab stop, color, and bold options for the fzf builder.
+#endregion
+
+#region Design
+// Color is one `--color=` spec string. The builder does not split a palette into repeated flags.
 #endregion
 
 namespace TimeWarp.Amuru;

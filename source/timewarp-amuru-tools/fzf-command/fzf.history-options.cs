@@ -1,5 +1,9 @@
 #region Purpose
-// TODO: Add purpose description
+// History file and history size options for the fzf builder.
+#endregion
+
+#region Design
+// The history path is passed through as `--history=` with no extra quoting. The caller supplies the path fzf opens.
 #endregion
 
 namespace TimeWarp.Amuru;

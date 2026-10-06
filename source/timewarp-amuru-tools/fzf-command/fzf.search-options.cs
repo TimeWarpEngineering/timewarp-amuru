@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Matching, field, and sort options for the fzf builder.
+#endregion
+
+#region Design
+// WithNth maps to `--nth` (fields that are searched). WithWithNth maps to `--with-nth` (fields that are displayed).
+// Case folding uses fzf's `-i` and `+i` short forms.
 #endregion
 
 namespace TimeWarp.Amuru;

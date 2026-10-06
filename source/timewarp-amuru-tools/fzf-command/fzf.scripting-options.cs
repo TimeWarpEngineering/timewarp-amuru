@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Non-interactive filter and HTTP listen options for the fzf builder.
+#endregion
+
+#region Design
+// WithFilter makes fzf print matches and exit, so it belongs with the scripting partial.
+// WithListen has three overloads: bare `--listen`, a port, and an address string.
 #endregion
 
 namespace TimeWarp.Amuru;

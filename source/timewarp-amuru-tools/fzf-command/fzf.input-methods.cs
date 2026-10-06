@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Records where the fzf builder reads its candidate list.
+#endregion
+
+#region Design
+// These methods store fields; they do not append fzf flags. FromInput has a params overload and an
+// IEnumerable overload so a collection is not expanded and a single string stays one item.
+// Build prefers items, then a glob, then a command. FromStdin and an unset source both leave stdin to the caller.
 #endregion
 
 namespace TimeWarp.Amuru;

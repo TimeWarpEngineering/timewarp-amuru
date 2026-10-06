@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Selection, mouse, bind, and scroll options for the fzf builder.
+#endregion
+
+#region Design
+// WithMulti() emits bare `--multi`. WithMulti(int) emits `--multi=N`.
+// Bindings stay one `--bind=` string so the caller controls fzf's action list.
 #endregion
 
 namespace TimeWarp.Amuru;
