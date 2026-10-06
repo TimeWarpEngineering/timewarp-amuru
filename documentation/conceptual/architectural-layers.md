@@ -146,7 +146,7 @@ Direct.{Operation}.cs
 
 ### Example Code
 
-**Source/TimeWarp.Amuru/Native/FileSystem/Direct/Direct.GetContent.cs**
+**Source/TimeWarp.Amuru/Native/FileSystem/Direct/direct.get-content.cs**
 ```csharp
 namespace TimeWarp.Amuru.Native.FileSystem;
 
@@ -233,7 +233,7 @@ Commands.{Operation}.cs
 
 ### Example Code
 
-**Source/TimeWarp.Amuru/Native/FileSystem/Commands/Commands.GetChildItem.cs**
+**Source/TimeWarp.Amuru/Native/FileSystem/Commands/commands.get-child-item.cs**
 ```csharp
 namespace TimeWarp.Amuru.Native.FileSystem;
 
@@ -315,9 +315,9 @@ Source/TimeWarp.Amuru/{Tool}Commands/
 ```
 
 ### Examples
-- `DotNetCommands/DotNet.Build.cs`
-- `GitCommands/Git.FindRoot.cs`
-- `FzfCommands/Fzf.cs`
+- `DotNetCommands/dot-net.build.cs`
+- `GitCommands/git.find-root.cs`
+- `FzfCommands/fzf.cs`
 
 ### Characteristics
 - Type-safe configuration with IntelliSense support
@@ -329,7 +329,7 @@ Source/TimeWarp.Amuru/{Tool}Commands/
 
 ### Example Code
 
-**Source/TimeWarp.Amuru/DotNetCommands/DotNet.Build.cs**
+**Source/TimeWarp.Amuru/DotNetCommands/dot-net.build.cs**
 ```csharp
 namespace TimeWarp.Amuru;
 
@@ -447,7 +447,7 @@ The **Bash Aliases Layer** provides familiar command names for shell users. It o
 
 ### Location
 ```
-Source/TimeWarp.Amuru/Native/Aliases/Bash.cs
+Source/TimeWarp.Amuru/Native/Aliases/bash.cs
 ```
 
 ### Characteristics
@@ -459,7 +459,7 @@ Source/TimeWarp.Amuru/Native/Aliases/Bash.cs
 
 ### Example Code
 
-**Source/TimeWarp.Amuru/Native/Aliases/Bash.cs**
+**Source/TimeWarp.Amuru/Native/Aliases/bash.cs**
 ```csharp
 namespace TimeWarp.Amuru.Native.Aliases;
 

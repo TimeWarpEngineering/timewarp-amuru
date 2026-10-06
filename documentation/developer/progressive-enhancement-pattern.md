@@ -739,7 +739,7 @@ else
 **Example** (illustrative - may not be needed for simple Git operations):
 
 ```csharp
-// Source/TimeWarp.Amuru/GitCommands/Git.cs
+// Source/TimeWarp.Amuru/GitCommands/git.cs
 namespace TimeWarp.Amuru;
 
 public static class Git
@@ -804,7 +804,7 @@ CommandOutput result = Git.Builder()
 
 **Purpose**: Familiar command names for shell users
 
-**Location**: `Source/TimeWarp.Amuru/Native/Aliases/Bash.cs`
+**Location**: `Source/TimeWarp.Amuru/Native/Aliases/bash.cs`
 
 **Characteristics**:
 - Bash-style naming (`Cat`, `Ls`, `GitRoot`, `Grep`)
@@ -821,7 +821,7 @@ CommandOutput result = Git.Builder()
 **Example**:
 
 ```csharp
-// Source/TimeWarp.Amuru/Native/Aliases/Bash.cs
+// Source/TimeWarp.Amuru/Native/Aliases/bash.cs
 namespace TimeWarp.Amuru.Native.Aliases;
 
 /// <summary>
@@ -1220,7 +1220,7 @@ public static partial class Commands
 ### Step 3: Add Bash Aliases (Layer 4)
 
 ```csharp
-// File: Source/TimeWarp.Amuru/Native/Aliases/Bash.cs (add to existing file)
+// File: Source/TimeWarp.Amuru/Native/Aliases/bash.cs (add to existing file)
 namespace TimeWarp.Amuru.Native.Aliases;
 
 public static class Bash

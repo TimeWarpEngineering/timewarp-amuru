@@ -4,7 +4,7 @@
     <PackageId>TimeWarp.Amuru</PackageId>
     <Description>Fluent API for elegant C# scripting with pipeline support</Description>
     <PackageTags>cli;scripting;fluent;shell;pipeline;amuru</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible>true</IsAotCompatible>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="" />
+    <None Include="$(RepositoryRoot)readme.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
