@@ -199,6 +199,10 @@ public class DotNetWorkloadInfoBuilder
 {
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload --info</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadInfoBuilder(CommandOptions options)
   {
     Options = options;
@@ -225,32 +229,61 @@ public class DotNetWorkloadInfoBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload --info</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "--info" };
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --info</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --info</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload --info</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --info</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload --info</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -264,6 +297,10 @@ public class DotNetWorkloadVersionBuilder
 {
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload --version</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadVersionBuilder(CommandOptions options)
   {
     Options = options;
@@ -290,32 +327,61 @@ public class DotNetWorkloadVersionBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload --version</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "--version" };
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --version</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --version</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload --version</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload --version</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload --version</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -335,6 +401,11 @@ public class DotNetWorkloadInstallBuilder
   private List<string> Sources = new();
   private string? Version;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload install</c> command using the given workload ids.
+  /// </summary>
+  /// <param name="workloadIds">Workload ids passed to <c>dotnet workload install</c>.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadInstallBuilder(string[] workloadIds, CommandOptions options)
   {
     WorkloadIds = workloadIds ?? throw new ArgumentNullException(nameof(workloadIds));
@@ -415,6 +486,10 @@ public class DotNetWorkloadInstallBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload install</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "install" };
@@ -451,26 +526,51 @@ public class DotNetWorkloadInstallBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload install</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload install</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload install</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload install</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload install</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -485,6 +585,10 @@ public class DotNetWorkloadListBuilder
   private CommandOptions Options;
   private string? Verbosity;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload list</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadListBuilder(CommandOptions options)
   {
     Options = options;
@@ -522,6 +626,10 @@ public class DotNetWorkloadListBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload list</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "list" };
@@ -535,26 +643,51 @@ public class DotNetWorkloadListBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload list</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload list</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload list</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload list</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload list</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -570,6 +703,11 @@ public class DotNetWorkloadSearchBuilder
   private CommandOptions Options;
   private string? Verbosity;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload search</c> command using the given search text.
+  /// </summary>
+  /// <param name="searchString">Text matched against workload ids, or null to search with no filter.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadSearchBuilder(string? searchString, CommandOptions options)
   {
     SearchString = searchString;
@@ -608,6 +746,10 @@ public class DotNetWorkloadSearchBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload search</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "search" };
@@ -626,26 +768,51 @@ public class DotNetWorkloadSearchBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload search</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload search</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload search</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload search</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload search</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -660,6 +827,11 @@ public class DotNetWorkloadUninstallBuilder
   private readonly string[] WorkloadIds;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload uninstall</c> command using the given workload ids.
+  /// </summary>
+  /// <param name="workloadIds">Workload ids passed to <c>dotnet workload uninstall</c>.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadUninstallBuilder(string[] workloadIds, CommandOptions options)
   {
     WorkloadIds = workloadIds ?? throw new ArgumentNullException(nameof(workloadIds));
@@ -687,6 +859,10 @@ public class DotNetWorkloadUninstallBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload uninstall</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "uninstall" };
@@ -695,26 +871,51 @@ public class DotNetWorkloadUninstallBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload uninstall</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload uninstall</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload uninstall</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload uninstall</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload uninstall</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -738,6 +939,10 @@ public class DotNetWorkloadUpdateBuilder
   private string? TempDir;
   private string? Verbosity;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload update</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadUpdateBuilder(CommandOptions options)
   {
     Options = options;
@@ -868,6 +1073,10 @@ public class DotNetWorkloadUpdateBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload update</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "update" };
@@ -929,26 +1138,51 @@ public class DotNetWorkloadUpdateBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload update</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload update</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload update</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload update</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload update</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -970,6 +1204,10 @@ public class DotNetWorkloadRepairBuilder
   private string? TempDir;
   private string? Verbosity;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload repair</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadRepairBuilder(CommandOptions options)
   {
     Options = options;
@@ -1080,6 +1318,10 @@ public class DotNetWorkloadRepairBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload repair</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "repair" };
@@ -1131,26 +1373,51 @@ public class DotNetWorkloadRepairBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload repair</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload repair</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload repair</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload repair</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload repair</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1165,6 +1432,10 @@ public class DotNetWorkloadCleanBuilder
   private CommandOptions Options;
   private bool All;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload clean</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadCleanBuilder(CommandOptions options)
   {
     Options = options;
@@ -1201,6 +1472,10 @@ public class DotNetWorkloadCleanBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload clean</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "clean" };
@@ -1213,26 +1488,51 @@ public class DotNetWorkloadCleanBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload clean</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload clean</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload clean</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload clean</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload clean</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1256,6 +1556,11 @@ public class DotNetWorkloadRestoreBuilder
   private string? Verbosity;
   private string? Version;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload restore</c> command using the given project or solution.
+  /// </summary>
+  /// <param name="projectOrSolution">Project or solution whose workloads are restored, or null to search the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadRestoreBuilder(string? projectOrSolution, CommandOptions options)
   {
     ProjectOrSolution = projectOrSolution;
@@ -1378,6 +1683,10 @@ public class DotNetWorkloadRestoreBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload restore</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "restore" };
@@ -1440,26 +1749,51 @@ public class DotNetWorkloadRestoreBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload restore</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload restore</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload restore</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload restore</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload restore</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1474,6 +1808,10 @@ public class DotNetWorkloadConfigBuilder
   private CommandOptions Options;
   private string? UpdateMode;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet workload config</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetWorkloadConfigBuilder(CommandOptions options)
   {
     Options = options;
@@ -1531,6 +1869,10 @@ public class DotNetWorkloadConfigBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet workload config</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "workload", "config" };
@@ -1544,26 +1886,51 @@ public class DotNetWorkloadConfigBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload config</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload config</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload config</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet workload config</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet workload config</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);

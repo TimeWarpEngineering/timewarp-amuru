@@ -160,6 +160,12 @@ public class DotNetSlnAddBuilder
   private readonly string? SlnFile;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln add</c> command using the given project path and solution file.
+  /// </summary>
+  /// <param name="projectPath">Path of the project added to the solution.</param>
+  /// <param name="slnFile">Solution file to update, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnAddBuilder(string projectPath, string? slnFile, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
@@ -188,6 +194,12 @@ public class DotNetSlnAddBuilder
     return this;
   }
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln add</c> command using the given project paths and solution file.
+  /// </summary>
+  /// <param name="projectPaths">Paths of the projects added to the solution.</param>
+  /// <param name="slnFile">Solution file to update, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnAddBuilder(string[] projectPaths, string? slnFile, CommandOptions options)
   {
     ProjectPaths = projectPaths ?? throw new ArgumentNullException(nameof(projectPaths));
@@ -195,6 +207,10 @@ public class DotNetSlnAddBuilder
     Options = options;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet sln add</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "sln" };
@@ -211,26 +227,51 @@ public class DotNetSlnAddBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln add</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln add</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln add</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln add</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln add</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -245,6 +286,11 @@ public class DotNetSlnListBuilder
   private readonly string? SlnFile;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln list</c> command using the given solution file.
+  /// </summary>
+  /// <param name="slnFile">Solution file to list, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnListBuilder(string? slnFile, CommandOptions options)
   {
     SlnFile = slnFile;
@@ -272,6 +318,10 @@ public class DotNetSlnListBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet sln list</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "sln" };
@@ -287,26 +337,51 @@ public class DotNetSlnListBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln list</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln list</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln list</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln list</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln list</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -322,6 +397,12 @@ public class DotNetSlnRemoveBuilder
   private readonly string? SlnFile;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln remove</c> command using the given project path and solution file.
+  /// </summary>
+  /// <param name="projectPath">Path of the project removed from the solution.</param>
+  /// <param name="slnFile">Solution file to update, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnRemoveBuilder(string projectPath, string? slnFile, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
@@ -350,6 +431,12 @@ public class DotNetSlnRemoveBuilder
     return this;
   }
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln remove</c> command using the given project paths and solution file.
+  /// </summary>
+  /// <param name="projectPaths">Paths of the projects removed from the solution.</param>
+  /// <param name="slnFile">Solution file to update, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnRemoveBuilder(string[] projectPaths, string? slnFile, CommandOptions options)
   {
     ProjectPaths = projectPaths ?? throw new ArgumentNullException(nameof(projectPaths));
@@ -357,6 +444,10 @@ public class DotNetSlnRemoveBuilder
     Options = options;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet sln remove</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "sln" };
@@ -373,26 +464,51 @@ public class DotNetSlnRemoveBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln remove</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln remove</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln remove</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln remove</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln remove</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -407,6 +523,11 @@ public class DotNetSlnMigrateBuilder
   private readonly string? SlnFile;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet sln migrate</c> command using the given solution file.
+  /// </summary>
+  /// <param name="slnFile">Solution file to migrate, or null to use the solution in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetSlnMigrateBuilder(string? slnFile, CommandOptions options)
   {
     SlnFile = slnFile;
@@ -434,6 +555,10 @@ public class DotNetSlnMigrateBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet sln migrate</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "sln" };
@@ -449,26 +574,51 @@ public class DotNetSlnMigrateBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln migrate</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln migrate</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln migrate</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet sln migrate</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet sln migrate</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);

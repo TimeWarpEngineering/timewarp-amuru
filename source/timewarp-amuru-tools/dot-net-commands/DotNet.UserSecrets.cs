@@ -152,6 +152,12 @@ public class DotNetUserSecretsInitBuilder
   private readonly string? Id;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet user-secrets init</c> command using the given target project and user-secrets id.
+  /// </summary>
+  /// <param name="project">Project that receives a user-secrets id, or null to use the project in the working directory.</param>
+  /// <param name="id">User-secrets id to assign, or null so the CLI generates one.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetUserSecretsInitBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
@@ -180,6 +186,10 @@ public class DotNetUserSecretsInitBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet user-secrets init</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "user-secrets", "init" };
@@ -199,26 +209,51 @@ public class DotNetUserSecretsInitBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets init</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets init</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets init</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets init</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets init</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -236,6 +271,14 @@ public class DotNetUserSecretsSetBuilder
   private readonly string? Id;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet user-secrets set</c> command using the given secret name, secret value, target project, and user-secrets id.
+  /// </summary>
+  /// <param name="key">Secret name to store.</param>
+  /// <param name="value">Secret value stored under the key.</param>
+  /// <param name="project">Project whose secret store is updated, or null to use the project in the working directory.</param>
+  /// <param name="id">User-secrets id to update instead of the id stored in the project, or null to use the project id.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetUserSecretsSetBuilder(string key, string value, string? project, string? id, CommandOptions options)
   {
     Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -266,6 +309,10 @@ public class DotNetUserSecretsSetBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet user-secrets set</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "user-secrets", "set", Key, Value };
@@ -285,26 +332,51 @@ public class DotNetUserSecretsSetBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets set</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets set</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets set</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets set</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets set</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -321,6 +393,13 @@ public class DotNetUserSecretsRemoveBuilder
   private readonly string? Id;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet user-secrets remove</c> command using the given secret name, target project, and user-secrets id.
+  /// </summary>
+  /// <param name="key">Secret name to delete.</param>
+  /// <param name="project">Project whose secret store is updated, or null to use the project in the working directory.</param>
+  /// <param name="id">User-secrets id to update instead of the id stored in the project, or null to use the project id.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetUserSecretsRemoveBuilder(string key, string? project, string? id, CommandOptions options)
   {
     Key = key ?? throw new ArgumentNullException(nameof(key));
@@ -350,6 +429,10 @@ public class DotNetUserSecretsRemoveBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet user-secrets remove</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "user-secrets", "remove", Key };
@@ -369,26 +452,51 @@ public class DotNetUserSecretsRemoveBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets remove</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets remove</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets remove</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets remove</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets remove</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -404,6 +512,12 @@ public class DotNetUserSecretsListBuilder
   private readonly string? Id;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet user-secrets list</c> command using the given target project and user-secrets id.
+  /// </summary>
+  /// <param name="project">Project whose secrets are listed, or null to use the project in the working directory.</param>
+  /// <param name="id">User-secrets id to list instead of the id stored in the project, or null to use the project id.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetUserSecretsListBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
@@ -432,6 +546,10 @@ public class DotNetUserSecretsListBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet user-secrets list</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "user-secrets", "list" };
@@ -451,26 +569,51 @@ public class DotNetUserSecretsListBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets list</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets list</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets list</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets list</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets list</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -486,6 +629,12 @@ public class DotNetUserSecretsClearBuilder
   private readonly string? Id;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet user-secrets clear</c> command using the given target project and user-secrets id.
+  /// </summary>
+  /// <param name="project">Project whose secrets are cleared, or null to use the project in the working directory.</param>
+  /// <param name="id">User-secrets id to clear instead of the id stored in the project, or null to use the project id.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetUserSecretsClearBuilder(string? project, string? id, CommandOptions options)
   {
     Project = project;
@@ -514,6 +663,10 @@ public class DotNetUserSecretsClearBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet user-secrets clear</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "user-secrets", "clear" };
@@ -533,26 +686,51 @@ public class DotNetUserSecretsClearBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets clear</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets clear</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets clear</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet user-secrets clear</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet user-secrets clear</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
