@@ -49,7 +49,7 @@ dotnet add package TimeWarp.Amuru
 dotnet add package TimeWarp.Amuru.Tools
 ```
 
-This readme documents the 2.0 API. Until 2.0.0 is final, add `--prerelease` to both commands to get `2.0.0-beta.1`; see [the 2.0 release notes](documentation/release-notes/2.0.0.md).
+This readme documents the 2.0 API. Until 2.0.0 is final, add `--prerelease` to both commands to get `2.0.0-beta.2`; see [the 2.0 release notes](documentation/release-notes/2.0.0.md).
 
 Or reference in your C# runfile:
 ```csharp

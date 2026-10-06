@@ -1,11 +1,11 @@
 #nullable enable
-TimeWarp.Amuru.CommandResult.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
-TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
 const TimeWarp.Amuru.CommandResult.NeverRanExitCode = -1 -> int
+const TimeWarp.Amuru.CommandResult.TimeoutExitCode = 124 -> int
 override TimeWarp.Amuru.CommandOutput.ToString() -> string!
 override TimeWarp.Amuru.OutputLine.Equals(object? obj) -> bool
 override TimeWarp.Amuru.OutputLine.GetHashCode() -> int
 override TimeWarp.Amuru.OutputLine.ToString() -> string!
+static readonly TimeWarp.Amuru.CommandOptions.DefaultTimeoutGracePeriod -> System.TimeSpan
 static TimeWarp.Amuru.AppContextExtensions.EntryPointFileDirectoryPath() -> string?
 static TimeWarp.Amuru.AppContextExtensions.EntryPointFilePath() -> string?
 static TimeWarp.Amuru.AppContextExtensions.extension(System.AppContext!).EntryPointFileDirectoryPath() -> string?
@@ -24,6 +24,8 @@ static TimeWarp.Amuru.Native.Aliases.Bash.Cp(string! source, string! destination
 static TimeWarp.Amuru.Native.Aliases.Bash.CpDirect(string! source, string! destination, bool recursive = false, bool overwrite = false, bool preserveAttributes = true) -> void
 static TimeWarp.Amuru.Native.Aliases.Bash.Find(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> TimeWarp.Amuru.CommandOutput!
 static TimeWarp.Amuru.Native.Aliases.Bash.FindDirect(string! path, TimeWarp.Amuru.Native.FileSystem.FindCriteria? criteria = null) -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
+static TimeWarp.Amuru.Native.Aliases.Bash.Grep(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.GrepDirect(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
 static TimeWarp.Amuru.Native.Aliases.Bash.Ls(string! path = ".") -> TimeWarp.Amuru.CommandOutput!
 static TimeWarp.Amuru.Native.Aliases.Bash.LsDirect(string! path = ".") -> System.Collections.Generic.IAsyncEnumerable<System.IO.FileSystemInfo!>!
 static TimeWarp.Amuru.Native.Aliases.Bash.Mkdir(string! path) -> TimeWarp.Amuru.CommandOutput!
@@ -34,6 +36,8 @@ static TimeWarp.Amuru.Native.Aliases.Bash.Pwd() -> TimeWarp.Amuru.CommandOutput!
 static TimeWarp.Amuru.Native.Aliases.Bash.PwdDirect() -> string!
 static TimeWarp.Amuru.Native.Aliases.Bash.Rm(string! path, bool recursive = false, bool force = false) -> TimeWarp.Amuru.CommandOutput!
 static TimeWarp.Amuru.Native.Aliases.Bash.RmDirect(string! path, bool recursive = false, bool force = false) -> void
+static TimeWarp.Amuru.Native.Aliases.Bash.Sed(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.SedDirect(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
 static TimeWarp.Amuru.Native.Aliases.Bash.Stat(string! path) -> TimeWarp.Amuru.CommandOutput!
 static TimeWarp.Amuru.Native.Aliases.Bash.StatDirect(string! path) -> TimeWarp.Amuru.Native.FileSystem.ItemProperty!
 static TimeWarp.Amuru.Native.Aliases.Bash.Test(string! path) -> TimeWarp.Amuru.CommandOutput!
@@ -94,6 +98,22 @@ static TimeWarp.Amuru.Native.FileSystem.Direct.Test(string! path, TimeWarp.Amuru
 static TimeWarp.Amuru.Native.FileSystem.Direct.TestPath(string! path) -> bool
 static TimeWarp.Amuru.Native.FileSystem.Direct.TestPath(string! path, TimeWarp.Amuru.Native.FileSystem.ItemType itemType) -> bool
 static TimeWarp.Amuru.Native.FileSystem.Direct.Touch(string! path) -> System.IO.FileSystemInfo!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.IO.Stream! stream, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.IO.TextReader! reader, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.IO.Stream! stream, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.IO.TextReader! reader, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
 static TimeWarp.Amuru.OutputLine.operator !=(TimeWarp.Amuru.OutputLine? left, TimeWarp.Amuru.OutputLine? right) -> bool
 static TimeWarp.Amuru.OutputLine.operator ==(TimeWarp.Amuru.OutputLine? left, TimeWarp.Amuru.OutputLine? right) -> bool
 static TimeWarp.Amuru.PathResolver.ResolveAllExecutables(string! name) -> System.Collections.Generic.IReadOnlyList<string!>!
@@ -115,9 +135,13 @@ TimeWarp.Amuru.CommandOptions
 TimeWarp.Amuru.CommandOptions.CommandOptions() -> void
 TimeWarp.Amuru.CommandOptions.EnvironmentVariables.get -> System.Collections.Generic.Dictionary<string!, string?>?
 TimeWarp.Amuru.CommandOptions.EnvironmentVariables.init -> void
+TimeWarp.Amuru.CommandOptions.Timeout.get -> System.TimeSpan?
+TimeWarp.Amuru.CommandOptions.TimeoutGracePeriod.get -> System.TimeSpan
 TimeWarp.Amuru.CommandOptions.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.CommandOptions!
 TimeWarp.Amuru.CommandOptions.WithEnvironmentVariables(System.Collections.Generic.Dictionary<string!, string?>! variables) -> TimeWarp.Amuru.CommandOptions!
 TimeWarp.Amuru.CommandOptions.WithNoValidation() -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.CommandOptions!
 TimeWarp.Amuru.CommandOptions.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.CommandOptions!
 TimeWarp.Amuru.CommandOptions.WithZeroExitCodeValidation() -> TimeWarp.Amuru.CommandOptions!
 TimeWarp.Amuru.CommandOptions.WorkingDirectory.get -> string?
@@ -136,13 +160,17 @@ TimeWarp.Amuru.CommandOutput.RunTime.init -> void
 TimeWarp.Amuru.CommandOutput.Stderr.get -> string!
 TimeWarp.Amuru.CommandOutput.Stdout.get -> string!
 TimeWarp.Amuru.CommandOutput.Success.get -> bool
+TimeWarp.Amuru.CommandOutput.TimedOut.get -> bool
+TimeWarp.Amuru.CommandOutput.TimedOut.init -> void
 TimeWarp.Amuru.CommandOutput.ToDetailedString() -> string!
 TimeWarp.Amuru.CommandOutput.ToSummary() -> string!
 TimeWarp.Amuru.CommandOutput.WriteToConsole() -> void
 TimeWarp.Amuru.CommandResult
 TimeWarp.Amuru.CommandResult.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.CommandResult.LastOutput.get -> TimeWarp.Amuru.CommandOutput?
 TimeWarp.Amuru.CommandResult.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
 TimeWarp.Amuru.CommandResult.Pipe(string! executable, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.CommandResult.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]? arguments) -> TimeWarp.Amuru.CommandResult!
 TimeWarp.Amuru.CommandResult.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
 TimeWarp.Amuru.CommandResult.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 TimeWarp.Amuru.CommandResult.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
@@ -203,6 +231,72 @@ TimeWarp.Amuru.Native.FileSystem.ItemProperty.Name.init -> void
 TimeWarp.Amuru.Native.FileSystem.ItemType
 TimeWarp.Amuru.Native.FileSystem.ItemType.Directory = 1 -> TimeWarp.Amuru.Native.FileSystem.ItemType
 TimeWarp.Amuru.Native.FileSystem.ItemType.File = 0 -> TimeWarp.Amuru.Native.FileSystem.ItemType
+TimeWarp.Amuru.Native.Text.Commands
+TimeWarp.Amuru.Native.Text.Direct
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Backup.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Backup.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.CaseInsensitive.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.CaseInsensitive.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.DryRun.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.DryRun.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Exclude.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Exclude.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Include.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Include.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.MaxReplacements.get -> int?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.MaxReplacements.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Multiline.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Multiline.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.ReplaceInFilesOptions() -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.SimpleMatch.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.SimpleMatch.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Singleline.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Singleline.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult
+TimeWarp.Amuru.Native.Text.ReplaceResult.BackupPath.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceResult.BackupPath.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Changed.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceResult.Changed.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Path.get -> string!
+TimeWarp.Amuru.Native.Text.ReplaceResult.Path.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Preview.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.ReplaceResult.Preview.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplacementCount.get -> int
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplacementCount.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplaceResult() -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions
+TimeWarp.Amuru.Native.Text.SelectStringOptions.CaseInsensitive.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.CaseInsensitive.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextAfter.get -> int
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextAfter.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextBefore.get -> int
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextBefore.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Exclude.get -> string?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Exclude.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Include.get -> string?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Include.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.InvertMatch.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.InvertMatch.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.MaxMatches.get -> int?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.MaxMatches.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SelectStringOptions() -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SimpleMatch.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SimpleMatch.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch
+TimeWarp.Amuru.Native.Text.TextMatch.ContextAfter.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.TextMatch.ContextAfter.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.ContextBefore.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.TextMatch.ContextBefore.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Line.get -> string!
+TimeWarp.Amuru.Native.Text.TextMatch.Line.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.LineNumber.get -> int
+TimeWarp.Amuru.Native.Text.TextMatch.LineNumber.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Match.get -> System.Text.RegularExpressions.Match!
+TimeWarp.Amuru.Native.Text.TextMatch.Match.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Path.get -> string!
+TimeWarp.Amuru.Native.Text.TextMatch.Path.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.TextMatch() -> void
 TimeWarp.Amuru.OutputLine
 TimeWarp.Amuru.OutputLine.<Clone>$() -> TimeWarp.Amuru.OutputLine!
 TimeWarp.Amuru.OutputLine.Deconstruct(out string! Text, out bool IsError, out System.DateTimeOffset Timestamp) -> void
@@ -226,6 +320,7 @@ TimeWarp.Amuru.ShellBuilder.Build() -> TimeWarp.Amuru.CommandResult!
 TimeWarp.Amuru.ShellBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
 TimeWarp.Amuru.ShellBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
 TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.ShellBuilder.Pipe(string! executable, TimeWarp.Amuru.CommandOptions! options, params string![]! arguments) -> TimeWarp.Amuru.CommandResult!
 TimeWarp.Amuru.ShellBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
 TimeWarp.Amuru.ShellBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
 TimeWarp.Amuru.ShellBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
@@ -239,6 +334,8 @@ TimeWarp.Amuru.ShellBuilder.WithArguments(params string![]! arguments) -> TimeWa
 TimeWarp.Amuru.ShellBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithNoValidation() -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.Testing.CommandMock
@@ -251,3 +348,4 @@ TimeWarp.Amuru.Testing.MockSetup.Returns(string! stdout, string? stderr = null, 
 TimeWarp.Amuru.Testing.MockSetup.ReturnsError(string! stderr, int exitCode = 1) -> TimeWarp.Amuru.Testing.MockSetup!
 TimeWarp.Amuru.Testing.MockSetup.Throws(System.Exception! exception) -> TimeWarp.Amuru.Testing.MockSetup!
 TimeWarp.Amuru.Testing.MockSetup.Throws<TException>() -> TimeWarp.Amuru.Testing.MockSetup!
+TimeWarp.Amuru.Testing.MockSetup.TimesOut() -> TimeWarp.Amuru.Testing.MockSetup!
