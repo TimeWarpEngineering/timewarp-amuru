@@ -13,6 +13,9 @@
 
 namespace TimeWarp.Amuru;
 
+/// <summary>
+/// Reads package versions from the nuget.org v3 registration endpoint, including unlisted versions.
+/// </summary>
 public sealed class NuGetPackageService : INuGetPackageService
 {
   private const string RegistrationBaseUrl = "https://api.nuget.org/v3/registration5-gz-semver2";
@@ -25,10 +28,20 @@ public sealed class NuGetPackageService : INuGetPackageService
     }
   );
 
+  /// <summary>
+  /// Creates a service that calls the nuget.org registration endpoint.
+  /// </summary>
   public NuGetPackageService()
   {
   }
 
+  /// <summary>
+  /// Returns every registration version for the package, including unlisted versions.
+  /// </summary>
+  /// <param name="packageId">Package id to look up on nuget.org.</param>
+  /// <param name="cancellationToken">Token that cancels the registration request.</param>
+  /// <returns>The package id and its versions, or null when nuget.org has no registration for that id.</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="packageId"/> is null or whitespace.</exception>
   public async Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
@@ -49,6 +62,13 @@ public sealed class NuGetPackageService : INuGetPackageService
     return new NuGetSearchResult(packageId, packageVersions);
   }
 
+  /// <summary>
+  /// Returns the highest listed stable version and the highest listed prerelease version.
+  /// </summary>
+  /// <param name="packageId">Package id to look up on nuget.org.</param>
+  /// <param name="cancellationToken">Token that cancels the registration request.</param>
+  /// <returns>The latest listed stable and prerelease versions, or null when none are listed.</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="packageId"/> is null or whitespace.</exception>
   public async Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
@@ -89,6 +109,12 @@ public sealed class NuGetPackageService : INuGetPackageService
     );
   }
 
+  /// <summary>
+  /// Parses a NuGet version, dropping a leading v, and returns the normalized version string.
+  /// </summary>
+  /// <param name="version">Version text to parse.</param>
+  /// <returns>The normalized version, or null when the text is not a NuGet version.</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="version"/> is null or whitespace.</exception>
   public string? ParseVersion(string version)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(version);
@@ -103,6 +129,13 @@ public sealed class NuGetPackageService : INuGetPackageService
     return null;
   }
 
+  /// <summary>
+  /// Compares two NuGet versions with NuGet version ordering.
+  /// </summary>
+  /// <param name="version1">The first version.</param>
+  /// <param name="version2">The second version.</param>
+  /// <returns>A negative value when <paramref name="version1"/> is older, zero when the versions are equal, and a positive value when <paramref name="version1"/> is newer.</returns>
+  /// <exception cref="ArgumentException">Thrown when either version is null, whitespace, or not a NuGet version.</exception>
   public int CompareVersions(string version1, string version2)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(version1);
@@ -121,6 +154,13 @@ public sealed class NuGetPackageService : INuGetPackageService
     return v1.CompareTo(v2);
   }
 
+  /// <summary>
+  /// Classifies the difference from the current version to the latest version as major, minor, patch, stable, or none.
+  /// </summary>
+  /// <param name="currentVersion">The version already in use.</param>
+  /// <param name="latestVersion">The version being considered as an update.</param>
+  /// <returns><c>none</c> when the latest version is not newer, <c>stable</c> when a prerelease moves to the same stable version, and otherwise <c>major</c>, <c>minor</c>, or <c>patch</c>.</returns>
+  /// <exception cref="ArgumentException">Thrown when either version is null, whitespace, or not a NuGet version.</exception>
   public string GetUpdateType(string currentVersion, string latestVersion)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(currentVersion);
