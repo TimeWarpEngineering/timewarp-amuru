@@ -4,7 +4,7 @@
     <PackageId>TimeWarp.Amuru.Tools</PackageId>
     <Description>Fluent builders for common CLI tools (dotnet, git, fzf) plus TimeWarp repo services, built on TimeWarp.Amuru</Description>
     <PackageTags>cli;scripting;fluent;dotnet;git;fzf;amuru</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible>true</IsAotCompatible>
@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(RepositoryRoot)README.md" Pack="true" PackagePath="" />
+    <None Include="$(RepositoryRoot)readme.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
