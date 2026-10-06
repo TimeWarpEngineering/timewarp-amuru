@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Records one mocked command's output, exception, and delay.
+#endregion
+
+#region Design
+// Returns, ReturnsError, Throws, and Delays each register the setup. A delay-only chain is a real setup
+// whose output is empty success. The same MockSetupData instance is stored, so a later call overwrites fields and registers again.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
