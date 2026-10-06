@@ -4,8 +4,9 @@
 
 #region Design
 // The type is internal. Git.ParseWorktreeList is the public entry. A record starts at a `worktree ` line,
-// `detached` clears the branch, and `bare` is its own flag. Empty lines are discarded by the split,
-// so the final record is flushed after the loop rather than on a blank separator.
+// `detached` clears the branch, and `bare` is its own flag. A record is flushed when the next `worktree ` line
+// starts. The split drops empty lines, so the blank-line branch only sees whitespace-only lines such as a bare `\r`.
+// The last record has no following `worktree ` line and is flushed after the loop.
 #endregion
 
 namespace TimeWarp.Amuru;

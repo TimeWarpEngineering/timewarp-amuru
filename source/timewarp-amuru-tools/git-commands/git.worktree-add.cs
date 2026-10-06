@@ -4,7 +4,8 @@
 
 #region Design
 // The command is `git worktree add <path> <branch>` with no `-b`. Creating the branch is
-// WorktreeAddNewBranchAsync. Success carries the requested path; failure carries stderr.
+// WorktreeAddNewBranchAsync. Success carries the requested path.
+// Failure carries trimmed stderr, or a fixed message when stderr is blank.
 #endregion
 
 namespace TimeWarp.Amuru;
