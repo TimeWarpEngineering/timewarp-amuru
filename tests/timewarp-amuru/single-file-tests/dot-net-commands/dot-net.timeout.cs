@@ -38,5 +38,24 @@ namespace DotNet_
       output.TimedOut.ShouldBeFalse();
       output.Stdout.ShouldNotBeNullOrEmpty();
     }
+
+    public static async Task MockDelayLongerThanTheTimeout_Should_ReportTimeout()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("dotnet", "--version")
+          .Delays(TimeSpan.FromSeconds(5))
+          .Returns("10.0.0");
+
+        CommandOutput output = await DotNet.Builder()
+          .WithArguments("--version")
+          .WithTimeout(TimeSpan.FromMilliseconds(200))
+          .Build()
+          .CaptureAsync();
+
+        output.TimedOut.ShouldBeTrue();
+        output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      }
+    }
   }
 }

@@ -74,7 +74,7 @@ namespace CommandMock_
             .WithZeroExitCodeValidation()
             .CaptureAsync());
 
-        exception.Message.ShouldBe("Command timed out after 1 seconds and was terminated.");
+        exception.Message.ShouldBe("Command timed out after 1 second and was terminated.");
       }
     }
 

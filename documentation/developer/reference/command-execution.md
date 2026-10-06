@@ -37,7 +37,7 @@ Default validation (`None`) reports a timeout as a result. It does not throw.
 | Timeout, default validation | `CommandOutput.TimedOut` is true, `ExitCode` is `CommandResult.TimeoutExitCode` (124), `Success` is false |
 | Child handles the graceful signal and exits 0 | Still a timeout: exit 124. The child's status is not preserved |
 | Timeout, `WithZeroExitCodeValidation()` | `TimeoutException` whose message says the command timed out and was terminated. Captured stdout and stderr are on `CommandResult.LastOutput` |
-| Caller cancels | `OperationCanceledException`. `TimedOut` is not set and `LastOutput` is left unchanged |
+| Caller cancels | `OperationCanceledException`. `TimedOut` is not set and `LastOutput` is left unchanged. `LastOutput` is likewise not updated when any other exception escapes (strict non-zero exit, a mock that throws) or when a stream is abandoned before completion. An instance is not intended for concurrent executions |
 | `TtyPassthroughAsync` times out | The same exit-124 result, including under strict validation. This method does not throw on timeout |
 
 124 is the exit code GNU `timeout` uses, so a shell-minded caller can recognize it.

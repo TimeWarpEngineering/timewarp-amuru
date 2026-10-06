@@ -310,6 +310,43 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
+    public static async Task TtyPassthrough_Should_ForceKillAChildThatIgnoresSigInt()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      var timeout = TimeSpan.FromMilliseconds(500);
+      var grace = TimeSpan.FromMilliseconds(500);
+      var stopwatch = Stopwatch.StartNew();
+      CommandOutput output = await Python(IgnoreScript, timeout, grace).TtyPassthroughAsync();
+      stopwatch.Stop();
+
+      output.TimedOut.ShouldBeTrue();
+      output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      stopwatch.Elapsed.ShouldBeGreaterThanOrEqualTo(timeout + grace - TimeSpan.FromMilliseconds(300));
+      stopwatch.Elapsed.ShouldBeLessThan(timeout + grace + TimeSpan.FromSeconds(4));
+    }
+
+    [Timeout(20000)]
+    public static async Task StreamStdout_Should_PropagateCallerCancellationAndLeaveLastOutputUnset()
+    {
+      CommandResult command = Python(IgnoreScript, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(1));
+      using CancellationTokenSource source = new(TimeSpan.FromMilliseconds(300));
+
+      await Should.ThrowAsync<OperationCanceledException>(async () =>
+      {
+        await foreach (string line in command.StreamStdoutAsync(source.Token))
+        {
+          _ = line;
+        }
+      });
+
+      command.LastOutput.ShouldBeNull();
+    }
+
+    [Timeout(20000)]
     public static async Task Pipe_Should_ShareTheUpstreamWindow()
     {
       if (!CanDeliverSigInt())

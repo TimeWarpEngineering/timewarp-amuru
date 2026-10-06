@@ -46,7 +46,10 @@
 // - TtyPassthroughAsync sends SIGINT itself on Linux and macOS, then kills the tree after the grace period.
 //   Windows non-console children receive no SIGINT, so the grace period ends in the kill.
 //   TtyPassthroughAsync still does not throw on timeout; it reports the result.
-// - LastOutput is the most recent execution that finished, including a timeout. Caller cancellation leaves it unchanged.
+// - LastOutput is set when an execution produces a result, including a timeout result (set before a strict TimeoutException).
+//   It is not updated when the caller cancels, when any other exception escapes (strict non-zero exit
+//   CommandExecutionException, mock Throws), or when a stream is abandoned before completion.
+//   The instance is not intended for concurrent executions.
 // - Streaming enumerators complete on timeout under default validation. LastOutput is set before the enumerator ends.
 //   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
 //   Disposing CliWrap's ListenAsync awaits the command task again. That second await throws the
@@ -121,9 +124,12 @@ public class CommandResult
   private CommandResultValidation Validation { get; }
 
   /// <summary>
-  /// Outcome of the most recent execution on this instance that ran to completion, including a timeout.
-  /// Null before that first execution. Streaming methods set this when the enumerator finishes.
-  /// A cancellation requested by the caller does not update it.
+  /// Outcome of the most recent execution on this instance that produced a result, including a timeout result
+  /// (set before a strict <see cref="TimeoutException"/> is thrown). Null before that first result.
+  /// Streaming methods set this when the enumerator finishes; a stream abandoned before completion does not set it.
+  /// It is not updated when the caller cancels or when any other exception escapes
+  /// (for example a strict non-zero exit <c>CommandExecutionException</c> or a mock that throws).
+  /// The instance is not intended for concurrent executions.
   /// </summary>
   public CommandOutput? LastOutput { get; private set; }
 
@@ -297,7 +303,8 @@ public class CommandResult
   {
     if (Timeout is TimeSpan timeout)
     {
-      return $"Command timed out after {timeout.TotalSeconds.ToString("G", CultureInfo.InvariantCulture)} seconds and was terminated.";
+      string unit = timeout.TotalSeconds == 1 ? "second" : "seconds";
+      return $"Command timed out after {timeout.TotalSeconds.ToString("G", CultureInfo.InvariantCulture)} {unit} and was terminated.";
     }
 
     return "Command timed out and was terminated.";
@@ -311,11 +318,13 @@ public class CommandResult
 
   private CommandOutput RememberTimeout(string stdout, string stderr, TimeSpan runTime, bool throwOnStrictTimeout)
   {
-    CommandOutput output = new(stdout, stderr, TimeoutExitCode)
-    {
-      RunTime = runTime,
-      TimedOut = true
-    };
+    return RememberTimeout(
+      new CommandOutput(stdout, stderr, TimeoutExitCode) { RunTime = runTime, TimedOut = true },
+      throwOnStrictTimeout);
+  }
+
+  private CommandOutput RememberTimeout(CommandOutput output, bool throwOnStrictTimeout)
+  {
     LastOutput = output;
     if (throwOnStrictTimeout && Validation == CommandResultValidation.ZeroExitCode)
     {
@@ -378,18 +387,7 @@ public class CommandResult
   {
     if (execution.TimedOut)
     {
-      CommandOutput timedOut = new(lines, TimeoutExitCode)
-      {
-        RunTime = execution.RunTime,
-        TimedOut = true
-      };
-      LastOutput = timedOut;
-      if (throwOnStrictTimeout && Validation == CommandResultValidation.ZeroExitCode)
-      {
-        throw new TimeoutException(DescribeTimeout());
-      }
-
-      return timedOut;
+      return RememberTimeout(new CommandOutput(lines, TimeoutExitCode) { RunTime = execution.RunTime, TimedOut = true }, throwOnStrictTimeout);
     }
 
     return Remember(new CommandOutput(lines, execution.ExitCode) { RunTime = execution.RunTime });
@@ -446,14 +444,7 @@ public class CommandResult
       return;
     }
 
-    try
-    {
-      await Task.Delay(wait, cancellationToken).ConfigureAwait(false);
-    }
-    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-    {
-      throw;
-    }
+    await Task.Delay(wait, cancellationToken).ConfigureAwait(false);
   }
 
   private CommandOutput CompleteMock(
@@ -580,6 +571,16 @@ public class CommandResult
     }
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "Cancellation-token callback on a timer thread must never throw."
+  )]
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Roslynator",
+    "RCS1075",
+    Justification = "Swallowing is the contract: the callback must never throw."
+  )]
   private static void TryKill(Process process)
   {
     try
@@ -589,16 +590,23 @@ public class CommandResult
         process.Kill(entireProcessTree: true);
       }
     }
-    catch (InvalidOperationException)
+    catch (Exception)
     {
-      // Process already exited.
-    }
-    catch (System.ComponentModel.Win32Exception)
-    {
-      // Process already exited or could not be signaled.
+      // Runs as a cancellation-token callback on a timer thread: must never throw.
+      // Covers already-exited processes, Win32/permission failures, and AggregateException from tree kill.
     }
   }
 
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "Cancellation-token callback on a timer thread must never throw."
+  )]
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Roslynator",
+    "RCS1075",
+    Justification = "Swallowing is the contract: the callback must never throw."
+  )]
   private static void TryInterrupt(Process process)
   {
     try
@@ -614,9 +622,9 @@ public class CommandResult
         _ = NativeSignals.Kill(process.Id, NativeSignals.Interrupt);
       }
     }
-    catch (InvalidOperationException)
+    catch (Exception)
     {
-      // Process already exited.
+      // Runs as a cancellation-token callback on a timer thread: must never throw.
     }
   }
 
@@ -961,10 +969,6 @@ public class CommandResult
     catch (CliWrap.Exceptions.CommandExecutionException)
     {
       // Validation / command-execution failures propagate; only TtyPassthroughAsync is exempt.
-      throw;
-    }
-    catch (TimeoutException)
-    {
       throw;
     }
     catch
