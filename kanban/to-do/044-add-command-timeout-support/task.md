@@ -95,8 +95,17 @@ dotnet run tests/timewarp-amuru/single-file-tests/core/command-mock.timeout.cs
 - `command-mock.timeout.cs`: 11 passed. `TimesOut()` and a delay at least as long as `WithTimeout` both report exit 124 and `TimedOut`, with mock `RunTime` of zero.
 - `./bin/dev test`: 720 passed, 0 failed, 1 skipped.
 
+### Review disposition
+
+- **Outcome:** accepted-exceptions (0 open). Effort 3, roster `general`, 2 rounds.
+- **Final counts:** bug 1 fixed; suggestion 3 fixed; nit 2 fixed, 1 wontfix.
+- **Fixed:** M1 `TryKill`/`TryInterrupt` swallow every exception (token callbacks on timer threads must not throw; regression vs master); M2 `LastOutput` docs narrowed; M3 tests for TTY ignored-SIGINT force kill and stream caller cancel; M4 DotNet mock-delay timeout test; M5 dead code removed, shared `RememberTimeout`; M6 "1 second" singular.
+- **Wontfix:** M7 (python3 / SIGINT-handler timing assumption in graceful tests): low risk on ubuntu CI; skipping would mask regressions.
+- **Paths:** `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Created: 2025-12-12
 - Rewritten: 522eb63d (2026-10-06)
 - Implementation: 2026-10-06
+- Review: 2026-10-06, review oracle (Claude Opus 5.5) + general reviewer subagent; fixes by implementer subagent on this id
