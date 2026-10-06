@@ -4,8 +4,11 @@
 
 #region Design
 // Exit 0 when every file was readable, including when nothing matched.
-// Exit 1 when a regex or I/O error occurs. Changed files already written stay written.
-// Stdout lists only files whose text changed, including dry-run hits.
+// Exit 1 when a regex or I/O error occurs. A missing input path, an unreadable
+// directory, or a file that is not valid text is reported on stderr as
+// "ReplaceInFiles: <path>: <reason>" and the walk continues, so stdout still lists
+// every file already changed. Stdout lists only files whose text changed, including
+// dry-run hits.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -123,17 +126,24 @@ public static partial class Commands
   private static CommandOutput Replace(
     Regex regex,
     string replacement,
-    IEnumerable<string> files,
+    IEnumerable<TextFileItem> files,
     ReplaceInFilesOptions options)
   {
     StringBuilder stdout = new();
     StringBuilder stderr = new();
     bool error = false;
-    foreach (string file in files)
+    foreach (TextFileItem file in files)
     {
+      if (file.Error is not null)
+      {
+        error = true;
+        AppendReplaceError(stderr, file.Path, file.Error);
+        continue;
+      }
+
       try
       {
-        ReplaceResult result = TextReplace.ReplaceFile(regex, replacement, file, options);
+        ReplaceResult result = TextReplace.ReplaceFile(regex, replacement, file.Path, options);
         if (!result.Changed)
         {
           continue;
@@ -149,21 +159,26 @@ public static partial class Commands
         stdout.Append(result.ReplacementCount.ToString(CultureInfo.InvariantCulture));
         stdout.Append(" replacement(s)");
       }
-      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      catch (Exception exception) when (TextCommand.IsFileError(exception))
       {
         error = true;
-        if (stderr.Length > 0)
-        {
-          stderr.Append('\n');
-        }
-
-        stderr.Append("ReplaceInFiles: ");
-        stderr.Append(file);
-        stderr.Append(": ");
-        stderr.Append(TextCommand.DescribeIo(exception));
+        AppendReplaceError(stderr, file.Path, exception);
       }
     }
 
     return new CommandOutput(stdout.ToString(), stderr.ToString(), error ? TextCommand.NoMatchExitCode : 0);
+  }
+
+  private static void AppendReplaceError(StringBuilder stderr, string path, Exception exception)
+  {
+    if (stderr.Length > 0)
+    {
+      stderr.Append('\n');
+    }
+
+    stderr.Append("ReplaceInFiles: ");
+    stderr.Append(path);
+    stderr.Append(": ");
+    stderr.Append(TextCommand.DescribeIo(exception));
   }
 }

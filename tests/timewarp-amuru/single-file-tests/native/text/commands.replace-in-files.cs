@@ -6,6 +6,7 @@
 
 #region Design
 // Exit 0 includes the no-match case. Stdout lists only files whose text changed.
+// Per-path failures go to stderr with the path and the walk continues.
 #endregion
 
 #if !JARIBU_MULTI
@@ -119,6 +120,50 @@ public class ReplaceInFiles_Given_
       result.Stdout.ShouldBe($"{text}: 1 replacement(s)");
       (await File.ReadAllTextAsync(text)).ShouldBe("beta\n");
       (await File.ReadAllTextAsync(log)).ShouldBe("alpha\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task MissingLaterPath_Should_KeepEarlierOutput()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string first = await WriteAsync(directory, "a.txt", "alpha\n");
+      string missing = Path.Combine(directory, "missing.txt");
+      string third = await WriteAsync(directory, "c.txt", "alpha\n");
+      CommandOutput result = Text.Commands.ReplaceInFiles("alpha", "beta", [first, missing, third]);
+
+      result.ExitCode.ShouldBe(1);
+      result.Stdout.ShouldBe($"{first}: 1 replacement(s)\n{third}: 1 replacement(s)");
+      result.Stderr.ShouldBe($"ReplaceInFiles: {missing}: No such file or directory");
+      (await File.ReadAllTextAsync(third)).ShouldBe("beta\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task InvalidText_Should_ReportThePathAndKeepWalking()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string bad = Path.Combine(directory, "latin1.txt");
+      byte[] original = [0x63, 0x61, 0x66, 0xE9, 0x0A, 0x66, 0x6F, 0x6F, 0x0A];
+      await File.WriteAllBytesAsync(bad, original);
+      string good = await WriteAsync(directory, "good.txt", "foo\n");
+      CommandOutput result = Text.Commands.ReplaceInFiles("foo", "bar", [bad, good]);
+
+      result.ExitCode.ShouldBe(1);
+      result.Stdout.ShouldBe($"{good}: 1 replacement(s)");
+      result.Stderr.ShouldBe($"ReplaceInFiles: {bad}: not valid utf-8 text");
+      (await File.ReadAllBytesAsync(bad)).ShouldBe(original);
+      (await File.ReadAllTextAsync(good)).ShouldBe("bar\n");
     }
     finally
     {

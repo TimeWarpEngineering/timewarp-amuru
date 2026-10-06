@@ -3,9 +3,13 @@
 #endregion
 
 #region Design
-// Direct calls FileSystem.Direct.FindItem. Commands use FileSystemWalk, the same
-// walker, so they stay synchronous. Include/Exclude reuse GlobMatcher name rules:
-// a slash or ** matches the relative path; otherwise the file name.
+// Direct calls FileSystem.Direct.FindItem and throws on the first missing path or
+// unreadable directory. Commands walk synchronously, one directory at a time, with
+// the same rules as FileSystemWalk (hidden entries included, reparse-point directories
+// not followed). A missing input path or an unreadable directory becomes a
+// TextFileItem with an Error, so the caller reports it and the walk continues.
+// Include/Exclude reuse GlobMatcher name rules: a slash or ** matches the relative
+// path; otherwise the file name.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -44,6 +48,11 @@ internal readonly record struct TextFileQuery(string? NameGlob, string? Include,
   public string? ExtraInclude => NameGlob is null ? null : Include;
 }
 
+/// <summary>
+/// One step of a Commands walk: a file to process, or a path that could not be read.
+/// </summary>
+internal readonly record struct TextFileItem(string Path, Exception? Error);
+
 internal static class TextFiles
 {
   public const string StandardInputPath = "-";
@@ -60,44 +69,54 @@ internal static class TextFiles
     throw new FileNotFoundException($"Path not found: {full}", full);
   }
 
-  public static IEnumerable<string> Enumerate(string path, TextFileQuery query)
+  public static IEnumerable<TextFileItem> Enumerate(string path, TextFileQuery query)
   {
-    string full = RequireExisting(path);
-    if (File.Exists(full))
-    {
-      if (AcceptsFile(Path.GetDirectoryName(full) ?? full, new FileInfo(full), query.Include, query.Exclude))
-      {
-        yield return full;
-      }
-
-      yield break;
-    }
-
-    foreach (string file in EnumerateDirectory(full, query))
-    {
-      yield return file;
-    }
+    return Enumerate([path], query);
   }
 
-  public static IEnumerable<string> Enumerate(IEnumerable<string> paths, TextFileQuery query)
+  public static IEnumerable<TextFileItem> Enumerate(IEnumerable<string> paths, TextFileQuery query)
   {
     ArgumentNullException.ThrowIfNull(paths);
     foreach (string path in paths)
     {
-      foreach (string file in Enumerate(path, query))
+      string? full = null;
+      Exception? error = null;
+      try
       {
-        yield return file;
+        full = RequireExisting(path);
+      }
+      catch (FileNotFoundException exception)
+      {
+        error = exception;
+      }
+
+      if (full is null)
+      {
+        yield return new TextFileItem(path, error);
+        continue;
+      }
+
+      if (File.Exists(full))
+      {
+        if (AcceptsFile(Path.GetDirectoryName(full) ?? full, new FileInfo(full), query.Include, query.Exclude))
+        {
+          yield return new TextFileItem(full, null);
+        }
+
+        continue;
+      }
+
+      foreach (TextFileItem item in WalkDirectory(full, new DirectoryInfo(full), query))
+      {
+        yield return item;
       }
     }
   }
 
-  public static IEnumerable<string> EnumerateGlob(string root, TextFileQuery query)
+  public static IEnumerable<TextFileItem> EnumerateGlob(string root, TextFileQuery query)
   {
     string full = RequireDirectory(root);
-    foreach (string file in EnumerateDirectory(full, query))
-    {
-      yield return file;
-    }
+    return WalkDirectory(full, new DirectoryInfo(full), query);
   }
 
   public static async IAsyncEnumerable<string> EnumerateAsync(
@@ -169,16 +188,43 @@ internal static class TextFiles
     return true;
   }
 
-  private static IEnumerable<string> EnumerateDirectory(string root, TextFileQuery query)
+  private static IEnumerable<TextFileItem> WalkDirectory(string root, DirectoryInfo directory, TextFileQuery query)
   {
-    FileSystem.FindCriteria? criteria = query.Criteria;
-    foreach (FileSystemInfo entry in FileSystem.FileSystemWalk.Enumerate(
-      root,
-      recursive: true,
-      includeHidden: true,
-      includePattern: null,
-      excludePattern: null))
+    List<FileSystemInfo> entries = [];
+    Exception? error = null;
+    try
     {
+      entries.AddRange(directory.EnumerateFileSystemInfos("*", FileSystem.FileSystemWalk.CreateEnumerationOptions()));
+    }
+    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+    {
+      error = exception;
+    }
+
+    if (error is not null)
+    {
+      yield return new TextFileItem(directory.FullName, error);
+      yield break;
+    }
+
+    FileSystem.FindCriteria? criteria = query.Criteria;
+    foreach (FileSystemInfo entry in entries)
+    {
+      if (entry is DirectoryInfo child)
+      {
+        if (FileSystem.FileSystemWalk.IsReparsePoint(child))
+        {
+          continue;
+        }
+
+        foreach (TextFileItem item in WalkDirectory(root, child, query))
+        {
+          yield return item;
+        }
+
+        continue;
+      }
+
       if (criteria is not null && !FileSystem.FileSystemWalk.MatchesCriteria(entry, root, criteria))
       {
         continue;
@@ -189,7 +235,7 @@ internal static class TextFiles
         continue;
       }
 
-      yield return entry.FullName;
+      yield return new TextFileItem(entry.FullName, null);
     }
   }
 

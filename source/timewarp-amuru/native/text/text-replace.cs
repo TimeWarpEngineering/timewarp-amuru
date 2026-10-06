@@ -3,10 +3,17 @@
 #endregion
 
 #region Design
-// The match runs on LF-normalized text so ^, $, and . see logical lines. Zero
-// replacements skip encoding and the write, which keeps mtime and original bytes.
-// The temp file lives in the same directory so the final move stays on one volume.
-// DryRun fills Preview and does not create a temp file or a .bak.
+// The match runs on text with \r\n folded to \n so ^, $, and . see logical lines.
+// When the text changes, the whole file is written back in the detected newline style,
+// so a mixed-newline file comes out uniform. Zero replacements, or replacements that
+// leave the text identical, skip encoding and the write, which keeps mtime and the
+// original bytes. Binary files (NUL in a UTF-8 or no-BOM file) are skipped with zero
+// replacements. Undecodable bytes throw InvalidDataException naming the path instead
+// of being replaced with U+FFFD. A symlink is resolved to its final target and the
+// target is rewritten, so the link stays a link (sed --follow-symlinks). Hard links
+// are still split by the move. The temp file lives in the target's directory so the
+// final move stays on one volume. DryRun fills Preview and does not create a temp
+// file or a .bak.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -29,7 +36,7 @@ internal static class TextReplace
       return ToResult(plan, backupPath: null);
     }
 
-    string? backupPath = Commit(path, plan.Encoded, options.Backup);
+    string? backupPath = Commit(path, ResolveTarget(path), plan.Encoded, options.Backup);
     return ToResult(plan, backupPath);
   }
 
@@ -50,7 +57,7 @@ internal static class TextReplace
       return ToResult(plan, backupPath: null);
     }
 
-    string? backupPath = await CommitAsync(path, plan.Encoded, options.Backup, cancellationToken)
+    string? backupPath = await CommitAsync(path, ResolveTarget(path), plan.Encoded, options.Backup, cancellationToken)
       .ConfigureAwait(false);
     return ToResult(plan, backupPath);
   }
@@ -63,9 +70,14 @@ internal static class TextReplace
     ReplaceInFilesOptions options)
   {
     var encoding = TextFileEncoding.Detect(bytes);
-    string original = encoding.GetString(bytes);
+    if (encoding.IsBinary(bytes))
+    {
+      return new ReplacePlan(path, 0, Changed: false, [], []);
+    }
+
+    string original = Decode(encoding, bytes, path);
     var newlineStyle = NewlineStyle.Detect(original);
-    string normalized = NewlineStyle.ToLineFeed(original);
+    string normalized = newlineStyle.ToLineFeed(original);
     int count = 0;
     string replaced = regex.Replace(
       normalized,
@@ -89,6 +101,33 @@ internal static class TextReplace
     return new ReplacePlan(path, count, changed, preview, encoded);
   }
 
+  private static string Decode(TextFileEncoding encoding, byte[] bytes, string path)
+  {
+    try
+    {
+      return encoding.GetString(bytes);
+    }
+    catch (DecoderFallbackException exception)
+    {
+      string reason = $"not valid {encoding.Encoding.WebName} text";
+      InvalidDataException invalid = new($"ReplaceInFiles: {path}: {reason}", exception);
+      invalid.Data[TextCommand.ReasonKey] = reason;
+      throw invalid;
+    }
+  }
+
+  private static string ResolveTarget(string path)
+  {
+    FileInfo file = new(path);
+    if (file.LinkTarget is null)
+    {
+      return path;
+    }
+
+    FileSystemInfo? target = file.ResolveLinkTarget(returnFinalTarget: true);
+    return target?.FullName ?? path;
+  }
+
   private static ReplaceResult ToResult(ReplacePlan plan, string? backupPath)
   {
     return new ReplaceResult
@@ -101,15 +140,15 @@ internal static class TextReplace
     };
   }
 
-  private static string? Commit(string path, byte[] contents, bool backup)
+  private static string? Commit(string path, string target, byte[] contents, bool backup)
   {
-    string temp = CreateTempPath(path);
+    string temp = CreateTempPath(target);
     try
     {
       File.WriteAllBytes(temp, contents);
-      CopyUnixMode(path, temp);
+      CopyUnixMode(target, temp);
       string? backupPath = WriteBackup(path, backup);
-      File.Move(temp, path, overwrite: true);
+      File.Move(temp, target, overwrite: true);
       return backupPath;
     }
     finally
@@ -120,17 +159,18 @@ internal static class TextReplace
 
   private static async Task<string?> CommitAsync(
     string path,
+    string target,
     byte[] contents,
     bool backup,
     CancellationToken cancellationToken)
   {
-    string temp = CreateTempPath(path);
+    string temp = CreateTempPath(target);
     try
     {
       await File.WriteAllBytesAsync(temp, contents, cancellationToken).ConfigureAwait(false);
-      CopyUnixMode(path, temp);
+      CopyUnixMode(target, temp);
       string? backupPath = WriteBackup(path, backup);
-      File.Move(temp, path, overwrite: true);
+      File.Move(temp, target, overwrite: true);
       return backupPath;
     }
     finally

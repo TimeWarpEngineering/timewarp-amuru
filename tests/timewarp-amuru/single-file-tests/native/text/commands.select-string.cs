@@ -6,6 +6,7 @@
 
 #region Design
 // SUT: Text.Commands. Each case uses a temp directory and deletes it in finally.
+// Walk errors must not discard stdout already produced.
 #endregion
 
 #if !JARIBU_MULTI
@@ -169,20 +170,87 @@ public class SelectString_Given_
     await Task.CompletedTask;
   }
 
-  public static async Task TwoHitsOnOneLine_Should_RepeatTheLine()
+  public static async Task TwoHitsOnOneLine_Should_PrintTheLineOnce()
   {
     string directory = NewDirectory();
     try
     {
-      string path = await WriteAsync(directory, "notes.txt", "a a\n");
+      string path = await WriteAsync(directory, "notes.txt", "a a\nb\na\n");
       CommandOutput result = Text.Commands.SelectString("a", path);
 
       result.ExitCode.ShouldBe(0);
-      result.Stdout.ShouldBe($"{path}:1:a a\n{path}:1:a a");
+      result.Stdout.ShouldBe($"{path}:1:a a\n{path}:3:a");
     }
     finally
     {
       Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task MissingLaterPath_Should_KeepEarlierOutput()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string first = await WriteAsync(directory, "a.txt", "alpha\n");
+      string missing = Path.Combine(directory, "missing.txt");
+      string third = await WriteAsync(directory, "c.txt", "alpha\n");
+      CommandOutput result = Text.Commands.SelectString("alpha", [first, missing, third]);
+
+      result.ExitCode.ShouldBe(2);
+      result.Stdout.ShouldBe($"{first}:1:alpha\n{third}:1:alpha");
+      result.Stderr.ShouldBe($"SelectString: {missing}: No such file or directory");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task UnreadableDirectory_Should_KeepOtherHits()
+  {
+    if (OperatingSystem.IsWindows())
+    {
+      return;
+    }
+
+    string directory = NewDirectory();
+    string locked = Path.Combine(directory, "locked");
+    try
+    {
+      string path = await WriteAsync(directory, "a.txt", "alpha\n");
+      Directory.CreateDirectory(locked);
+      await WriteAsync(locked, "b.txt", "alpha\n");
+      File.SetUnixFileMode(locked, UnixFileMode.None);
+      if (CanList(locked))
+      {
+        await TimeWarpTerminal.Default.WriteLineAsync("Skipping: permissions are not enforced for this user.");
+        return;
+      }
+
+      CommandOutput result = Text.Commands.SelectString("alpha", directory);
+
+      result.ExitCode.ShouldBe(2);
+      result.Stdout.ShouldBe($"{path}:1:alpha");
+      result.Stderr.ShouldBe($"SelectString: {locked}: Permission denied");
+    }
+    finally
+    {
+      File.SetUnixFileMode(locked, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  private static bool CanList(string directory)
+  {
+    try
+    {
+      _ = Directory.EnumerateFileSystemEntries(directory).ToList();
+      return true;
+    }
+    catch (UnauthorizedAccessException)
+    {
+      return false;
     }
   }
 

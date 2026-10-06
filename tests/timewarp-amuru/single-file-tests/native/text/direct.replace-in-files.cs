@@ -1,7 +1,8 @@
 #!/usr/bin/env -S dotnet --
 
 #region Purpose
-// Direct.ReplaceInFiles: groups, dry run, backup, encoding, newlines, and atomic write.
+// Direct.ReplaceInFiles: groups, limits, options, dry run, backup, encoding, newlines,
+// binary and invalid text, symlinks, and atomic write.
 #endregion
 
 #region Design
@@ -73,6 +74,59 @@ public class ReplaceInFiles_Given_
 
       results[0].ReplacementCount.ShouldBe(2);
       (await File.ReadAllTextAsync(path)).ShouldBe("bba");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task MaxReplacements_Should_ApplyToEachFile()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string first = await WriteAsync(directory, "a.txt", "aaa");
+      string second = await WriteAsync(directory, "b.txt", "aaa");
+      Text.ReplaceInFilesOptions options = new() { MaxReplacements = 1 };
+      List<Text.ReplaceResult> results = await Collect(Text.Direct.ReplaceInFiles("a", "b", directory, options));
+
+      results.Count.ShouldBe(2);
+      results.ShouldAllBe(result => result.ReplacementCount == 1);
+      (await File.ReadAllTextAsync(first)).ShouldBe("baa");
+      (await File.ReadAllTextAsync(second)).ShouldBe("baa");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task CaseInsensitive_Should_MatchEitherCase()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "FOO foo\n");
+      Text.ReplaceInFilesOptions options = new() { CaseInsensitive = true };
+      await Collect(Text.Direct.ReplaceInFiles("foo", "bar", path, options));
+      (await File.ReadAllTextAsync(path)).ShouldBe("bar bar\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Singleline_Should_LetDotMatchNewline()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "a\nb\n");
+      Text.ReplaceInFilesOptions options = new() { Singleline = true };
+      await Collect(Text.Direct.ReplaceInFiles("a.b", "X", path, options));
+      (await File.ReadAllTextAsync(path)).ShouldBe("X\n");
     }
     finally
     {
@@ -212,10 +266,10 @@ public class ReplaceInFiles_Given_
       string path = await WriteAsync(directory, "notes.txt", "alpha\n");
       await Collect(Text.Direct.ReplaceInFiles("alpha", "beta", path, new Text.ReplaceInFilesOptions { Backup = true }));
 
-      foreach (string file in Directory.EnumerateFiles(directory))
-      {
-        Path.GetFileName(file).Contains(".tmp", StringComparison.Ordinal).ShouldBeFalse();
-      }
+      Directory.EnumerateFileSystemEntries(directory)
+        .Select(Path.GetFileName)
+        .OrderBy(name => name, StringComparer.Ordinal)
+        .ShouldBe(["notes.txt", "notes.txt.bak"]);
 
       (await File.ReadAllTextAsync(path)).ShouldBe("beta\n");
     }
@@ -258,6 +312,153 @@ public class ReplaceInFiles_Given_
       results.Count.ShouldBe(2);
       results.Single(result => result.Path == first).Changed.ShouldBeTrue();
       results.Single(result => result.Path == second).Changed.ShouldBeFalse();
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task NoChange_Should_NotWriteABackup()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "alpha\n");
+      Text.ReplaceInFilesOptions options = new() { Backup = true };
+      List<Text.ReplaceResult> results = await Collect(Text.Direct.ReplaceInFiles("missing", "beta", path, options));
+
+      results[0].BackupPath.ShouldBeNull();
+      File.Exists(path + ".bak").ShouldBeFalse();
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task IdentityReplacement_Should_CountButNotRewrite()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "foo\n");
+      DateTime stamp = Stamp(path);
+      List<Text.ReplaceResult> results = await Collect(Text.Direct.ReplaceInFiles("foo", "foo", path));
+
+      results[0].ReplacementCount.ShouldBe(1);
+      results[0].Changed.ShouldBeFalse();
+      File.GetLastWriteTimeUtc(path).ShouldBe(stamp);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task CrlfFile_Should_WriteInsertedNewlinesAsCrlf()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = Path.Combine(directory, "notes.txt");
+      await File.WriteAllBytesAsync(path, Bytes("a\r\nb\r\n", bom: false));
+      await Collect(Text.Direct.ReplaceInFiles("a", "x\ny", path));
+
+      (await File.ReadAllBytesAsync(path)).ShouldBe(Bytes("x\r\ny\r\nb\r\n", bom: false));
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task LoneCarriageReturn_Should_StayLiteral()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = Path.Combine(directory, "notes.txt");
+      await File.WriteAllBytesAsync(path, Bytes("a\rb\nfoo\n", bom: false));
+      await Collect(Text.Direct.ReplaceInFiles("foo", "bar", path));
+
+      (await File.ReadAllBytesAsync(path)).ShouldBe(Bytes("a\rb\nbar\n", bom: false));
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Latin1File_Should_ThrowAndKeepItsBytes()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = Path.Combine(directory, "latin1.txt");
+      byte[] original = [0x63, 0x61, 0x66, 0xE9, 0x0A, 0x66, 0x6F, 0x6F, 0x0A];
+      await File.WriteAllBytesAsync(path, original);
+
+      InvalidDataException exception = await Should.ThrowAsync<InvalidDataException>(
+        async () => await Collect(Text.Direct.ReplaceInFiles("foo", "bar", path)));
+
+      exception.Message.ShouldContain(path);
+      (await File.ReadAllBytesAsync(path)).ShouldBe(original);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task BinaryFile_Should_BeSkippedUntouched()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = Path.Combine(directory, "data.bin");
+      byte[] original = [.. "foo"u8, 0x00, .. "foo\n"u8];
+      await File.WriteAllBytesAsync(path, original);
+      DateTime stamp = Stamp(path);
+      List<Text.ReplaceResult> results = await Collect(Text.Direct.ReplaceInFiles("foo", "bar", path));
+
+      results[0].ReplacementCount.ShouldBe(0);
+      results[0].Changed.ShouldBeFalse();
+      (await File.ReadAllBytesAsync(path)).ShouldBe(original);
+      File.GetLastWriteTimeUtc(path).ShouldBe(stamp);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Symlink_Should_RewriteTheTargetAndStayALink()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string target = await WriteAsync(directory, "target.txt", "foo\n");
+      string link = Path.Combine(directory, "link.txt");
+      try
+      {
+        File.CreateSymbolicLink(link, target);
+      }
+      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      {
+        await TimeWarpTerminal.Default.WriteLineAsync("Skipping: symbolic links are not available here.");
+        return;
+      }
+
+      List<Text.ReplaceResult> results = await Collect(Text.Direct.ReplaceInFiles("foo", "bar", link));
+
+      results[0].Changed.ShouldBeTrue();
+      new FileInfo(link).LinkTarget.ShouldNotBeNull();
+      (await File.ReadAllTextAsync(target)).ShouldBe("bar\n");
+      Directory.EnumerateFileSystemEntries(directory)
+        .Select(Path.GetFileName)
+        .OrderBy(name => name, StringComparer.Ordinal)
+        .ShouldBe(["link.txt", "target.txt"]);
     }
     finally
     {

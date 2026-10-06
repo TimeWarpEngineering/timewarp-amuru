@@ -4,8 +4,10 @@
 
 #region Design
 // Synchronous file reads avoid sync-over-async. Exit 0 means at least one match,
-// 1 means none, 2 means a regex or I/O error (grep). Per-file I/O errors are
-// reported and the walk continues; any error forces exit 2.
+// 1 means none, 2 means a regex or I/O error (grep). A missing input path, an
+// unreadable directory, or an unreadable file is reported on stderr as
+// "SelectString: <path>: <reason>"; the walk continues, earlier stdout is kept, and
+// any error forces exit 2. A line with several hits is printed once, like grep.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -22,7 +24,7 @@ public static partial class Commands
   /// <param name="path">File or directory. A directory is searched recursively.</param>
   /// <param name="options">Match and file-glob options. <see langword="null"/> uses defaults.</param>
   /// <returns>
-  /// Stdout lines of the form <c>path:line:text</c>.
+  /// Stdout lines of the form <c>path:line:text</c>, one per matching line.
   /// Exit code 0 when a line matches, 1 when none match, 2 on error.
   /// </returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -51,7 +53,7 @@ public static partial class Commands
   /// <param name="paths">Files and directories to search.</param>
   /// <param name="options">Match and file-glob options. <see langword="null"/> uses defaults.</param>
   /// <returns>
-  /// Stdout lines of the form <c>path:line:text</c>.
+  /// Stdout lines of the form <c>path:line:text</c>, one per matching line.
   /// Exit code 0 when a line matches, 1 when none match, 2 on error.
   /// </returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -84,7 +86,7 @@ public static partial class Commands
   /// <param name="globPattern">Glob passed to <see cref="FileSystem.FindCriteria.Name"/>.</param>
   /// <param name="options">Match and file-glob options. <see langword="null"/> uses defaults.</param>
   /// <returns>
-  /// Stdout lines of the form <c>path:line:text</c>.
+  /// Stdout lines of the form <c>path:line:text</c>, one per matching line.
   /// Exit code 0 when a line matches, 1 when none match, 2 on error.
   /// </returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -119,7 +121,7 @@ public static partial class Commands
   /// <param name="path">Path label written on each hit. <see langword="null"/> uses <c>-</c>.</param>
   /// <param name="options">Match options. File globs are ignored. <see langword="null"/> uses defaults.</param>
   /// <returns>
-  /// Stdout lines of the form <c>path:line:text</c>.
+  /// Stdout lines of the form <c>path:line:text</c>, one per matching line.
   /// Exit code 0 when a line matches, 1 when none match, 2 on error.
   /// </returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -155,7 +157,7 @@ public static partial class Commands
   /// <param name="path">Path label written on each hit. <see langword="null"/> uses <c>-</c>.</param>
   /// <param name="options">Match options. File globs are ignored. <see langword="null"/> uses defaults.</param>
   /// <returns>
-  /// Stdout lines of the form <c>path:line:text</c>.
+  /// Stdout lines of the form <c>path:line:text</c>, one per matching line.
   /// Exit code 0 when a line matches, 1 when none match, 2 on error.
   /// </returns>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
@@ -186,26 +188,40 @@ public static partial class Commands
     }
   }
 
-  private static CommandOutput Search(Regex regex, IEnumerable<string> files, SelectStringOptions options)
+  private static CommandOutput Search(Regex regex, IEnumerable<TextFileItem> files, SelectStringOptions options)
   {
     StringBuilder stdout = new();
     StringBuilder stderr = new();
     bool any = false;
     bool error = false;
-    foreach (string file in files)
+    foreach (TextFileItem file in files)
     {
+      if (file.Error is not null)
+      {
+        error = true;
+        AppendError(stderr, file.Path, file.Error);
+        continue;
+      }
+
       try
       {
-        foreach (TextMatch match in TextSearch.ReadFile(regex, file, options))
+        int lastLine = 0;
+        foreach (TextMatch match in TextSearch.ReadFile(regex, file.Path, options))
         {
           any = true;
+          if (match.LineNumber == lastLine)
+          {
+            continue;
+          }
+
+          lastLine = match.LineNumber;
           AppendHit(stdout, match);
         }
       }
-      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      catch (Exception exception) when (TextCommand.IsFileError(exception))
       {
         error = true;
-        AppendError(stderr, file, exception);
+        AppendError(stderr, file.Path, exception);
       }
     }
 
@@ -217,9 +233,16 @@ public static partial class Commands
   {
     StringBuilder stdout = new();
     bool any = false;
+    int lastLine = 0;
     foreach (TextMatch match in matches)
     {
       any = true;
+      if (match.LineNumber == lastLine)
+      {
+        continue;
+      }
+
+      lastLine = match.LineNumber;
       AppendHit(stdout, match);
     }
 

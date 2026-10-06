@@ -4,10 +4,13 @@
 
 #region Design
 // No BOM means UTF-8 without a preamble. UTF-32 LE is detected before UTF-16 LE because
-// its BOM starts with the same FF FE bytes. The Encoding stored here does not emit a BOM;
-// GetBytes writes the detected preamble itself, once. Newlines are normalized to LF only
-// for the match, then written in the style of the first newline. A file with zero
-// replacements is not re-encoded, so mixed newlines and the original bytes stay put.
+// its BOM starts with the same FF FE bytes. Decoders throw on invalid bytes, so a file
+// that is not valid text in its detected encoding fails instead of being rewritten with
+// U+FFFD. A UTF-8 or no-BOM file that contains a NUL byte is binary. The Encoding stored
+// here does not emit a BOM; GetBytes writes the detected preamble itself, once.
+// Newline style: CRLF when the first \n follows a \r, else LF. CR only when the file has
+// no \n at all. Only \r\n is folded to \n for the match, so a lone \r in an LF or CRLF
+// file stays a literal character.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -23,38 +26,21 @@ internal readonly record struct NewlineStyle(string Sequence)
   public static NewlineStyle Detect(string text)
   {
     ArgumentNullException.ThrowIfNull(text);
-    int crlf = text.IndexOf("\r\n", StringComparison.Ordinal);
     int lineFeed = text.IndexOf('\n', StringComparison.Ordinal);
-    int carriageReturn = text.IndexOf('\r', StringComparison.Ordinal);
-
-    int first = -1;
-    NewlineStyle style = Lf;
-    if (crlf >= 0)
+    if (lineFeed < 0)
     {
-      first = crlf;
-      style = Crlf;
+      return text.Contains('\r', StringComparison.Ordinal) ? Cr : Lf;
     }
 
-    if (lineFeed >= 0 && (first < 0 || lineFeed < first))
-    {
-      first = lineFeed;
-      style = Lf;
-    }
-
-    if (carriageReturn >= 0 && (first < 0 || carriageReturn < first))
-    {
-      style = Cr;
-    }
-
-    return style;
+    return lineFeed > 0 && text[lineFeed - 1] == '\r' ? Crlf : Lf;
   }
 
-  public static string ToLineFeed(string text)
+  public string ToLineFeed(string text)
   {
     ArgumentNullException.ThrowIfNull(text);
-    return text
-      .Replace("\r\n", "\n", StringComparison.Ordinal)
-      .Replace("\r", "\n", StringComparison.Ordinal);
+    return Sequence == "\r"
+      ? text.Replace("\r", "\n", StringComparison.Ordinal)
+      : text.Replace("\r\n", "\n", StringComparison.Ordinal);
   }
 
   public string Apply(string lineFeedText)
@@ -75,25 +61,30 @@ internal readonly record struct TextFileEncoding(Encoding Encoding, byte[] Pream
   {
     if (HasPrefix(bytes, [0xEF, 0xBB, 0xBF]))
     {
-      return new TextFileEncoding(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), [0xEF, 0xBB, 0xBF]);
+      return new TextFileEncoding(Utf8(), [0xEF, 0xBB, 0xBF]);
     }
 
     if (HasPrefix(bytes, [0xFF, 0xFE, 0x00, 0x00]))
     {
-      return new TextFileEncoding(new UTF32Encoding(bigEndian: false, byteOrderMark: false), [0xFF, 0xFE, 0x00, 0x00]);
+      return new TextFileEncoding(new UTF32Encoding(bigEndian: false, byteOrderMark: false, throwOnInvalidCharacters: true), [0xFF, 0xFE, 0x00, 0x00]);
     }
 
     if (HasPrefix(bytes, [0xFF, 0xFE]))
     {
-      return new TextFileEncoding(new UnicodeEncoding(bigEndian: false, byteOrderMark: false), [0xFF, 0xFE]);
+      return new TextFileEncoding(new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true), [0xFF, 0xFE]);
     }
 
     if (HasPrefix(bytes, [0xFE, 0xFF]))
     {
-      return new TextFileEncoding(new UnicodeEncoding(bigEndian: true, byteOrderMark: false), [0xFE, 0xFF]);
+      return new TextFileEncoding(new UnicodeEncoding(bigEndian: true, byteOrderMark: false, throwOnInvalidBytes: true), [0xFE, 0xFF]);
     }
 
-    return new TextFileEncoding(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), []);
+    return new TextFileEncoding(Utf8(), []);
+  }
+
+  public bool IsBinary(ReadOnlySpan<byte> bytes)
+  {
+    return Encoding is UTF8Encoding && bytes.Contains((byte)0);
   }
 
   public string GetString(byte[] bytes)
@@ -121,6 +112,11 @@ internal readonly record struct TextFileEncoding(Encoding Encoding, byte[] Pream
     Preamble.CopyTo(encoded, 0);
     body.CopyTo(encoded, Preamble.Length);
     return encoded;
+  }
+
+  private static UTF8Encoding Utf8()
+  {
+    return new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
   }
 
   private static bool HasPrefix(ReadOnlySpan<byte> bytes, ReadOnlySpan<byte> prefix)

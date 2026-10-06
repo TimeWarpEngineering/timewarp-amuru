@@ -5,7 +5,8 @@
 #region Design
 // The regex is compiled before the iterator starts, so a bad pattern throws at the call.
 // File bytes are read with StreamReader.ReadLineAsync; only the context window is kept.
-// Multi-file input goes through Direct.FindItem and FindCriteria.
+// Multi-file input goes through Direct.FindItem and FindCriteria. Files whose first
+// 8000 bytes contain NUL (no UTF-16/32 BOM) are binary and yield no matches.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;

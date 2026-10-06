@@ -5,7 +5,10 @@
 #region Design
 // A file whose text does not change is not rewritten. DryRun fills Preview and
 // skips the temp file. Backup copies to path.bak only after the temp write succeeds
-// and before the move, and only when the text changes.
+// and before the move, and only when the text changes. A binary file (NUL byte) is
+// skipped with zero replacements. A file that is not valid text in its detected
+// encoding throws InvalidDataException naming the path and ends the enumeration.
+// A symlink is followed and its final target is rewritten.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -25,6 +28,7 @@ public static partial class Direct
   /// <exception cref="ArgumentNullException">When <paramref name="replacement"/> is null.</exception>
   /// <exception cref="FileNotFoundException">When <paramref name="path"/> does not exist.</exception>
   /// <exception cref="IOException">When a file cannot be read or replaced.</exception>
+  /// <exception cref="InvalidDataException">When a file is not valid text in its detected encoding.</exception>
   /// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled.</exception>
   public static IAsyncEnumerable<ReplaceResult> ReplaceInFiles(
     string pattern,
@@ -57,6 +61,7 @@ public static partial class Direct
   /// <exception cref="ArgumentException">When <paramref name="pattern"/> is invalid.</exception>
   /// <exception cref="FileNotFoundException">When a path does not exist.</exception>
   /// <exception cref="IOException">When a file cannot be read or replaced.</exception>
+  /// <exception cref="InvalidDataException">When a file is not valid text in its detected encoding.</exception>
   /// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled.</exception>
   public static IAsyncEnumerable<ReplaceResult> ReplaceInFiles(
     string pattern,
@@ -91,6 +96,7 @@ public static partial class Direct
   /// <exception cref="ArgumentNullException">When <paramref name="replacement"/> is null.</exception>
   /// <exception cref="DirectoryNotFoundException">When <paramref name="root"/> does not exist.</exception>
   /// <exception cref="IOException">When a file cannot be read or replaced.</exception>
+  /// <exception cref="InvalidDataException">When a file is not valid text in its detected encoding.</exception>
   /// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled.</exception>
   public static IAsyncEnumerable<ReplaceResult> ReplaceInFiles(
     string pattern,

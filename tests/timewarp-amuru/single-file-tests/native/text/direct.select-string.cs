@@ -1,7 +1,7 @@
 #!/usr/bin/env -S dotnet --
 
 #region Purpose
-// Direct.SelectString: streaming TextMatch, context, and exceptions.
+// Direct.SelectString: streaming TextMatch, context, limits, filters, and exceptions.
 #endregion
 
 #region Design
@@ -132,17 +132,84 @@ public class SelectString_Given_
     string directory = NewDirectory();
     try
     {
-      string path = await WriteAsync(directory, "notes.txt", "x\nx\n");
+      string first = await WriteAsync(directory, "a.txt", "x\nx\n");
+      string second = await WriteAsync(directory, "b.txt", "x\nx\n");
       Text.SelectStringOptions options = new() { MaxMatches = 1 };
-      List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("x", path, options));
+      List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("x", directory, options));
 
-      matches.Count.ShouldBe(1);
-      matches[0].LineNumber.ShouldBe(1);
+      matches.Count.ShouldBe(2);
+      matches.Select(match => match.Path).OrderBy(path => path, StringComparer.Ordinal).ShouldBe([first, second]);
+      matches.ShouldAllBe(match => match.LineNumber == 1);
     }
     finally
     {
       Directory.Delete(directory, recursive: true);
     }
+  }
+
+  public static async Task MaxMatches_Should_CountLinesNotHits()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "foo\nboo\nzoo\n");
+      Text.SelectStringOptions options = new() { MaxMatches = 2 };
+      List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("o", path, options));
+
+      matches.Select(match => match.LineNumber).ShouldBe([1, 1, 2, 2]);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Include_Should_SearchOnlyMatchingNames()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string kept = await WriteAsync(directory, "keep.cs", "needle\n");
+      await WriteAsync(directory, "skip.txt", "needle\n");
+      Text.SelectStringOptions options = new() { Include = "*.cs" };
+      List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("needle", directory, options));
+
+      matches.Count.ShouldBe(1);
+      matches[0].Path.ShouldBe(kept);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task BinaryFile_Should_BeSkipped()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string text = await WriteAsync(directory, "text.txt", "needle\n");
+      await File.WriteAllBytesAsync(Path.Combine(directory, "data.bin"), [.. "needle"u8, 0x00, .. "needle\n"u8]);
+      List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("needle", directory));
+
+      matches.Count.ShouldBe(1);
+      matches[0].Path.ShouldBe(text);
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Stream_Should_DecodeUtf8AndUseThePathLabel()
+  {
+    using MemoryStream stream = new("alpha\nbéta\n"u8.ToArray());
+    List<Text.TextMatch> matches = await Collect(Text.Direct.SelectString("b.ta", stream, "memory"));
+
+    matches.Count.ShouldBe(1);
+    matches[0].Path.ShouldBe("memory");
+    matches[0].LineNumber.ShouldBe(2);
+    matches[0].Line.ShouldBe("béta");
   }
 
   public static async Task Glob_Should_SkipOtherExtensions()

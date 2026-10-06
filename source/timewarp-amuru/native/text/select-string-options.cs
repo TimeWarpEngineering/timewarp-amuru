@@ -4,7 +4,7 @@
 
 #region Design
 // Line numbers are always present on TextMatch, so there is no switch for them.
-// MaxMatches is per file, matching grep -m. Include and Exclude are name globs
+// MaxMatches counts matching lines per file, matching grep -m. Include and Exclude are name globs
 // applied with FindCriteria / GlobMatcher, not a second glob engine.
 #endregion
 
@@ -43,8 +43,8 @@ public sealed class SelectStringOptions
   public int ContextAfter { get; init; }
 
   /// <summary>
-  /// Gets the maximum number of matches emitted per file.
-  /// <see langword="null"/> means no limit.
+  /// Gets the maximum number of matching lines per file, like <c>grep -m</c>.
+  /// Every hit on a counted line is still returned. <see langword="null"/> means no limit.
   /// </summary>
   public int? MaxMatches { get; init; }
 

@@ -4,19 +4,33 @@
 
 #region Design
 // Only the context window and in-flight matches are buffered, so a file is never
-// loaded as one string. MaxMatches stops the read once the last match's after-context
-// is filled. Each file gets its own window.
+// loaded as one string. MaxMatches counts matching lines, like grep -m: every hit on a
+// counted line is still yielded, and the read stops once the last counted line's
+// after-context is filled. Each file gets its own window. A file whose first
+// BinarySniffLength bytes contain NUL, without a UTF-16/32 BOM, is binary and is
+// skipped with no matches (unlike grep, no "Binary file matches" line is produced).
+// Reader and stream inputs are never sniffed.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
 
 internal static class TextSearch
 {
+  private const int BinarySniffLength = 8000;
+
   public static IEnumerable<TextMatch> ReadFile(Regex regex, string path, SelectStringOptions options)
   {
     ArgumentNullException.ThrowIfNull(regex);
     ArgumentNullException.ThrowIfNull(options);
     using FileStream stream = Open(path, asynchronous: false);
+    byte[] head = new byte[BinarySniffLength];
+    int read = stream.ReadAtLeast(head, BinarySniffLength, throwOnEndOfStream: false);
+    if (IsBinary(head.AsSpan(0, read)))
+    {
+      yield break;
+    }
+
+    stream.Position = 0;
     using StreamReader reader = new(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
     foreach (TextMatch match in Read(regex, reader, path, options))
     {
@@ -60,6 +74,15 @@ internal static class TextSearch
     FileStream stream = Open(path, asynchronous: true);
     await using (stream.ConfigureAwait(false))
     {
+      byte[] head = new byte[BinarySniffLength];
+      int read = await stream.ReadAtLeastAsync(head, BinarySniffLength, throwOnEndOfStream: false, cancellationToken)
+        .ConfigureAwait(false);
+      if (IsBinary(head.AsSpan(0, read)))
+      {
+        yield break;
+      }
+
+      stream.Position = 0;
       using StreamReader reader = new(
         stream,
         Encoding.UTF8,
@@ -109,6 +132,11 @@ internal static class TextSearch
     {
       yield return match;
     }
+  }
+
+  private static bool IsBinary(ReadOnlySpan<byte> head)
+  {
+    return TextFileEncoding.Detect(head).IsBinary(head);
   }
 
   private static FileStream Open(string path, bool asynchronous)
@@ -207,6 +235,7 @@ internal static class TextSearch
           yield break;
         }
 
+        Started++;
         foreach (TextMatch match in Add(path, line, Pattern.Match(line)))
         {
           yield return match;
@@ -215,11 +244,13 @@ internal static class TextSearch
         yield break;
       }
 
+      bool counted = false;
       for (Match found = Pattern.Match(line); found.Success; found = found.NextMatch())
       {
-        if (IsSaturated)
+        if (!counted)
         {
-          yield break;
+          Started++;
+          counted = true;
         }
 
         foreach (TextMatch match in Add(path, line, found))
@@ -231,7 +262,6 @@ internal static class TextSearch
 
     private IEnumerable<TextMatch> Add(string path, string line, Match match)
     {
-      Started++;
       string[] contextBefore = Options.ContextBefore <= 0 ? [] : Before.ToArray();
       PendingMatch pending = new()
       {
