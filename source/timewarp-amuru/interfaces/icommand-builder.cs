@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Shared fluent surface for validation, working directory, and environment on a command builder.
+#endregion
+
+#region Design
+// The type parameter is the concrete builder so each method returns that builder.
+// Argument lists differ per command and stay off this interface. Build returns a CommandResult that has not run.
 #endregion
 
 namespace TimeWarp.Amuru;
