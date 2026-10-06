@@ -3,8 +3,10 @@
 #endregion
 
 #region Design
-// Returns, ReturnsError, Throws, and Delays each register the setup. A delay-only chain is a real setup
-// whose output is empty success. The same MockSetupData instance is stored, so a later call overwrites fields and registers again.
+// Returns, ReturnsError, Throws, Delays, and TimesOut each register the setup. A delay-only chain is a real setup
+// whose output is empty success. TimesOut forces the timeout result shape (exit 124, TimedOut).
+// A delay greater than or equal to the command Timeout is also a timeout. The same MockSetupData instance is stored,
+// so a later call overwrites fields and registers again.
 #endregion
 
 namespace TimeWarp.Amuru.Testing;
@@ -93,6 +95,20 @@ public sealed class MockSetup
     setupData.Delay = delay;
     // Register so Setup(...).Delays(...) alone is a valid setup (delay + empty success output);
     // previously only Returns/Throws registered, silently dropping delay-only setups.
+    state.AddSetup(executable, arguments, setupData);
+    return this;
+  }
+
+  /// <summary>
+  /// Configures the mock to time out. The result matches a real timed-out command:
+  /// <see cref="CommandOutput.TimedOut"/> is true and the exit code is <see cref="CommandResult.TimeoutExitCode"/>.
+  /// Stdout and stderr still come from <see cref="Returns(string, string?, int)"/> when that was called.
+  /// A configured <see cref="Delays"/> wait is capped by the command timeout when one is set.
+  /// </summary>
+  /// <returns>This instance for method chaining</returns>
+  public MockSetup TimesOut()
+  {
+    setupData.TimesOut = true;
     state.AddSetup(executable, arguments, setupData);
     return this;
   }

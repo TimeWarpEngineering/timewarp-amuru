@@ -11,6 +11,7 @@
 // - Mock matching uses the caller's logical executable name, captured before GetCommandPath and before .cs host rewrite.
 // - Inserts "--" for .cs targets so dotnet file-based apps receive arguments correctly.
 // - Applies CommandOptions in one place to keep ShellBuilder and other builders thin.
+// - Timeout is not a CliWrap setting. It is copied onto CommandResult with the options snapshot.
 // - Optional standardInput is attached whenever the caller passes a string, including empty.
 //   Null means "do not replace stdin". Empty means immediate EOF, so a command that was given
 //   no items does not fall through to the terminal.
@@ -99,6 +100,6 @@ internal static class CommandExtensions
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }
 
-    return new CommandResult(cliCommand, mockExecutable, mockArguments, standardInput);
+    return new CommandResult(cliCommand, mockExecutable, mockArguments, standardInput, commandOptions);
   }
 }

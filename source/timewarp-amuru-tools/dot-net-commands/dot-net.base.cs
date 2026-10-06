@@ -128,6 +128,30 @@ public class DotNetBuilder : ICommandBuilder<DotNetBuilder>
   }
 
   /// <summary>
+  /// Sets the maximum time this dotnet command may run. The caller's cancellation token still applies.
+  /// Other dotnet builders do not declare <c>WithTimeout</c>. A child constructed from a
+  /// <see cref="CommandOptions"/> snapshot keeps a timeout already stored on that snapshot.
+  /// </summary>
+  /// <param name="timeout">Positive duration</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetBuilder WithTimeout(TimeSpan timeout)
+  {
+    Options = Options.WithTimeout(timeout);
+    return this;
+  }
+
+  /// <summary>
+  /// Sets how long to wait after the graceful termination signal before the dotnet process is killed.
+  /// </summary>
+  /// <param name="gracePeriod">Zero or a positive duration</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetBuilder WithTimeoutGracePeriod(TimeSpan gracePeriod)
+  {
+    Options = Options.WithTimeoutGracePeriod(gracePeriod);
+    return this;
+  }
+
+  /// <summary>
   /// Builds the command and returns a CommandResult.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>

@@ -85,3 +85,15 @@ TimeWarp.Amuru.Native.Text.TextMatch.Match.init -> void
 TimeWarp.Amuru.Native.Text.TextMatch.Path.get -> string!
 TimeWarp.Amuru.Native.Text.TextMatch.Path.init -> void
 TimeWarp.Amuru.Native.Text.TextMatch.TextMatch() -> void
+const TimeWarp.Amuru.CommandResult.TimeoutExitCode = 124 -> int
+static readonly TimeWarp.Amuru.CommandOptions.DefaultTimeoutGracePeriod -> System.TimeSpan
+TimeWarp.Amuru.CommandOptions.Timeout.get -> System.TimeSpan?
+TimeWarp.Amuru.CommandOptions.TimeoutGracePeriod.get -> System.TimeSpan
+TimeWarp.Amuru.CommandOptions.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOptions.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.CommandOptions!
+TimeWarp.Amuru.CommandOutput.TimedOut.get -> bool
+TimeWarp.Amuru.CommandOutput.TimedOut.init -> void
+TimeWarp.Amuru.CommandResult.LastOutput.get -> TimeWarp.Amuru.CommandOutput?
+TimeWarp.Amuru.ShellBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.Testing.MockSetup.TimesOut() -> TimeWarp.Amuru.Testing.MockSetup!

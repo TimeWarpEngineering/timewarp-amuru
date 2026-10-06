@@ -11,6 +11,7 @@
 // - Two constructors: one from OutputLine list (streaming), one from strings (reconstruction)
 // - String constructor uses SplitLines so interior blanks (including whitespace-only) match CaptureAsync
 // - Convenience methods GetLines/GetStdoutLines/GetStderrLines for line-array access
+// - TimedOut is independent of Success. Success stays ExitCode == 0. A timeout reports exit 124, so Success is false.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -36,6 +37,13 @@ public class CommandOutput
   /// Gets whether the command succeeded (exit code is 0).
   /// </summary>
   public bool Success => ExitCode == 0;
+
+  /// <summary>
+  /// Gets whether the command was ended because it exceeded its timeout.
+  /// When true, <see cref="ExitCode"/> is <see cref="CommandResult.TimeoutExitCode"/> and <see cref="Success"/> is false.
+  /// A cancellation requested by the caller does not set this flag.
+  /// </summary>
+  public bool TimedOut { get; init; }
 
   /// <summary>
   /// Gets how long the command ran. Zero when the command never ran
@@ -222,6 +230,10 @@ public class CommandOutput
     sb.AppendLine(CultureInfo.InvariantCulture, $"Status: {(Success ? "SUCCESS" : "FAILED")}");
     sb.AppendLine(CultureInfo.InvariantCulture, $"Exit Code: {ExitCode}");
     sb.AppendLine(CultureInfo.InvariantCulture, $"Runtime: {RunTime}");
+    if (TimedOut)
+    {
+      sb.AppendLine("Timed out: yes");
+    }
 
     if (!string.IsNullOrEmpty(Stdout))
     {

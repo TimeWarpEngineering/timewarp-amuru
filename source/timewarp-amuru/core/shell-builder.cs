@@ -6,6 +6,7 @@
 // The builder stores the executable, argument list, CommandOptions, and optional stdin.
 // Build delegates to CommandExtensions.Run, and the execution methods forward to that result.
 // PassthroughAsync keeps configured stdin. TtyPassthroughAsync refuses it because the child inherits the terminal.
+// WithTimeout stores the limit on CommandOptions. There is no static default timeout.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -86,6 +87,28 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public ShellBuilder WithZeroExitCodeValidation()
   {
     Options = Options.WithZeroExitCodeValidation();
+    return this;
+  }
+
+  /// <summary>
+  /// Sets the maximum time this command may run. The caller's cancellation token still applies.
+  /// </summary>
+  /// <param name="timeout">Positive duration</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithTimeout(TimeSpan timeout)
+  {
+    Options = Options.WithTimeout(timeout);
+    return this;
+  }
+
+  /// <summary>
+  /// Sets how long to wait after the graceful termination signal before the process is killed.
+  /// </summary>
+  /// <param name="gracePeriod">Zero or a positive duration</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithTimeoutGracePeriod(TimeSpan gracePeriod)
+  {
+    Options = Options.WithTimeoutGracePeriod(gracePeriod);
     return this;
   }
 
