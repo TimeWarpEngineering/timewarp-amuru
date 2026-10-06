@@ -27,6 +27,8 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 - [ ] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`.
 - [ ] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`).
 - [ ] Review `.editorconfig` experimental / style rules for SDK 11 analyzer changes (known risk: IDE0055 when SDK and analyzer package generation diverge).
+- [ ] **Pre-GA soak (can start now on RC1, `11.0.100-rc.1` is installed):** run the full suite on the .NET 11 runtime (`DOTNET_ROLL_FORWARD=Major` or a temporary `global.json`) and watch for behavior changes under CliWrap's output reading: Windows redirected stdio moved to overlapped I/O, macOS spawn moved to posix_spawn, Linux handle inheritance uses close_range. Record pass/fail per OS in Notes.
+- [ ] **Decision: replace CliWrap internally with the .NET 11 Process APIs?** .NET 11 adds `Process.Run/RunAsync`, `RunAndCaptureText[Async]`, deadlock-free `ReadAll*`, handle-based stdio redirection, `KillOnParentExit`, `ProcessExitStatus`, `SafeProcessHandle.WaitForExitOrKillOnCancellationAsync`, `Signal(PosixSignal)`. Task 091 already removed CliWrap from the public surface, so this is an internal swap. Evaluate against the execution modes in `core/command-result.cs` (capture, stream, pipe, passthrough, select, timeout graceful/forceful from task 044) and the mock layer; decide keep / swap / partial, record in Notes. Not a blocker for the TFM bump; may become its own task.
 
 ### 2. TFMs
 
@@ -94,6 +96,8 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 5. **Docs**: installation guide + AGENTS.md net10 requirements.
 
 ### Breaking / risk notes
+
+- **.NET 11 Process API (researched 2026-10-07):** purely additive, nothing removed; no `System.Diagnostics.Process` breaking change found; `PosixSignal` gains `SIGKILL` and `SIGTSTP`'s numeric value changed (irrelevant unless hard-coded). Risk is runtime behavior under CliWrap, not source compatibility. PTY support is .NET 12 research only (dotnet/runtime #128565), so `TtyPassthroughAsync` stays as is. Task 083 depends on this task to use the new primitives.
 
 - **STS timeline**: .NET 10 is LTS (support to 2028-11); .NET 11 is STS (~2 years from GA). Upgrading consumers to net11 is a **breaking TFM bump** for library consumers still on net10 — consider whether to multi-target `net10.0;net11.0` temporarily or hard-cut.
 - **Analyzer / IDE0055**: AGENTS.md already warns preview SDK vs pin causes style failures; bump SDK and NetAnalyzers/CodeStyle together.
