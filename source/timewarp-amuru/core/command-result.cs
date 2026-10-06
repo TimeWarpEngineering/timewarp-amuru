@@ -37,6 +37,20 @@
 //   Matched calls record configured standard input (empty included). Null means none was configured.
 // - Null commands never throw, preserving shell-like composition, but they report FAILURE:
 //   NeverRanExitCode (-1) via ExitCode/Success so a command that never ran is distinguishable from one that succeeded.
+// - Timeout is per command, stored with the options snapshot. CliWrap 3.10.5 ExecuteAsync(forceful, graceful)
+//   sends SIGINT on the graceful token and kills on the forceful token. The graceful token fires at Timeout;
+//   the forceful token fires at Timeout plus TimeoutGracePeriod, or immediately when the caller cancels.
+//   Default validation records TimedOut and exit 124. Zero-exit validation throws TimeoutException.
+//   The caller's own cancellation still propagates as OperationCanceledException and does not set TimedOut.
+// - Pipe stages share one window: the pipeline keeps the shorter timeout and that stage's grace period.
+// - TtyPassthroughAsync sends SIGINT itself on Linux and macOS, then kills the tree after the grace period.
+//   Windows non-console children receive no SIGINT, so the grace period ends in the kill.
+//   TtyPassthroughAsync still does not throw on timeout; it reports the result.
+// - LastOutput is the most recent execution that finished, including a timeout. Caller cancellation leaves it unchanged.
+// - Streaming enumerators complete on timeout under default validation. LastOutput is set before the enumerator ends.
+//   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
+//   Disposing CliWrap's ListenAsync awaits the command task again. That second await throws the
+//   termination OperationCanceledException; the dispose is swallowed so the classified result stands.
 #endregion
 
 #region Execution Modes
@@ -62,6 +76,10 @@ namespace TimeWarp.Amuru;
 /// The execution surface over a built command: run, capture, stream, pipe, select,
 /// and passthrough behaviors from one fluent object. Create via <see cref="Shell.Builder"/>
 /// (then <c>Build()</c>) or <see cref="Shell.Run"/>.
+/// A configured timeout ends the command with <see cref="CommandOutput.TimedOut"/> and
+/// <see cref="TimeoutExitCode"/>. Strict validation throws <see cref="TimeoutException"/> instead.
+/// <see cref="TtyPassthroughAsync"/> reports that result and does not throw.
+/// Cancelling the caller's token throws <see cref="OperationCanceledException"/> and leaves <see cref="LastOutput"/> unchanged.
 /// </summary>
 public class CommandResult
 {
@@ -70,6 +88,11 @@ public class CommandResult
   /// Distinguishes never-ran from a successful (0) or tool-reported non-zero exit.
   /// </summary>
   public const int NeverRanExitCode = -1;
+
+  /// <summary>
+  /// Exit code reported when a command exceeds its timeout. Matches GNU timeout.
+  /// </summary>
+  public const int TimeoutExitCode = 124;
 
   private const string TtyConfiguredStandardInputMessage =
     "TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY";
@@ -93,27 +116,66 @@ public class CommandResult
   // True for Pipe compositions: the upstream stage owns stdin of the last stage.
   private bool IsPipeline { get; }
 
-  internal CommandResult(Command? command)
+  private TimeSpan? Timeout { get; }
+  private TimeSpan TimeoutGracePeriod { get; }
+  private CommandResultValidation Validation { get; }
+
+  /// <summary>
+  /// Outcome of the most recent execution on this instance that ran to completion, including a timeout.
+  /// Null before that first execution. Streaming methods set this when the enumerator finishes.
+  /// A cancellation requested by the caller does not update it.
+  /// </summary>
+  public CommandOutput? LastOutput { get; private set; }
+
+  private CommandResult(
+    Command? command,
+    string? configuredStandardInput,
+    bool isPipeline,
+    string? mockExecutable,
+    string[]? mockArguments,
+    TimeSpan? timeout,
+    TimeSpan timeoutGracePeriod,
+    CommandResultValidation validation)
   {
     InternalCommand = command;
-  }
-
-  internal CommandResult(Command? command, string? configuredStandardInput) : this(command)
-  {
     ConfiguredStandardInput = configuredStandardInput;
-  }
-
-  private CommandResult(Command? command, string? configuredStandardInput, bool isPipeline)
-    : this(command, configuredStandardInput)
-  {
     IsPipeline = isPipeline;
+    MockExecutable = mockExecutable;
+    MockArguments = mockArguments;
+    Timeout = timeout;
+    TimeoutGracePeriod = timeoutGracePeriod;
+    Validation = validation;
   }
 
-  internal CommandResult(Command? command, string executable, string[] arguments, string? configuredStandardInput)
-    : this(command, configuredStandardInput)
+  internal CommandResult(Command? command)
+    : this(
+      command,
+      configuredStandardInput: null,
+      isPipeline: false,
+      mockExecutable: null,
+      mockArguments: null,
+      timeout: null,
+      timeoutGracePeriod: CommandOptions.DefaultTimeoutGracePeriod,
+      validation: CommandResultValidation.None)
   {
-    MockExecutable = executable;
-    MockArguments = arguments;
+  }
+
+  internal CommandResult(
+    Command? command,
+    string executable,
+    string[] arguments,
+    string? configuredStandardInput,
+    CommandOptions options)
+    : this(
+      command,
+      configuredStandardInput,
+      isPipeline: false,
+      executable,
+      arguments,
+      options.Timeout,
+      options.TimeoutGracePeriod,
+      options.Validation ?? CommandResultValidation.None)
+  {
   }
 
   /// <summary>
@@ -178,6 +240,452 @@ public class CommandResult
   private static string[] SplitMockLines(string? text) =>
     CommandOutput.SplitLines(text ?? string.Empty);
 
+  private static TimeSpan? MergeTimeout(TimeSpan? upstream, TimeSpan? stage)
+  {
+    if (upstream is null)
+    {
+      return stage;
+    }
+
+    if (stage is null)
+    {
+      return upstream;
+    }
+
+    return upstream.Value <= stage.Value ? upstream : stage;
+  }
+
+  private static TimeSpan GraceForSharedTimeout(
+    TimeSpan? upstreamTimeout,
+    TimeSpan upstreamGrace,
+    TimeSpan? stageTimeout,
+    TimeSpan stageGrace,
+    TimeSpan? sharedTimeout)
+  {
+    if (sharedTimeout is null || upstreamTimeout is null)
+    {
+      return stageTimeout is null ? upstreamGrace : stageGrace;
+    }
+
+    if (stageTimeout is null || upstreamTimeout.Value < stageTimeout.Value)
+    {
+      return upstreamGrace;
+    }
+
+    if (stageTimeout.Value < upstreamTimeout.Value)
+    {
+      return stageGrace;
+    }
+
+    return upstreamGrace <= stageGrace ? upstreamGrace : stageGrace;
+  }
+
+  private static CommandResultValidation MergeValidation(
+    CommandResultValidation upstream,
+    CommandResultValidation? stage)
+  {
+    CommandResultValidation resolvedStage = stage ?? CommandResultValidation.None;
+    if (upstream == CommandResultValidation.ZeroExitCode || resolvedStage == CommandResultValidation.ZeroExitCode)
+    {
+      return CommandResultValidation.ZeroExitCode;
+    }
+
+    return CommandResultValidation.None;
+  }
+
+  private string DescribeTimeout()
+  {
+    if (Timeout is TimeSpan timeout)
+    {
+      return $"Command timed out after {timeout.TotalSeconds.ToString("G", CultureInfo.InvariantCulture)} seconds and was terminated.";
+    }
+
+    return "Command timed out and was terminated.";
+  }
+
+  private CommandOutput Remember(CommandOutput output)
+  {
+    LastOutput = output;
+    return output;
+  }
+
+  private CommandOutput RememberTimeout(string stdout, string stderr, TimeSpan runTime, bool throwOnStrictTimeout)
+  {
+    CommandOutput output = new(stdout, stderr, TimeoutExitCode)
+    {
+      RunTime = runTime,
+      TimedOut = true
+    };
+    LastOutput = output;
+    if (throwOnStrictTimeout && Validation == CommandResultValidation.ZeroExitCode)
+    {
+      throw new TimeoutException(DescribeTimeout());
+    }
+
+    return output;
+  }
+
+  private readonly struct CliExecution
+  {
+    public bool TimedOut { get; init; }
+    public int ExitCode { get; init; }
+    public TimeSpan RunTime { get; init; }
+  }
+
+  private async Task<CliExecution> ExecuteCliAsync(Command command, CancellationToken cancellationToken)
+  {
+    var stopwatch = Stopwatch.StartNew();
+    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
+    try
+    {
+      CliWrap.CommandResult result = session.HasTimeout
+        ? await command.ExecuteAsync(session.ForcefulToken, session.GracefulToken).ConfigureAwait(false)
+        : await command.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+      stopwatch.Stop();
+      return new CliExecution
+      {
+        ExitCode = result.ExitCode,
+        RunTime = result.RunTime
+      };
+    }
+    catch (OperationCanceledException exception) when (session.CallerCancelled)
+    {
+      throw PropagateCallerCancellation(exception, cancellationToken);
+    }
+    catch (OperationCanceledException) when (session.TimedOut)
+    {
+      stopwatch.Stop();
+      return new CliExecution
+      {
+        TimedOut = true,
+        ExitCode = TimeoutExitCode,
+        RunTime = stopwatch.Elapsed
+      };
+    }
+  }
+
+  private CommandOutput FinishCli(CliExecution execution, string stdout, string stderr, bool throwOnStrictTimeout)
+  {
+    if (execution.TimedOut)
+    {
+      return RememberTimeout(stdout, stderr, execution.RunTime, throwOnStrictTimeout);
+    }
+
+    return Remember(new CommandOutput(stdout, stderr, execution.ExitCode) { RunTime = execution.RunTime });
+  }
+
+  private CommandOutput FinishCli(CliExecution execution, IReadOnlyList<OutputLine> lines, bool throwOnStrictTimeout)
+  {
+    if (execution.TimedOut)
+    {
+      CommandOutput timedOut = new(lines, TimeoutExitCode)
+      {
+        RunTime = execution.RunTime,
+        TimedOut = true
+      };
+      LastOutput = timedOut;
+      if (throwOnStrictTimeout && Validation == CommandResultValidation.ZeroExitCode)
+      {
+        throw new TimeoutException(DescribeTimeout());
+      }
+
+      return timedOut;
+    }
+
+    return Remember(new CommandOutput(lines, execution.ExitCode) { RunTime = execution.RunTime });
+  }
+
+  private readonly struct MockExecution
+  {
+    public bool Handled { get; init; }
+    public bool TimedOut { get; init; }
+    public Testing.MockSetupData? Setup { get; init; }
+  }
+
+  private async Task<MockExecution> TryExecuteMockAsync(CancellationToken cancellationToken)
+  {
+    Testing.MockSetupData? setup = ResolveMockSetup();
+    if (setup is null)
+    {
+      return default;
+    }
+
+    cancellationToken.ThrowIfCancellationRequested();
+
+    bool timesOut = setup.TimesOut
+      || (Timeout is TimeSpan timeout && setup.Delay is TimeSpan delay && delay >= timeout);
+    if (timesOut)
+    {
+      await WaitForMockTimeoutAsync(setup, cancellationToken).ConfigureAwait(false);
+      return new MockExecution
+      {
+        Handled = true,
+        TimedOut = true,
+        Setup = setup
+      };
+    }
+
+    await ApplyMockPreludeAsync(setup, cancellationToken).ConfigureAwait(false);
+    return new MockExecution
+    {
+      Handled = true,
+      Setup = setup
+    };
+  }
+
+  private async Task WaitForMockTimeoutAsync(Testing.MockSetupData setup, CancellationToken cancellationToken)
+  {
+    TimeSpan wait = setup.Delay ?? TimeSpan.Zero;
+    if (Timeout is TimeSpan timeout && wait > timeout)
+    {
+      wait = timeout;
+    }
+
+    if (wait <= TimeSpan.Zero)
+    {
+      return;
+    }
+
+    try
+    {
+      await Task.Delay(wait, cancellationToken).ConfigureAwait(false);
+    }
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+    {
+      throw;
+    }
+  }
+
+  private CommandOutput CompleteMock(
+    Testing.MockSetupData setup,
+    bool timedOut,
+    bool throwOnStrictTimeout,
+    bool includeText)
+  {
+    string stdout = includeText ? setup.Stdout ?? string.Empty : string.Empty;
+    string stderr = includeText ? setup.Stderr ?? string.Empty : string.Empty;
+    if (timedOut)
+    {
+      return RememberTimeout(stdout, stderr, TimeSpan.Zero, throwOnStrictTimeout);
+    }
+
+    return Remember(new CommandOutput(stdout, stderr, setup.ExitCode));
+  }
+
+  private static async Task WriteMockToTerminalAsync(Testing.MockSetupData setup)
+  {
+    if (!string.IsNullOrEmpty(setup.Stdout))
+    {
+      await TimeWarpTerminal.Default.WriteLineAsync(setup.Stdout).ConfigureAwait(false);
+    }
+
+    if (!string.IsNullOrEmpty(setup.Stderr))
+    {
+      await TimeWarpTerminal.Default.WriteErrorLineAsync(setup.Stderr).ConfigureAwait(false);
+    }
+  }
+
+  private static OperationCanceledException PropagateCallerCancellation(
+    OperationCanceledException exception,
+    CancellationToken cancellationToken)
+  {
+    if (exception.CancellationToken == cancellationToken)
+    {
+      return exception;
+    }
+
+    return new OperationCanceledException(exception.Message, exception, cancellationToken);
+  }
+
+  private async IAsyncEnumerable<CommandEvent> ListenWithTimeoutAsync(
+    [EnumeratorCancellation] CancellationToken cancellationToken)
+  {
+    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
+    var stopwatch = Stopwatch.StartNew();
+    IAsyncEnumerable<CommandEvent> events = session.HasTimeout
+      ? InternalCommand!.ListenAsync(Encoding.Default, Encoding.Default, session.ForcefulToken, session.GracefulToken)
+      : InternalCommand!.ListenAsync(cancellationToken);
+
+    // None keeps the tokens passed to ListenAsync. A caller token passed here is linked into the forceful token.
+    IAsyncEnumerator<CommandEvent> enumerator = events.GetAsyncEnumerator(CancellationToken.None);
+    try
+    {
+      bool timedOut = false;
+      int exitCode = 0;
+      while (true)
+      {
+        bool moved;
+        try
+        {
+          moved = await enumerator.MoveNextAsync().ConfigureAwait(false);
+        }
+        catch (OperationCanceledException exception) when (session.CallerCancelled)
+        {
+          throw PropagateCallerCancellation(exception, cancellationToken);
+        }
+        catch (OperationCanceledException) when (session.TimedOut)
+        {
+          timedOut = true;
+          break;
+        }
+
+        if (!moved)
+        {
+          break;
+        }
+
+        if (enumerator.Current is ExitedCommandEvent exited)
+        {
+          exitCode = exited.ExitCode;
+        }
+
+        yield return enumerator.Current;
+      }
+
+      stopwatch.Stop();
+      if (timedOut)
+      {
+        RememberTimeout(string.Empty, string.Empty, stopwatch.Elapsed, throwOnStrictTimeout: true);
+        yield break;
+      }
+
+      Remember(new CommandOutput(string.Empty, string.Empty, exitCode) { RunTime = stopwatch.Elapsed });
+    }
+    finally
+    {
+      // ListenAsync awaits the command task again while disposing. CliWrap 3.10.5 stores
+      // graceful and forceful termination on that task as OperationCanceledException, and the
+      // dispose path does not swallow a token it already translated. The loop above classified it.
+      try
+      {
+        await enumerator.DisposeAsync().ConfigureAwait(false);
+      }
+      catch (OperationCanceledException)
+      {
+      }
+    }
+  }
+
+  private static async Task WaitForExitAfterKillAsync(Process process)
+  {
+    TryKill(process);
+    using CancellationTokenSource bound = new(TimeSpan.FromSeconds(2));
+    try
+    {
+      await process.WaitForExitAsync(bound.Token).ConfigureAwait(false);
+    }
+    catch (OperationCanceledException)
+    {
+      // The process outlived the kill. The caller still reports timeout or cancellation.
+    }
+  }
+
+  private static void TryKill(Process process)
+  {
+    try
+    {
+      if (!process.HasExited)
+      {
+        process.Kill(entireProcessTree: true);
+      }
+    }
+    catch (InvalidOperationException)
+    {
+      // Process already exited.
+    }
+    catch (System.ComponentModel.Win32Exception)
+    {
+      // Process already exited or could not be signaled.
+    }
+  }
+
+  private static void TryInterrupt(Process process)
+  {
+    try
+    {
+      if (process.HasExited)
+      {
+        return;
+      }
+
+      // Windows has no SIGINT for a non-console child. The grace timer still force-kills it.
+      if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+      {
+        _ = NativeSignals.Kill(process.Id, NativeSignals.Interrupt);
+      }
+    }
+    catch (InvalidOperationException)
+    {
+      // Process already exited.
+    }
+  }
+
+  private sealed class TimeoutSession : IDisposable
+  {
+    private readonly CancellationToken CallerToken;
+    private readonly CancellationTokenSource? GracefulSource;
+    private readonly CancellationTokenSource? ForcefulDelaySource;
+    private readonly CancellationTokenSource? LinkedForcefulSource;
+
+    public bool HasTimeout { get; }
+    public CancellationToken GracefulToken { get; }
+    public CancellationToken ForcefulToken { get; }
+    public bool CallerCancelled => CallerToken.IsCancellationRequested;
+
+    public bool TimedOut =>
+      HasTimeout
+      && !CallerToken.IsCancellationRequested
+      && ((GracefulSource?.IsCancellationRequested ?? false) || (ForcefulDelaySource?.IsCancellationRequested ?? false));
+
+    public TimeoutSession(TimeSpan? timeout, TimeSpan grace, CancellationToken callerToken)
+    {
+      CallerToken = callerToken;
+      if (timeout is not TimeSpan limit)
+      {
+        GracefulToken = CancellationToken.None;
+        ForcefulToken = callerToken;
+        return;
+      }
+
+      HasTimeout = true;
+      GracefulSource = new CancellationTokenSource(limit);
+      ForcefulDelaySource = new CancellationTokenSource(AddGrace(limit, grace));
+      LinkedForcefulSource = CancellationTokenSource.CreateLinkedTokenSource(callerToken, ForcefulDelaySource.Token);
+      GracefulToken = GracefulSource.Token;
+      ForcefulToken = LinkedForcefulSource.Token;
+    }
+
+    public void Dispose()
+    {
+      LinkedForcefulSource?.Dispose();
+      ForcefulDelaySource?.Dispose();
+      GracefulSource?.Dispose();
+    }
+
+    private static TimeSpan AddGrace(TimeSpan timeout, TimeSpan grace)
+    {
+      double milliseconds = timeout.TotalMilliseconds + grace.TotalMilliseconds;
+      if (milliseconds > int.MaxValue)
+      {
+        return TimeSpan.FromMilliseconds(int.MaxValue);
+      }
+
+      return TimeSpan.FromMilliseconds(milliseconds);
+    }
+  }
+
+  private static class NativeSignals
+  {
+    internal const int Interrupt = 2;
+
+    // DllImport stays here so CommandResult does not have to be partial for one libc call.
+    [DllImport("libc", EntryPoint = "kill", SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
+    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
+    [System.Runtime.Versioning.SupportedOSPlatform("macos")]
+    internal static extern int Kill(int pid, int signal);
+  }
+
   /// <summary>
   /// Passes the command through to the console by piping stdin/stdout/stderr streams.
   /// This allows interactive commands like fzf to work with user input and terminal UI.
@@ -215,28 +723,19 @@ public class CommandResult
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output goes to console)</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty(NeverRanExitCode);
+      return Remember(CommandOutput.Empty(NeverRanExitCode));
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      if (!string.IsNullOrEmpty(mockSetup.Stdout))
-      {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
-      }
-
-      if (!string.IsNullOrEmpty(mockSetup.Stderr))
-      {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
-      }
-
-      return new CommandOutput(string.Empty, string.Empty, mockSetup.ExitCode);
+      await WriteMockToTerminalAsync(setup).ConfigureAwait(false);
+      return CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: false);
     }
 
     // Open console streams for interactive piping
@@ -258,11 +757,10 @@ public class CommandResult
       interactiveCommand = interactiveCommand.WithStandardInputPipe(PipeSource.FromStream(stdIn));
     }
 
-    // Execute interactively
-    CliWrap.CommandResult result;
+    CliExecution execution;
     try
     {
-      result = await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+      execution = await ExecuteCliAsync(interactiveCommand, cancellationToken).ConfigureAwait(false);
     }
     finally
     {
@@ -272,8 +770,7 @@ public class CommandResult
       }
     }
 
-    // Return result with empty output strings (output went to console)
-    return new CommandOutput(string.Empty, string.Empty, result.ExitCode) { RunTime = result.RunTime };
+    return FinishCli(execution, string.Empty, string.Empty, throwOnStrictTimeout: true);
   }
 
   /// <summary>
@@ -301,6 +798,10 @@ public class CommandResult
   /// Validation options do not apply here: this method never throws on a
   /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
   /// the returned CommandOutput's ExitCode/Success instead.
+  /// A timeout is reported the same way: <see cref="CommandOutput.TimedOut"/> and exit
+  /// <see cref="TimeoutExitCode"/>, with no exception.
+  /// On Linux and macOS the child receives SIGINT when the timeout elapses, then a tree kill after the grace period.
+  /// Windows non-console children receive no SIGINT, so the grace period ends in that kill.
   /// </para>
   /// </remarks>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
@@ -310,16 +811,11 @@ public class CommandResult
   /// Also thrown for a <see cref="Pipe(string, string[])"/> composition, which this method cannot run.
   /// </exception>
   /// <returns>The execution result (output strings will be empty since streams are inherited)</returns>
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Design",
-    "CA1031",
-    Justification = "CLI boundary: cancellation/teardown race can throw during process kill; failures are intentionally ignored to preserve graceful shutdown."
-  )]
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty(NeverRanExitCode);
+      return Remember(CommandOutput.Empty(NeverRanExitCode));
     }
 
     if (ConfiguredStandardInput is not null)
@@ -332,11 +828,10 @@ public class CommandResult
       throw new InvalidOperationException(TtyPipelineMessage);
     }
 
-    Testing.MockSetupData? ttyMockSetup = ResolveMockSetup();
-    if (ttyMockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(ttyMockSetup, cancellationToken).ConfigureAwait(false);
-      return new CommandOutput(string.Empty, string.Empty, ttyMockSetup.ExitCode);
+      return CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: false, includeText: false);
     }
 
     DateTimeOffset startTime = DateTimeOffset.Now;
@@ -378,25 +873,36 @@ public class CommandResult
     process.Start();
 #pragma warning restore RS0030
 
-    // Register cancellation
-    CancellationTokenRegistration registration = cancellationToken.Register(() =>
+    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
+    using CancellationTokenRegistration gracefulRegistration = session.GracefulToken.CanBeCanceled
+      ? session.GracefulToken.Register(() => TryInterrupt(process))
+      : default;
+    using CancellationTokenRegistration forcefulRegistration = session.ForcefulToken.CanBeCanceled
+      ? session.ForcefulToken.Register(() => TryKill(process))
+      : default;
+
+    try
     {
-      try
-      {
-        process.Kill(entireProcessTree: true);
-      }
-      catch
-      {
-        // Process may have already exited
-      }
-    });
-    await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable registrationScope = registration.ConfigureAwait(false);
+      await process.WaitForExitAsync(session.ForcefulToken).ConfigureAwait(false);
+    }
+    catch (OperationCanceledException exception) when (session.CallerCancelled)
+    {
+      await WaitForExitAfterKillAsync(process).ConfigureAwait(false);
+      throw PropagateCallerCancellation(exception, cancellationToken);
+    }
+    catch (OperationCanceledException) when (session.TimedOut)
+    {
+      // The forceful token fired after the grace period. Kill again in case the callback lost the race.
+      await WaitForExitAfterKillAsync(process).ConfigureAwait(false);
+    }
 
-    await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+    TimeSpan runTime = DateTimeOffset.Now - startTime;
+    if (session.TimedOut)
+    {
+      return RememberTimeout(string.Empty, string.Empty, runTime, throwOnStrictTimeout: false);
+    }
 
-    DateTimeOffset exitTime = DateTimeOffset.Now;
-
-    return new CommandOutput(string.Empty, string.Empty, process.ExitCode) { RunTime = exitTime - startTime };
+    return Remember(new CommandOutput(string.Empty, string.Empty, process.ExitCode) { RunTime = runTime });
   }
 
   /// <summary>
@@ -405,6 +911,7 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The selected value from the interactive command</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   [System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Design",
     "CA1031",
@@ -414,16 +921,17 @@ public class CommandResult
   {
     if (InternalCommand == null)
     {
+      Remember(CommandOutput.Empty(NeverRanExitCode));
       return string.Empty;
     }
 
     // Mock resolution happens outside the graceful-degradation try below so strict-mode
     // violations and configured mock exceptions propagate to the test instead of being swallowed.
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      return (mockSetup.Stdout ?? string.Empty).TrimEnd('\n', '\r');
+      CommandOutput output = CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
+      return output.Stdout.TrimEnd('\n', '\r');
     }
 
     // Use StringBuilder to capture output
@@ -439,9 +947,10 @@ public class CommandResult
       .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputBuilder))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
+    CliExecution execution;
     try
     {
-      await interactiveCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+      execution = await ExecuteCliAsync(interactiveCommand, cancellationToken).ConfigureAwait(false);
     }
     catch (OperationCanceledException)
     {
@@ -454,17 +963,27 @@ public class CommandResult
       // Validation / command-execution failures propagate; only TtyPassthroughAsync is exempt.
       throw;
     }
+    catch (TimeoutException)
+    {
+      throw;
+    }
     catch
     {
       // Graceful degradation - return empty string on failure
       return string.Empty;
     }
 
-    return outputBuilder.ToString().TrimEnd('\n', '\r');
+    CommandOutput captured = FinishCli(
+      execution,
+      outputBuilder.ToString(),
+      string.Empty,
+      throwOnStrictTimeout: true);
+    return captured.Stdout.TrimEnd('\n', '\r');
   }
 
   /// <summary>
   /// Chains this command's stdout into another command, shell-pipe style.
+  /// The pipeline keeps this command's timeout, grace period, and validation.
   /// Composition never throws: an invalid stage yields a command that reports
   /// <see cref="NeverRanExitCode"/> when executed. Pipe compositions bypass
   /// <see cref="Testing.CommandMock"/> matching (use loose mode when testing pipelines).
@@ -483,7 +1002,9 @@ public class CommandResult
 
   /// <summary>
   /// Chains this command's stdout into another command and applies <paramref name="options"/>
-  /// to that stage (working directory, environment, and validation).
+  /// to that stage (working directory, environment, validation, and timeout).
+  /// The pipeline uses the shorter timeout. Its grace period comes from that shorter side.
+  /// Equal timeouts keep the smaller grace period. Zero-exit validation on either stage makes the pipeline strict.
   /// Composition never throws: an invalid stage yields a command that reports
   /// <see cref="NeverRanExitCode"/> when executed. Pipe compositions bypass
   /// <see cref="Testing.CommandMock"/> matching (use loose mode when testing pipelines).
@@ -543,7 +1064,24 @@ public class CommandResult
       // Chain commands using CliWrap's pipe operator
       Command pipedCommand = InternalCommand | nextCommandResult.InternalCommand;
 
-      return new CommandResult(pipedCommand, ConfiguredStandardInput, isPipeline: true);
+      TimeSpan? stageTimeout = options?.Timeout;
+      TimeSpan? sharedTimeout = MergeTimeout(Timeout, stageTimeout);
+      TimeSpan sharedGrace = options is null
+        ? TimeoutGracePeriod
+        : GraceForSharedTimeout(Timeout, TimeoutGracePeriod, stageTimeout, options.TimeoutGracePeriod, sharedTimeout);
+      CommandResultValidation sharedValidation = options is null
+        ? Validation
+        : MergeValidation(Validation, options.Validation);
+
+      return new CommandResult(
+        pipedCommand,
+        ConfiguredStandardInput,
+        isPipeline: true,
+        mockExecutable: null,
+        mockArguments: null,
+        sharedTimeout,
+        sharedGrace,
+        sharedValidation);
     }
     catch
     {
@@ -564,30 +1102,19 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The exit code of the command</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return NeverRanExitCode;
+      return Remember(CommandOutput.Empty(NeverRanExitCode)).ExitCode;
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-
-      // Write mock output to terminal to simulate RunAsync behavior
-      if (!string.IsNullOrEmpty(mockSetup.Stdout))
-      {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
-      }
-
-      if (!string.IsNullOrEmpty(mockSetup.Stderr))
-      {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
-      }
-
-      return mockSetup.ExitCode;
+      await WriteMockToTerminalAsync(setup).ConfigureAwait(false);
+      return CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: false).ExitCode;
     }
 
     // Stream to terminal using CliWrap's pipe targets
@@ -595,8 +1122,8 @@ public class CommandResult
       .WithStandardOutputPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
-    CliWrap.CommandResult result = await consoleCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-    return result.ExitCode;
+    CliExecution execution = await ExecuteCliAsync(consoleCommand, cancellationToken).ConfigureAwait(false);
+    return FinishCli(execution, string.Empty, string.Empty, throwOnStrictTimeout: true).ExitCode;
   }
 
   /// <summary>
@@ -605,30 +1132,19 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty(NeverRanExitCode);
+      return Remember(CommandOutput.Empty(NeverRanExitCode));
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-
-      // Write to terminal for RunAndCapture behavior
-      if (!string.IsNullOrEmpty(mockSetup.Stdout))
-      {
-        await TimeWarpTerminal.Default.WriteLineAsync(mockSetup.Stdout).ConfigureAwait(false);
-      }
-
-      if (!string.IsNullOrEmpty(mockSetup.Stderr))
-      {
-        await TimeWarpTerminal.Default.WriteErrorLineAsync(mockSetup.Stderr).ConfigureAwait(false);
-      }
-
-      return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
+      await WriteMockToTerminalAsync(setup).ConfigureAwait(false);
+      return CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
     }
 
     // Use StringBuilders to capture output while also streaming to console
@@ -650,13 +1166,8 @@ public class CommandResult
       .WithStandardOutputPipe(stdOutTarget)
       .WithStandardErrorPipe(stdErrTarget);
 
-    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-
-    return new CommandOutput(
-      stdOutBuilder.ToString(),
-      stdErrBuilder.ToString(),
-      result.ExitCode
-    ) { RunTime = result.RunTime };
+    CliExecution execution = await ExecuteCliAsync(captureCommand, cancellationToken).ConfigureAwait(false);
+    return FinishCli(execution, stdOutBuilder.ToString(), stdErrBuilder.ToString(), throwOnStrictTimeout: true);
   }
 
   /// <summary>
@@ -665,18 +1176,18 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
-      return CommandOutput.Empty(NeverRanExitCode);
+      return Remember(CommandOutput.Empty(NeverRanExitCode));
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      return new CommandOutput(mockSetup.Stdout ?? string.Empty, mockSetup.Stderr ?? string.Empty, mockSetup.ExitCode);
+      return CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
     }
 
     // Capture both stdout and stderr with timestamps
@@ -699,8 +1210,8 @@ public class CommandResult
         }
       }));
 
-    CliWrap.CommandResult result = await captureCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-    return new CommandOutput(outputLines, result.ExitCode) { RunTime = result.RunTime };
+    CliExecution execution = await ExecuteCliAsync(captureCommand, cancellationToken).ConfigureAwait(false);
+    return FinishCli(execution, outputLines, throwOnStrictTimeout: true);
   }
 
   /// <summary>
@@ -708,27 +1219,28 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>An async enumerable of stdout lines</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout. <see cref="LastOutput"/> is set before the exception.</exception>
   public async IAsyncEnumerable<string> StreamStdoutAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
+      Remember(CommandOutput.Empty(NeverRanExitCode));
       yield break;
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      foreach (string line in SplitMockLines(mockSetup.Stdout))
+      foreach (string line in SplitMockLines(setup.Stdout))
       {
         yield return line;
       }
 
+      _ = CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
       yield break;
     }
 
-    // Use CliWrap's event stream for stdout
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
+    await foreach (CommandEvent evt in ListenWithTimeoutAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -742,27 +1254,28 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>An async enumerable of stderr lines</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout. <see cref="LastOutput"/> is set before the exception.</exception>
   public async IAsyncEnumerable<string> StreamStderrAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
+      Remember(CommandOutput.Empty(NeverRanExitCode));
       yield break;
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      foreach (string line in SplitMockLines(mockSetup.Stderr))
+      foreach (string line in SplitMockLines(setup.Stderr))
       {
         yield return line;
       }
 
+      _ = CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
       yield break;
     }
 
-    // Use CliWrap's event stream for stderr
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
+    await foreach (CommandEvent evt in ListenWithTimeoutAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardErrorCommandEvent stdErr)
       {
@@ -776,32 +1289,33 @@ public class CommandResult
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>An async enumerable of OutputLine objects</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout. <see cref="LastOutput"/> is set before the exception.</exception>
   public async IAsyncEnumerable<OutputLine> StreamCombinedAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
+      Remember(CommandOutput.Empty(NeverRanExitCode));
       yield break;
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      foreach (string line in SplitMockLines(mockSetup.Stdout))
+      foreach (string line in SplitMockLines(setup.Stdout))
       {
         yield return new OutputLine(line, false);
       }
 
-      foreach (string line in SplitMockLines(mockSetup.Stderr))
+      foreach (string line in SplitMockLines(setup.Stderr))
       {
         yield return new OutputLine(line, true);
       }
 
+      _ = CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
       yield break;
     }
 
-    // Use CliWrap's event stream for combined output
-    await foreach (CommandEvent evt in InternalCommand.ListenAsync(cancellationToken).ConfigureAwait(false))
+    await foreach (CommandEvent evt in ListenWithTimeoutAsync(cancellationToken).ConfigureAwait(false))
     {
       if (evt is StandardOutputCommandEvent stdOut)
       {
@@ -820,18 +1334,23 @@ public class CommandResult
   /// <param name="filePath">Path to the output file</param>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>A task that completes when the command finishes</returns>
+  /// <exception cref="TimeoutException">Strict validation is set and the command exceeded its timeout.</exception>
   public async Task StreamToFileAsync(string filePath, CancellationToken cancellationToken = default)
   {
     if (InternalCommand == null)
     {
+      Remember(CommandOutput.Empty(NeverRanExitCode));
       return;
     }
 
-    Testing.MockSetupData? mockSetup = ResolveMockSetup();
-    if (mockSetup != null)
+    MockExecution mock = await TryExecuteMockAsync(cancellationToken).ConfigureAwait(false);
+    if (mock is { Handled: true, Setup: { } setup })
     {
-      await ApplyMockPreludeAsync(mockSetup, cancellationToken).ConfigureAwait(false);
-      await File.WriteAllTextAsync(filePath, (mockSetup.Stdout ?? string.Empty) + (mockSetup.Stderr ?? string.Empty), cancellationToken).ConfigureAwait(false);
+      await File.WriteAllTextAsync(
+        filePath,
+        (setup.Stdout ?? string.Empty) + (setup.Stderr ?? string.Empty),
+        cancellationToken).ConfigureAwait(false);
+      _ = CompleteMock(setup, mock.TimedOut, throwOnStrictTimeout: true, includeText: true);
       return;
     }
 
@@ -861,6 +1380,7 @@ public class CommandResult
         }
       }));
 
-    await fileCommand.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+    CliExecution execution = await ExecuteCliAsync(fileCommand, cancellationToken).ConfigureAwait(false);
+    _ = FinishCli(execution, string.Empty, string.Empty, throwOnStrictTimeout: true);
   }
 }

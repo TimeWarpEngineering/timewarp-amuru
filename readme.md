@@ -175,6 +175,7 @@ string selectedFile = await Fzf.Builder()
 - **Standard Input Support**: Provide stdin to commands with `.WithStandardInput()`
 - **NO CACHING Philosophy**: Like shells, commands run fresh every time
 - **Cancellation Support**: Full CancellationToken support throughout
+- **Per-command timeout**: `WithTimeout` reports `TimedOut` and exit 124; a caller cancellation token still cancels
 - **Cross-Platform**: Works on Windows, Linux, and macOS (including `.cs` script execution on Windows via the dotnet host)
 - **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
 - **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
@@ -314,6 +315,12 @@ Note: a **missing executable** (e.g. a typo'd command name) still throws at exec
 // With explicit cancellation token
 using CancellationTokenSource cts = new(TimeSpan.FromSeconds(30));
 await Shell.Builder("long-running-command").RunAsync(cts.Token);
+
+// Per-command limit. Default validation reports the timeout instead of throwing.
+CommandOutput output = await Shell.Builder("long-running-command")
+    .WithTimeout(TimeSpan.FromSeconds(30))
+    .CaptureAsync();
+// output.TimedOut is true and output.ExitCode is 124 when the limit is hit
 ```
 
 ## Testing and Mocking

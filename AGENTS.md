@@ -29,7 +29,7 @@ Each packable project has `public-api/PublicAPI.Shipped.txt` (surface already in
 
 ## Non-Obvious Patterns
 - **Build scripts and dev-cli should use TimeWarp.Amuru**: Prefer `Shell.Builder` over raw `System.Diagnostics.Process`; only use raw process APIs in rare implementation boundaries like true TTY passthrough (`System.Console` and `ProcessStartInfo` are banned via BannedSymbols.txt)
-- **Error-handling contract**: default validation is `None` — non-zero exits are reported via `CommandOutput.ExitCode`/`Success`, never thrown; `WithZeroExitCodeValidation()` opts into throwing. Commands that never ran report `CommandResult.NeverRanExitCode` (-1)
+- **Error-handling contract**: default validation is `None` — non-zero exits are reported via `CommandOutput.ExitCode`/`Success`, never thrown; `WithZeroExitCodeValidation()` opts into throwing. Commands that never ran report `CommandResult.NeverRanExitCode` (-1). `WithTimeout` reports `CommandOutput.TimedOut` and exit `CommandResult.TimeoutExitCode` (124) under default validation, and throws `TimeoutException` under strict validation. Cancelling the caller's token still throws `OperationCanceledException`
 - **Mocking is strict by default**: inside `CommandMock.Enable()`, an unmocked command throws; use `CommandMock.Enable(MockBehavior.Loose)` for tests that intentionally mix mocked and real commands
 - **Tool-wrapper construction**: builders create commands via the public `Shell.Run(executable, args, options, stdin)` — never via core internals (no InternalsVisibleTo)
 - **C# script execution**: `.cs` files get `--` prefix inserted before arguments to prevent dotnet interception; on Windows they route through the `dotnet` host

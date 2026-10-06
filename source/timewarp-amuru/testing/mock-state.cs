@@ -178,4 +178,5 @@ internal sealed class MockSetupData
   public int ExitCode { get; set; }
   public Exception? Exception { get; set; }
   public TimeSpan? Delay { get; set; }
+  public bool TimesOut { get; set; }
 }

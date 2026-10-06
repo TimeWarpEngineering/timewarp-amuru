@@ -64,6 +64,7 @@ CommandOutput output = await Shell.Builder("git").WithArguments("log").CaptureAs
 
 output.ExitCode      // int - process exit code (CommandResult.NeverRanExitCode / -1 if it never ran)
 output.Success       // bool - true if ExitCode == 0
+output.TimedOut      // bool - true when the command exceeded WithTimeout (exit 124)
 output.RunTime       // TimeSpan - zero for mocks and commands that never ran
 output.Stdout        // string - captured stdout (lazy, thread-safe)
 output.Stderr        // string - captured stderr (lazy, thread-safe)
@@ -86,6 +87,7 @@ await Shell.Builder("myapp")
   .WithEnvironmentVariable("KEY", "value")  // Set env var
   .WithStandardInput("input text")          // Pipe string to stdin
   .WithNoValidation()                       // Explicit default: non-zero exit is not thrown
+  .WithTimeout(TimeSpan.FromSeconds(30))    // Per-command limit. Null means no timeout
   .RunAsync(cancellationToken);             // All methods accept CancellationToken
 ```
 
@@ -240,6 +242,8 @@ CommandMock.Setup("slow-command")
   .Delays(TimeSpan.FromSeconds(2))
   .Returns("done");
 
+CommandMock.Setup("hung-command").TimesOut(); // TimedOut, exit 124, same shape as a real timeout
+
 // Execute code under test - it will use mocked responses
 CommandOutput result = await Shell.Builder("git").WithArguments("status").CaptureAsync();
 
@@ -262,7 +266,9 @@ CliConfiguration.Reset();
 
 Default validation is `None`. A non-zero exit is reported on `CommandOutput.ExitCode` and `Success`. It is not thrown. `WithNoValidation()` states that default explicitly. `WithZeroExitCodeValidation()` opts into throwing. A command that never ran reports `CommandResult.NeverRanExitCode` (`-1`), not success.
 
-`TtyPassthroughAsync` is the exception: it never throws on a non-zero exit, even when zero-exit validation is set. Inspect `ExitCode` / `Success`.
+`WithTimeout(TimeSpan)` on `ShellBuilder`, `CommandOptions`, or `DotNetBuilder` limits that command. On expiry the graceful signal is sent (SIGINT / Ctrl+C), then the process tree is killed after `WithTimeoutGracePeriod` (default 5 seconds). Default validation sets `CommandOutput.TimedOut` and exit `CommandResult.TimeoutExitCode` (124) and does not throw. Strict validation throws `TimeoutException`. Cancelling the caller's token still throws `OperationCanceledException` and does not set `TimedOut`. Windows non-console children do not receive SIGINT, so the grace period ends in the kill. See `documentation/developer/reference/command-execution.md`.
+
+`TtyPassthroughAsync` is the exception: it never throws on a non-zero exit or a timeout, even when zero-exit validation is set. Inspect `ExitCode` / `Success` / `TimedOut`.
 
 ```csharp
 CommandOutput output = await Shell.Builder("might-fail").CaptureAsync();

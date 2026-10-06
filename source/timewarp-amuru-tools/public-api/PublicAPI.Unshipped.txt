@@ -1,1 +1,3 @@
 #nullable enable
+TimeWarp.Amuru.DotNetBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetBuilder!
