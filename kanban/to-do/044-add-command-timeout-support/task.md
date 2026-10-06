@@ -109,3 +109,4 @@ dotnet run tests/timewarp-amuru/single-file-tests/core/command-mock.timeout.cs
 - Rewritten: 522eb63d (2026-10-06)
 - Implementation: 2026-10-06
 - Review: 2026-10-06, review oracle (Claude Opus 5.5) + general reviewer subagent; fixes by implementer subagent on this id
+- Review oracle: review by implementer-claude (claude, model claude-opus-5-5), session not reported, max-turns 200 — 2026-10-06T11:42:10Z
