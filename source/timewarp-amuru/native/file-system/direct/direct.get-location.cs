@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Returns Environment.CurrentDirectory as a string.
+#endregion
+
+#region Design
+// Kept as a method, with CA1024 suppressed, so the Direct surface stays verb-shaped beside SetLocation.
+// Pwd is the alias and calls the same method.
 #endregion
 
 namespace TimeWarp.Amuru.Native.FileSystem;

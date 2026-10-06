@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Shell-style current-directory query that returns CommandOutput.
+#endregion
+
+#region Design
+// Delegates to Direct.GetLocation and always reports exit code 0. Pwd is the bash alias.
+// This partial does not change the process directory.
 #endregion
 
 namespace TimeWarp.Amuru.Native.FileSystem;
