@@ -63,6 +63,7 @@ Scope deliberately excludes JSON conversion (System.Text.Json exists), `wc`, sor
 - Created: 2025-12-12
 - Rewritten and 023 folded in: 522eb63d (2026-10-06)
 - Implemented SelectString and ReplaceInFiles (2026-10-06)
+- Implementation review (2026-10-06): review oracle, Claude Code headless (ganda task work); effort 3, general axis; reviewers general + general-tests (round 1), general (rounds 2–3)
 
 ## Results
 
@@ -95,6 +96,25 @@ Not edited here. After the next Amuru beta, these read-modify-write paths can ca
 
 The path decision stays in ganda. The read, newline and encoding preservation, and write are what this API takes over.
 
+### Review disposition
+
+- **Outcome:** `clean`. 3 rounds, effort 3 (general axis). Round 1 had two general reviewers, one on correctness and one on tests and docs. Rounds 2 and 3 were re-reviews.
+- **Final counts:** 4 bugs, 6 suggestions and 5 nits were raised; all 15 are fixed. None is open and none is `wontfix`.
+- **Round 1 (M1–M11, fixed in 1842a0c):**
+  - Bugs:
+    - Decoding was lossy, which corrupted non-UTF-8 and binary files. Decoding is now strict and files with a NUL byte are skipped as binary.
+    - A lone CR flipped a file's newline style. Detection now picks CRLF or LF only.
+    - An error partway through the Commands walk lost the output so far. The error is now handled per path and the walk continues.
+    - `MaxMatches` counted matches. It now counts lines, like grep `-m`, and grep output prints each line once.
+  - Suggestion: a symlink is now followed to its target.
+  - Tests: per-file limits, the documented replace behaviors, and the options that had no test.
+- **Round 2 (M12–M15, fixed in b87a9c5):**
+  - An unencodable replacement result is now a per-file `InvalidDataException`.
+  - A path list is validated before any write.
+  - The docs now say where the backup goes for a symlink and that BOM-less UTF-16/32 files are skipped.
+- **Round 3:** M12–M15 verified, nothing new. The text tests pass 66 of 66, and the full runner reports 686 passed and 1 skipped (the existing git-history test).
+- **Paths:** `review/review-framework.md`, `review/round-3/merged.md` (the final ledger) and `review/disposition.md`.
+
 ### How to validate
 
 Smoke:
@@ -104,4 +124,4 @@ dotnet run tests/timewarp-amuru/single-file-tests/native/text/commands.select-st
 dotnet run tests/timewarp-amuru/single-file-tests/native/text/direct.replace-in-files.cs
 ```
 
-Expect: both processes exit 0. The first reports 10 passed. The second reports 12 passed, including CRLF plus BOM, trailing newline, unchanged mtime, and no leftover temp file.
+Expect: both processes exit 0. The first reports 12 passed. The second reports 23 passed, including CRLF plus BOM, trailing newline, unchanged mtime, and no leftover temp file.
