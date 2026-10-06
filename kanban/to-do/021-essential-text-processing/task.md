@@ -40,16 +40,16 @@ Scope deliberately excludes JSON conversion (System.Text.Json exists), `wc`, sor
 
 ## Checklist
 
-- [ ] `native/text/` files created with Purpose/Design regions, kebab basenames
-- [ ] `SelectString` Direct (streaming `TextMatch`) and Commands (grep-format output, grep exit codes)
-- [ ] `ReplaceInFiles` Direct (`ReplaceResult`, dry run, backup, encoding/newline/trailing-newline preservation, atomic write, skip-unchanged) and Commands
-- [ ] Bash aliases `Grep` / `Sed` wired; commented stubs removed
-- [ ] Globbing via existing `FindItem` / `FindCriteria`
-- [ ] PublicAPI Unshipped updated; XML docs complete; `./bin/dev build` 0 warnings / 0 errors
-- [ ] Tests listed above pass; full runner green (`dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs`)
-- [ ] Docs + readme line
-- [ ] Results: API summary, test list, the 3 ganda fixer candidates with line refs
-- [ ] `ganda repo audit` clean
+- [x] `native/text/` files created with Purpose/Design regions, kebab basenames
+- [x] `SelectString` Direct (streaming `TextMatch`) and Commands (grep-format output, grep exit codes)
+- [x] `ReplaceInFiles` Direct (`ReplaceResult`, dry run, backup, encoding/newline/trailing-newline preservation, atomic write, skip-unchanged) and Commands
+- [x] Bash aliases `Grep` / `Sed` wired; commented stubs removed
+- [x] Globbing via existing `FindItem` / `FindCriteria`
+- [x] PublicAPI Unshipped updated; XML docs complete; `./bin/dev build` 0 warnings / 0 errors
+- [x] Tests listed above pass; full runner green (`dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs`)
+- [x] Docs + readme line
+- [x] Results: API summary, test list, the 3 ganda fixer candidates with line refs
+- [x] `ganda repo audit` clean
 
 ## Notes
 
@@ -62,3 +62,46 @@ Scope deliberately excludes JSON conversion (System.Text.Json exists), `wc`, sor
 
 - Created: 2025-12-12
 - Rewritten and 023 folded in: 522eb63d (2026-10-06)
+- Implemented SelectString and ReplaceInFiles (2026-10-06)
+
+## Results
+
+`TimeWarp.Amuru.Native.Text` adds grep and in-place replace for C# callers. `Commands` returns `CommandOutput` and does not throw. `Direct` returns typed results and throws. Globs go through `FindItem` / `FindCriteria`. The new surface is in `source/timewarp-amuru/public-api/PublicAPI.Unshipped.txt` and rides the next 2.0 beta.
+
+### API
+
+- `Commands.SelectString` / `Direct.SelectString`: pattern plus a path, an `IEnumerable<string>` of paths, a root and glob, or a `TextReader` / `Stream`. Direct streams `TextMatch` (`Path`, `LineNumber`, `Line`, `Match`, `ContextBefore`, `ContextAfter`) one line at a time. Commands writes `path:line:text` and uses grep exit codes: 0 matched, 1 none, 2 error. A reader or stream with no path is labeled `-`. There is no string-content overload; pass a `StringReader`.
+- `Commands.ReplaceInFiles` / `Direct.ReplaceInFiles`: pattern, replacement (`$1` / `${name}`), and the same file inputs. Direct yields one `ReplaceResult` per file (`Path`, `ReplacementCount`, `Changed`, `Preview`, `BackupPath`), including files that did not change. Commands writes `path: N replacement(s)` for each changed file. Exit 0 when the walk finishes, including no matches. Exit 1 on a regex or I/O error.
+- Options: literal match, case, invert, context, per-file limits, include/exclude globs, dry run, `.bak` backup, multiline, singleline. Dry run fills a unified diff and writes nothing. Backup is `path.bak` and only when the text changes. Encoding (BOM, otherwise UTF-8 without one), the first newline style, and a trailing newline are kept. Unchanged files are not rewritten. The write is a temp file in the same directory, then a move.
+- Bash: `Grep` / `GrepDirect` and `Sed` / `SedDirect`. The commented Grep and Sed stubs are gone.
+
+### Tests
+
+Under `tests/timewarp-amuru/single-file-tests/native/text/`:
+
+- `commands.select-string.cs`: regex and literal stdout, no-match exit 1, bad pattern and missing path exit 2, invert, glob, several paths, reader label `-`, two hits on one line.
+- `direct.select-string.cs`: regex and literal `TextMatch`, case, invert, context order, same-line match order, max matches, glob, exclude, captures, reader, bad pattern throws, missing file and missing root throw.
+- `commands.replace-in-files.cs`: count line and exit 0, no-match exit 0, bad pattern and missing path exit 1, dry run leaves the file, glob.
+- `direct.replace-in-files.cs`: `$1` and `${name}`, literal, max replacements, multiline, dry-run bytes and preview, backup, CRLF plus UTF-8 BOM, trailing newline, unchanged mtime, no temp file left, UTF-8 `café` without a BOM, every path visited.
+- `bash-aliases.cs`: `Grep` exit codes and `Sed` replacement.
+
+### Ganda fixer candidates
+
+Not edited here. After the next Amuru beta, these read-modify-write paths can call `ReplaceInFiles`:
+
+1. `timewarp-ganda/master/source/timewarp-ganda/services/audit/checks/global-usings-analyzer-check.cs` lines 142–149. Reads `.editorconfig`, runs `EnsureGlobalUsingsAnalyzerFilenameKey`, and `File.WriteAllTextAsync` when the text differs.
+2. `checks/runfile-project-directives-check.cs` `FixAsync` lines 123–127 calls `operations/runfile-operations.cs` `EnsureRunfileDirectivesAsync` lines 60–103. That method reads the runfile, matches `ProjectDirectiveRegex`, `line.Replace`s the project path, and writes the file back.
+3. `checks/runfile-shebang-check.cs` `FixAsync` lines 66–69 calls `EnsureRunfileShebangsAsync` lines 137–138. That method reads the file and writes `ReplaceFirstLine` (lines 148–151).
+
+The path decision stays in ganda. The read, newline and encoding preservation, and write are what this API takes over.
+
+### How to validate
+
+Smoke:
+
+```bash
+dotnet run tests/timewarp-amuru/single-file-tests/native/text/commands.select-string.cs
+dotnet run tests/timewarp-amuru/single-file-tests/native/text/direct.replace-in-files.cs
+```
+
+Expect: both processes exit 0. The first reports 10 passed. The second reports 12 passed, including CRLF plus BOM, trailing newline, unchanged mtime, and no leftover temp file.
