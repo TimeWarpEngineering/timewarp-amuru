@@ -155,9 +155,24 @@ Expect:
 - The public-api diff is empty.
 - The purpose-stub search prints nothing.
 
+### Review disposition
+
+- **Rounds:** 1. **Effort:** 2. **Roster:** general (review oracle plus a verifier sub-agent that checked every new Design claim against its file).
+- **Final counts:** bug 0 (open 0). suggestion 1 (fixed 1). nit 1 (fixed 1). wontfix 0.
+- **Disposition:** `clean`.
+  - M1: corrected the porcelain-parser Design comment about where records are flushed.
+  - M2: the worktree-add Design comment now mentions the fallback failure message.
+  - Both fixes change comments only.
+- **Artifacts:**
+  - `review/review-framework.md`
+  - `review/round-1/general.md`
+  - `review/round-1/merged.md`
+  - `review/disposition.md`
+
 ## Session
 
 - Created: ses_27dd18c7effe1K4rnFRhnQezjn (2026-04-13)
 - Returned to to-do: 01a06a4a-807d-7143-9d21-330f32238619 (2026-09-04)
 - Rewritten and 106 folded in: 522eb63d (2026-10-06)
 - Implemented renames, regions, and the 106 checks: 42c4af6 (2026-10-06)
+- Implementation review (effort 2, clean): 76a8b384-43a0-48ac-9fbf-4dd5351e8d62 (2026-10-06)
