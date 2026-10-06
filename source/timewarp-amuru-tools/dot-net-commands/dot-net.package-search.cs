@@ -1,154 +1,170 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet package search`.
+#endregion
+
+#region Design
+// Take and Skip are formatted with the invariant culture so a non-en-US host does not emit a localized integer.
+// An empty search term is omitted, which leaves the query unfiltered.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Fluent API for .NET CLI commands - Add package command implementation.
+/// Fluent API for .NET CLI commands - Package search command implementation.
 /// </summary>
 public static partial class DotNet
 {
   /// <summary>
-  /// Creates a fluent builder for the 'dotnet add package' command.
+  /// Creates a fluent builder for the 'dotnet package search' command.
   /// </summary>
-  /// <param name="packageName">The name of the package to add</param>
-  /// <returns>A DotNetAddPackageBuilder for configuring the dotnet add package command</returns>
-  public static DotNetAddPackageBuilder AddPackage(string packageName)
+  /// <param name="searchTerm">The search term to filter package names, descriptions, and tags</param>
+  /// <returns>A DotNetPackageSearchBuilder for configuring the dotnet package search command</returns>
+  public static DotNetPackageSearchBuilder PackageSearch(string searchTerm)
   {
-    return new DotNetAddPackageBuilder(packageName);
+    return new DotNetPackageSearchBuilder(searchTerm);
   }
-  
+
   /// <summary>
-  /// Creates a fluent builder for the 'dotnet add package' command with a specific version.
+  /// Creates a fluent builder for the 'dotnet package search' command without a search term.
   /// </summary>
-  /// <param name="packageName">The name of the package to add</param>
-  /// <param name="version">The version of the package to add</param>
-  /// <returns>A DotNetAddPackageBuilder for configuring the dotnet add package command</returns>
-  public static DotNetAddPackageBuilder AddPackage(string packageName, string version)
+  /// <returns>A DotNetPackageSearchBuilder for configuring the dotnet package search command</returns>
+  public static DotNetPackageSearchBuilder PackageSearch()
   {
-    return new DotNetAddPackageBuilder(packageName).WithVersion(version);
+    return new DotNetPackageSearchBuilder();
   }
 }
 
 /// <summary>
-/// Fluent builder for configuring 'dotnet add package' commands.
+/// Fluent builder for configuring 'dotnet package search' commands.
 /// </summary>
-public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
+public class DotNetPackageSearchBuilder : ICommandBuilder<DotNetPackageSearchBuilder>
 {
-  private readonly string PackageName;
-  private string? Project;
-  private string? Framework;
-  private string? Version;
-  private string? PackageDirectory;
-  private bool NoRestore;
-  private bool Prerelease;
-  private bool Interactive;
+  private readonly string? SearchTerm;
   private List<string> Sources = new();
+  private int? Take;
+  private int? Skip;
+  private bool ExactMatch;
+  private bool Interactive;
+  private bool Prerelease;
+  private string? ConfigFile;
+  private string? Format;
+  private string? Verbosity;
   private CommandOptions Options = new();
 
   /// <summary>
-  /// Initializes a new instance of the DotNetAddPackageBuilder class.
+  /// Initializes a new instance of the DotNetPackageSearchBuilder class.
   /// </summary>
-  /// <param name="packageName">The name of the package to add</param>
-  public DotNetAddPackageBuilder(string packageName)
+  /// <param name="searchTerm">The search term (optional)</param>
+  public DotNetPackageSearchBuilder(string? searchTerm = null)
   {
-    PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
+    SearchTerm = searchTerm;
   }
 
   /// <summary>
-  /// Specifies the project file to add the package to. If not specified, searches the current directory for one.
+  /// Adds a package source to search. You can pass multiple sources to search multiple package sources.
   /// </summary>
-  /// <param name="project">Path to the project file (.csproj, .fsproj, .vbproj) or directory containing one</param>
+  /// <param name="source">The package source URL</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithProject(string project)
-  {
-    Project = project;
-    return this;
-  }
-
-  /// <summary>
-  /// Adds a package reference only when targeting a specific framework.
-  /// </summary>
-  /// <param name="framework">The target framework moniker (e.g., "net8.0", "net10.0")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithFramework(string framework)
-  {
-    Framework = framework;
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the version of the package to add.
-  /// </summary>
-  /// <param name="version">The version of the package (e.g., "1.0.0", "2.1.0-preview")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithVersion(string version)
-  {
-    Version = version;
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the directory where packages are restored.
-  /// </summary>
-  /// <param name="directory">The package directory path</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithPackageDirectory(string directory)
-  {
-    PackageDirectory = directory;
-    return this;
-  }
-
-  /// <summary>
-  /// Disables implicit restore when adding the package reference.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithNoRestore()
-  {
-    NoRestore = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Allows prerelease packages to be installed.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithPrerelease()
-  {
-    Prerelease = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Allows the command to pause for user input or action (e.g., to complete authentication).
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithInteractive()
-  {
-    Interactive = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Adds a NuGet package source to use when searching for the package.
-  /// </summary>
-  /// <param name="source">The URI of the NuGet package source</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithSource(string source)
+  public DotNetPackageSearchBuilder WithSource(string source)
   {
     Sources.Add(source);
     return this;
   }
 
   /// <summary>
-  /// Adds multiple NuGet package sources to use when searching for the package.
+  /// Adds multiple package sources to search.
   /// </summary>
-  /// <param name="sources">The URIs of the NuGet package sources</param>
+  /// <param name="sources">The package source URLs</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithSources(params string[] sources)
+  public DotNetPackageSearchBuilder WithSources(params string[] sources)
   {
     Sources.AddRange(sources);
+    return this;
+  }
+
+  /// <summary>
+  /// Specifies the number of results to return.
+  /// </summary>
+  /// <param name="take">Number of results to return (default 20)</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithTake(int take)
+  {
+    Take = take;
+    return this;
+  }
+
+  /// <summary>
+  /// Specifies the number of results to skip, to allow pagination.
+  /// </summary>
+  /// <param name="skip">Number of results to skip (default 0)</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithSkip(int skip)
+  {
+    Skip = skip;
+    return this;
+  }
+
+  /// <summary>
+  /// Requires that the search term exactly match the name of the package.
+  /// Causes Take and Skip options to be ignored.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithExactMatch()
+  {
+    ExactMatch = true;
+    return this;
+  }
+
+  /// <summary>
+  /// Allows the command to stop and wait for user input or action (for example to complete authentication).
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithInteractive()
+  {
+    Interactive = true;
+    return this;
+  }
+
+  /// <summary>
+  /// Includes prerelease packages in the search results.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithPrerelease()
+  {
+    Prerelease = true;
+    return this;
+  }
+
+  /// <summary>
+  /// Specifies the NuGet configuration file to use.
+  /// </summary>
+  /// <param name="configFile">The NuGet configuration file path</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithConfigFile(string configFile)
+  {
+    ConfigFile = configFile;
+    return this;
+  }
+
+  /// <summary>
+  /// Formats the output accordingly.
+  /// </summary>
+  /// <param name="format">Either "table" or "json" (default is "table")</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithFormat(string format)
+  {
+    Format = format;
+    return this;
+  }
+
+  /// <summary>
+  /// Sets the verbosity level of the command.
+  /// </summary>
+  /// <param name="verbosity">The verbosity level (normal, minimal, detailed)</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetPackageSearchBuilder WithVerbosity(string verbosity)
+  {
+    Verbosity = verbosity;
     return this;
   }
 
@@ -157,7 +173,7 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
   /// </summary>
   /// <param name="directory">The working directory path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithWorkingDirectory(string directory)
+  public DotNetPackageSearchBuilder WithWorkingDirectory(string directory)
   {
     Options = Options.WithWorkingDirectory(directory);
     return this;
@@ -169,7 +185,7 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
   /// <param name="key">The environment variable name</param>
   /// <param name="value">The environment variable value</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithEnvironmentVariable(string key, string? value)
+  public DotNetPackageSearchBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
     return this;
@@ -179,7 +195,7 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithNoValidation()
+  public DotNetPackageSearchBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
     return this;
@@ -190,45 +206,24 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
   /// instead of reporting the failure via the result's exit code.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetAddPackageBuilder WithZeroExitCodeValidation()
+  public DotNetPackageSearchBuilder WithZeroExitCodeValidation()
   {
     Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
   /// <summary>
-  /// Builds the command arguments and executes the dotnet add package command.
+  /// Builds the command arguments and executes the dotnet package search command.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
   public CommandResult Build()
   {
-    List<string> arguments = new() { "add", "package", PackageName };
+    List<string> arguments = new() { "package", "search" };
 
-    // Add project if specified
-    if (!string.IsNullOrWhiteSpace(Project))
+    // Add search term if specified
+    if (!string.IsNullOrWhiteSpace(SearchTerm))
     {
-      arguments.Insert(1, Project);
-    }
-
-    // Add framework if specified
-    if (!string.IsNullOrWhiteSpace(Framework))
-    {
-      arguments.Add("--framework");
-      arguments.Add(Framework);
-    }
-
-    // Add version if specified
-    if (!string.IsNullOrWhiteSpace(Version))
-    {
-      arguments.Add("--version");
-      arguments.Add(Version);
-    }
-
-    // Add package directory if specified
-    if (!string.IsNullOrWhiteSpace(PackageDirectory))
-    {
-      arguments.Add("--package-directory");
-      arguments.Add(PackageDirectory);
+      arguments.Add(SearchTerm);
     }
 
     // Add sources
@@ -238,20 +233,55 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
       arguments.Add(source);
     }
 
-    // Add boolean flags
-    if (NoRestore)
+    // Add take if specified
+    if (Take.HasValue)
     {
-      arguments.Add("--no-restore");
+      arguments.Add("--take");
+      arguments.Add(Take.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
-    if (Prerelease)
+    // Add skip if specified
+    if (Skip.HasValue)
     {
-      arguments.Add("--prerelease");
+      arguments.Add("--skip");
+      arguments.Add(Skip.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    // Add config file if specified
+    if (!string.IsNullOrWhiteSpace(ConfigFile))
+    {
+      arguments.Add("--configfile");
+      arguments.Add(ConfigFile);
+    }
+
+    // Add format if specified
+    if (!string.IsNullOrWhiteSpace(Format))
+    {
+      arguments.Add("--format");
+      arguments.Add(Format);
+    }
+
+    // Add verbosity if specified
+    if (!string.IsNullOrWhiteSpace(Verbosity))
+    {
+      arguments.Add("--verbosity");
+      arguments.Add(Verbosity);
+    }
+
+    // Add boolean flags
+    if (ExactMatch)
+    {
+      arguments.Add("--exact-match");
     }
 
     if (Interactive)
     {
       arguments.Add("--interactive");
+    }
+
+    if (Prerelease)
+    {
+      arguments.Add("--prerelease");
     }
 
     return Shell.Run("dotnet", arguments.ToArray(), Options);
@@ -291,7 +321,7 @@ public class DotNetAddPackageBuilder : ICommandBuilder<DotNetAddPackageBuilder>
   }
 
   /// <summary>
-  /// Runs <c>dotnet add package</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// Runs <c>dotnet package search</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>

@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet list package`, including outdated, vulnerable, and deprecated reports.
+#endregion
+
+#region Design
+// Outdated, vulnerable, deprecated, highest-minor, and highest-patch are independent flags
+// on one builder. This file does not encode which combinations the CLI accepts.
 #endregion
 
 namespace TimeWarp.Amuru;

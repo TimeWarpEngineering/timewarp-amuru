@@ -1,51 +1,85 @@
 #region Purpose
-// TODO: Add purpose description
+// Escape-hatch builder for a raw `dotnet` invocation and the SDK info flags.
+#endregion
+
+#region Design
+// WithListSdks, WithListRuntimes, WithVersion, and WithInfo return a DotNetBuilder
+// that already holds that flag. WithArguments appends further tokens; it does not replace them.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Fluent API for .NET CLI commands - Remove package command implementation.
+/// Fluent API for .NET CLI commands - Base command implementation.
 /// </summary>
 public static partial class DotNet
 {
   /// <summary>
-  /// Creates a fluent builder for the 'dotnet remove package' command.
+  /// Creates a fluent builder for base 'dotnet' commands.
   /// </summary>
-  /// <param name="packageName">The name of the package to remove</param>
-  /// <returns>A DotNetRemovePackageBuilder for configuring the dotnet remove package command</returns>
-  public static DotNetRemovePackageBuilder RemovePackage(string packageName)
+  /// <returns>A DotNetBuilder for configuring dotnet global options</returns>
+  public static DotNetBuilder Builder()
   {
-    return new DotNetRemovePackageBuilder(packageName);
+    return new DotNetBuilder();
+  }
+  
+  /// <summary>
+  /// Creates a pre-configured builder for 'dotnet --list-sdks' command.
+  /// </summary>
+  /// <returns>A DotNetBuilder configured with --list-sdks</returns>
+  public static DotNetBuilder WithListSdks()
+  {
+    return new DotNetBuilder().WithArguments("--list-sdks");
+  }
+  
+  /// <summary>
+  /// Creates a pre-configured builder for 'dotnet --list-runtimes' command.
+  /// </summary>
+  /// <returns>A DotNetBuilder configured with --list-runtimes</returns>
+  public static DotNetBuilder WithListRuntimes()
+  {
+    return new DotNetBuilder().WithArguments("--list-runtimes");
+  }
+  
+  /// <summary>
+  /// Creates a pre-configured builder for 'dotnet --version' command.
+  /// </summary>
+  /// <returns>A DotNetBuilder configured with --version</returns>
+  public static DotNetBuilder WithVersion()
+  {
+    return new DotNetBuilder().WithArguments("--version");
+  }
+  
+  /// <summary>
+  /// Creates a pre-configured builder for 'dotnet --info' command.
+  /// </summary>
+  /// <returns>A DotNetBuilder configured with --info</returns>
+  public static DotNetBuilder WithInfo()
+  {
+    return new DotNetBuilder().WithArguments("--info");
   }
 }
 
 /// <summary>
-/// Fluent builder for configuring 'dotnet remove package' commands.
+/// Fluent builder for configuring base 'dotnet' commands.
 /// </summary>
-public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBuilder>
+public class DotNetBuilder : ICommandBuilder<DotNetBuilder>
 {
-  private readonly string PackageName;
-  private string? Project;
+  private readonly List<string> Arguments = new();
   private CommandOptions Options = new();
 
   /// <summary>
-  /// Initializes a new instance of the DotNetRemovePackageBuilder class.
+  /// Adds arguments to the command.
   /// </summary>
-  /// <param name="packageName">The name of the package to remove</param>
-  public DotNetRemovePackageBuilder(string packageName)
-  {
-    PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
-  }
-
-  /// <summary>
-  /// Specifies the project file to remove the package from. If not specified, searches the current directory for one.
-  /// </summary>
-  /// <param name="project">Path to the project file (.csproj, .fsproj, .vbproj) or directory containing one</param>
+  /// <param name="arguments">Arguments to add to the command</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetRemovePackageBuilder WithProject(string project)
+  public DotNetBuilder WithArguments(params string[] arguments)
   {
-    Project = project;
+    if (arguments != null)
+    {
+      Arguments.AddRange(arguments);
+    }
+    
     return this;
   }
 
@@ -54,7 +88,7 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   /// </summary>
   /// <param name="directory">The working directory path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetRemovePackageBuilder WithWorkingDirectory(string directory)
+  public DotNetBuilder WithWorkingDirectory(string directory)
   {
     Options = Options.WithWorkingDirectory(directory);
     return this;
@@ -66,7 +100,7 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   /// <param name="key">The environment variable name</param>
   /// <param name="value">The environment variable value</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetRemovePackageBuilder WithEnvironmentVariable(string key, string? value)
+  public DotNetBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
     return this;
@@ -76,7 +110,7 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetRemovePackageBuilder WithNoValidation()
+  public DotNetBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
     return this;
@@ -87,27 +121,19 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   /// instead of reporting the failure via the result's exit code.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetRemovePackageBuilder WithZeroExitCodeValidation()
+  public DotNetBuilder WithZeroExitCodeValidation()
   {
     Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
   /// <summary>
-  /// Builds the command arguments and executes the dotnet remove package command.
+  /// Builds the command and returns a CommandResult.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
   public CommandResult Build()
   {
-    List<string> arguments = new() { "remove", "package", PackageName };
-
-    // Add project if specified
-    if (!string.IsNullOrWhiteSpace(Project))
-    {
-      arguments.Insert(1, Project);
-    }
-
-    return Shell.Run("dotnet", arguments.ToArray(), Options);
+    return Shell.Run("dotnet", Arguments.ToArray(), Options);
   }
 
   /// <summary>
@@ -131,6 +157,17 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
+
+  /// <summary>
+  /// Executes the command, streams output to console AND captures it.
+  /// Useful for debugging/logging scenarios where you want to see output and save it.
+  /// </summary>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>CommandOutput with stdout, stderr, combined output and exit code</returns>
+  public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
+  {
+    return await Build().RunAndCaptureAsync(cancellationToken).ConfigureAwait(false);
+  }
   
   /// <summary>
   /// Passes the command through to the terminal with full interactive control.
@@ -142,12 +179,14 @@ public class DotNetRemovePackageBuilder : ICommandBuilder<DotNetRemovePackageBui
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
-
+  
   /// <summary>
-  /// Runs <c>dotnet remove package</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// Executes the command with true TTY passthrough for TUI applications.
+  /// Unlike PassthroughAsync which pipes Console streams, this method
+  /// allows the child process to inherit the terminal's TTY characteristics.
   /// </summary>
-  /// <param name="cancellationToken">Token that cancels the running command.</param>
-  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
+  /// <param name="cancellationToken">Cancellation token for the operation</param>
+  /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);

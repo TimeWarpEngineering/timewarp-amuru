@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet clean`.
+#endregion
+
+#region Design
+// An MSBuild property is one `--property:Name=Value` token. A separate value token
+// would be parsed as the project path.
 #endregion
 
 namespace TimeWarp.Amuru;

@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for `dotnet user-secrets` init, set, remove, list, and clear.
+#endregion
+
+#region Design
+// The parent builder holds the optional project, the optional secrets id, and CommandOptions.
+// Each subcommand builder receives those values and emits `--project` or `--id` only when set.
 #endregion
 
 namespace TimeWarp.Amuru;

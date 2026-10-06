@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for the `dotnet workload` verbs and the info and version flags.
+#endregion
+
+#region Design
+// `workload --info` and `workload --version` are flags on `workload`, not subcommands,
+// so those builders emit no verb after `workload`. Install and uninstall take workload ids
+// as positionals before any option.
 #endregion
 
 namespace TimeWarp.Amuru;

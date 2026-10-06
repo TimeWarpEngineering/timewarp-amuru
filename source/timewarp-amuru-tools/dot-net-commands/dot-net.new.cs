@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for `dotnet new` and its list, search, install, uninstall, and update subcommands.
+#endregion
+
+#region Design
+// Template arguments are appended before the named options so a template's own tokens
+// stay with the template. Each subcommand is a separate builder that receives the parent CommandOptions.
 #endregion
 
 namespace TimeWarp.Amuru;

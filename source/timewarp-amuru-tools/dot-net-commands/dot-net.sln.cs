@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for `dotnet sln` add, list, remove, and migrate.
+#endregion
+
+#region Design
+// When a solution file is set, it is the token immediately after `sln` and before the subcommand.
+// Projects passed to add or remove are positional after that subcommand.
 #endregion
 
 namespace TimeWarp.Amuru;

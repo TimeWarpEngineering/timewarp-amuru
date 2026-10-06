@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builders for `dotnet reference add`, `list`, and `remove`.
+#endregion
+
+#region Design
+// `--project` is emitted before the subcommand. Tokens after `add` or `remove` are the referenced projects,
+// so the owning project cannot be appended.
 #endregion
 
 namespace TimeWarp.Amuru;
