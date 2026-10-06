@@ -12,7 +12,7 @@ This file provides guidance to agents when working with code in this repository.
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
 
 ## Package Layout
-- `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system ops, ScriptContext. XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
+- `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system and text ops (`SelectString`, `ReplaceInFiles`), ScriptContext. XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
 - `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Ships at the same `<Version>` as core (inherited from `source/Directory.Build.props`); no per-csproj version
 
 ## Public API surface

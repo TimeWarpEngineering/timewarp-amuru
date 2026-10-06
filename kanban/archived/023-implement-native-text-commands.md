@@ -1,5 +1,7 @@
 # 023 Implement Native Text Commands
 
+> **Archived 2026-10-06: folded into task 021** (native text commands: SelectString and ReplaceInFiles). The Native/Text namespace shape described here is what 021 now specifies, narrowed to grep and sed-in-place; sort, split/join, measure are dropped (no callers).
+
 ## Description
 
 Implement native text processing commands in the Native/Text namespace using PowerShell-inspired naming with bash aliases. These commands will provide in-process text manipulation without spawning external processes, offering better performance and type safety.

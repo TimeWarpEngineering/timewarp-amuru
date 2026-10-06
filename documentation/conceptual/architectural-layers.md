@@ -519,6 +519,14 @@ var lsResult = Ls(".");           // Commands - returns CommandOutput
 
 ---
 
+## Native text commands
+
+`TimeWarp.Amuru.Native.Text` follows the same split as the file-system commands. `Direct.SelectString` streams `TextMatch`. `Direct.ReplaceInFiles` returns one `ReplaceResult` per file and writes only when the text changes. `Commands` returns `CommandOutput`: grep exit codes for select, sed exit codes for replace. `Bash.Grep` and `Bash.Sed` are the aliases.
+
+File input is a path, a sequence of paths, or a root plus a glob. The glob goes through `FindItem` / `FindCriteria`, not a second matcher. See [Native text commands](../developer/reference/native-text-commands.md).
+
+---
+
 ## Layer 5: Ganda CLI Tool
 
 ### Purpose

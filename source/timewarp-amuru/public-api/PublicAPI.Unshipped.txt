@@ -1,1 +1,87 @@
 #nullable enable
+static TimeWarp.Amuru.Native.Aliases.Bash.Grep(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.GrepDirect(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Aliases.Bash.Sed(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.SedDirect(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.ReplaceInFiles(string! pattern, string! replacement, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.IO.Stream! stream, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Commands.SelectString(string! pattern, System.IO.TextReader! reader, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null) -> TimeWarp.Amuru.CommandOutput!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, string! path, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.ReplaceInFiles(string! pattern, string! replacement, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.ReplaceResult!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, string! path, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, string! root, string! globPattern, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.Collections.Generic.IEnumerable<string!>! paths, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.IO.Stream! stream, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+static TimeWarp.Amuru.Native.Text.Direct.SelectString(string! pattern, System.IO.TextReader! reader, string? path = null, TimeWarp.Amuru.Native.Text.SelectStringOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TimeWarp.Amuru.Native.Text.TextMatch!>!
+TimeWarp.Amuru.Native.Text.Commands
+TimeWarp.Amuru.Native.Text.Direct
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Backup.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Backup.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.CaseInsensitive.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.CaseInsensitive.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.DryRun.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.DryRun.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Exclude.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Exclude.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Include.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Include.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.MaxReplacements.get -> int?
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.MaxReplacements.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Multiline.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Multiline.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.ReplaceInFilesOptions() -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.SimpleMatch.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.SimpleMatch.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Singleline.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceInFilesOptions.Singleline.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult
+TimeWarp.Amuru.Native.Text.ReplaceResult.BackupPath.get -> string?
+TimeWarp.Amuru.Native.Text.ReplaceResult.BackupPath.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Changed.get -> bool
+TimeWarp.Amuru.Native.Text.ReplaceResult.Changed.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Path.get -> string!
+TimeWarp.Amuru.Native.Text.ReplaceResult.Path.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.Preview.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.ReplaceResult.Preview.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplacementCount.get -> int
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplacementCount.init -> void
+TimeWarp.Amuru.Native.Text.ReplaceResult.ReplaceResult() -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions
+TimeWarp.Amuru.Native.Text.SelectStringOptions.CaseInsensitive.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.CaseInsensitive.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextAfter.get -> int
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextAfter.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextBefore.get -> int
+TimeWarp.Amuru.Native.Text.SelectStringOptions.ContextBefore.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Exclude.get -> string?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Exclude.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Include.get -> string?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.Include.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.InvertMatch.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.InvertMatch.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.MaxMatches.get -> int?
+TimeWarp.Amuru.Native.Text.SelectStringOptions.MaxMatches.init -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SelectStringOptions() -> void
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SimpleMatch.get -> bool
+TimeWarp.Amuru.Native.Text.SelectStringOptions.SimpleMatch.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch
+TimeWarp.Amuru.Native.Text.TextMatch.ContextAfter.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.TextMatch.ContextAfter.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.ContextBefore.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.TextMatch.ContextBefore.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Line.get -> string!
+TimeWarp.Amuru.Native.Text.TextMatch.Line.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.LineNumber.get -> int
+TimeWarp.Amuru.Native.Text.TextMatch.LineNumber.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Match.get -> System.Text.RegularExpressions.Match!
+TimeWarp.Amuru.Native.Text.TextMatch.Match.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.Path.get -> string!
+TimeWarp.Amuru.Native.Text.TextMatch.Path.init -> void
+TimeWarp.Amuru.Native.Text.TextMatch.TextMatch() -> void

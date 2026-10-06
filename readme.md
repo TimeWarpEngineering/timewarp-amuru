@@ -42,7 +42,7 @@ If you find this project useful, please give it a star. Thanks!
 ## Installation
 
 ```bash
-# Core library: process execution, mocking, native file operations
+# Core library: process execution, mocking, native file and text operations
 dotnet add package TimeWarp.Amuru
 
 # Optional: fluent builders for dotnet/git/fzf plus repo services
@@ -178,6 +178,7 @@ string selectedFile = await Fzf.Builder()
 - **Cross-Platform**: Works on Windows, Linux, and macOS (including `.cs` script execution on Windows via the dotnet host)
 - **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
 - **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
+- **Native text**: `SelectString` (grep) and `ReplaceInFiles` (in-place replace) under `TimeWarp.Amuru.Native.Text`, with `Grep` / `Sed` bash aliases. See [Native text commands](documentation/developer/reference/native-text-commands.md)
 
 ## Output Handling
 
@@ -389,6 +390,7 @@ See our [Architectural Decision Records](documentation/conceptual/architectural-
 ## Documentation
 
 - **[Documentation overview](documentation/overview.md)** - Entry point to conceptual, developer, and user docs
+- **[Native text commands](documentation/developer/reference/native-text-commands.md)** - `SelectString` and `ReplaceInFiles`
 - **[Migration Guide](analysis/migration-guide.md)** - Guide for migrating from older versions
 - **[command-extensions.cs](source/timewarp-amuru/core/command-extensions.cs)** - Collocated command construction design documentation
 - **[command-result.cs](source/timewarp-amuru/core/command-result.cs)** - Collocated command execution design documentation

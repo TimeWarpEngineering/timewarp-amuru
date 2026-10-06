@@ -6,6 +6,7 @@
 // Thin renames so scripts can `global using static` bash names.
 // Rm keeps separate recursive/force bools for 1.0 compatibility; a flags enum is deferred.
 // New verbs (Cp/Mv/Mkdir/Touch/Test/Find/Stat) wrap the 1.1 FileSystem operations.
+// Grep and Sed wrap Text.SelectString and Text.ReplaceInFiles. Awk stays out: no caller.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Aliases;
@@ -186,14 +187,45 @@ public static class Bash
   public static FileSystem.ItemProperty StatDirect(string path) =>
     FileSystem.Direct.GetItemProperty(path);
 
-  // ===== Future Text Operations (placeholders) =====
-  
-  // public static CommandOutput Grep(string pattern, string input) =>
-  //   Text.Commands.SelectString(pattern, input);
-  
-  // public static CommandOutput Sed(string pattern, string replacement, string input) =>
-  //   Text.Commands.ReplaceString(pattern, replacement, input);
-  
+  // ===== Text Operations =====
+
+  /// <summary>
+  /// Searches a file or directory (Commands version — grep exit codes).
+  /// </summary>
+  public static CommandOutput Grep(string pattern, string path, Text.SelectStringOptions? options = null) =>
+    Text.Commands.SelectString(pattern, path, options);
+
+  /// <summary>
+  /// Replaces text in a file or directory (Commands version — sed exit codes).
+  /// </summary>
+  public static CommandOutput Sed(
+    string pattern,
+    string replacement,
+    string path,
+    Text.ReplaceInFilesOptions? options = null) =>
+    Text.Commands.ReplaceInFiles(pattern, replacement, path, options);
+
+  /// <summary>
+  /// Searches a file or directory (Direct version — streams <see cref="Text.TextMatch"/>).
+  /// </summary>
+  public static IAsyncEnumerable<Text.TextMatch> GrepDirect(
+    string pattern,
+    string path,
+    Text.SelectStringOptions? options = null,
+    CancellationToken cancellationToken = default) =>
+    Text.Direct.SelectString(pattern, path, options, cancellationToken);
+
+  /// <summary>
+  /// Replaces text in a file or directory (Direct version — streams <see cref="Text.ReplaceResult"/>).
+  /// </summary>
+  public static IAsyncEnumerable<Text.ReplaceResult> SedDirect(
+    string pattern,
+    string replacement,
+    string path,
+    Text.ReplaceInFilesOptions? options = null,
+    CancellationToken cancellationToken = default) =>
+    Text.Direct.ReplaceInFiles(pattern, replacement, path, options, cancellationToken);
+
   // public static CommandOutput Awk(string script, string input) =>
   //   Text.Commands.ProcessText(script, input);
   
