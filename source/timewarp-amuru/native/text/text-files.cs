@@ -8,6 +8,8 @@
 // the same rules as FileSystemWalk (hidden entries included, reparse-point directories
 // not followed). A missing input path or an unreadable directory becomes a
 // TextFileItem with an Error, so the caller reports it and the walk continues.
+// A sequence of paths is validated up front (RequirePaths), so a null or blank entry
+// fails the call before any file is read or written.
 // Include/Exclude reuse GlobMatcher name rules: a slash or ** matches the relative
 // path; otherwise the file name.
 #endregion
@@ -67,6 +69,18 @@ internal static class TextFiles
     }
 
     throw new FileNotFoundException($"Path not found: {full}", full);
+  }
+
+  public static string[] RequirePaths(IEnumerable<string> paths)
+  {
+    ArgumentNullException.ThrowIfNull(paths);
+    string[] list = [.. paths];
+    foreach (string path in list)
+    {
+      ArgumentException.ThrowIfNullOrWhiteSpace(path, nameof(paths));
+    }
+
+    return list;
   }
 
   public static IEnumerable<TextFileItem> Enumerate(string path, TextFileQuery query)

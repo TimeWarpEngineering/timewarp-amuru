@@ -171,6 +171,47 @@ public class ReplaceInFiles_Given_
     }
   }
 
+  public static async Task UnencodableReplacement_Should_ReportThePathAndKeepWalking()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string emoji = await WriteAsync(directory, "b.txt", "x\U0001F600y\n");
+      byte[] original = await File.ReadAllBytesAsync(emoji);
+      string other = await WriteAsync(directory, "a.txt", "zzz\n");
+      CommandOutput result = Text.Commands.ReplaceInFiles("\\uD83D|zzz", "Q", directory);
+
+      result.ExitCode.ShouldBe(1);
+      result.Stdout.ShouldBe($"{other}: 1 replacement(s)");
+      result.Stderr.ShouldBe($"ReplaceInFiles: {emoji}: replacement produced invalid utf-8 text");
+      (await File.ReadAllBytesAsync(emoji)).ShouldBe(original);
+      (await File.ReadAllTextAsync(other)).ShouldBe("Q\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task BlankPath_Should_FailBeforeAnyWrite()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "foo\n");
+      CommandOutput result = Text.Commands.ReplaceInFiles("foo", "bar", [path, " "]);
+
+      result.ExitCode.ShouldBe(1);
+      result.Stdout.ShouldBeEmpty();
+      result.Stderr.ShouldStartWith("ReplaceInFiles: ");
+      (await File.ReadAllTextAsync(path)).ShouldBe("foo\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
   private static string NewDirectory()
   {
     string path = Path.Combine(Path.GetTempPath(), "amuru-text-" + Guid.NewGuid().ToString("N"));

@@ -466,6 +466,22 @@ public class ReplaceInFiles_Given_
     }
   }
 
+  public static async Task BlankPath_Should_ThrowBeforeAnyWrite()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "foo\n");
+      Should.Throw<ArgumentException>(() => Text.Direct.ReplaceInFiles("foo", "bar", [path, " "]));
+
+      (await File.ReadAllTextAsync(path)).ShouldBe("foo\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
   private static async Task<List<Text.ReplaceResult>> Collect(IAsyncEnumerable<Text.ReplaceResult> results)
   {
     List<Text.ReplaceResult> list = [];

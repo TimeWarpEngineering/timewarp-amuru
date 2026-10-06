@@ -70,7 +70,7 @@ public static partial class Commands
     {
       SelectStringOptions resolved = TextPatterns.Select(options);
       Regex regex = TextPatterns.Compile(pattern, resolved);
-      return Search(regex, TextFiles.Enumerate(paths, TextFileQuery.From(resolved)), resolved);
+      return Search(regex, TextFiles.Enumerate(TextFiles.RequirePaths(paths), TextFileQuery.From(resolved)), resolved);
     }
     catch (Exception exception)
     {

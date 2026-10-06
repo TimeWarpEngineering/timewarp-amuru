@@ -58,7 +58,7 @@ public static partial class Direct
   /// <param name="cancellationToken">Token used to cancel the enumeration.</param>
   /// <returns>One result per file visited.</returns>
   /// <exception cref="ArgumentNullException">When <paramref name="paths"/> or <paramref name="replacement"/> is null.</exception>
-  /// <exception cref="ArgumentException">When <paramref name="pattern"/> is invalid.</exception>
+  /// <exception cref="ArgumentException">When <paramref name="pattern"/> is invalid or an entry of <paramref name="paths"/> is null or blank.</exception>
   /// <exception cref="FileNotFoundException">When a path does not exist.</exception>
   /// <exception cref="IOException">When a file cannot be read or replaced.</exception>
   /// <exception cref="InvalidDataException">When a file is not valid text in its detected encoding.</exception>
@@ -77,7 +77,7 @@ public static partial class Direct
     return ReplaceAsync(
       regex,
       replacement,
-      TextFiles.EnumerateAsync(paths, TextFileQuery.From(resolved), cancellationToken),
+      TextFiles.EnumerateAsync(TextFiles.RequirePaths(paths), TextFileQuery.From(resolved), cancellationToken),
       resolved,
       cancellationToken);
   }

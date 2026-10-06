@@ -8,12 +8,14 @@
 // so a mixed-newline file comes out uniform. Zero replacements, or replacements that
 // leave the text identical, skip encoding and the write, which keeps mtime and the
 // original bytes. Binary files (NUL in a UTF-8 or no-BOM file) are skipped with zero
-// replacements. Undecodable bytes throw InvalidDataException naming the path instead
-// of being replaced with U+FFFD. A symlink is resolved to its final target and the
-// target is rewritten, so the link stays a link (sed --follow-symlinks). Hard links
-// are still split by the move. The temp file lives in the target's directory so the
-// final move stays on one volume. DryRun fills Preview and does not create a temp
-// file or a .bak.
+// replacements. Undecodable bytes, or a replacement that leaves text the encoding
+// cannot write (such as a split surrogate pair), throw InvalidDataException naming
+// the path instead of writing U+FFFD. Encoding also runs on DryRun so it fails the
+// same way. A symlink is resolved to its final target and the target is rewritten,
+// so the link stays a link (sed --follow-symlinks). The .bak goes beside the link
+// path that was passed in, not beside the target. Hard links are still split by the
+// move. The temp file lives in the target's directory so the final move stays on one
+// volume. DryRun fills Preview and does not create a temp file or a .bak.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -97,7 +99,7 @@ internal static class TextReplace
     IReadOnlyList<string> preview = options.DryRun && changed
       ? TextDiff.Unified(path, original, updated)
       : [];
-    byte[] encoded = changed && !options.DryRun ? encoding.GetBytes(updated) : [];
+    byte[] encoded = changed ? Encode(encoding, updated, path) : [];
     return new ReplacePlan(path, count, changed, preview, encoded);
   }
 
@@ -110,6 +112,21 @@ internal static class TextReplace
     catch (DecoderFallbackException exception)
     {
       string reason = $"not valid {encoding.Encoding.WebName} text";
+      InvalidDataException invalid = new($"ReplaceInFiles: {path}: {reason}", exception);
+      invalid.Data[TextCommand.ReasonKey] = reason;
+      throw invalid;
+    }
+  }
+
+  private static byte[] Encode(TextFileEncoding encoding, string text, string path)
+  {
+    try
+    {
+      return encoding.GetBytes(text);
+    }
+    catch (EncoderFallbackException exception)
+    {
+      string reason = $"replacement produced invalid {encoding.Encoding.WebName} text";
       InvalidDataException invalid = new($"ReplaceInFiles: {path}: {reason}", exception);
       invalid.Data[TextCommand.ReasonKey] = reason;
       throw invalid;

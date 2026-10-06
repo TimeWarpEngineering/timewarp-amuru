@@ -6,7 +6,8 @@
 // No BOM means UTF-8 without a preamble. UTF-32 LE is detected before UTF-16 LE because
 // its BOM starts with the same FF FE bytes. Decoders throw on invalid bytes, so a file
 // that is not valid text in its detected encoding fails instead of being rewritten with
-// U+FFFD. A UTF-8 or no-BOM file that contains a NUL byte is binary. The Encoding stored
+// U+FFFD. A UTF-8 or no-BOM file that contains a NUL byte is binary, which includes
+// UTF-16/32 files without a BOM: they are skipped, not decoded. The Encoding stored
 // here does not emit a BOM; GetBytes writes the detected preamble itself, once.
 // Newline style: CRLF when the first \n follows a \r, else LF. CR only when the file has
 // no \n at all. Only \r\n is folded to \n for the match, so a lone \r in an LF or CRLF

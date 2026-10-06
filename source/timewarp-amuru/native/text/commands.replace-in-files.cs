@@ -77,7 +77,7 @@ public static partial class Commands
       ReplaceInFilesOptions resolved = TextPatterns.Replace(options);
       Regex regex = TextPatterns.Compile(pattern, resolved);
       ArgumentNullException.ThrowIfNull(replacement);
-      return Replace(regex, replacement, TextFiles.Enumerate(paths, TextFileQuery.From(resolved)), resolved);
+      return Replace(regex, replacement, TextFiles.Enumerate(TextFiles.RequirePaths(paths), TextFileQuery.From(resolved)), resolved);
     }
     catch (Exception exception)
     {

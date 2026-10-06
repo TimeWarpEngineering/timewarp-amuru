@@ -48,7 +48,7 @@ public static partial class Direct
   /// <param name="cancellationToken">Token used to cancel the enumeration.</param>
   /// <returns>Matches as they are found.</returns>
   /// <exception cref="ArgumentNullException">When <paramref name="paths"/> is null.</exception>
-  /// <exception cref="ArgumentException">When <paramref name="pattern"/> is invalid.</exception>
+  /// <exception cref="ArgumentException">When <paramref name="pattern"/> is invalid or an entry of <paramref name="paths"/> is null or blank.</exception>
   /// <exception cref="FileNotFoundException">When a path does not exist.</exception>
   /// <exception cref="IOException">When a file cannot be read.</exception>
   /// <exception cref="OperationCanceledException">When <paramref name="cancellationToken"/> is canceled.</exception>
@@ -61,7 +61,7 @@ public static partial class Direct
     SelectStringOptions resolved = TextPatterns.Select(options);
     Regex regex = TextPatterns.Compile(pattern, resolved);
     ArgumentNullException.ThrowIfNull(paths);
-    return SearchAsync(regex, TextFiles.EnumerateAsync(paths, TextFileQuery.From(resolved), cancellationToken), resolved, cancellationToken);
+    return SearchAsync(regex, TextFiles.EnumerateAsync(TextFiles.RequirePaths(paths), TextFileQuery.From(resolved), cancellationToken), resolved, cancellationToken);
   }
 
   /// <summary>
