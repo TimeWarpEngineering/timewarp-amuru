@@ -1,5 +1,11 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent configuration for one executable before it becomes a CommandResult.
+#endregion
+
+#region Design
+// The builder stores the executable, argument list, CommandOptions, and optional stdin.
+// Build delegates to CommandExtensions.Run, and the execution methods forward to that result.
+// PassthroughAsync keeps configured stdin. TtyPassthroughAsync refuses it because the child inherits the terminal.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -15,7 +21,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   private string? StandardInput;
 
   /// <summary>
-  /// Initializes a new instance of the RunBuilder class.
+  /// Initializes a new instance of the ShellBuilder class.
   /// </summary>
   /// <param name="executable">The executable or command to run</param>
   public ShellBuilder(string executable)
