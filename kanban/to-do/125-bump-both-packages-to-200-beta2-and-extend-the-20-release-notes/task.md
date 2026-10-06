@@ -91,7 +91,15 @@ Expect:
 - Both `2.0.0-beta.2` nupkgs exist.
 - `Directory.Packages.props` still pins `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` at `2.0.0-beta.1`.
 
+### Review disposition
+
+- Rounds: 1; roster: general; effort 2 (Budget.ByDiff, 640 lines)
+- Final counts: bug 0, suggestion 0, nit 0 (0 open, 0 fixed, 0 wontfix)
+- Disposition: **clean**
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
+
 ## Session
 
 - Created: 522eb63d (2026-10-06)
 - Implementation: grok (2026-10-06)
+- Review: claude review oracle, effort 2, general (2026-10-06) — clean
