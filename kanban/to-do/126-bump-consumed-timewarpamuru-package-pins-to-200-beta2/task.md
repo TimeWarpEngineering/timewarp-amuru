@@ -96,7 +96,15 @@ Smoke: from this worktree, `dotnet build .githooks/pre-commit.cs`, `dotnet build
 
 Expect: each command exits 0. Hook builds report 0 warnings and 0 errors, and their restores resolve `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` at `2.0.0-beta.2`. `source/Directory.Build.props` is still `2.0.0-beta.2`. `Directory.Packages.props` keeps the "Self pins" comment. A commit on this task branch runs `post-commit` and prints an `Attested tree` line (`key_id=tw-audit-1`). Pushing the task ref runs `pre-push` and exits 0.
 
+### Review
+
+- Rounds: 1; effort 1; roster: general.
+- Final counts: bug 0, suggestion 0, nit 0 (0 open, 0 fixed, 0 wontfix).
+- Disposition: **clean** (no findings raised).
+- Artifacts: `review/review-framework.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Created: 522eb63d (2026-10-06)
 - Implementation: 01a11229 (2026-10-06)
+- Review: oracle review (2026-10-07), disposition clean
