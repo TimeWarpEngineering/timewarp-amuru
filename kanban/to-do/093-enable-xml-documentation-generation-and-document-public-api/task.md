@@ -70,6 +70,13 @@ Smoke: `dotnet pack source/timewarp-amuru-tools/timewarp-amuru-tools.csproj -c R
 
 Expect: the listing contains `lib/net10.0/timewarp-amuru-tools.xml` at 528118 bytes, and the build reports 0 warnings and 0 errors.
 
+### Review disposition
+
+- Rounds: 1. Effort 3, roster: general (Sonnet subagent a641b0de6267ecda2) plus an orchestrator spot-check.
+- Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix.
+- Disposition: **clean**.
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
+
 ## Notes
 
 Found by multi-agent release review (2026-07-04); confirmed independently by two reviewers (API-surface and packaging). Sequence after 094-001 (deletes) and 094-003 (package split) — the split cuts the core-1.0 doc burden from 391 members to roughly the core types' share, and every deleted type is doc work avoided. Build is `TreatWarningsAsErrors`, so enabling the property forces the burn-down per project. Paths relative to `source/timewarp-amuru-tools/`. Large mechanical diff expected (hundreds of `///` blocks); split commits by file family (dotnet, tool, git, fzf) so review can read them.
@@ -78,3 +85,4 @@ Found by multi-agent release review (2026-07-04); confirmed independently by two
 
 - Kitchen refresh: 522eb63d (2026-10-06)
 - Implementation: Tools XML documentation burn-down (2026-10-06)
+- Review: round 1 clean, effort 3 general (2026-10-06)
