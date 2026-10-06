@@ -31,7 +31,7 @@ public sealed class CleanCommand : ICommand<Unit>
       RepoCleanService = repoCleanService;
     }
 
-    public async ValueTask<Unit> Handle(CleanCommand command, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(CleanCommand command, CancellationToken cancellationToken)
     {
       ArgumentNullException.ThrowIfNull(command);
 
@@ -70,7 +70,7 @@ public sealed class CleanCommand : ICommand<Unit>
       }
 
       Terminal.WriteLine("\nClean completed successfully!".Green());
-      return Value;
+      return Unit.Value;
     }
   }
 }

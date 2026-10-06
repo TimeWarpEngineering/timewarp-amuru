@@ -11,9 +11,9 @@ using static DevCli.ProcessHelpers;
 namespace DevCli.Commands;
 
 [NuruRoute("verify-samples", Description = "Verify code samples compile")]
-internal sealed class VerifySamplesCommand : ICommand<Unit>
+public sealed class VerifySamplesCommand : ICommand<Unit>
 {
-  internal sealed class Handler : ICommandHandler<VerifySamplesCommand, Unit>
+  public sealed class Handler : ICommandHandler<VerifySamplesCommand, Unit>
   {
     private readonly ITerminal Terminal;
 
@@ -22,7 +22,7 @@ internal sealed class VerifySamplesCommand : ICommand<Unit>
       Terminal = terminal;
     }
 
-    public async ValueTask<Unit> Handle(VerifySamplesCommand command, CancellationToken ct)
+    public async Task<Unit> Handle(VerifySamplesCommand command, CancellationToken cancellationToken)
     {
       Terminal.WriteLine("Verifying samples...");
 
@@ -31,7 +31,7 @@ internal sealed class VerifySamplesCommand : ICommand<Unit>
       {
         Terminal.WriteErrorLine("❌ Not in a git repository");
         Environment.ExitCode = 1;
-        return Value;
+        return Unit.Value;
       }
 
       string samplesDir = Path.Combine(repoRoot, "samples");
@@ -39,14 +39,14 @@ internal sealed class VerifySamplesCommand : ICommand<Unit>
       {
         Terminal.WriteErrorLine($"❌ Samples directory not found: {samplesDir}");
         Environment.ExitCode = 1;
-        return Value;
+        return Unit.Value;
       }
 
       string[] sampleFiles = Directory.GetFiles(samplesDir, "*.cs", SearchOption.AllDirectories);
       if (sampleFiles.Length == 0)
       {
         Terminal.WriteLine("No sample files found.");
-        return Value;
+        return Unit.Value;
       }
 
       Terminal.WriteLine($"Found {sampleFiles.Length} sample file(s)");
@@ -80,7 +80,7 @@ internal sealed class VerifySamplesCommand : ICommand<Unit>
         Terminal.WriteLine($"\n✅ All {sampleFiles.Length} sample(s) verified successfully!");
       }
 
-      return Value;
+      return Unit.Value;
     }
   }
 }
