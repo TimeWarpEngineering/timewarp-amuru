@@ -26,37 +26,37 @@ Rename the remaining PascalCase `.cs` files to kebab-case and replace every rema
 ## Checklist
 
 ### Measure
-- [ ] Record the exact PascalCase file list and the TODO-stub file list in Results before starting (`find source -name '*.cs' | xargs -n1 basename | grep -E '^[A-Z]'` and `grep -rl 'TODO: Add purpose description' source tools tests`)
+- [x] Record the exact PascalCase file list and the TODO-stub file list in Results before starting (`find source -name '*.cs' | xargs -n1 basename | grep -E '^[A-Z]'` and `grep -rl 'TODO: Add purpose description' source tools tests`)
 
 ### Tools package (`source/timewarp-amuru-tools/`), one commit per folder
-- [ ] `dot-net-commands/*.cs` renamed + regions
-- [ ] `dot-net-commands/tool/*.cs` renamed + regions
-- [ ] `git-commands/*.cs` renamed + regions
-- [ ] `fzf-command/*.cs` renamed + regions
-- [ ] `repo/*.cs`, any other PascalCase under Tools renamed + regions
+- [x] `dot-net-commands/*.cs` renamed + regions
+- [x] `dot-net-commands/tool/*.cs` renamed + regions
+- [x] `git-commands/*.cs` renamed + regions
+- [x] `fzf-command/*.cs` renamed + regions
+- [x] `repo/*.cs`, any other PascalCase under Tools renamed + regions
 
 ### Core package (`source/timewarp-amuru/`), one commit per folder
-- [ ] root-level `AppContextExtensions.cs`, `CliConfiguration.cs`, `ScriptContext.cs` renamed + regions
-- [ ] `native/**` (`Bash.cs`, `file-system/commands/Commands.*.cs`, `file-system/direct/Direct.*.cs`, `PathResolver.cs`) renamed + regions
-- [ ] `testing/*.cs` (`CommandMock.cs`, `MockScope.cs`, `MockState.cs`, `MockSetup.cs`) renamed + regions
-- [ ] `interfaces/ICommandBuilder.cs` renamed + regions
-- [ ] `core/*.cs` region stubs (files are already kebab)
+- [x] root-level `AppContextExtensions.cs`, `CliConfiguration.cs`, `ScriptContext.cs` renamed + regions
+- [x] `native/**` (`Bash.cs`, `file-system/commands/Commands.*.cs`, `file-system/direct/Direct.*.cs`, `PathResolver.cs`) renamed + regions
+- [x] `testing/*.cs` (`CommandMock.cs`, `MockScope.cs`, `MockState.cs`, `MockSetup.cs`) renamed + regions
+- [x] `interfaces/ICommandBuilder.cs` renamed + regions
+- [x] `core/*.cs` region stubs (files are already kebab)
 
 ### Tools / tests / samples
-- [ ] `tools/dev-cli/**`, `tests/**`, `samples/**`: any remaining PascalCase `.cs` (expected none; confirm) and any TODO stubs
+- [x] `tools/dev-cli/**`, `tests/**`, `samples/**`: any remaining PascalCase `.cs` (expected none; confirm) and any TODO stubs
 
 ### Folded from 106
-- [ ] "RunBuilder" XML doc text fixed in `core/shell-builder.cs` (and `core/shell.cs` if present)
-- [ ] No "TimeWarp.Cli" text remains in source
-- [ ] `WithArguments` / `Pipe` params nullability made consistent; PublicAPI text unchanged
-- [ ] readme casing consistent across csproj/props/disk
-- [ ] `PackageProjectUrl` confirmed present for both packages
+- [x] "RunBuilder" XML doc text fixed in `core/shell-builder.cs` (and `core/shell.cs` if present)
+- [x] No "TimeWarp.Cli" text remains in source
+- [x] `WithArguments` / `Pipe` nullability checked and left as shipped (PublicAPI text encodes `?` vs `!`; unifying it would edit `PublicAPI.Shipped.txt`)
+- [x] readme casing consistent across csproj/props/disk
+- [x] `PackageProjectUrl` confirmed present for both packages
 
 ### Verification
-- [ ] `grep` for every old basename returns only `kanban/` hits
-- [ ] Zero `TODO: Add purpose description` remain
-- [ ] `./bin/dev build` clean; full runner green; `ganda repo audit` clean; `public-api/` untouched
-- [ ] Results: before/after counts, per-folder commit list, list of 106 items confirmed already done vs fixed here
+- [x] `grep` for every old basename returns only `kanban/` hits
+- [x] Zero `TODO: Add purpose description` remain
+- [x] `./bin/dev build` clean; full runner green; `ganda repo audit` clean; `public-api/` untouched
+- [x] Results: before/after counts, per-folder commit list, list of 106 items confirmed already done vs fixed here
 
 ## Notes
 
@@ -65,8 +65,99 @@ Rename the remaining PascalCase `.cs` files to kebab-case and replace every rema
 - Renames are noisy for `git blame`; use `git log --follow` / `git blame -C` afterward. That is the accepted cost of doing it in one PR.
 - Do not rename `kanban/**` or anything under `documentation/` that is already kebab.
 
+## Results
+
+Measured on this worktree before the renames (same tree as master `75c8489` plus the kitchen rewrite `b57bc72`).
+
+| Measure | Before | After |
+|---|---:|---:|
+| Tracked `.cs` under `source/` | 114 | 114 |
+| On-disk `find source -name '*.cs'` (includes `obj/`) | 126 | obj varies after build |
+| PascalCase `.cs` basenames under `source/` | 97 | 0 |
+| Extra PascalCase `.cs` outside `source/` | 1 (`tests/timewarp-amuru/TestHelpers.cs`) | 0 |
+| `TODO: Add purpose description` under `source/`, `tools/`, `tests/` | 37 | 0 |
+
+`tools/dev-cli/**` and `samples/**` had no PascalCase `.cs` and no purpose stubs. `tests/**` had only `TestHelpers.cs`.
+
+### PascalCase files before
+
+`source/timewarp-amuru-tools/dot-net-commands/`: `DotNet.cs`, `DotNet.AddPackage.cs`, `DotNet.Base.cs`, `DotNet.Build.cs`, `DotNet.Clean.cs`, `DotNet.DevCerts.cs`, `DotNet.ListPackages.cs`, `DotNet.New.cs`, `DotNet.NuGet.cs`, `DotNet.Pack.cs`, `DotNet.PackageSearch.cs`, `DotNet.Publish.cs`, `DotNet.Reference.cs`, `DotNet.RemovePackage.cs`, `DotNet.Restore.cs`, `DotNet.Run.cs`, `DotNet.Sln.cs`, `DotNet.Test.cs`, `DotNet.UserSecrets.cs`, `DotNet.Watch.cs`, `DotNet.Workload.cs`.
+
+`dot-net-commands/tool/`: `DotNet.Tool.cs`, `DotNet.Tool.Install.cs`, `DotNet.Tool.List.cs`, `DotNet.Tool.Restore.cs`, `DotNet.Tool.Run.cs`, `DotNet.Tool.Search.cs`, `DotNet.Tool.Uninstall.cs`, `DotNet.Tool.Update.cs`.
+
+`git-commands/`: `Git.cs`, `Git.BranchExists.cs`, `Git.CloneBare.cs`, `Git.Fetch.cs`, `Git.FetchRefspec.cs`, `Git.FindRoot.cs`, `Git.GetCommitsAhead.cs`, `Git.GetDefaultBranch.cs`, `Git.GetRepositoryName.cs`, `Git.GetWorktreePath.cs`, `Git.IsWorktree.cs`, `Git.RemoteHead.cs`, `Git.SetUpstream.cs`, `Git.UpdateBranch.cs`, `Git.UpdateWorktree.cs`, `Git.WorktreeAdd.cs`, `Git.WorktreeAddNewBranch.cs`, `Git.WorktreeList.cs`, `Git.WorktreePorcelainParser.cs`, `Git.WorktreeRemove.cs`.
+
+`fzf-command/`: `Fzf.cs`, `Fzf.DisplayOptions.cs`, `Fzf.Extensions.cs`, `Fzf.HistoryOptions.cs`, `Fzf.InputMethods.cs`, `Fzf.InterfaceOptions.cs`, `Fzf.LayoutOptions.cs`, `Fzf.PreviewOptions.cs`, `Fzf.ScriptingOptions.cs`, `Fzf.SearchOptions.cs`.
+
+`repo/`: `IRepoCheckVersionService.cs`, `IRepoCleanService.cs`, `RepoCheckVersionService.cs`, `RepoCleanService.cs`.
+
+Core root: `AppContextExtensions.cs`, `CliConfiguration.cs`, `ScriptContext.cs`.
+
+`native/`: `PathResolver.cs`, `aliases/Bash.cs`, twelve `Commands.*.cs`, eleven `Direct.*.cs`.
+
+`testing/`: `CommandMock.cs`, `MockBehavior.cs`, `MockScope.cs`, `MockSetup.cs`, `MockState.cs`.
+
+`interfaces/ICommandBuilder.cs`. Tests: `TestHelpers.cs`.
+
+### Purpose stubs before
+
+`DotNet.AddPackage.cs`, `DotNet.Base.cs`, `DotNet.Clean.cs`, `DotNet.ListPackages.cs`, `DotNet.New.cs`, `DotNet.PackageSearch.cs`, `DotNet.Reference.cs`, `DotNet.RemovePackage.cs`, `DotNet.Sln.cs`, `DotNet.UserSecrets.cs`, `DotNet.Workload.cs`, all eight `tool/DotNet.Tool*.cs`, `Fzf.DisplayOptions.cs`, `Fzf.HistoryOptions.cs`, `Fzf.InputMethods.cs`, `Fzf.InterfaceOptions.cs`, `Fzf.ScriptingOptions.cs`, `Fzf.SearchOptions.cs`, `Git.CloneBare.cs`, `Git.FindRoot.cs`, `Git.GetRepositoryName.cs`, `Git.IsWorktree.cs`, `Git.WorktreeAdd.cs`, `Git.WorktreeAddNewBranch.cs`, `Git.WorktreePorcelainParser.cs`, `core/shell-builder.cs`, `interfaces/ICommandBuilder.cs`, `Commands.GetLocation.cs`, `Direct.GetLocation.cs`, `testing/MockSetup.cs`.
+
+Each stub is now a one-line Purpose plus a Design region that states a decision for that file. Files that already had real regions were renamed only.
+
+### Per-folder commits
+
+| Commit | Folder |
+|---|---|
+| `157881c` | `source/timewarp-amuru-tools/dot-net-commands/` (not `tool/`) |
+| `6e80ae7` | `dot-net-commands/tool/` |
+| `4f5ebe5` | `git-commands/` |
+| `3ab3803` | `fzf-command/` |
+| `5638624` | `repo/` |
+| `dac6af5` | core root (`app-context-extensions.cs`, `cli-configuration.cs`, `script-context.cs`) |
+| `942acc1` | `native/**` |
+| `0d7cc1b` | `testing/` |
+| `af986a2` | `interfaces/icommand-builder.cs` |
+| `a64c84e` | `core/shell-builder.cs` regions and the RunBuilder doc fix |
+| `051b5af` | `tests/timewarp-amuru/test-helpers.cs` and its `Directory.Build.props` include |
+| `252986d` | both csproj readme includes |
+| `42c4af6` | documentation basename references |
+
+Renames are recorded as git renames (96–100% similarity). Type names, namespaces, and members are unchanged.
+
+### Folded from 106
+
+- **Fixed here:** `core/shell-builder.cs` constructor doc said "RunBuilder". It now says `ShellBuilder`. `core/shell.cs` had no RunBuilder text.
+- **Fixed here:** both packable csproj files said `README.md` while `source/Directory.Build.props` and the file on disk say `readme.md`. They now pack `readme.md`. Both built nuspecs contain `<readme>readme.md</readme>`.
+- **Already done:** no `TimeWarp.Cli` text remains under `source/`. `cli-configuration.cs` already documents TimeWarp.Amuru. The package-search tests still pass the string `TimeWarp.Cli` as a search term. Kanban and historical docs still say the old product name; those were not rewritten.
+- **Already done:** `PackageProjectUrl` is `https://timewarp.software/projects/timewarp-amuru/` in `source/Directory.Build.props`. Neither csproj clears it. Both packed nuspecs emit that `projectUrl`. `ganda repo audit` reports the PackageProjectUrl check passed.
+- **Left as shipped:** `CommandResult.Pipe` and `DotNetRunBuilder.WithArguments` are `params string[]?`. `ShellBuilder.WithArguments`, `ShellBuilder.Pipe`, and `DotNetBuilder.WithArguments` are `params string[]`. `PublicAPI.Shipped.txt` already records that difference as `string![]?` versus `string![]!`. Making them match would change the shipped public-API text, which this no-release PR must not do. `git diff --stat origin/master -- source/*/public-api/` is empty.
+
+Old basenames were updated in `documentation/conceptual/architectural-layers.md` and `documentation/developer/progressive-enhancement-pattern.md`. A search of each old basename outside `kanban/` returns no hits.
+
+### How to validate
+
+Smoke:
+
+```bash
+./bin/dev build
+dotnet run tests/timewarp-amuru/multi-file-runners/run-tests.cs
+ganda repo audit
+git diff --stat origin/master -- source/timewarp-amuru/public-api source/timewarp-amuru-tools/public-api
+rg -n "TODO: Add purpose description" source tools tests samples
+```
+
+Expect:
+
+- Build succeeds with 0 warnings and 0 errors.
+- The runner prints `Passed: 620` and `Skipped: 1` (total 621) and exits 0.
+- `ganda repo audit` reports Passed 32, Failed 0, including `kebab-path-names`.
+- The public-api diff is empty.
+- The purpose-stub search prints nothing.
+
 ## Session
 
 - Created: ses_27dd18c7effe1K4rnFRhnQezjn (2026-04-13)
 - Returned to to-do: 01a06a4a-807d-7143-9d21-330f32238619 (2026-09-04)
 - Rewritten and 106 folded in: 522eb63d (2026-10-06)
+- Implemented renames, regions, and the 106 checks: 42c4af6 (2026-10-06)
