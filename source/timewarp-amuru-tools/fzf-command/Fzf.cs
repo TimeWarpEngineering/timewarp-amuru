@@ -94,6 +94,10 @@ public partial class FzfBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>fzf</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     string[] fzfArguments = CopyArguments();
@@ -123,16 +127,31 @@ public partial class FzfBuilder
     return Shell.Run("fzf", fzfArguments, Options);
   }
 
+  /// <summary>
+  /// Runs <c>fzf</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>fzf</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>fzf</c>, streams its output to the console, and also returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> RunAndCaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAndCaptureAsync(cancellationToken).ConfigureAwait(false);
