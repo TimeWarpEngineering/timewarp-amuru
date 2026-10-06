@@ -315,6 +315,11 @@ public class DotNetPackageSearchBuilder : ICommandBuilder<DotNetPackageSearchBui
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet package search</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);

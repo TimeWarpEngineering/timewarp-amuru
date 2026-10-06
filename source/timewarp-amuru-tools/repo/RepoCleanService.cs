@@ -26,11 +26,20 @@ public sealed class RepoCleanService : IRepoCleanService
 {
   private readonly ITerminal Terminal;
 
+  /// <summary>
+  /// Creates a cleaner for build output in the git repository that contains the working directory.
+  /// </summary>
+  /// <param name="terminal">Terminal that reports deleted paths and paths left in place.</param>
   public RepoCleanService(ITerminal terminal)
   {
     Terminal = terminal;
   }
 
+  /// <summary>
+  /// Deletes untracked obj directories, untracked bin directories other than the repository root bin, and untracked root bin entries other than dev and dev.exe.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the clean.</param>
+  /// <returns><see cref="CleanResult.ObjDirectoriesDeleted"/>, <see cref="CleanResult.BinDirectoriesDeleted"/>, and <see cref="CleanResult.RootBinFilesCleaned"/> count what was removed. All three are zero when the working directory is not inside a git repository. Directories that contain git-tracked files, and reparse points, are left in place.</returns>
   public async Task<CleanResult> CleanAsync(CancellationToken cancellationToken = default)
   {
     string? repoRoot = Git.FindRoot();
@@ -55,6 +64,11 @@ public sealed class RepoCleanService : IRepoCleanService
     return new CleanResult(objDirectoriesDeleted, binDirectoriesDeleted, rootBinFilesCleaned);
   }
 
+  /// <summary>
+  /// Deletes <c>TimeWarp.Amuru.*.nupkg</c> files and the <c>timewarp.amuru</c> and <c>timewarp.amuru.tools</c> folders under <c>artifacts/packages</c>.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the clean.</param>
+  /// <returns>The number of files and directories deleted. Zero when the working directory is not a git repository or the feed folder is absent. Reparse points and git-tracked paths are left in place.</returns>
   public async Task<int> CleanLocalFeedAsync(CancellationToken cancellationToken = default)
   {
     string? repoRoot = Git.FindRoot();

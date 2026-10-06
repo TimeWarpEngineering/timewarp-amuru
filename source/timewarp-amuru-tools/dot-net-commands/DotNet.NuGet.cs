@@ -220,6 +220,11 @@ public class DotNetNuGetPushBuilder
   private bool SkipDuplicate;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget push</c> command using the given package path.
+  /// </summary>
+  /// <param name="packagePath">Path of the nupkg to push.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetPushBuilder(string packagePath, CommandOptions options)
   {
     PackagePath = packagePath ?? throw new ArgumentNullException(nameof(packagePath));
@@ -363,6 +368,10 @@ public class DotNetNuGetPushBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget push</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "push", PackagePath };
@@ -431,26 +440,51 @@ public class DotNetNuGetPushBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget push</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget push</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget push</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget push</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget push</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -470,6 +504,12 @@ public class DotNetNuGetDeleteBuilder
   private bool Interactive;
   private bool NonInteractive;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget delete</c> command using the given package id and package version.
+  /// </summary>
+  /// <param name="packageName">Package id to delete from the source.</param>
+  /// <param name="version">Version of the package to delete.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetDeleteBuilder(string packageName, string version, CommandOptions options)
   {
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
@@ -542,6 +582,10 @@ public class DotNetNuGetDeleteBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget delete</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "delete", PackageName, Version };
@@ -577,26 +621,51 @@ public class DotNetNuGetDeleteBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget delete</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget delete</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget delete</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget delete</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget delete</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -612,6 +681,10 @@ public class DotNetNuGetListSourceBuilder
   private string? Format;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget list source</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetListSourceBuilder(CommandOptions options)
   {
     Options = options;
@@ -660,6 +733,10 @@ public class DotNetNuGetListSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget list source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "list", "source" };
@@ -679,26 +756,51 @@ public class DotNetNuGetListSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget list source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget list source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget list source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget list source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget list source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -717,6 +819,11 @@ public class DotNetNuGetAddSourceBuilder
   private string? Password;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget add source</c> command using the given source URL.
+  /// </summary>
+  /// <param name="source">Package source URL stored for the new source.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetAddSourceBuilder(string source, CommandOptions options)
   {
     Source = source ?? throw new ArgumentNullException(nameof(source));
@@ -788,6 +895,10 @@ public class DotNetNuGetAddSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget add source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "add", "source", Source };
@@ -819,26 +930,51 @@ public class DotNetNuGetAddSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget add source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget add source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget add source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget add source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget add source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -854,6 +990,11 @@ public class DotNetNuGetRemoveSourceBuilder
   private CommandOptions Options;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget remove source</c> command using the given source name.
+  /// </summary>
+  /// <param name="name">Name of the NuGet source to remove.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetRemoveSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -892,6 +1033,10 @@ public class DotNetNuGetRemoveSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget remove source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "remove", "source", Name };
@@ -905,26 +1050,51 @@ public class DotNetNuGetRemoveSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget remove source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget remove source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget remove source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget remove source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget remove source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -943,6 +1113,11 @@ public class DotNetNuGetUpdateSourceBuilder
   private string? Password;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget update source</c> command using the given source name.
+  /// </summary>
+  /// <param name="name">Name of the NuGet source to update.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetUpdateSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -1014,6 +1189,10 @@ public class DotNetNuGetUpdateSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget update source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "update", "source", Name };
@@ -1045,26 +1224,51 @@ public class DotNetNuGetUpdateSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget update source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget update source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget update source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget update source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget update source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1080,6 +1284,11 @@ public class DotNetNuGetEnableSourceBuilder
   private CommandOptions Options;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget enable source</c> command using the given source name.
+  /// </summary>
+  /// <param name="name">Name of the NuGet source to enable.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetEnableSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -1118,6 +1327,10 @@ public class DotNetNuGetEnableSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget enable source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "enable", "source", Name };
@@ -1131,26 +1344,51 @@ public class DotNetNuGetEnableSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget enable source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget enable source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget enable source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget enable source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget enable source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1166,6 +1404,11 @@ public class DotNetNuGetDisableSourceBuilder
   private CommandOptions Options;
   private string? ConfigFile;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget disable source</c> command using the given source name.
+  /// </summary>
+  /// <param name="name">Name of the NuGet source to disable.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetDisableSourceBuilder(string name, CommandOptions options)
   {
     Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -1204,6 +1447,10 @@ public class DotNetNuGetDisableSourceBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget disable source</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "disable", "source", Name };
@@ -1217,26 +1464,51 @@ public class DotNetNuGetDisableSourceBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget disable source</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget disable source</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget disable source</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget disable source</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget disable source</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1252,6 +1524,10 @@ public class DotNetNuGetLocalsBuilder
   private NuGetCacheType? ClearCacheType;
   private NuGetCacheType? ListCacheType;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget locals</c> command.
+  /// </summary>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetLocalsBuilder(CommandOptions options)
   {
     Options = options;
@@ -1312,6 +1588,10 @@ public class DotNetNuGetLocalsBuilder
     };
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget locals</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "locals" };
@@ -1330,26 +1610,51 @@ public class DotNetNuGetLocalsBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget locals</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget locals</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget locals</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget locals</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget locals</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -1366,6 +1671,11 @@ public class DotNetNuGetWhyBuilder
   private string? Project;
   private string? Framework;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet nuget why</c> command using the given package id.
+  /// </summary>
+  /// <param name="packageName">Package id whose dependency chain the command explains.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetNuGetWhyBuilder(string packageName, CommandOptions options)
   {
     PackageName = packageName ?? throw new ArgumentNullException(nameof(packageName));
@@ -1415,6 +1725,10 @@ public class DotNetNuGetWhyBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet nuget why</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "nuget", "why" };
@@ -1435,26 +1749,51 @@ public class DotNetNuGetWhyBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget why</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget why</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget why</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet nuget why</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet nuget why</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);

@@ -21,11 +21,21 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
 {
   private readonly INuGetPackageService NuGetPackageService;
 
+  /// <summary>
+  /// Creates a checker that reads the repository version from project files and compares it with git tags and nuget.org.
+  /// </summary>
+  /// <param name="nuGetPackageService">Service that reads package versions from nuget.org.</param>
   public RepoCheckVersionService(INuGetPackageService nuGetPackageService)
   {
     NuGetPackageService = nuGetPackageService;
   }
 
+  /// <summary>
+  /// Reports whether the tag <c>v{version}</c> already exists for the version in <c>source/Directory.Build.props</c>.
+  /// </summary>
+  /// <param name="tag">Tag copied to <see cref="GitTagCheckResult.LatestReleaseTag"/> for display. When omitted, the versionsort-latest tag is used. This value does not affect <see cref="GitTagCheckResult.IsNewVersion"/>.</param>
+  /// <param name="cancellationToken">Token that cancels the git commands.</param>
+  /// <returns><see cref="GitTagCheckResult.IsNewVersion"/> is true only when <c>v{version}</c> is absent and git succeeded. <see cref="GitTagCheckResult.Version"/> is the props version, or empty when the working directory is not a git repository or the version cannot be read. <see cref="GitTagCheckResult.LatestReleaseTag"/> is <paramref name="tag"/> or the versionsort-latest tag.</returns>
   public async Task<GitTagCheckResult> CheckGitTagVersionAsync
   (
     string? tag = null,
@@ -63,6 +73,13 @@ public sealed class RepoCheckVersionService : IRepoCheckVersionService
     return new GitTagCheckResult(!exactTagExists, version, displayTag);
   }
 
+  /// <summary>
+  /// Compares each package version from its csproj <c>Version</c>, or <c>source/Directory.Build.props</c>, with nuget.org and treats an unlisted match as already published.
+  /// </summary>
+  /// <param name="packages">Package ids to check.</param>
+  /// <param name="cancellationToken">Token that cancels the git and NuGet lookups.</param>
+  /// <returns><see cref="NuGetCheckResult.IsNewVersion"/> is true when no package already has its resolved version on the feed. <see cref="NuGetCheckResult.Version"/> joins the distinct resolved versions. <see cref="NuGetCheckResult.LatestNuGetVersion"/> is the highest listed version found. <see cref="NuGetCheckResult.CheckedPackages"/> lists the ids that were queried. <see cref="NuGetCheckResult.AlreadyPublishedPackages"/> lists ids whose version exists on the feed, including unlisted versions, or null when none do. A missing repository, an empty package list, or an unreadable version yields <c>IsNewVersion</c> false and an empty version.</returns>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="packages"/> is null.</exception>
   public async Task<NuGetCheckResult> CheckNuGetVersionAsync
   (
     IReadOnlyList<string> packages,

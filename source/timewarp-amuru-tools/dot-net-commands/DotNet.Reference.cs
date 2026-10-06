@@ -151,6 +151,12 @@ public class DotNetReferenceAddBuilder
   private readonly string? Project;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet reference add</c> command using the given project path and target project.
+  /// </summary>
+  /// <param name="projectPath">Path of the project added as a reference.</param>
+  /// <param name="project">Project that receives the reference, or null to use the project in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetReferenceAddBuilder(string projectPath, string? project, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
@@ -179,6 +185,12 @@ public class DotNetReferenceAddBuilder
     return this;
   }
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet reference add</c> command using the given project paths and target project.
+  /// </summary>
+  /// <param name="projectPaths">Paths of the projects added as references.</param>
+  /// <param name="project">Project that receives the reference, or null to use the project in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetReferenceAddBuilder(string[] projectPaths, string? project, CommandOptions options)
   {
     ProjectPaths = projectPaths ?? throw new ArgumentNullException(nameof(projectPaths));
@@ -186,6 +198,10 @@ public class DotNetReferenceAddBuilder
     Options = options;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet reference add</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "reference" };
@@ -203,26 +219,51 @@ public class DotNetReferenceAddBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference add</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference add</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference add</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference add</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference add</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -237,6 +278,11 @@ public class DotNetReferenceListBuilder
   private readonly string? Project;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet reference list</c> command using the given target project.
+  /// </summary>
+  /// <param name="project">Project whose references are listed, or null to use the project in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetReferenceListBuilder(string? project, CommandOptions options)
   {
     Project = project;
@@ -264,6 +310,10 @@ public class DotNetReferenceListBuilder
     return this;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet reference list</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "reference" };
@@ -280,26 +330,51 @@ public class DotNetReferenceListBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference list</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference list</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference list</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference list</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference list</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
@@ -315,6 +390,12 @@ public class DotNetReferenceRemoveBuilder
   private readonly string? Project;
   private CommandOptions Options;
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet reference remove</c> command using the given project path and target project.
+  /// </summary>
+  /// <param name="projectPath">Path of the referenced project to remove.</param>
+  /// <param name="project">Project that loses the reference, or null to use the project in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetReferenceRemoveBuilder(string projectPath, string? project, CommandOptions options)
   {
     ProjectPaths = [projectPath ?? throw new ArgumentNullException(nameof(projectPath))];
@@ -343,6 +424,12 @@ public class DotNetReferenceRemoveBuilder
     return this;
   }
 
+  /// <summary>
+  /// Creates a builder for the <c>dotnet reference remove</c> command using the given project paths and target project.
+  /// </summary>
+  /// <param name="projectPaths">Paths of the referenced projects to remove.</param>
+  /// <param name="project">Project that loses the reference, or null to use the project in the working directory.</param>
+  /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
   public DotNetReferenceRemoveBuilder(string[] projectPaths, string? project, CommandOptions options)
   {
     ProjectPaths = projectPaths ?? throw new ArgumentNullException(nameof(projectPaths));
@@ -350,6 +437,10 @@ public class DotNetReferenceRemoveBuilder
     Options = options;
   }
 
+  /// <summary>
+  /// Assembles the arguments for <c>dotnet reference remove</c> and returns a command result that has not run yet.
+  /// </summary>
+  /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
     List<string> arguments = new() { "reference" };
@@ -367,26 +458,51 @@ public class DotNetReferenceRemoveBuilder
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference remove</c> and streams its output to the console.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The process exit code.</returns>
   public async Task<int> RunAsync(CancellationToken cancellationToken = default)
   {
     return await Build().RunAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference remove</c> without writing to the console and returns the captured output.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>Stdout, stderr, and the exit code.</returns>
   public async Task<CommandOutput> CaptureAsync(CancellationToken cancellationToken = default)
   {
     return await Build().CaptureAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference remove</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
   public async Task<CommandOutput> PassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().PassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  /// <summary>
+  /// Runs <c>dotnet reference remove</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
   public async Task<CommandOutput> TtyPassthroughAsync(CancellationToken cancellationToken = default)
   {
     return await Build().TtyPassthroughAsync(cancellationToken).ConfigureAwait(false);
   }
   
+  /// <summary>
+  /// Runs <c>dotnet reference remove</c> as an interactive selection and returns the value written to stdout.
+  /// </summary>
+  /// <param name="cancellationToken">Token that cancels the running command.</param>
+  /// <returns>The selected value.</returns>
   public async Task<string> SelectAsync(CancellationToken cancellationToken = default)
   {
     return await Build().SelectAsync(cancellationToken).ConfigureAwait(false);
