@@ -1,29 +1,34 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool search`.
+#endregion
+
+#region Design
+// The search term stays positional. Skip and Take are invariant-culture integers so the
+// tokens do not pick up the host culture.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Fluent builder for 'dotnet tool uninstall' commands.
+/// Fluent builder for 'dotnet tool search' commands.
 /// </summary>
-public class DotNetToolUninstallBuilder
+public class DotNetToolSearchBuilder
 {
-  private readonly string PackageId;
+  private readonly string SearchTerm;
   private CommandOptions Options;
-  private bool IsGlobal;
-  private bool IsLocal;
-  private string? ToolPath;
-  private string? ToolManifest;
+  private bool Detail;
+  private int? Skip;
+  private int? Take;
+  private bool Prerelease;
 
   /// <summary>
-  /// Creates a builder for the <c>dotnet tool uninstall</c> command using the given tool package id.
+  /// Creates a builder for the <c>dotnet tool search</c> command using the given search text.
   /// </summary>
-  /// <param name="packageId">Package id of the .NET tool to uninstall.</param>
+  /// <param name="searchTerm">Text matched against tool package ids.</param>
   /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
-  public DotNetToolUninstallBuilder(string packageId, CommandOptions options)
+  public DotNetToolSearchBuilder(string searchTerm, CommandOptions options)
   {
-    PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
+    SearchTerm = searchTerm ?? throw new ArgumentNullException(nameof(searchTerm));
     Options = options;
   }
 
@@ -31,7 +36,7 @@ public class DotNetToolUninstallBuilder
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder WithNoValidation()
+  public DotNetToolSearchBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
     return this;
@@ -42,91 +47,89 @@ public class DotNetToolUninstallBuilder
   /// instead of reporting the failure via the result's exit code.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder WithZeroExitCodeValidation()
+  public DotNetToolSearchBuilder WithZeroExitCodeValidation()
   {
     Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
   /// <summary>
-  /// Uninstalls the tool globally.
+  /// Shows detailed information about the tools.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder Global()
+  public DotNetToolSearchBuilder WithDetail()
   {
-    IsGlobal = true;
-    IsLocal = false;
+    Detail = true;
     return this;
   }
 
   /// <summary>
-  /// Uninstalls the tool locally.
+  /// Specifies the number of tools to skip.
   /// </summary>
+  /// <param name="skip">The number of tools to skip</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder Local()
+  public DotNetToolSearchBuilder WithSkip(int skip)
   {
-    IsLocal = true;
-    IsGlobal = false;
+    Skip = skip;
     return this;
   }
 
   /// <summary>
-  /// Specifies the path where the tool is installed.
+  /// Specifies the number of tools to take.
   /// </summary>
-  /// <param name="toolPath">The installation path</param>
+  /// <param name="take">The number of tools to take</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder WithToolPath(string toolPath)
+  public DotNetToolSearchBuilder WithTake(int take)
   {
-    ToolPath = toolPath;
+    Take = take;
     return this;
   }
 
   /// <summary>
-  /// Specifies the path to the tool manifest file.
+  /// Includes prerelease tools in the search.
   /// </summary>
-  /// <param name="toolManifest">The tool manifest file path</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolUninstallBuilder WithToolManifest(string toolManifest)
+  public DotNetToolSearchBuilder WithPrerelease()
   {
-    ToolManifest = toolManifest;
+    Prerelease = true;
     return this;
   }
 
   /// <summary>
-  /// Assembles the arguments for <c>dotnet tool uninstall</c> and returns a command result that has not run yet.
+  /// Assembles the arguments for <c>dotnet tool search</c> and returns a command result that has not run yet.
   /// </summary>
   /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
-    List<string> arguments = new() { "tool", "uninstall", PackageId };
+    List<string> arguments = new() { "tool", "search", SearchTerm };
 
-    if (IsGlobal)
+    if (Detail)
     {
-      arguments.Add("--global");
+      arguments.Add("--detail");
     }
 
-    if (IsLocal)
+    if (Skip.HasValue)
     {
-      arguments.Add("--local");
+      arguments.Add("--skip");
+      arguments.Add(Skip.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
-    if (!string.IsNullOrWhiteSpace(ToolPath))
+    if (Take.HasValue)
     {
-      arguments.Add("--tool-path");
-      arguments.Add(ToolPath);
+      arguments.Add("--take");
+      arguments.Add(Take.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 
-    if (!string.IsNullOrWhiteSpace(ToolManifest))
+    if (Prerelease)
     {
-      arguments.Add("--tool-manifest");
-      arguments.Add(ToolManifest);
+      arguments.Add("--prerelease");
     }
 
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool uninstall</c> and streams its output to the console.
+  /// Runs <c>dotnet tool search</c> and streams its output to the console.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>The process exit code.</returns>
@@ -136,7 +139,7 @@ public class DotNetToolUninstallBuilder
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool uninstall</c> without writing to the console and returns the captured output.
+  /// Runs <c>dotnet tool search</c> without writing to the console and returns the captured output.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>Stdout, stderr, and the exit code.</returns>
@@ -146,7 +149,7 @@ public class DotNetToolUninstallBuilder
   }
   
   /// <summary>
-  /// Runs <c>dotnet tool uninstall</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// Runs <c>dotnet tool search</c> with the console streams attached so the process can read input and draw on the terminal.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
@@ -156,7 +159,7 @@ public class DotNetToolUninstallBuilder
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool uninstall</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// Runs <c>dotnet tool search</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
@@ -166,7 +169,7 @@ public class DotNetToolUninstallBuilder
   }
   
   /// <summary>
-  /// Runs <c>dotnet tool uninstall</c> as an interactive selection and returns the value written to stdout.
+  /// Runs <c>dotnet tool search</c> as an interactive selection and returns the value written to stdout.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>The selected value.</returns>

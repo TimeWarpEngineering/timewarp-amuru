@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool install`.
+#endregion
+
+#region Design
+// Global, local, and tool-path are separate flags. The builder emits each one that was set
+// and leaves an illegal combination for the CLI to reject.
 #endregion
 
 namespace TimeWarp.Amuru;

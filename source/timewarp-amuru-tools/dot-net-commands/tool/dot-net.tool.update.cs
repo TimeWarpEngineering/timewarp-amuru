@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool update`.
+#endregion
+
+#region Design
+// Update keeps the install location flags and adds feed, prerelease, and interactive options.
+// There is no version pin; the CLI selects the newest match.
 #endregion
 
 namespace TimeWarp.Amuru;

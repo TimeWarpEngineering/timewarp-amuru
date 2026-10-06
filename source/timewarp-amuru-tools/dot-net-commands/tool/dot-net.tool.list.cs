@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool list`.
+#endregion
+
+#region Design
+// No location flag means the CLI lists the local manifest. Global and tool-path are opt-ins;
+// the builder does not store a default location.
 #endregion
 
 namespace TimeWarp.Amuru;

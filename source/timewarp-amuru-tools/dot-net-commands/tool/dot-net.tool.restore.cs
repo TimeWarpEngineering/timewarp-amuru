@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool restore`.
+#endregion
+
+#region Design
+// Extra feeds use `--add-source`, the spelling `dotnet tool` uses, not the `--source`
+// spelling used by `dotnet restore`.
 #endregion
 
 namespace TimeWarp.Amuru;

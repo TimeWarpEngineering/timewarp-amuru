@@ -1,5 +1,10 @@
 #region Purpose
-// TODO: Add purpose description
+// Entry point for `dotnet tool` that shares working directory and validation with the subcommand builders.
+#endregion
+
+#region Design
+// This builder does not assemble arguments. Install, uninstall, update, list, run, search, and restore
+// each return a dedicated builder that copies CommandOptions.
 #endregion
 
 namespace TimeWarp.Amuru;

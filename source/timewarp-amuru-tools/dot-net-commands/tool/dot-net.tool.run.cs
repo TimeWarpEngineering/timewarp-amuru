@@ -1,29 +1,31 @@
 #region Purpose
-// TODO: Add purpose description
+// Fluent builder for `dotnet tool run`.
+#endregion
+
+#region Design
+// The command name is positional. Tool arguments are appended after it with no `--` separator,
+// because `dotnet tool run` forwards the remainder to the tool.
 #endregion
 
 namespace TimeWarp.Amuru;
 
 /// <summary>
-/// Fluent builder for 'dotnet tool search' commands.
+/// Fluent builder for 'dotnet tool run' commands.
 /// </summary>
-public class DotNetToolSearchBuilder
+public class DotNetToolRunBuilder
 {
-  private readonly string SearchTerm;
+  private readonly string CommandName;
   private CommandOptions Options;
-  private bool Detail;
-  private int? Skip;
-  private int? Take;
-  private bool Prerelease;
+  private List<string> ToolArguments = new();
 
   /// <summary>
-  /// Creates a builder for the <c>dotnet tool search</c> command using the given search text.
+  /// Creates a builder for the <c>dotnet tool run</c> command using the given tool command name.
   /// </summary>
-  /// <param name="searchTerm">Text matched against tool package ids.</param>
+  /// <param name="commandName">Command name of the local tool to run.</param>
   /// <param name="options">Working directory, environment, and exit-code validation carried into the command.</param>
-  public DotNetToolSearchBuilder(string searchTerm, CommandOptions options)
+  public DotNetToolRunBuilder(string commandName, CommandOptions options)
   {
-    SearchTerm = searchTerm ?? throw new ArgumentNullException(nameof(searchTerm));
+    CommandName = commandName ?? throw new ArgumentNullException(nameof(commandName));
     Options = options;
   }
 
@@ -31,7 +33,7 @@ public class DotNetToolSearchBuilder
   /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithNoValidation()
+  public DotNetToolRunBuilder WithNoValidation()
   {
     Options = Options.WithNoValidation();
     return this;
@@ -42,89 +44,48 @@ public class DotNetToolSearchBuilder
   /// instead of reporting the failure via the result's exit code.
   /// </summary>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithZeroExitCodeValidation()
+  public DotNetToolRunBuilder WithZeroExitCodeValidation()
   {
     Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
   /// <summary>
-  /// Shows detailed information about the tools.
+  /// Adds arguments to pass to the tool.
   /// </summary>
+  /// <param name="arguments">The arguments to pass to the tool</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithDetail()
+  public DotNetToolRunBuilder WithArguments(params string[] arguments)
   {
-    Detail = true;
+    ToolArguments.AddRange(arguments);
     return this;
   }
 
   /// <summary>
-  /// Specifies the number of tools to skip.
+  /// Adds a single argument to pass to the tool.
   /// </summary>
-  /// <param name="skip">The number of tools to skip</param>
+  /// <param name="argument">The argument to pass to the tool</param>
   /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithSkip(int skip)
+  public DotNetToolRunBuilder WithArgument(string argument)
   {
-    Skip = skip;
+    ToolArguments.Add(argument);
     return this;
   }
 
   /// <summary>
-  /// Specifies the number of tools to take.
-  /// </summary>
-  /// <param name="take">The number of tools to take</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithTake(int take)
-  {
-    Take = take;
-    return this;
-  }
-
-  /// <summary>
-  /// Includes prerelease tools in the search.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetToolSearchBuilder WithPrerelease()
-  {
-    Prerelease = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Assembles the arguments for <c>dotnet tool search</c> and returns a command result that has not run yet.
+  /// Assembles the arguments for <c>dotnet tool run</c> and returns a command result that has not run yet.
   /// </summary>
   /// <returns>A command result ready to run, capture, or pass through.</returns>
   public CommandResult Build()
   {
-    List<string> arguments = new() { "tool", "search", SearchTerm };
-
-    if (Detail)
-    {
-      arguments.Add("--detail");
-    }
-
-    if (Skip.HasValue)
-    {
-      arguments.Add("--skip");
-      arguments.Add(Skip.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-
-    if (Take.HasValue)
-    {
-      arguments.Add("--take");
-      arguments.Add(Take.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
-    }
-
-    if (Prerelease)
-    {
-      arguments.Add("--prerelease");
-    }
+    List<string> arguments = new() { "tool", "run", CommandName };
+    arguments.AddRange(ToolArguments);
 
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool search</c> and streams its output to the console.
+  /// Runs <c>dotnet tool run</c> and streams its output to the console.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>The process exit code.</returns>
@@ -134,7 +95,7 @@ public class DotNetToolSearchBuilder
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool search</c> without writing to the console and returns the captured output.
+  /// Runs <c>dotnet tool run</c> without writing to the console and returns the captured output.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>Stdout, stderr, and the exit code.</returns>
@@ -144,7 +105,7 @@ public class DotNetToolSearchBuilder
   }
   
   /// <summary>
-  /// Runs <c>dotnet tool search</c> with the console streams attached so the process can read input and draw on the terminal.
+  /// Runs <c>dotnet tool run</c> with the console streams attached so the process can read input and draw on the terminal.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>A command output whose text is empty because the process wrote to the console.</returns>
@@ -154,7 +115,7 @@ public class DotNetToolSearchBuilder
   }
 
   /// <summary>
-  /// Runs <c>dotnet tool search</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
+  /// Runs <c>dotnet tool run</c> with the terminal inherited so a text UI can use the real TTY instead of piped console streams.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>A command output whose text is empty because the process inherited the terminal.</returns>
@@ -164,7 +125,7 @@ public class DotNetToolSearchBuilder
   }
   
   /// <summary>
-  /// Runs <c>dotnet tool search</c> as an interactive selection and returns the value written to stdout.
+  /// Runs <c>dotnet tool run</c> as an interactive selection and returns the value written to stdout.
   /// </summary>
   /// <param name="cancellationToken">Token that cancels the running command.</param>
   /// <returns>The selected value.</returns>
