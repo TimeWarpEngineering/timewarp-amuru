@@ -1,3 +1,12 @@
+#region Purpose
+// Creates executable temporary files for tests that need a real binary path.
+#endregion
+
+#region Design
+// On non-Windows the file is marked executable with chmod +x through Shell.Builder.
+// Windows temp files are left as created because that host does not use the Unix execute bit.
+#endregion
+
 namespace TimeWarp.Amuru.Testing;
 
 /// <summary>

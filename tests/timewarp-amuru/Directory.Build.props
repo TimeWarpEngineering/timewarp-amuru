@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Shared test helpers compiled into all test files -->
-    <Compile Include="$(MSBuildThisFileDirectory)TestHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)test-helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)git-repository-fixture.cs" />
   </ItemGroup>
   <ItemGroup>
