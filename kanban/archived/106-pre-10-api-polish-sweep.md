@@ -1,5 +1,7 @@
 # Pre-1.0 API polish sweep
 
+> **Archived 2026-10-06: folded into task 082** (kebab-case cleanup). Open items from this card (RunBuilder doc text, nullability consistency, readme casing, PackageProjectUrl confirmation, region stubs) are tracked under 082 "Folded from 106". Items already done elsewhere: OutputLine record + DateTimeOffset (092), TimeWarp.Cli text removed, Tools PackageProjectUrl (117).
+
 ## Description
 
 Small consistency/hygiene items from the release review that are individually minor but breaking (or embarrassing) to fix after 1.0. Sweep them in one pass after the structural tasks (090-094) land.
