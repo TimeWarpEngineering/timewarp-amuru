@@ -102,3 +102,4 @@ Expect:
 - Rewritten and 002 folded in: 522eb63d (2026-10-07)
 - Implementation: 2026-10-07
 - Review: 2026-10-07, effort 2, general reviewer subagent a1bae4f113a3a928e; disposition accepted-exceptions
+- Review oracle: review by implementer-claude (claude, model claude-opus-5-5), session not reported, max-turns 120 — 2026-10-07T13:07:12Z
