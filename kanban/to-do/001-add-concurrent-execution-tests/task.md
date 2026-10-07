@@ -72,6 +72,14 @@ Runtimes, standalone `dotnet run` wall clock:
 
 Full runner `./bin/dev test`: 732 passed, 1 skipped (pre-existing `GetCommitsAheadOfDefaultBranch`), 0 failed. `Concurrency_Given_` 5/5, `LargeOutput_Given_` 4/4. `./bin/dev build`: 0 warnings, 0 errors. `ganda repo audit`: 31 passed, 0 failed.
 
+### Review disposition
+
+- Effort 2 (by-diff), roster: general (Sonnet subagent) plus oracle verification; 2 rounds.
+- Final counts: bug 0; suggestion 1 fixed; nit 1 fixed, 1 wontfix; 0 open.
+- Outcome: **accepted-exceptions**. M1 fixed (`GC.KeepAlive` on the capture baseline so the JIT cannot collect it before the second sample). M2 fixed (the interleaved child now alternates stdout/stderr writes). M3 wontfix (no `python3`/`seq` probe; the brief allows them on Linux CI and a missing binary should fail loudly).
+- After fixes: large-output file 4 passed (7.9 s), `./bin/dev build` 0 warnings, `./bin/dev test` 732 passed / 1 skipped / 0 failed, `ganda repo audit` clean.
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ### How to validate
 
 Smoke:
@@ -93,3 +101,4 @@ Expect:
 - Created: 2025-12-12
 - Rewritten and 002 folded in: 522eb63d (2026-10-07)
 - Implementation: 2026-10-07
+- Review: 2026-10-07, effort 2, general reviewer subagent a1bae4f113a3a928e; disposition accepted-exceptions

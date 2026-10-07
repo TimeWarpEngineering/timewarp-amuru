@@ -12,7 +12,8 @@ using System.Globalization;
 // Capture of seq 1..2000000 and the stream of that same command share one test so the memory ratio uses one baseline.
 // Retained stream memory is sampled with GC.GetTotalMemory(true) so gen0 garbage from line strings is not the peak.
 // Unforced samples are printed with the ratio. The assertion is retained bytes under 25% of the capture delta.
-// RunAndCaptureAsync is the path whose OutputLines order is all stdout then all stderr.
+// RunAndCaptureAsync is the path whose OutputLines order is all stdout then all stderr, even when the child alternates writes.
+// The capture baseline keeps output and lines alive past the second sample so the JIT cannot collect them early.
 // RunAsync sends seq to the terminal with stdout and stderr replaced by TextWriter.Null so the CI log stays small.
 // Linux commands are skipped on other operating systems. Jaribu has no runtime skip signal; the method returns.
 #endregion
@@ -40,7 +41,6 @@ namespace CommandResult_
       count = 200000
       for index in range(count):
           sys.stdout.write(f"o{index}\n")
-      for index in range(count):
           sys.stderr.write(f"e{index}\n")
       """;
 
@@ -218,6 +218,8 @@ namespace CommandResult_
       output.ExitCode.ShouldBe(0);
       output.Success.ShouldBeTrue();
       long after = GC.GetTotalMemory(true);
+      GC.KeepAlive(lines);
+      GC.KeepAlive(output);
       return after - before;
     }
 
