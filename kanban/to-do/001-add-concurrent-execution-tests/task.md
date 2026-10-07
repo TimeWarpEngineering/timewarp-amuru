@@ -33,14 +33,14 @@ Prove and document two contracts of `CommandResult` / `CommandOutput` (`source/t
 
 ## Checklist
 
-- [ ] `command-result.concurrency.cs`: shared-instance capture ×N, concurrent pipes, mixed modes, timeouts, mock AsyncLocal isolation
-- [ ] `LastOutput` decision implemented and documented (PublicAPI Unshipped + release-note line if removed)
-- [ ] Thread-safety contract written in the Design region and the execution doc
-- [ ] `command-result.large-output.cs`: 2M-line capture, streaming memory ratio, 10 MB single line, interleaved ordering at volume, console no-deadlock
-- [ ] Large-output contract written in the execution doc
-- [ ] Any core fix found by the tests, with its own regression test
-- [ ] `./bin/dev build` 0 warnings / 0 errors; full runner green; file runtime recorded; `ganda repo audit` clean
-- [ ] Results: decision on `LastOutput`, measured memory ratios, test runtimes, any fixes
+- [x] `command-result.concurrency.cs`: shared-instance capture ×N, concurrent pipes, mixed modes, timeouts, mock AsyncLocal isolation
+- [x] `LastOutput` decision implemented and documented (PublicAPI Unshipped + release-note line if removed)
+- [x] Thread-safety contract written in the Design region and the execution doc
+- [x] `command-result.large-output.cs`: 2M-line capture, streaming memory ratio, 10 MB single line, interleaved ordering at volume, console no-deadlock
+- [x] Large-output contract written in the execution doc
+- [x] Any core fix found by the tests, with its own regression test
+- [x] `./bin/dev build` 0 warnings / 0 errors; full runner green; file runtime recorded; `ganda repo audit` clean
+- [x] Results: decision on `LastOutput`, measured memory ratios, test runtimes, any fixes
 
 ## Notes
 
@@ -48,7 +48,48 @@ Prove and document two contracts of `CommandResult` / `CommandOutput` (`source/t
 - Reference: task 044 Results (why `LastOutput` exists), task 090 (result-vs-throw contract), task 121 (mock parity).
 - Keep tests deterministic: no wall-clock assertions beyond `[Timeout]`, generous memory ratios, Linux-only commands are fine (CI is ubuntu) but guard with `OperatingSystem.IsLinux()` and skip otherwise.
 
+## Results
+
+Choice (a): `CommandResult.LastOutput` stays. Nothing outside tests and docs reads it, but `StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync`, and `StreamToFileAsync` do not return `CommandOutput`. `LastOutput` is their completion record (exit code, timeout, runtime), and strict timeouts still publish the partial result there before `TimeoutException`. Removing it would drop that contract. No `*REMOVED*` line and no release-note line.
+
+The property is the most recent execution on the instance. It is not meaningful when that instance executes concurrently (last writer wins). Callers use the returned `CommandOutput`. The instance is otherwise immutable, and execution methods may run concurrently. That contract is in the `command-result.cs` Design region, the type and property docs, and `documentation/developer/reference/command-execution.md`.
+
+`CaptureAsync` keeps arrival order. `RunAndCaptureAsync` rebuilds `OutputLines` from separate strings, so those lines are all stdout, then all stderr. The volume test asserts that path at 200,000 lines on each stream.
+
+No core behavior change. The tests did not show quadratic string building or a deadlock.
+
+Memory for `seq 1 2000000`, standalone `dotnet run` of `command-result.large-output.cs` (second run):
+
+- Capture retained delta: 400,062,728 bytes (`GC.GetTotalMemory(true)` while the `CommandOutput` and `GetLines()` array were rooted)
+- Stream retained delta after `GC.GetTotalMemory(true)`: 104,728 bytes, ratio 0.0003
+- Stream unforced peak (`GC.GetTotalMemory(false)`): 49,913,400 bytes, ratio 0.1248
+- The assertion is retained delta under 25% of the capture delta. The unforced peak on that run was also under 25%. The full suite run measured capture 416,717,264, retained 0, unforced ratio 0.0146
+
+Runtimes, standalone `dotnet run` wall clock:
+
+- `command-result.concurrency.cs`: 0.79 s (5 passed; slowest test 0.36 s)
+- `command-result.large-output.cs`: 5.65 s (4 passed; capture+stream 4.10 s, 10 MB line 0.25 s, interleaved 0.56 s, `RunAsync` 0.43 s)
+
+Full runner `./bin/dev test`: 732 passed, 1 skipped (pre-existing `GetCommitsAheadOfDefaultBranch`), 0 failed. `Concurrency_Given_` 5/5, `LargeOutput_Given_` 4/4. `./bin/dev build`: 0 warnings, 0 errors. `ganda repo audit`: 31 passed, 0 failed.
+
+### How to validate
+
+Smoke:
+
+1. `dotnet run tests/timewarp-amuru/single-file-tests/core/command-result.concurrency.cs`
+2. `dotnet run tests/timewarp-amuru/single-file-tests/core/command-result.large-output.cs`
+3. `./bin/dev build`
+4. `./bin/dev test`
+
+Expect:
+
+- Concurrency file: 5 passed. Shared capture, pipes, mixed modes, timeouts, and mock flows each return that caller's own output.
+- Large-output file: 4 passed in well under 30 s. The printed `retainedRatio` is under 0.25. `seq` capture length is 2000000, the 10 MB line length is 10000000, interleaved `OutputLines` are stdout then stderr, and `RunAsync` exits 0.
+- Build: 0 warnings, 0 errors.
+- Full runner: 0 failed. The one skip is `GetCommitsAheadOfDefaultBranch_Given_`.
+
 ## Session
 
 - Created: 2025-12-12
 - Rewritten and 002 folded in: 522eb63d (2026-10-07)
+- Implementation: 2026-10-07

@@ -46,10 +46,20 @@
 // - TtyPassthroughAsync sends SIGINT itself on Linux and macOS, then kills the tree after the grace period.
 //   Windows non-console children receive no SIGINT, so the grace period ends in the kill.
 //   TtyPassthroughAsync still does not throw on timeout; it reports the result.
-// - LastOutput is set when an execution produces a result, including a timeout result (set before a strict TimeoutException).
+// - The instance is immutable aside from LastOutput. Execution methods may be called concurrently.
+//   Each call returns its own CommandOutput, exit code, or streamed lines.
+// - LastOutput is the most recent execution on this instance. It is not meaningful when the same
+//   instance executes concurrently: the last writer wins. Prefer the returned CommandOutput.
+//   StreamStdoutAsync, StreamStderrAsync, StreamCombinedAsync, and StreamToFileAsync do not return
+//   CommandOutput, so LastOutput is their completion record (exit code, timeout, runtime).
+//   It is set when an execution produces a result, including a timeout result (set before a strict TimeoutException).
 //   It is not updated when the caller cancels, when any other exception escapes (strict non-zero exit
 //   CommandExecutionException, mock Throws), or when a stream is abandoned before completion.
-//   The instance is not intended for concurrent executions.
+// - CaptureAsync and RunAndCaptureAsync retain every line plus the combined strings.
+//   StreamStdoutAsync, StreamStderrAsync, and StreamCombinedAsync keep one line at a time. RunAsync and PassthroughAsync do not
+//   buffer output. There is no size limit; the limit is process memory.
+//   CaptureAsync records arrival order. RunAndCaptureAsync rebuilds OutputLines from separate strings,
+//   so those lines are all stdout, then all stderr.
 // - Streaming enumerators complete on timeout under default validation. LastOutput is set before the enumerator ends.
 //   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
 //   Disposing CliWrap's ListenAsync awaits the command task again. That second await throws the
@@ -84,6 +94,12 @@ namespace TimeWarp.Amuru;
 /// <see cref="TtyPassthroughAsync"/> reports that result and does not throw.
 /// Cancelling the caller's token throws <see cref="OperationCanceledException"/> and leaves <see cref="LastOutput"/> unchanged.
 /// </summary>
+/// <remarks>
+/// The instance is immutable aside from <see cref="LastOutput"/>.
+/// Execution methods may be called concurrently. Each call returns its own result.
+/// <see cref="LastOutput"/> is the most recent execution on this instance.
+/// It is not meaningful when the same instance executes concurrently. Prefer the returned <see cref="CommandOutput"/>.
+/// </remarks>
 public class CommandResult
 {
   /// <summary>
@@ -129,7 +145,9 @@ public class CommandResult
   /// Streaming methods set this when the enumerator finishes; a stream abandoned before completion does not set it.
   /// It is not updated when the caller cancels or when any other exception escapes
   /// (for example a strict non-zero exit <c>CommandExecutionException</c> or a mock that throws).
-  /// The instance is not intended for concurrent executions.
+  /// Not meaningful when the same instance executes concurrently: the last writer wins.
+  /// Prefer the <see cref="CommandOutput"/> returned by the call.
+  /// Stream methods that do not return <see cref="CommandOutput"/> record exit code, timeout, and runtime here.
   /// </summary>
   public CommandOutput? LastOutput { get; private set; }
 
