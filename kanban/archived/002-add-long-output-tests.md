@@ -1,5 +1,7 @@
 # Add Long Output Tests
 
+> **Archived 2026-10-07: folded into task 001** ("Concurrency and large-output contracts for command execution"), Part B. The capture-vs-stream memory contract, the 2M-line and 10 MB single-line cases, and the docs update live there.
+
 ## Description
 
 Define and test behavior with very long command outputs to ensure proper memory handling and performance characteristics. Currently undefined what constitutes "very long" output and how the library behaves under such conditions.

@@ -37,7 +37,7 @@ Default validation (`None`) reports a timeout as a result. It does not throw.
 | Timeout, default validation | `CommandOutput.TimedOut` is true, `ExitCode` is `CommandResult.TimeoutExitCode` (124), `Success` is false |
 | Child handles the graceful signal and exits 0 | Still a timeout: exit 124. The child's status is not preserved |
 | Timeout, `WithZeroExitCodeValidation()` | `TimeoutException` whose message says the command timed out and was terminated. Captured stdout and stderr are on `CommandResult.LastOutput` |
-| Caller cancels | `OperationCanceledException`. `TimedOut` is not set and `LastOutput` is left unchanged. `LastOutput` is likewise not updated when any other exception escapes (strict non-zero exit, a mock that throws) or when a stream is abandoned before completion. An instance is not intended for concurrent executions |
+| Caller cancels | `OperationCanceledException`. `TimedOut` is not set and `LastOutput` is left unchanged. `LastOutput` is likewise not updated when any other exception escapes (strict non-zero exit, a mock that throws) or when a stream is abandoned before completion |
 | `TtyPassthroughAsync` times out | The same exit-124 result, including under strict validation. This method does not throw on timeout |
 
 124 is the exit code GNU `timeout` uses, so a shell-minded caller can recognize it.
@@ -51,3 +51,24 @@ CliWrap applies those two tokens to the last stage. An earlier stage is the last
 ### Mocks
 
 `CommandMock` produces the same result shape. `TimesOut()` sets `TimedOut` and exit 124. A `Delays` value greater than or equal to the command timeout does too. The mock runtime stays zero. Under strict validation the mock throws `TimeoutException`, except `TtyPassthroughAsync`, which still returns the result. Cancelling the caller's token throws `OperationCanceledException`.
+
+## Concurrency
+
+A `CommandResult` is immutable aside from `LastOutput`. Execution methods may be called concurrently on one instance. Each call returns its own `CommandOutput`, exit code, or streamed lines.
+
+`LastOutput` is the most recent execution on this instance. It is not meaningful when the same instance executes concurrently: the last writer wins. Prefer the `CommandOutput` returned by the call. `StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync`, and `StreamToFileAsync` do not return `CommandOutput`. For those methods `LastOutput` is the completion record (exit code, timeout, and runtime) when the enumerator or write finishes. A strict timeout still sets `LastOutput` before throwing `TimeoutException`. That property has the same single-writer limit.
+
+`CommandMock` keeps its state in `AsyncLocal`. Parallel async flows that each call `CommandMock.Enable` do not see each other's setups.
+
+## Output size
+
+There is no size limit. The limit is process memory.
+
+| Method | What it retains |
+| --- | --- |
+| `CaptureAsync`, `RunAndCaptureAsync` | The full output: one `OutputLine` per line, plus the combined strings (`Stdout`, `Stderr`, `Combined`) |
+| `StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync` | Constant memory per line. A line stays allocated only while the caller keeps it |
+| `RunAsync`, `PassthroughAsync` | Do not buffer the output. `RunAsync` writes each line to the terminal. `PassthroughAsync` copies the child's streams to the console |
+| `StreamToFileAsync` | Writes each line to the file and does not keep the text on `CommandOutput` |
+
+`CaptureAsync` records lines in arrival order, so stdout and stderr may interleave in `OutputLines`. `RunAndCaptureAsync`, and any `CommandOutput` built from separate stdout and stderr strings, orders all stdout lines before all stderr lines. Those two strings do not carry interleaving.
