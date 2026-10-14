@@ -29,7 +29,7 @@ Or via Central Package Management in `Directory.Packages.props`:
 Find available versions:
 
 ```bash
-dotnet package search TimeWarp.Amuru --exact-match --take 5 --prerelease
+dotnet package search TimeWarp.Amuru --exact-match --take 5
 ```
 
 ## Core API: Shell.Builder
