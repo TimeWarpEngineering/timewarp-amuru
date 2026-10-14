@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TimeWarp.Amuru 2.0</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 1200px;
+      height: 675px;
+      overflow: hidden;
+      background: #f4f7fb;
+      color: #102046;
+      font-family: "Liberation Sans", "Nimbus Sans", sans-serif;
+    }
+
+    .card {
+      box-sizing: border-box;
+      width: 1200px;
+      height: 675px;
+      padding: 44px 56px 36px 72px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 16px;
+      background: linear-gradient(180deg, #243e9c 0%, #6d35d4 100%);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    header img {
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+    }
+
+    .kicker {
+      font-size: 22px;
+      letter-spacing: 0.16em;
+      font-weight: 700;
+      color: #3a4d7a;
+    }
+
+    .version {
+      font-size: 54px;
+      line-height: 1;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    h1 {
+      margin: 28px 0 0;
+      max-width: 1040px;
+      font-size: 46px;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .stats {
+      margin-top: 32px;
+      display: flex;
+      align-items: stretch;
+      gap: 18px;
+    }
+
+    .stat {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #d5deee;
+      border-radius: 18px;
+      padding: 20px 22px 18px;
+    }
+
+    .stat.accent {
+      background: #14245a;
+      color: #f4f7fb;
+      border-color: #14245a;
+    }
+
+    .label {
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #52648d;
+    }
+
+    .accent .label { color: #c5d2f5; }
+
+    .num {
+      font-size: 48px;
+      line-height: 1.05;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .sub {
+      font-size: 24px;
+      margin-top: 8px;
+      color: #3a4d7a;
+    }
+
+    .accent .sub { color: #d6e0ff; }
+
+    footer {
+      margin-top: auto;
+    }
+
+    .ratio {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .src {
+      margin-top: 6px;
+      font-size: 18px;
+      color: #52648d;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <img src="../../../assets/logo.png" alt="">
+      <div>
+        <div class="kicker">TIMEWARP.AMURU</div>
+        <div class="version">2.0</div>
+      </div>
+    </header>
+    <h1>Shell scripting in C#,<br>without shelling out</h1>
+    <div class="stats">
+      <div class="stat">
+        <div class="label">SelectString</div>
+        <div class="num">0 · 1 · 2</div>
+        <div class="sub">grep exit codes</div>
+      </div>
+      <div class="stat">
+        <div class="label">ReplaceInFiles</div>
+        <div class="num">dry run</div>
+        <div class="sub">unified diff, no write</div>
+      </div>
+      <div class="stat accent">
+        <div class="label">Timeout</div>
+        <div class="num">exit 124</div>
+        <div class="sub">TimedOut, then stop</div>
+      </div>
+    </div>
+    <footer>
+      <div class="ratio">First stable 2.x · TimeWarp.Amuru and TimeWarp.Amuru.Tools</div>
+      <div class="src">Install 2.0.0 without --prerelease · breaking changes are in the upgrade guide</div>
+    </footer>
+  </div>
+</body>
+</html>

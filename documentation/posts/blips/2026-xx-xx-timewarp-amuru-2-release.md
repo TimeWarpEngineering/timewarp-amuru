@@ -1,0 +1,1 @@
+TimeWarp.Amuru 2.0 is the first stable 2.x. SelectString and ReplaceInFiles search and edit in C#: grep exit codes, a dry-run diff, no shell-out to grep or sed. A command that would hang returns exit 124. Breaking changes are in the upgrade guide.
