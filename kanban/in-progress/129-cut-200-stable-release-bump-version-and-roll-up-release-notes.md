@@ -18,15 +18,15 @@ This task follows the task 122 / 125 pattern: bump the lockstep version, roll th
 
 ## Checklist
 
-- [ ] `<Version>2.0.0</Version>` in `source/Directory.Build.props`
-- [ ] `dev check-version` green; output pasted into Results
-- [ ] PublicAPI Unshipped confirmed header-only for both packages; Shipped counts recorded
-- [ ] `documentation/release-notes/2.0.0.md` has a complete stand-alone `# 2.0.0` section at the top
-- [ ] Prerelease install guidance removed from `readme.md`; doc spot-check for stale beta literals
-- [ ] `./bin/dev workflow --mode merge` green: build, verify-samples, test, nupkgs for both packages at 2.0.0 under `artifacts/packages/`
-- [ ] `ganda repo audit` clean
-- [ ] Results: gate log, Shipped counts, release-notes section path, consumed-pins follow-up note
-- [ ] PR open and CI green
+- [x] `<Version>2.0.0</Version>` in `source/Directory.Build.props`
+- [x] `dev check-version` green; output pasted into Results
+- [x] PublicAPI Unshipped confirmed header-only for both packages; Shipped counts recorded
+- [x] `documentation/release-notes/2.0.0.md` has a complete stand-alone `# 2.0.0` section at the top
+- [x] Prerelease install guidance removed from `readme.md`; doc spot-check for stale beta literals
+- [x] `./bin/dev workflow --mode merge` green: build, verify-samples, test, nupkgs for both packages at 2.0.0 under `artifacts/packages/`
+- [x] `ganda repo audit` clean
+- [x] Results: gate log, Shipped counts, release-notes section path, consumed-pins follow-up note
+- [x] PR open and CI green
 
 ## Notes
 
@@ -37,3 +37,35 @@ This task follows the task 122 / 125 pattern: bump the lockstep version, roll th
 ## Session
 
 - Created: 3213244 (2026-10-14)
+- Implementation: claude (2026-10-14)
+- Audit: `ganda repo audit --fix` bumped TimeWarp.Nuru and TimeWarp.Nuru.DevCli in Directory.Packages.props from 3.0.0-beta.79 to 3.0.0-beta.80 (dev-cli only); rebuilt bin/dev with `./bin/dev self-install`; audit then clean.
+
+## Results
+
+Both packages are `2.0.0` from `source/Directory.Build.props`, the only `<Version>` under `source/`. PublicAPI Unshipped for core and Tools is only `#nullable enable`, so there was nothing to promote. Shipped line counts (`wc -l`): core 351, Tools 1622 (unchanged from beta.2). Build: 0 warnings, 0 errors.
+
+Release notes: `documentation/release-notes/2.0.0.md` has a stand-alone `# 2.0.0` section above `# 2.0.0-beta.2` and `# 2.0.0-beta.1`, which are unchanged. It consolidates Breaking changes, Behavior changes, New (per package, plus the `CommandResult` concurrency and output contract), Fixed, and the Upgrade guide.
+
+Docs touched: `readme.md` (prerelease install guidance removed), `AGENTS.md` (Shipped baseline is the `2.0.0` surface), `skills/amuru/SKILL.md` (`--prerelease` dropped from the version search). `documentation/user/installation.md` mentions `--prerelease` only for the unrelated Ganda tool and was left alone.
+
+Audit fix: `Directory.Packages.props` TimeWarp.Nuru and TimeWarp.Nuru.DevCli bumped to 3.0.0-beta.80 (dev-cli only).
+
+Not changed on purpose: consumed pins for `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` in `Directory.Packages.props` stay at `2.0.0-beta.2` until 2.0.0 is on NuGet. Post-publish follow-up: bump them to `2.0.0`.
+
+No tag. `dev release` was not run.
+
+### Gate log
+
+`./bin/dev check-version` exit 0:
+
+```
+Version in source: 2.0.0
+Latest NuGet version: 2.0.0-beta.2
+Packages checked: TimeWarp.Amuru, TimeWarp.Amuru.Tools
+
+✓ Version in source is new — safe to release.
+```
+
+`./bin/dev workflow --mode merge` exit 0. Pipeline `clean -> build -> verify-samples -> test` SUCCEEDED. Tests: Passed 732, Failed 0, Skipped 1, Total 733. `artifacts/packages/` contains `TimeWarp.Amuru.2.0.0.nupkg` and `TimeWarp.Amuru.Tools.2.0.0.nupkg`.
+
+`ganda repo audit` clean after the fix (Passed 32, Failed 0).
