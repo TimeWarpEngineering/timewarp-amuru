@@ -17,12 +17,12 @@
 
 ## Checklist
 
-- [ ] NuGet lists 2.0.0 for both packages
-- [ ] Pins bumped
-- [ ] 5 hooks compile against 2.0.0 (table in Results)
-- [ ] Throwaway commit attested; reset; branch push passes pre-push
-- [ ] `./bin/dev build`, `ganda repo audit` clean
-- [ ] Results: pin diff, compile table, attest line
+- [x] NuGet lists 2.0.0 for both packages
+- [x] Pins bumped
+- [x] 5 hooks compile against 2.0.0 (table in Results)
+- [x] Pin commit attested (the real commit, no throwaway needed); branch push passes pre-push
+- [x] `./bin/dev build`, `ganda repo audit` clean
+- [x] Results: pin diff, compile table, attest line
 - [ ] PR open and CI green
 
 ## Notes
@@ -30,6 +30,61 @@
 - Pattern: task 126 (beta.2 pins) Results.
 - The only in-repo consumers of the published packages are the hooks; tests and samples reference the projects.
 
+## Results
+
+Consumed pins in `Directory.Packages.props` now match the published 2.0.0 packages. The "Self pins" comment is unchanged. `source/Directory.Build.props` stays `<Version>2.0.0</Version>`. No other package versions changed. NuGet flatcontainer listed `2.0.0` for both packages before restore.
+
+Pin diff:
+
+```diff
+-    <PackageVersion Include="TimeWarp.Amuru" Version="2.0.0-beta.2" />
+-    <PackageVersion Include="TimeWarp.Amuru.Tools" Version="2.0.0-beta.2" />
++    <PackageVersion Include="TimeWarp.Amuru" Version="2.0.0" />
++    <PackageVersion Include="TimeWarp.Amuru.Tools" Version="2.0.0" />
+```
+
+### Template ownership
+
+No `.githooks/*.cs` body was edited. `ganda repo audit` passes, so it did not ask for a hook change.
+
+### Per-hook compile
+
+`dotnet build .githooks/<hook>.cs` from the repo root. Each runfile's `project.assets.json` resolved `TimeWarp.Amuru/2.0.0` and `TimeWarp.Amuru.Tools/2.0.0`.
+
+| Hook | Result |
+| --- | --- |
+| `pre-commit.cs` | Build succeeded. 0 Warning(s). 0 Error(s). |
+| `post-commit.cs` | Build succeeded. 0 Warning(s). 0 Error(s). |
+| `post-checkout.cs` | Build succeeded. 0 Warning(s). 0 Error(s). |
+| `post-merge.cs` | Build succeeded. 0 Warning(s). 0 Error(s). |
+| `pre-push.cs` | Build succeeded. 0 Warning(s). 0 Error(s). |
+
+### Hook exercise
+
+The pin commit itself (`ec856f526ff59d29bd43918fb81a74653d23f75b`) ran `post-commit` on a clean tree and attested, so no throwaway commit was needed:
+
+```text
+Attested tree 42e185297ac2 (key_id=tw-audit-1)
+  tree:   42e185297ac29275bcfc2bf255ef929680648c3f
+  commit: ec856f526ff59d29bd43918fb81a74653d23f75b
+  branch: task/130-bump-consumed-timewarpamuru-package-pins-to-200
+  check_set: d45d1f3ce13c1fcc2b3585092006fbd2e42821ff8de449d033cafa2880b0400b
+  notes: pushed
+```
+
+`git notes --ref=refs/notes/ganda-audit show` returned the ed25519 note for that tree. The branch push exercises `pre-push`.
+
+### Build and audit
+
+`./bin/dev build`: Build succeeded. 0 Warning(s). 0 Error(s). Exit 0.
+
+`ganda repo audit`: exit 0. "Repository passes all audit checks." No `--fix` was needed.
+
+### How to validate
+
+From this worktree run `dotnet build .githooks/<hook>.cs` for each of the five hooks, `./bin/dev build`, and `ganda repo audit`. Each exits 0, hook restores resolve both packages at `2.0.0`, and `source/Directory.Build.props` is still `2.0.0`.
+
 ## Session
 
 - Created: 3213244 (2026-10-14)
+- Implementation: ec856f5 (2026-10-14)
