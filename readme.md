@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/mascot/amuru-hero.png" alt="Amuru, the TimeWarp Amuru mascot" width="240" /></p>
+
 [![Stars](https://img.shields.io/github/stars/TimeWarpEngineering/timewarp-amuru?logo=github)](https://github.com/TimeWarpEngineering/timewarp-amuru)
 [![workflow](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/workflows/workflow.yml/badge.svg)](https://github.com/TimeWarpEngineering/timewarp-amuru/actions)
 [![Forks](https://img.shields.io/github/forks/TimeWarpEngineering/timewarp-amuru)](https://github.com/TimeWarpEngineering/timewarp-amuru)
