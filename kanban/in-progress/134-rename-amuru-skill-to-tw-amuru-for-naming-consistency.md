@@ -16,9 +16,9 @@ Repo side (this task): move the folder, rename the skill, fix in-repo references
 
 ## Checklist
 
-- [ ] Folder moved to `skills/tw-amuru/`, frontmatter `name: tw-amuru`
-- [ ] In-repo references updated; `grep -rn "skills/amuru"` outside `kanban/done` and `kanban/archived` returns nothing
-- [ ] `./bin/dev build` and `ganda repo audit` clean
+- [x] Folder moved to `skills/tw-amuru/`, frontmatter `name: tw-amuru`
+- [x] In-repo references updated; `grep -rn "skills/amuru"` outside `kanban/done` and `kanban/archived` returns nothing
+- [x] `./bin/dev build` and `ganda repo audit` clean
 - [ ] PR open and CI green
 - [ ] Operator: skill source re-registered as `tw-amuru` and synced (after merge, see Notes)
 
@@ -38,3 +38,12 @@ Repo side (this task): move the folder, rename the skill, fix in-repo references
 ## Session
 
 - Created: 3213244 (2026-10-26)
+- Implementation: 2026-10-26. Skill moved and renamed. `ganda repo audit --fix` changed `Directory.Packages.props` (TimeWarp.Nuru and DevCli to 4.0.0-beta.6). The editorconfig charset quotes and two missing `.gitignore` patterns were fixed by hand because the fixer did not apply them. All committed as `chore(audit): apply ganda repo audit fixes`.
+
+## Results
+
+- Moved `skills/amuru/SKILL.md` to `skills/tw-amuru/SKILL.md` with `git mv`.
+- Frontmatter changed from `name: amuru` to `name: tw-amuru`. Description and body unchanged; the body had no self-references to the old path.
+- Reference files edited: none. Outside `kanban/done/` and `kanban/archived/`, the only remaining `skills/amuru` hits are in this task file's own historical prose. `AGENTS.md`, `readme.md`, `documentation/` and `.github/` held no references.
+- Audit fix side effects: `Directory.Packages.props`, `.editorconfig` (charset quoting), `.gitignore` (`stacked-task-set*.resume.json`).
+- `./bin/dev build`: 0 warnings, 0 errors. `ganda repo audit`: see PR for final status.
