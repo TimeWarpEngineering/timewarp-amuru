@@ -1,5 +1,5 @@
 ---
-name: amuru
+name: tw-amuru
 description: Use TimeWarp.Amuru for process execution instead of System.Diagnostics.Process
 ---
 
