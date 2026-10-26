@@ -455,3 +455,6 @@ task-work.progress.log
 
 # Mission heartbeat in the claim worktree (local; not product)
 mission.heartbeat
+
+# Stacked-task-set resume state (local; not product)
+stacked-task-set*.resume.json
