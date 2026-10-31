@@ -65,7 +65,7 @@ Acceptance for the product diff:
 ### 4. Workflows / CI images
 
 - [x] `.github/workflows/workflow.yml`: keep `actions/setup-dotnet@v4` + `global-json-file: global.json` (no hardcoded SDK version today).
-- [ ] After `global.json` bump, run a green CI on the task branch; confirm SDK 11 installs on `ubuntu-latest`.
+- [x] After `global.json` bump, run a green CI on the task branch; confirm SDK 11 installs on `ubuntu-latest`. `workflow_dispatch` mode `merge` on `6bdf9c2`: [run 41181587366](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/runs/41181587366). `ubuntu-latest` installed SDK `11.0.100-rc.3.26522.148` from `global.json`. Build 0 warnings. Tests 732 passed, 1 skipped. Both `3.0.0` nupkgs were created. Package upload stays master-only, so that step was skipped on this ref.
 - [x] No Dockerfiles / container images in-repo to bump (none found).
 - [x] No explicit test matrix of TFMs today (single job) — no matrix expansion required unless multi-TFM is chosen.
 - [x] `dev-cli` path (`dotnet run --file tools/dev-cli/dev.cs -- workflow`) must work under SDK 11. `workflow --mode pr` succeeded. The handler constructor is public so the mediator can activate it. The class stays internal.
@@ -176,7 +176,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 ## Session
 
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a19093-be62-7253-8b37-b2aa28346f32, max-turns 500, Blocked — 2026-10-31T06:21:31Z
-- Implement oracle: RC go-live product diff by implementer-grok (grok-4.7), session 01a190ce-c522-7673-84d7-a41f8639ad2e, 2026-10-31. Local workflow green. CI dispatch follows the push.
+- Implement oracle: RC go-live product diff by implementer-grok (grok-4.7), session 01a190ce-c522-7673-84d7-a41f8639ad2e, 2026-10-31. Local workflow green. Ubuntu CI run 41181587366 on `6bdf9c2` is green.
 
 ## Blocked
 
@@ -192,7 +192,7 @@ Hard-cut TimeWarp.Amuru to `net11.0` on SDK `11.0.100-rc.3.26522.148` (`rollForw
 
 SDK 11 treats a file-based app as a RID-specific AOT tool package. With root `GeneratePackageOnBuild` still true, `git commit` died in the pre-commit hook: native compilation refuses that property. `.githooks/Directory.Build.props` turns packing off for the hooks. Samples and the dev CLI already opted out. `dotnet run --file .githooks/pre-commit.cs` then exits 0 on this task branch. Each hook under `.githooks/*.cs` builds with that opt-out.
 
-Ubuntu CI is still open on the checklist. This walk dispatches `workflow.yml` on the task branch after the push, because a branch push does not match the workflow's `push` or `pull_request` triggers.
+Ubuntu CI is green. A branch push does not match `workflow.yml` (`push` is master only, and `pull_request` is not open yet), so this walk dispatched `workflow_dispatch` mode `merge` on `6bdf9c2`. [Run 41181587366](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/runs/41181587366) installed SDK `11.0.100-rc.3.26522.148`, built with 0 warnings, passed 732 tests, skipped 1, and packed both `3.0.0` nupkgs. The Packages artifact upload is master-only, so it did not run on this ref.
 
 ### How to validate
 
