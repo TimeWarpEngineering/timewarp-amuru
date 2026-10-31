@@ -31,9 +31,9 @@ The builder API still accepts any moniker. Only the sample text changes. Re-run 
 
 ## Goal (implementer restatement)
 
-The `net11.0` hard-cut, the SDK pin, version `3.0.0`, and the review fixes are already on this branch. This pass does not retarget projects, does not change `global.json`, and does not touch analyzer or package pins. It only rewrites the live examples that still name `net10.0` as the current moniker. The builder methods still take any framework string. The method signatures stay the same.
+The `net11.0` hard-cut, the SDK pin, version `3.0.0`, and the review fixes are already on this branch. The sample pass did not retarget projects, did not change `global.json`, and did not touch analyzer or package pins. It rewrote the live examples that still named `net10.0` as the current moniker. The builder methods still take any framework string. The method signatures stay the same. That list was not the whole of "every current reference". The readme shields badge is a current reference too, and both packages pack that readme.
 
-Acceptance for this pass:
+Acceptance for the sample pass:
 
 - XML doc examples under `source/timewarp-amuru-tools/dot-net-commands/` say `"net8.0", "net11.0"`.
 - `dot-net.md` samples call `WithFramework("net11.0")`.
@@ -42,6 +42,14 @@ Acceptance for this pass:
 - The `<TargetFramework>` sample in `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md` is `net11.0`.
 - Shipped records stay as written: `documentation/release-notes/2.0.0.md`, `documentation/release-notes/3.0.0.md`, the `dnx` and `#:package` history lines in `documentation/user/installation.md`, `kanban/done/**`, and this kitchen's decision history.
 - The dotnet-command tests pass, and a warnings-as-errors build reports 0 warnings and 0 errors.
+
+Fix pass for review finding M4. `readme.md` is the `PackageReadmeFile` for `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools`. Its shields badge said `dotnet-10.0`, so the package page would have advertised .NET 10 for a `net11.0`-only release. This pass changes that badge to `dotnet-11.0`. It does not retarget, and it does not rewrite shipped records.
+
+Acceptance for this fix:
+
+- `readme.md` uses `https://img.shields.io/badge/dotnet-11.0-blue` and the label `dotnet-11.0`.
+- The `rg` smoke under How to validate includes `readme.md` and matches both `net10.0` and `dotnet-10.0`, so a badge regression fails the smoke.
+- History stays as written: release notes `2.0.0` and `3.0.0`, the `dnx` and `#:package` lines in `installation.md`, `kanban/done/**`, `cliwrap-exit-code-tests/readme.md` (the SDK those tests ran on), and the timeout test's mock `dotnet --version` payload of `10.0.0`.
 
 ## Requirements
 
@@ -101,6 +109,7 @@ Acceptance for this pass:
 - [x] `AGENTS.md`: SDK pin note (`global.json` pins SDK 10.0.x; preview SDK fails IDE0055) to 11.0.x; "runnable .NET 10 file-based app" to .NET 11.
 - [x] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language. Readme, the two how-to guides, and architectural-layers now say .NET 11. `skills/tw-amuru` and both overview files had no .NET 10 requirement.
 - [x] Steve 2026-10-31: sample monikers still say `net10.0`. See **Open work**. Replace those current samples, tests, blips, and the analysis snippet with `net11.0`. Do not rewrite the 2.0.0 release notes or the `dnx` / `#:package` history lines. Done this pass. Builder XML docs, `dot-net.md`, the dotnet-command tests, both 1.0.0 blips, and the migration-analysis `<TargetFramework>` sample now say `net11.0`. The cli-smoke Design note names the 11.0 feature band, matching `global.json`. Shipped records were left as written.
+- [x] M4: the `readme.md` shields badge says `dotnet-11.0`. That file is the `PackageReadmeFile` packed from `$(RepositoryRoot)readme.md` for both packages. The How to validate `rg` smoke includes `readme.md`.
 
 ### 6. Verification
 
@@ -113,6 +122,12 @@ Acceptance for this pass:
 
 - Round 1: open M1, M2, M3. Fix pass implemented all three.
 - Round 2: Done
+- Round 3 (sample moniker pass): M4 (bug) was open. The `readme.md` badge said `dotnet-10.0`. This fix pass sets it to `dotnet-11.0`. See `review/round-3/merged.md`.
+
+## Learnings
+
+- Misread (review round 3, 2026-10-31): Steve's open work says "update every current reference so it shows .NET 11". The goal restatement narrowed that to the enumerated list ("It only rewrites the live examples that still name `net10.0`"). So the `readme.md` shields badge (`dotnet-10.0`) was missed. That readme is packed into both nupkgs. An enumerated list under an "every reference" directive is a starting point, not the scope. Sweep the tree (`rg -i 'net ?10|10\.0'`) before closing.
+
 ## Notes
 
 ### Go-live decision (2026-10-31)
@@ -214,6 +229,9 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Review oracle round 2: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 188 lines), turn cap 80, 2026-10-31. M1, M2, and M3 are fixed, and there are no new findings. Disposition is clean. See `review/round-2/merged.md` and `review/disposition.md`.
 - Implement oracle: sample monikers updated to `net11.0` by implementer-grok (grok-4.7), session 01a191aa-9292-7250-9de4-ecd6e73b64e7, 2026-10-31. Release build 0 warnings. Multi-file runner 732 passed, 1 skipped, 0 failed. Rewriting those runfiles dropped the executable bit. The follow-up commit puts it back so `runfile-executable` passes. why: Steve 2026-10-19, audit --fix is the request (task 156)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a191aa-9292-7250-9de4-ecd6e73b64e7, max-turns 500, Done — 2026-10-31T11:26:52Z
+- Review oracle round 3: general reviewer, Claude Code (claude-opus-5-5), effort 3 (by-diff, 851 lines), turn cap 200, 2026-10-31. The sample moniker delta is correct. Release `-warnaserror` build: 0 warnings, 0 errors. Multi-file runner: 732 passed, 1 skipped. One new finding, M4 (bug, open): the `readme.md:14` badge still says `dotnet-10.0`. Fix pass needed. See `review/round-3/merged.md`.
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 87030fa1-7866-46d2-8253-60478c77ac2f, max-turns 200 — 2026-10-31T11:31:05Z
+- Fix pass (implement-fix-2): M4 sets the `readme.md` shields badge to `dotnet-11.0`. That readme is packed into both `3.0.0` nupkgs. implementer-grok (grok-4.7), session 01a191ba-7a5d-7462-982c-b858d216aaac, 2026-10-31.
 
 ## Blocked
 
@@ -251,12 +269,23 @@ Live examples that still named `net10.0` now name `net11.0`. That is the XML doc
 
 `dotnet build timewarp-amuru.slnx -c Release --no-incremental -warnaserror` reported 0 warnings and 0 errors, and it packed both `3.0.0` nupkgs. `dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs` reported Total 733, Passed 732, Skipped 1, and exit 0. The `--filter-tag DotNetCommands` argument was ignored by `RunAllTests()`, so the run was the full suite. `CliSmoke_Given_` passed 18, including `NuGetWhy_Should_AcceptPositionalProject` with `--framework net11.0`.
 
+### Review round 3 (2026-10-31)
+
+Review of the sample moniker pass found M4. One general reviewer ran at effort 3. The `0b1cccd..445f7ad` delta is correct. Each `WithFramework` / `WithTemplateArg` edit matches its expected command string, the executable bits are back, and the shipped records were left as written. Release `-warnaserror`: 0 warnings, 0 errors. Multi-file runner: Total 733, Passed 732, Skipped 1. Finding M4 (bug): the `readme.md` shields badge said `dotnet-10.0`, and both `3.0.0` nupkgs pack that readme. Counts after round 3, before this fix: bug 1 open / 1 fixed / 0 wontfix; suggestion 0 / 0 / 0; nit 0 open / 2 fixed / 0 wontfix. The round-2 `clean` disposition is superseded. The host review after this fix writes the final disposition. Paths: `review/round-3/general.md`, `review/round-3/merged.md` (live ledger), `review/disposition.md` (marked superseded).
+
+### Readme badge (M4, 2026-10-31)
+
+`readme.md` now uses `https://img.shields.io/badge/dotnet-11.0-blue` and the label `dotnet-11.0`. Both product projects pack `$(RepositoryRoot)readme.md` as `PackageReadmeFile`, so the packed readme matches the `net11.0` TFM. A sweep outside `kanban/`, journals, and oracle logs finds no other current `dotnet-10.0` badge. Left as written: release notes `2.0.0` and `3.0.0`, the `dnx` and `#:package` history in `installation.md`, `cliwrap-exit-code-tests/readme.md` (the SDK those tests ran under), and the timeout test mock that returns `10.0.0`.
+
+This pass ran the `rg` smoke below (exit 1, no hits) and `ganda repo audit` (35 passed, 0 failed, 2 skipped). It did not rebuild or re-run the suite. The product diff is the badge line.
+
 ### How to validate
 
 Smoke:
 
 ```bash
-rg -n 'net10\.0' \
+rg -n 'net10\.0|dotnet-10\.0' \
+  readme.md \
   source/timewarp-amuru-tools/dot-net-commands \
   tests/timewarp-amuru/single-file-tests/dot-net-commands \
   documentation/posts/blips \
@@ -268,7 +297,7 @@ dotnet build timewarp-amuru.slnx
 dotnet run --file tools/dev-cli/dev.cs -- workflow --mode pr
 ```
 
-Expect: `rg` prints no `net10.0` hits in those live sample paths. Release and the plain build each report 0 warnings and 0 errors. The multi-file runner grand total is 732 passed, 1 skipped, 0 failed. `dotnet --version` prints `11.0.100-rc.3.26522.148` or a newer installed 11.0 SDK in that feature band. The workflow prints `Pipeline SUCCEEDED`. `artifacts/packages` contains `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, and each lists `lib/net11.0`. This pass ran the `rg` check, the Release `-warnaserror` build, and the multi-file runner. It did not re-run `workflow --mode pr`.
+Expect: `rg` prints no `net10.0` or `dotnet-10.0` hits in `readme.md` or those live sample paths (exit 1, no output). Release and the plain build each report 0 warnings and 0 errors. The multi-file runner grand total is 732 passed, 1 skipped, 0 failed. `dotnet --version` prints `11.0.100-rc.3.26522.148` or a newer installed 11.0 SDK in that feature band. The workflow prints `Pipeline SUCCEEDED`. `artifacts/packages` contains `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, and each lists `lib/net11.0`. The sample pass ran the `rg` check, the Release `-warnaserror` build, and the multi-file runner. It did not re-run `workflow --mode pr`. The M4 pass ran the `rg` command, including `readme.md`, and it printed nothing. It did not re-run the build, the multi-file runner, or `workflow --mode pr`.
 
 File-based package smoke, after that pack. Save this as a `.cs` file outside the repo so the repo `nuget.config` `<clear />` does not hide the GitHub packages feed, then `dotnet run --file` it:
 
