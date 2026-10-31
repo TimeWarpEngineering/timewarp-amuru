@@ -8,7 +8,7 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 
 ## Goal (implementer restatement)
 
-Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and a .NET 11 SDK pin. Keep `rollForward: latestFeature`. Align the central analyzer packages, the docs that require .NET 10, and CI (which already reads `global.json`) with that SDK. Leave the build warnings-as-errors clean, the full test suite green, and both packages packing with AOT compatibility analyzers clean. A file-based script that pulls `TimeWarp.Amuru` with `#:package` must run on that SDK.
+Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and the installed go-live SDK `11.0.100-rc.3.26522.148`, with `rollForward: latestFeature` and `allowPrerelease: true` so that RC resolves. Align `Microsoft.CodeAnalysis.NetAnalyzers` to that same RC build. Leave CodeStyle, BannedApi, Roslynator, CliWrap, and the other CPM pins where they are already the newest compatible release. Docs that require .NET 10 say .NET 11. The build stays warnings-as-errors clean, `dev test` stays green, and both packages pack with AOT compatibility analyzers clean. A file-based script that pulls the packed `TimeWarp.Amuru` with `#:package` runs on that SDK. Because this hard-cut is a breaking TFM and `2.0.0` is already published, `<Version>` becomes `3.0.0`. The githook self pins stay on the published `2.0.0` package until `3.0.0` is on the feed.
 
 Acceptance for the product diff:
 
@@ -36,53 +36,53 @@ Acceptance for the product diff:
 ### 1. Toolchains (do first — unlocks local build)
 
 - [x] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message. Decision 2026-10-31, revised the same day: **RC go-live**. Steve: do not leave this repo on .NET 10. The earlier wait-for-GA note is void.
-- [ ] Update `global.json` `sdk.version` from `10.0.301` to .NET 11 SDK (GA preferred).
-- [ ] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`.
-- [ ] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`).
-- [ ] Review `.editorconfig` experimental / style rules for SDK 11 analyzer changes (known risk: IDE0055 when SDK and analyzer package generation diverge).
-- [ ] **Pre-GA soak (can start now on RC1, `11.0.100-rc.1` is installed):** run the full suite on the .NET 11 runtime (`DOTNET_ROLL_FORWARD=Major` or a temporary `global.json`) and watch for behavior changes under CliWrap's output reading: Windows redirected stdio moved to overlapped I/O, macOS spawn moved to posix_spawn, Linux handle inheritance uses close_range. Record pass/fail per OS in Notes.
+- [x] Update `global.json` `sdk.version` from `10.0.301` to .NET 11 SDK (GA preferred). Pinned `11.0.100-rc.3.26522.148` with `allowPrerelease: true`. No GA SDK is published.
+- [x] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`. This machine already had `11.0.100-rc.3.26522.148`. `dotnet --version` in the repo prints that version.
+- [x] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`). Release build is 0 warnings. The new CA1307 findings on char overloads are suppressed at the call; see Notes.
+- [x] Review `.editorconfig` experimental / style rules for SDK 11 analyzer changes (known risk: IDE0055 when SDK and analyzer package generation diverge). No `.editorconfig` change. NetAnalyzers matches the SDK build, and IDE0055 did not fire.
+- [x] **Pre-GA soak:** full suite on the .NET 11 runtime. Linux pass (732 passed, 1 skipped, 0 failed) under SDK `11.0.100-rc.3.26522.148`. Windows and macOS were not run on this host. See Notes.
 - [x] **Decision: replace CliWrap internally with the .NET 11 Process APIs?** **Keep CliWrap for this TFM bump.** A swap is its own task. See Notes. .NET 11 adds `Process.Run/RunAsync`, `RunAndCaptureText[Async]`, deadlock-free `ReadAll*`, handle-based stdio redirection, `KillOnParentExit`, `ProcessExitStatus`, `SafeProcessHandle.WaitForExitOrKillOnCancellationAsync`, `Signal(PosixSignal)`. Task 091 already removed CliWrap from the public surface, so a later swap would be internal. Evaluated against the execution modes in `core/command-result.cs` (capture, stream, pipe, passthrough, select, timeout graceful/forceful from task 044) and the mock layer.
 
 ### 2. TFMs
 
-- [ ] Root `Directory.Build.props`: `net10.0` to `net11.0`.
-- [ ] `tools/Directory.Build.props`: same `net10.0` to `net11.0` (tools override TFM explicitly).
-- [ ] Confirm `source/timewarp-amuru/timewarp-amuru.csproj` and `source/timewarp-amuru-tools/timewarp-amuru-tools.csproj` inherit TFM (no local override today).
-- [ ] Confirm `samples/Directory.Build.props` inherits root TFM (samples only override packability).
-- [ ] Confirm file-based tests under `tests/timewarp-amuru/` still run as .NET 11 file-based apps (`dotnet run <file>.cs`).
+- [x] Root `Directory.Build.props`: `net10.0` to `net11.0`.
+- [x] `tools/Directory.Build.props`: same `net10.0` to `net11.0` (tools override TFM explicitly).
+- [x] Confirm `source/timewarp-amuru/timewarp-amuru.csproj` and `source/timewarp-amuru-tools/timewarp-amuru-tools.csproj` inherit TFM (no local override today).
+- [x] Confirm `samples/Directory.Build.props` inherits root TFM (samples only override packability).
+- [x] Confirm file-based tests under `tests/timewarp-amuru/` still run as .NET 11 file-based apps (`dotnet run <file>.cs`). The workflow test step ran them on SDK 11.
 
 ### 3. Packages (CPM — after TFM / SDK)
 
-- [ ] `Microsoft.CodeAnalysis.NetAnalyzers` `10.0.401` to .NET 11-aligned version.
-- [ ] Re-evaluate `Microsoft.CodeAnalysis.CSharp.CodeStyle` `5.9.0` and `Microsoft.CodeAnalysis.BannedApiAnalyzers` `5.6.0` for SDK 11 compatibility.
-- [ ] Roslynator trio (`Roslynator.Analyzers` / `CodeAnalysis.Analyzers` / `Formatting.Analyzers`) all at `5.0.0` — bump if needed for SDK 11.
-- [ ] `NuGet.Versioning` `7.9.0` — bump if NuGet client line requires it for SDK 11 tooling.
-- [ ] External runtime deps: `CliWrap` `3.10.5`, `TimeWarp.Terminal` `1.0.2` — verify net11 restore / AOT.
-- [ ] TimeWarp ecosystem pins (may need sibling upgrades first or coordinated releases): `TimeWarp.Jaribu` `1.0.0-beta.15`; `TimeWarp.Nuru` / `TimeWarp.Nuru.DevCli` `3.0.0-beta.76`; `TimeWarp.SourceGenerators` `1.0.0-beta.11`; `TimeWarp.Build.Tasks` `1.0.0`; self pins `TimeWarp.Amuru` `1.0.0`, `TimeWarp.Amuru.Tools` `1.0.0-beta.2` (CPM for githooks runfiles).
-- [ ] `Shouldly` `4.3.0` — verify on net11 test host.
-- [ ] Keep CPM in `Directory.Packages.props`; do not scatter versions into csproj.
+- [x] `Microsoft.CodeAnalysis.NetAnalyzers` `10.0.401` to .NET 11-aligned version. Pinned `11.0.100-rc.3.26522.148`. No stable 11.0 package exists.
+- [x] Re-evaluate `Microsoft.CodeAnalysis.CSharp.CodeStyle` `5.9.0` and `Microsoft.CodeAnalysis.BannedApiAnalyzers` `5.6.0` for SDK 11 compatibility. Both are the newest stable packages. Left in place. PublicApiAnalyzers stays `5.6.0` for the same reason.
+- [x] Roslynator trio (`Roslynator.Analyzers` / `CodeAnalysis.Analyzers` / `Formatting.Analyzers`) all at `5.0.0` — bump if needed for SDK 11. `5.0.1` exists and was not required. The SDK 11 build is clean on `5.0.0`.
+- [x] `NuGet.Versioning` `7.9.0` — bump if NuGet client line requires it for SDK 11 tooling. `7.9.0` is the newest release. Left in place.
+- [x] External runtime deps: `CliWrap` `3.10.5`, `TimeWarp.Terminal` `1.0.2` — verify net11 restore / AOT. Both restored. Release build with `IsAotCompatible=true` is 0 warnings.
+- [x] TimeWarp ecosystem pins stay on their current CPM versions. `net10.0` libraries restore onto `net11.0` through TFM fallback. Jaribu `1.0.0-beta.15`, Nuru and Nuru.DevCli `4.0.0-beta.10`, SourceGenerators `1.0.0-beta.11`, Build.Tasks `1.0.0`. Githook self pins stay at the published `2.0.0` until `3.0.0` is on the feed.
+- [x] `Shouldly` `4.3.0` — verify on net11 test host. Suite green. `5.0.0` is still preview, so `4.3.0` stays.
+- [x] Keep CPM in `Directory.Packages.props`; do not scatter versions into csproj.
 
 ### 4. Workflows / CI images
 
-- [ ] `.github/workflows/workflow.yml`: keep `actions/setup-dotnet@v4` + `global-json-file: global.json` (no hardcoded SDK version today).
-- [ ] After `global.json` bump, run a green CI on the task branch; confirm SDK 11 installs on `ubuntu-latest`.
-- [ ] No Dockerfiles / container images in-repo to bump (none found).
-- [ ] No explicit test matrix of TFMs today (single job) — no matrix expansion required unless multi-TFM is chosen.
-- [ ] `dev-cli` path (`dotnet run --file tools/dev-cli/dev.cs -- workflow`) must work under SDK 11.
-- [ ] Packages artifact / release promotion path unchanged (verify nupkgs still emit for both packages).
+- [x] `.github/workflows/workflow.yml`: keep `actions/setup-dotnet@v4` + `global-json-file: global.json` (no hardcoded SDK version today).
+- [x] After `global.json` bump, run a green CI on the task branch; confirm SDK 11 installs on `ubuntu-latest`. `workflow_dispatch` mode `merge` on `6bdf9c2`: [run 41181587366](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/runs/41181587366). `ubuntu-latest` installed SDK `11.0.100-rc.3.26522.148` from `global.json`. Build 0 warnings. Tests 732 passed, 1 skipped. Both `3.0.0` nupkgs were created. Package upload stays master-only, so that step was skipped on this ref.
+- [x] No Dockerfiles / container images in-repo to bump (none found).
+- [x] No explicit test matrix of TFMs today (single job) — no matrix expansion required unless multi-TFM is chosen.
+- [x] `dev-cli` path (`dotnet run --file tools/dev-cli/dev.cs -- workflow`) must work under SDK 11. `workflow --mode pr` succeeded. The handler constructor is public so the mediator can activate it. The class stays internal.
+- [x] Packages artifact / release promotion path unchanged (verify nupkgs still emit for both packages). Release build wrote `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, both `lib/net11.0`.
 
 ### 5. Docs and agent guidance
 
-- [ ] `documentation/user/installation.md`: ".NET 10 File-Based Apps", "#:package is native to .NET 10", "requires .NET 10", download link to 10.0 — update to .NET 11 / 11.0.
-- [ ] `AGENTS.md`: SDK pin note (`global.json` pins SDK 10.0.x; preview SDK fails IDE0055) to 11.0.x; "runnable .NET 10 file-based app" to .NET 11.
-- [ ] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language.
+- [x] `documentation/user/installation.md`: ".NET 10 File-Based Apps", "#:package is native to .NET 10", "requires .NET 10", download link to 10.0 — update to .NET 11 / 11.0.
+- [x] `AGENTS.md`: SDK pin note (`global.json` pins SDK 10.0.x; preview SDK fails IDE0055) to 11.0.x; "runnable .NET 10 file-based app" to .NET 11.
+- [x] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language. Readme, the two how-to guides, and architectural-layers now say .NET 11. `skills/tw-amuru` and both overview files had no .NET 10 requirement. Historical release notes, posts, and done kitchens stay as the record of what shipped. Dotnet-builder examples and tests still pass the string `net10.0` because that API accepts any moniker.
 
 ### 6. Verification
 
-- [ ] `dotnet build timewarp-amuru.slnx` (warnings-as-errors clean).
-- [ ] Full `dev test` / multi-file runners green.
-- [ ] Pack both packages; AOT-compat analyzers clean.
-- [ ] Manual smoke: file-based script with `#:package TimeWarp.Amuru` on SDK 11.
+- [x] `dotnet build timewarp-amuru.slnx` (warnings-as-errors clean). Release build inside `workflow --mode pr` is 0 warnings, 0 errors.
+- [x] Full `dev test` / multi-file runners green. 732 passed, 1 skipped, 0 failed.
+- [x] Pack both packages; AOT-compat analyzers clean. `IsAotCompatible=true` build is 0 warnings. Both nupkgs contain `lib/net11.0`.
+- [x] Manual smoke: file-based script with `#:package TimeWarp.Amuru@3.0.0` on SDK `11.0.100-rc.3.26522.148` captured `amuru-net11-smoke` from the local package.
 
 ## Notes
 
@@ -154,11 +154,77 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 - Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No .NET 11 product diff. Walk parked until the .NET 11 GA SDK is published.
 - Steve 2026-10-31 overruled that park: RC go-live, hard-cut off `net10.0`. Next walk retargets.
 - Same walk, audit boy-scout: `ganda repo audit --fix` scaffolded `glossary.md`, refreshed `.githooks/pre-push.cs`, and pinned `TimeWarp.Nuru` / `TimeWarp.Nuru.DevCli` to `4.0.0-beta.10`. DevCli 4.0.0-beta.10 makes `NuGetVersionService`, `IRepoConfigService`, and `IPackableProjectService` internal, so `WorkflowCommand.Handler` is internal to match the package handlers. why: Steve 2026-10-19, audit --fix is the request (task 156)
+- Implement walk 2026-10-31 (RC go-live): hard-cut to `net11.0`, SDK `11.0.100-rc.3.26522.148`, NetAnalyzers `11.0.100-rc.3.26522.148`, package version `3.0.0`. The workflow handler constructor is public again. An internal constructor is invisible to the mediator, which is why `dev workflow` threw. The class stays internal.
+- Same walk: SDK 11 file-based apps restore as RID-specific AOT tool packages. Root `GeneratePackageOnBuild` then fails the hook with "GeneratePackageOnBuild is not supported for native compilation." `.githooks/Directory.Build.props` sets `IsPackable` and `GeneratePackageOnBuild` to false, the same opt-out samples already use. The product csprojs still pack.
+
+### CA1307 and CA1865 (2026-10-31)
+
+SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf(char, int)` as CA1307 and tells the caller to pass `StringComparison`. Those overloads are not on `net11.0`. The string overloads that do take `StringComparison` then fail CA1865, which requires the char form. The five call sites keep the char form and suppress CA1307. `Contains(char, StringComparison)` and `IndexOf(char, StringComparison)` exist and were already used.
+
+### Pre-GA soak (2026-10-31)
+
+| OS | Result |
+|----|--------|
+| Linux (this host, SDK `11.0.100-rc.3.26522.148`) | Pass. `workflow --mode pr`: 732 passed, 1 skipped, 0 failed. CliWrap capture, stream, pipe, passthrough, and timeout tests are in that run. |
+| Windows | Not run. No Windows host on this walk. |
+| macOS | Not run. No macOS host on this walk. |
+
+### Version
+
+`<Version>` is `3.0.0`. `2.0.0` is the published package and the git tag `v2.0.0`. `dev check-version` reports `3.0.0` as new against NuGet `2.0.0`. The symbol surface is unchanged, so both `PublicAPI.Unshipped.txt` files stay header-only. Githook CPM pins stay at `2.0.0` until `3.0.0` is on the feed. `documentation/release-notes/3.0.0.md` records the TFM break. This walk does not publish.
 
 ## Session
 
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a19093-be62-7253-8b37-b2aa28346f32, max-turns 500, Blocked — 2026-10-31T06:21:31Z
+- Implement oracle: RC go-live product diff by implementer-grok (grok-4.7), session 01a190ce-c522-7673-84d7-a41f8639ad2e, 2026-10-31. Local workflow green. Ubuntu CI run 41181587366 on `6bdf9c2` is green.
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a190ce-c522-7673-84d7-a41f8639ad2e, max-turns 500, Done — 2026-10-31T07:45:41Z
 
 ## Blocked
 
 Resolved 2026-10-31 by Steve: RC go-live on SDK `11.0.100-rc.3.26522.148`. Do not wait for the GA SDK or a stable NetAnalyzers 11.0 package. Use the matching RC analyzer package.
+
+## Results
+
+Hard-cut TimeWarp.Amuru to `net11.0` on SDK `11.0.100-rc.3.26522.148` (`rollForward: latestFeature`, `allowPrerelease: true`). `Microsoft.CodeAnalysis.NetAnalyzers` is that same RC build. Package version is `3.0.0` because `2.0.0` is already published and the TFM change is breaking. CliWrap stays. No `.editorconfig` change. Five char-search call sites suppress CA1307 because `net11.0` has no `StringComparison` overload for those methods and CA1865 requires the char form.
+
+`dotnet run --file tools/dev-cli/dev.cs -- workflow --mode pr` on this host: clean, release build 0 warnings, both samples compiled, tests 732 passed / 1 skipped / 0 failed. `ganda repo audit` passed (35 passed, 0 failed, 2 skipped). `dev check-version` says `3.0.0` is new against NuGet `2.0.0`.
+
+`WorkflowCommand.Handler` keeps an internal class and a public constructor. The mediator cannot activate an internal constructor, so `dev workflow` failed until that constructor was public.
+
+SDK 11 treats a file-based app as a RID-specific AOT tool package. With root `GeneratePackageOnBuild` still true, `git commit` died in the pre-commit hook: native compilation refuses that property. `.githooks/Directory.Build.props` turns packing off for the hooks. Samples and the dev CLI already opted out. `dotnet run --file .githooks/pre-commit.cs` then exits 0 on this task branch. Each hook under `.githooks/*.cs` builds with that opt-out.
+
+Ubuntu CI is green. A branch push does not match `workflow.yml` (`push` is master only, and `pull_request` is not open yet), so this walk dispatched `workflow_dispatch` mode `merge` on `6bdf9c2`. [Run 41181587366](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/runs/41181587366) installed SDK `11.0.100-rc.3.26522.148`, built with 0 warnings, passed 732 tests, skipped 1, and packed both `3.0.0` nupkgs. The Packages artifact upload is master-only, so it did not run on this ref.
+
+### How to validate
+
+Smoke:
+
+```bash
+dotnet --version
+dotnet build timewarp-amuru.slnx
+dotnet run --file tools/dev-cli/dev.cs -- workflow --mode pr
+```
+
+Expect: `dotnet --version` prints `11.0.100-rc.3.26522.148` or a newer installed 11.0 SDK in that feature band. The build reports 0 warnings and 0 errors. The workflow prints `Pipeline SUCCEEDED`. The test grand total is 732 passed, 1 skipped, 0 failed. `artifacts/packages` contains `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, and each lists `lib/net11.0`.
+
+File-based package smoke, after that pack. Save this as a `.cs` file outside the repo so the repo `nuget.config` `<clear />` does not hide the GitHub packages feed, then `dotnet run --file` it:
+
+```csharp
+#!/usr/bin/env -S dotnet --
+#:package TimeWarp.Amuru@3.0.0
+#:property RestoreAdditionalProjectSources=/absolute/path/to/artifacts/packages
+#:property RestoreNoCache=true
+
+using TimeWarp.Amuru;
+
+CommandOutput result = await Shell.Builder("echo").WithArguments("amuru-net11-smoke").CaptureAsync();
+if (!result.Success || !result.Stdout.Contains("amuru-net11-smoke", StringComparison.Ordinal))
+{
+  return 1;
+}
+
+Console.WriteLine("smoke-ok");
+return 0;
+```
+
+Expect `smoke-ok` and exit 0 on SDK `11.0.100-rc.3.26522.148`. This walk ran that script and saw `smoke-ok tfm-package=3.0.0 stdout=amuru-net11-smoke`.
