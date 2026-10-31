@@ -12,12 +12,12 @@ Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto
 
 Acceptance for the product diff:
 
-- `global.json` names a .NET 11 GA SDK. Root and `tools/` `Directory.Build.props` target `net11.0`. Source and samples inherit that TFM.
+- `global.json` names the installed .NET 11 go-live SDK (`11.0.100-rc.3.26522.148`, or a newer 11.0 SDK if one is installed). Root and `tools/` `Directory.Build.props` target `net11.0` only. Source and samples inherit that TFM. No `net10.0` TFM remains in this repo.
 - Analyzer and tooling versions stay in `Directory.Packages.props` and match the SDK 11 analyzer generation (the known failure is IDE0055 when they drift).
 - `.github/workflows/workflow.yml` still installs the SDK from `global.json`, and the task branch CI is green on `ubuntu-latest`.
 - `documentation/user/installation.md`, `AGENTS.md`, and other hard ".NET 10 required" lines say .NET 11.
 - `dotnet build timewarp-amuru.slnx`, `dev test`, and a pack of both packages succeed.
-- No product diff until .NET 11 is GA, or until this kitchen records an explicit RC go-live. This walk records wait-for-GA.
+- Steve 2026-10-31 overruled wait-for-GA. This is the RC go-live. Hard-cut this repo off `net10.0` onto `net11.0`. Do not multi-target `net10.0`. Pin `global.json` to SDK `11.0.100-rc.3.26522.148` (or a newer installed 11.0 SDK). Docs that require .NET 10 say .NET 11.
 
 ## Requirements
 
@@ -35,7 +35,7 @@ Acceptance for the product diff:
 
 ### 1. Toolchains (do first — unlocks local build)
 
-- [x] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message. Decision 2026-10-31: **wait for GA**. No product RC go-live.
+- [x] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message. Decision 2026-10-31, revised the same day: **RC go-live**. Steve: do not leave this repo on .NET 10. The earlier wait-for-GA note is void.
 - [ ] Update `global.json` `sdk.version` from `10.0.301` to .NET 11 SDK (GA preferred).
 - [ ] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`.
 - [ ] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`).
@@ -88,7 +88,11 @@ Acceptance for the product diff:
 
 ### Go-live decision (2026-10-31)
 
-**Wait for GA.** Do not pin `global.json` to an RC SDK and do not retarget to `net11.0` on this walk.
+**RC go-live. Hard-cut to `net11.0`.** Steve 2026-10-31: do not leave this repo on .NET 10. The earlier "wait for GA" decision from the same day is void.
+
+Pin `global.json` to the installed go-live SDK `11.0.100-rc.3.26522.148`, or a newer 11.0 SDK if one is present. Retarget root and `tools/` to `net11.0` only. Do not multi-target `net10.0`. Bump analyzer packages onto the matching 11.0 line, including the RC NetAnalyzers package when no stable 11.0 package exists. Update docs that require .NET 10.
+
+CliWrap stays for this bump. That is the process library, not a `net10.0` target. A `net10.0` NuGet dependency may remain only when it restores onto `net11.0` through TFM fallback and no `net11.0` build of that package exists.
 
 Checked 2026-10-31 against [the .NET 11 download page](https://dotnet.microsoft.com/en-us/download/dotnet/11.0) and the [11.0 release notes](https://github.com/dotnet/core/blob/main/release-notes/11.0/README.md):
 
@@ -148,6 +152,7 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 - Created: 506058 (2026-10-02)
 - Analysis machine: TWE-001 (WSL), master worktree read-only; kitchen authored in task-119 worktree only.
 - Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No .NET 11 product diff. Walk parked until the .NET 11 GA SDK is published.
+- Steve 2026-10-31 overruled that park: RC go-live, hard-cut off `net10.0`. Next walk retargets.
 - Same walk, audit boy-scout: `ganda repo audit --fix` scaffolded `glossary.md`, refreshed `.githooks/pre-push.cs`, and pinned `TimeWarp.Nuru` / `TimeWarp.Nuru.DevCli` to `4.0.0-beta.10`. DevCli 4.0.0-beta.10 makes `NuGetVersionService`, `IRepoConfigService`, and `IPackableProjectService` internal, so `WorkflowCommand.Handler` is internal to match the package handlers. why: Steve 2026-10-19, audit --fix is the request (task 156)
 
 ## Session
@@ -156,6 +161,4 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 
 ## Blocked
 
-2026-10-31: Publish and install the .NET 11 GA SDK (scheduled 2026-11-10; latest today is 11.0.0-rc.3, SDK 11.0.100-rc.3.26522.148) and the matching stable Microsoft.CodeAnalysis.NetAnalyzers 11.0 package. https://dotnet.microsoft.com/en-us/download/dotnet/11.0
-
-- https://dotnet.microsoft.com/en-us/download/dotnet/11.0
+Resolved 2026-10-31 by Steve: RC go-live on SDK `11.0.100-rc.3.26522.148`. Do not wait for the GA SDK or a stable NetAnalyzers 11.0 package. Use the matching RC analyzer package.
