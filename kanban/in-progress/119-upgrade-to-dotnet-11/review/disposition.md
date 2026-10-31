@@ -1,5 +1,7 @@
 # Disposition — task 119
 
+> **Superseded 2026-10-31 by round 3.** The sample moniker pass reopened review. `review/round-3/merged.md` has M4 (bug, open): the `readme.md:14` badge still says `dotnet-10.0`. This file records the round-2 outcome only. Rewrite it after M4 closes.
+
 **Date:** 2026-10-31
 **Outcome:** clean
 **Rounds:** 2
