@@ -213,6 +213,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Fix pass (implement-fix-2): M1 passes `StringComparison.Ordinal` at the five char searches and drops the CA1307 pragmas. M2 drops CA1812 from the dev-cli `NoWarn` and suppresses the three mediator handlers that still fire it. M3 corrects the `dnx` and `#:package` history in `installation.md`.
 - Review oracle round 2: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 188 lines), turn cap 80, 2026-10-31. M1, M2, and M3 are fixed, and there are no new findings. Disposition is clean. See `review/round-2/merged.md` and `review/disposition.md`.
 - Implement oracle: sample monikers updated to `net11.0` by implementer-grok (grok-4.7), session 01a191aa-9292-7250-9de4-ecd6e73b64e7, 2026-10-31. Release build 0 warnings. Multi-file runner 732 passed, 1 skipped, 0 failed. Rewriting those runfiles dropped the executable bit. The follow-up commit puts it back so `runfile-executable` passes. why: Steve 2026-10-19, audit --fix is the request (task 156)
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a191aa-9292-7250-9de4-ecd6e73b64e7, max-turns 500, Done — 2026-10-31T11:26:52Z
 
 ## Blocked
 
