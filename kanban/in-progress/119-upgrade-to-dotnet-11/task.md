@@ -10,6 +10,8 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 
 Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and the installed go-live SDK `11.0.100-rc.3.26522.148`, with `rollForward: latestFeature` and `allowPrerelease: true` so that RC resolves. Align `Microsoft.CodeAnalysis.NetAnalyzers` to that same RC build. Leave CodeStyle, BannedApi, Roslynator, CliWrap, and the other CPM pins where they are already the newest compatible release. Docs that require .NET 10 say .NET 11. The build stays warnings-as-errors clean, `dev test` stays green, and both packages pack with AOT compatibility analyzers clean. A file-based script that pulls the packed `TimeWarp.Amuru` with `#:package` runs on that SDK. Because this hard-cut is a breaking TFM and `2.0.0` is already published, `<Version>` becomes `3.0.0`. The githook self pins stay on the published `2.0.0` package until `3.0.0` is on the feed.
 
+Review round 1 left three open findings. This pass closes them on the same hard-cut. The five char searches that suppressed CA1307 pass `StringComparison.Ordinal` on the char overload and drop the pragma, the false "no overload" note, and the locals that existed only to hold that pragma. `installation.md` stops calling `dnx` and `#:package` .NET 11 inventions; both shipped with the .NET 10 SDK and the requirement stays .NET 11. CA1812 leaves the dev-cli `NoWarn`. `WorkflowCommand.Handler` carries `SuppressMessage`, and the two TimeWarp.Nuru.DevCli content handlers that still trip CA1812 (`ReleaseCommand.Handler`, `SelfInstallCommand.Handler`) are suppressed from this assembly because those files cannot be edited. The Release build and `dev test` stay green.
+
 Acceptance for the product diff:
 
 - `global.json` names the installed .NET 11 go-live SDK (`11.0.100-rc.3.26522.148`, or a newer 11.0 SDK if one is installed). Root and `tools/` `Directory.Build.props` target `net11.0` only. Source and samples inherit that TFM. No `net10.0` TFM remains in this repo.
@@ -38,7 +40,7 @@ Acceptance for the product diff:
 - [x] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message. Decision 2026-10-31, revised the same day: **RC go-live**. Steve: do not leave this repo on .NET 10. The earlier wait-for-GA note is void.
 - [x] Update `global.json` `sdk.version` from `10.0.301` to .NET 11 SDK (GA preferred). Pinned `11.0.100-rc.3.26522.148` with `allowPrerelease: true`. No GA SDK is published.
 - [x] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`. This machine already had `11.0.100-rc.3.26522.148`. `dotnet --version` in the repo prints that version.
-- [x] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`). Release build is 0 warnings. The new CA1307 findings on char overloads are suppressed at the call; see Notes.
+- [x] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`). Release build is 0 warnings. Char searches pass `StringComparison.Ordinal` on the char overload; see Notes.
 - [x] Review `.editorconfig` experimental / style rules for SDK 11 analyzer changes (known risk: IDE0055 when SDK and analyzer package generation diverge). No `.editorconfig` change. NetAnalyzers matches the SDK build, and IDE0055 did not fire.
 - [x] **Pre-GA soak:** full suite on the .NET 11 runtime. Linux pass (732 passed, 1 skipped, 0 failed) under SDK `11.0.100-rc.3.26522.148`. Windows and macOS were not run on this host. See Notes.
 - [x] **Decision: replace CliWrap internally with the .NET 11 Process APIs?** **Keep CliWrap for this TFM bump.** A swap is its own task. See Notes. .NET 11 adds `Process.Run/RunAsync`, `RunAndCaptureText[Async]`, deadlock-free `ReadAll*`, handle-based stdio redirection, `KillOnParentExit`, `ProcessExitStatus`, `SafeProcessHandle.WaitForExitOrKillOnCancellationAsync`, `Signal(PosixSignal)`. Task 091 already removed CliWrap from the public surface, so a later swap would be internal. Evaluated against the execution modes in `core/command-result.cs` (capture, stream, pipe, passthrough, select, timeout graceful/forceful from task 044) and the mock layer.
@@ -83,6 +85,10 @@ Acceptance for the product diff:
 - [x] Full `dev test` / multi-file runners green. 732 passed, 1 skipped, 0 failed.
 - [x] Pack both packages; AOT-compat analyzers clean. `IsAotCompatible=true` build is 0 warnings. Both nupkgs contain `lib/net11.0`.
 - [x] Manual smoke: file-based script with `#:package TimeWarp.Amuru@3.0.0` on SDK `11.0.100-rc.3.26522.148` captured `amuru-net11-smoke` from the local package.
+
+## Review
+
+- Round 1: open M1, M2, M3. Fix pass implemented all three. Round 2 has not run.
 
 ## Notes
 
@@ -159,7 +165,7 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 
 ### CA1307 and CA1865 (2026-10-31)
 
-SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf(char, int)` as CA1307 and tells the caller to pass `StringComparison`. Those overloads are not on `net11.0`. The string overloads that do take `StringComparison` then fail CA1865, which requires the char form. The five call sites keep the char form and suppress CA1307. `Contains(char, StringComparison)` and `IndexOf(char, StringComparison)` exist and were already used.
+SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf(char, int)` as CA1307. The char overloads that take `StringComparison` exist on `net11.0`. The five call sites pass `StringComparison.Ordinal`. That form compiles clean: neither CA1307 nor CA1865 fires. An earlier note on this task said those overloads were missing. That claim was wrong, and the `#pragma` blocks that rested on it are gone.
 
 ### Pre-GA soak (2026-10-31)
 
@@ -178,6 +184,9 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a19093-be62-7253-8b37-b2aa28346f32, max-turns 500, Blocked — 2026-10-31T06:21:31Z
 - Implement oracle: RC go-live product diff by implementer-grok (grok-4.7), session 01a190ce-c522-7673-84d7-a41f8639ad2e, 2026-10-31. Local workflow green. Ubuntu CI run 41181587366 on `6bdf9c2` is green.
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a190ce-c522-7673-84d7-a41f8639ad2e, max-turns 500, Done — 2026-10-31T07:45:41Z
+- Review oracle round 1: general reviewer, Claude Code (claude-opus-5-5), effort 2 (by-diff, 513 lines), turn cap 120, 2026-10-31. Findings: 1 bug and 2 nits, all open. Fix pass needed. See `review/round-1/merged.md`.
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 1414ca54-3135-46c5-9aa6-cf3d3454ed17, max-turns 120 — 2026-10-31T07:49:05Z
+- Fix pass (implement-fix-2): M1 passes `StringComparison.Ordinal` at the five char searches and drops the CA1307 pragmas. M2 drops CA1812 from the dev-cli `NoWarn` and suppresses the three mediator handlers that still fire it. M3 corrects the `dnx` and `#:package` history in `installation.md`.
 
 ## Blocked
 
@@ -185,15 +194,27 @@ Resolved 2026-10-31 by Steve: RC go-live on SDK `11.0.100-rc.3.26522.148`. Do no
 
 ## Results
 
-Hard-cut TimeWarp.Amuru to `net11.0` on SDK `11.0.100-rc.3.26522.148` (`rollForward: latestFeature`, `allowPrerelease: true`). `Microsoft.CodeAnalysis.NetAnalyzers` is that same RC build. Package version is `3.0.0` because `2.0.0` is already published and the TFM change is breaking. CliWrap stays. No `.editorconfig` change. Five char-search call sites suppress CA1307 because `net11.0` has no `StringComparison` overload for those methods and CA1865 requires the char form.
+Hard-cut TimeWarp.Amuru to `net11.0` on SDK `11.0.100-rc.3.26522.148` (`rollForward: latestFeature`, `allowPrerelease: true`). `Microsoft.CodeAnalysis.NetAnalyzers` is that same RC build. Package version is `3.0.0` because `2.0.0` is already published and the TFM change is breaking. CliWrap stays. No `.editorconfig` change. The five char searches pass `StringComparison.Ordinal` on `StartsWith(char, StringComparison)`, `EndsWith(char, StringComparison)`, and `LastIndexOf(char, int, StringComparison)`. Those overloads exist on `net11.0`, and the CA1307 pragmas are gone.
 
 `dotnet run --file tools/dev-cli/dev.cs -- workflow --mode pr` on this host: clean, release build 0 warnings, both samples compiled, tests 732 passed / 1 skipped / 0 failed. `ganda repo audit` passed (35 passed, 0 failed, 2 skipped). `dev check-version` says `3.0.0` is new against NuGet `2.0.0`.
+
+The review fix pass ran that same workflow and `ganda repo audit` again. Release build 0 warnings and 0 errors. Tests 732 passed, 1 skipped, 0 failed. The workflow printed `Pipeline SUCCEEDED`. Audit passed (35 passed, 0 failed, 2 skipped).
 
 `WorkflowCommand.Handler` keeps an internal class and a public constructor. The mediator cannot activate an internal constructor, so `dev workflow` failed until that constructor was public.
 
 SDK 11 treats a file-based app as a RID-specific AOT tool package. With root `GeneratePackageOnBuild` still true, `git commit` died in the pre-commit hook: native compilation refuses that property. `.githooks/Directory.Build.props` turns packing off for the hooks. Samples and the dev CLI already opted out. `dotnet run --file .githooks/pre-commit.cs` then exits 0 on this task branch. Each hook under `.githooks/*.cs` builds with that opt-out.
 
 Ubuntu CI is green. A branch push does not match `workflow.yml` (`push` is master only, and `pull_request` is not open yet), so this walk dispatched `workflow_dispatch` mode `merge` on `6bdf9c2`. [Run 41181587366](https://github.com/TimeWarpEngineering/timewarp-amuru/actions/runs/41181587366) installed SDK `11.0.100-rc.3.26522.148`, built with 0 warnings, passed 732 tests, skipped 1, and packed both `3.0.0` nupkgs. The Packages artifact upload is master-only, so it did not run on this ref.
+
+### Review
+
+Round 1 ran on 2026-10-31 with one general reviewer at effort 2. The fix pass implemented every open finding. Round 2 has not reviewed the diff yet, so `review/round-1/merged.md` still says open and `review/disposition.md` is still unwritten.
+
+- **M1 (bug):** the five call sites pass `StringComparison.Ordinal` and no longer suppress CA1307. Notes, the checklist, and the Results sentence above match that.
+- **M2 (nit):** CA1812 is not in the dev-cli `NoWarn`. A Release build of `tools/dev-cli/dev.cs` with that id enabled reports exactly three handlers: `WorkflowCommand.Handler`, and `ReleaseCommand.Handler` plus `SelfInstallCommand.Handler` from TimeWarp.Nuru.DevCli 4.0.0-beta.10 content. The first carries `[SuppressMessage]` on the type. The other two are assembly suppressions targeted at `~T:DevCli.ReleaseCommand.Handler` and `~T:DevCli.SelfInstallCommand.Handler`, because the content files live in the NuGet cache. `CleanCommand.Handler` and `CheckVersionCommand.Handler` do not fire CA1812. A dead internal class anywhere else in this CLI is reported again.
+- **M3 (nit):** `installation.md` says `#:package` and `dnx` are .NET SDK commands from .NET 10 onward. The requirement lines still say .NET 11.
+
+Paths: `review/review-framework.md` and `review/round-1/general.md`. The live ledger is `review/round-1/merged.md`. `review/disposition.md` is written after the fix pass and round 2.
 
 ### How to validate
 

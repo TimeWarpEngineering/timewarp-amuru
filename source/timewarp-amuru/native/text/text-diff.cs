@@ -254,11 +254,7 @@ internal static class TextDiff
     }
 
     string normalized = NewlineStyle.Detect(text).ToLineFeed(text);
-    // Char search is ordinal. net11.0 has no StringComparison overload, and CA1865 requires the char form.
-    #pragma warning disable CA1307
-    bool endsWithLineFeed = normalized.EndsWith('\n');
-    #pragma warning restore CA1307
-    if (endsWithLineFeed)
+    if (normalized.EndsWith('\n', StringComparison.Ordinal))
     {
       normalized = normalized[..^1];
     }
@@ -273,11 +269,7 @@ internal static class TextDiff
 
   private static bool EndsWithNewline(string text)
   {
-    string lineFeedText = NewlineStyle.Detect(text).ToLineFeed(text);
-    // Char search is ordinal. net11.0 has no StringComparison overload, and CA1865 requires the char form.
-    #pragma warning disable CA1307
-    return lineFeedText.EndsWith('\n');
-    #pragma warning restore CA1307
+    return NewlineStyle.Detect(text).ToLineFeed(text).EndsWith('\n', StringComparison.Ordinal);
   }
 
   private readonly record struct Edit(char Kind, string Text);

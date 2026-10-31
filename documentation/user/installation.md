@@ -78,7 +78,7 @@ using TimeWarp.Amuru;
 await Shell.Builder("echo", "Hello, World!").RunAsync();
 ```
 
-The `#:package` directive is native to .NET 11 - no external tools required.
+The `#:package` directive is native to the .NET SDK (.NET 10 and later). No external tools are required.
 
 ---
 
@@ -136,7 +136,7 @@ Each method serves a different purpose:
 
 ### Method 1: Using dnx (One-Shot Execution)
 
-`dnx` is a .NET 11 command that runs NuGet tools without permanent installation (similar to Node.js's `npx`).
+`dnx` is a .NET SDK command (.NET 10 and later) that runs NuGet tools without permanent installation (similar to Node.js's `npx`).
 
 **Single Command Installation:**
 

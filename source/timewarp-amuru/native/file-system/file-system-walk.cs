@@ -48,11 +48,7 @@ internal static class FileSystemWalk
     }
 
     string name = fileSystemInfo.Name;
-    // Char search is ordinal. net11.0 has no StringComparison overload, and CA1865 requires the char form.
-    #pragma warning disable CA1307
-    bool startsWithDot = name.StartsWith('.');
-    #pragma warning restore CA1307
-    return startsWithDot && name is not "." and not "..";
+    return name.StartsWith('.', StringComparison.Ordinal) && name is not "." and not "..";
   }
 
   public static EnumerationOptions CreateEnumerationOptions()

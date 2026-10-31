@@ -30,10 +30,7 @@ internal static class GlobMatcher
       return (path, "*");
     }
 
-    // Char search is ordinal. net11.0 has no StringComparison overload, and CA1865 requires the char form.
-    #pragma warning disable CA1307
-    int slashBefore = normalized.LastIndexOf('/', firstGlob);
-    #pragma warning restore CA1307
+    int slashBefore = normalized.LastIndexOf('/', firstGlob, StringComparison.Ordinal);
     if (slashBefore < 0)
     {
       return (".", normalized);
