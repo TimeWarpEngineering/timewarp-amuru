@@ -57,7 +57,8 @@ public sealed class WorkflowCommand : ICommand<Unit>
     private readonly IRepoConfigService ConfigService;
     private readonly IPackableProjectService PackableProjectService;
 
-    internal Handler
+    // Public so the mediator can activate this internal handler. The DevCli parameter types are internal.
+    public Handler
     (
       ITerminal terminal,
       IRepoCleanService repoCleanService,

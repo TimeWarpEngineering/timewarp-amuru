@@ -119,7 +119,10 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(version);
 
+    // Char search is ordinal. net11.0 has no StringComparison overload, and CA1865 requires the char form.
+    #pragma warning disable CA1307
     string normalized = version.StartsWith('v') ? version[1..] : version;
+    #pragma warning restore CA1307
 
     if (NuGetVersion.TryParse(normalized, out NuGetVersion? parsed))
     {

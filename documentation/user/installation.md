@@ -65,7 +65,7 @@ dotnet add package TimeWarp.Amuru
 dotnet add package TimeWarp.Amuru --version 1.0.0-beta.10
 ```
 
-### In .NET 10 File-Based Apps
+### In .NET 11 File-Based Apps
 
 For single-file C# scripts:
 
@@ -78,7 +78,7 @@ using TimeWarp.Amuru;
 await Shell.Builder("echo", "Hello, World!").RunAsync();
 ```
 
-The `#:package` directive is native to .NET 10 - no external tools required.
+The `#:package` directive is native to .NET 11 - no external tools required.
 
 ---
 
@@ -136,7 +136,7 @@ Each method serves a different purpose:
 
 ### Method 1: Using dnx (One-Shot Execution)
 
-`dnx` is a .NET 10 command that runs NuGet tools without permanent installation (similar to Node.js's `npx`).
+`dnx` is a .NET 11 command that runs NuGet tools without permanent installation (similar to Node.js's `npx`).
 
 **Single Command Installation:**
 
@@ -551,13 +551,13 @@ chmod +x ~/.local/bin/multiavatar
 
 ### .NET SDK Version Mismatch
 
-TimeWarp.Amuru requires .NET 10. Check your version:
+TimeWarp.Amuru requires .NET 11. Check your version:
 
 ```bash
 dotnet --version
 ```
 
-If you have an older version, download .NET 10 from [https://dotnet.microsoft.com/download/dotnet/10.0](https://dotnet.microsoft.com/download/dotnet/10.0).
+If you have an older version, download .NET 11 from [https://dotnet.microsoft.com/download/dotnet/11.0](https://dotnet.microsoft.com/download/dotnet/11.0).
 
 ---
 
