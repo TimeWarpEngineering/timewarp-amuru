@@ -123,7 +123,7 @@ Acceptance for this fix:
 - Round 1: open M1, M2, M3. Fix pass implemented all three.
 - Round 2: Done
 - Round 3 (sample moniker pass): M4 (bug) was open. The `readme.md` badge said `dotnet-10.0`. This fix pass sets it to `dotnet-11.0`. See `review/round-3/merged.md`.
-
+- Round 4: Done
 ## Learnings
 
 - Misread (review round 3, 2026-10-31): Steve's open work says "update every current reference so it shows .NET 11". The goal restatement narrowed that to the enumerated list ("It only rewrites the live examples that still name `net10.0`"). So the `readme.md` shields badge (`dotnet-10.0`) was missed. That readme is packed into both nupkgs. An enumerated list under an "every reference" directive is a starting point, not the scope. Sweep the tree (`rg -i 'net ?10|10\.0'`) before closing.
@@ -232,6 +232,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Review oracle round 3: general reviewer, Claude Code (claude-opus-5-5), effort 3 (by-diff, 851 lines), turn cap 200, 2026-10-31. The sample moniker delta is correct. Release `-warnaserror` build: 0 warnings, 0 errors. Multi-file runner: 732 passed, 1 skipped. One new finding, M4 (bug, open): the `readme.md:14` badge still says `dotnet-10.0`. Fix pass needed. See `review/round-3/merged.md`.
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 87030fa1-7866-46d2-8253-60478c77ac2f, max-turns 200 — 2026-10-31T11:31:05Z
 - Fix pass (implement-fix-2): M4 sets the `readme.md` shields badge to `dotnet-11.0`. That readme is packed into both `3.0.0` nupkgs. implementer-grok (grok-4.7), session 01a191ba-7a5d-7462-982c-b858d216aaac, 2026-10-31.
+- Review oracle round 4: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 126 lines), turn cap 80, 2026-10-31. M4 is fixed, and there are no new findings. Disposition is clean. See `review/round-4/merged.md` and `review/disposition.md`.
 
 ## Blocked
 
@@ -278,6 +279,10 @@ Review of the sample moniker pass found M4. One general reviewer ran at effort 3
 `readme.md` now uses `https://img.shields.io/badge/dotnet-11.0-blue` and the label `dotnet-11.0`. Both product projects pack `$(RepositoryRoot)readme.md` as `PackageReadmeFile`, so the packed readme matches the `net11.0` TFM. A sweep outside `kanban/`, journals, and oracle logs finds no other current `dotnet-10.0` badge. Left as written: release notes `2.0.0` and `3.0.0`, the `dnx` and `#:package` history in `installation.md`, `cliwrap-exit-code-tests/readme.md` (the SDK those tests ran under), and the timeout test mock that returns `10.0.0`.
 
 This pass ran the `rg` smoke below (exit 1, no hits) and `ganda repo audit` (35 passed, 0 failed, 2 skipped). It did not rebuild or re-run the suite. The product diff is the badge line.
+
+### Review disposition (2026-10-31)
+
+Disposition: **clean**. Four rounds ran, each with one general reviewer: effort 2, then 1, then 3, then 1. Round 1 raised M1 (bug), M2 (nit), and M3 (nit), fixed in `0b1cccd`. Round 3 raised M4 (bug, the readme badge), fixed in `ea2155d`. Round 4 checked `445f7ad..52a3bfb`. The `rg` smoke exits 1 with no output. A sweep outside the kitchen finds only the `installation.md:81` and `:139` history lines the task says to keep. No new findings. Final counts: bug 0 open / 2 fixed / 0 wontfix; suggestion 0 / 0 / 0; nit 0 open / 2 fixed / 0 wontfix. No wontfix entries and no escalations. Paths: `review/review-framework.md`, `review/round-4/merged.md`, `review/disposition.md`.
 
 ### How to validate
 
