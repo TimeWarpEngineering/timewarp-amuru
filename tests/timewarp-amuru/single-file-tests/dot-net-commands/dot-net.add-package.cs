@@ -61,13 +61,13 @@ namespace DotNet_
     {
       string command = DotNet.AddPackage("Microsoft.Extensions.Logging")
         .WithProject("test.csproj")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithVersion("8.0.0")
         .WithNoRestore()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet add test.csproj package Microsoft.Extensions.Logging --framework net10.0 --version 8.0.0 --no-restore");
+      command.ShouldBe("dotnet add test.csproj package Microsoft.Extensions.Logging --framework net11.0 --version 8.0.0 --no-restore");
 
       await Task.CompletedTask;
     }
@@ -109,12 +109,12 @@ namespace DotNet_
         .WithProject("test.csproj")
         .WithSource("https://api.nuget.org/v3/index.json")
         .WithSource("https://my-private-feed.com/v3/index.json")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithNoRestore()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet add test.csproj package TestPackage --framework net10.0 --source https://api.nuget.org/v3/index.json --source https://my-private-feed.com/v3/index.json --no-restore");
+      command.ShouldBe("dotnet add test.csproj package TestPackage --framework net11.0 --source https://api.nuget.org/v3/index.json --source https://my-private-feed.com/v3/index.json --no-restore");
 
       await Task.CompletedTask;
     }

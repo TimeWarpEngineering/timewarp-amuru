@@ -52,7 +52,7 @@ await DotNet.Build().RunAsync();
 
 await DotNet.Build("MyApp.csproj")
   .WithConfiguration("Release")
-  .WithFramework("net10.0")
+  .WithFramework("net11.0")
   .WithRuntime("win-x64")
   .WithProperty("Version", "1.0.0")
   .WithNoRestore()
@@ -80,7 +80,7 @@ await DotNet.Clean().RunAsync();
 
 await DotNet.Clean("MyApp.csproj")
   .WithConfiguration("Release")
-  .WithFramework("net10.0")
+  .WithFramework("net11.0")
   .WithRuntime("win-x64")
   .RunAsync();
 ```
@@ -160,7 +160,7 @@ await DotNet.AddPackage("Newtonsoft.Json", "13.0.3").RunAsync();
 
 await DotNet.AddPackage("Microsoft.Extensions.Logging")
   .WithProject("MyApp.csproj")
-  .WithFramework("net10.0")
+  .WithFramework("net11.0")
   .WithPrerelease()
   .WithSource("https://api.nuget.org/v3/index.json")
   .WithNoRestore()

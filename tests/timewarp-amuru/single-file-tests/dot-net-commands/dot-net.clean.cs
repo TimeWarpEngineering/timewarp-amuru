@@ -51,13 +51,13 @@ namespace DotNet_
       string command = DotNet.Clean()
         .WithProject("test.csproj")
         .WithConfiguration("Debug")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithOutput("bin/Debug")
         .WithVerbosity("minimal")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet clean test.csproj --configuration Debug --framework net10.0 --output bin/Debug --verbosity minimal");
+      command.ShouldBe("dotnet clean test.csproj --configuration Debug --framework net11.0 --output bin/Debug --verbosity minimal");
 
       await Task.CompletedTask;
     }

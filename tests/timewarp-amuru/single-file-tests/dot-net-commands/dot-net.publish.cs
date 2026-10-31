@@ -51,14 +51,14 @@ namespace DotNet_
       string command = DotNet.Publish()
         .WithProject("test.csproj")
         .WithConfiguration("Release")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithRuntime("win-x64")
         .WithOutput("./publish")
         .WithNoRestore()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet publish test.csproj --configuration Release --framework net10.0 --runtime win-x64 --output ./publish --no-restore");
+      command.ShouldBe("dotnet publish test.csproj --configuration Release --framework net11.0 --runtime win-x64 --output ./publish --no-restore");
 
       await Task.CompletedTask;
     }

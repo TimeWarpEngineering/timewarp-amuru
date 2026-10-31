@@ -101,7 +101,7 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   /// <summary>
   /// Specifies the target framework to run for.
   /// </summary>
-  /// <param name="framework">The target framework moniker (e.g., "net8.0", "net10.0")</param>
+  /// <param name="framework">The target framework moniker (e.g., "net8.0", "net11.0")</param>
   /// <returns>The builder instance for method chaining</returns>
   public DotNetRunBuilder WithFramework(string framework)
   {

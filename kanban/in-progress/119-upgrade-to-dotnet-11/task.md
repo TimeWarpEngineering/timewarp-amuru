@@ -31,18 +31,17 @@ The builder API still accepts any moniker. Only the sample text changes. Re-run 
 
 ## Goal (implementer restatement)
 
-Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and the installed go-live SDK `11.0.100-rc.3.26522.148`, with `rollForward: latestFeature` and `allowPrerelease: true` so that RC resolves. Align `Microsoft.CodeAnalysis.NetAnalyzers` to that same RC build. Leave CodeStyle, BannedApi, Roslynator, CliWrap, and the other CPM pins where they are already the newest compatible release. Docs that require .NET 10 say .NET 11. The build stays warnings-as-errors clean, `dev test` stays green, and both packages pack with AOT compatibility analyzers clean. A file-based script that pulls the packed `TimeWarp.Amuru` with `#:package` runs on that SDK. Because this hard-cut is a breaking TFM and `2.0.0` is already published, `<Version>` becomes `3.0.0`. The githook self pins stay on the published `2.0.0` package until `3.0.0` is on the feed.
+The `net11.0` hard-cut, the SDK pin, version `3.0.0`, and the review fixes are already on this branch. This pass does not retarget projects, does not change `global.json`, and does not touch analyzer or package pins. It only rewrites the live examples that still name `net10.0` as the current moniker. The builder methods still take any framework string. The method signatures stay the same.
 
-Review round 1 left three open findings. This pass closes them on the same hard-cut. The five char searches that suppressed CA1307 pass `StringComparison.Ordinal` on the char overload and drop the pragma, the false "no overload" note, and the locals that existed only to hold that pragma. `installation.md` stops calling `dnx` and `#:package` .NET 11 inventions; both shipped with the .NET 10 SDK and the requirement stays .NET 11. CA1812 leaves the dev-cli `NoWarn`. `WorkflowCommand.Handler` carries `SuppressMessage`, and the two TimeWarp.Nuru.DevCli content handlers that still trip CA1812 (`ReleaseCommand.Handler`, `SelfInstallCommand.Handler`) are suppressed from this assembly because those files cannot be edited. The Release build and `dev test` stay green.
+Acceptance for this pass:
 
-Acceptance for the product diff:
-
-- `global.json` names the installed .NET 11 go-live SDK (`11.0.100-rc.3.26522.148`, or a newer 11.0 SDK if one is installed). Root and `tools/` `Directory.Build.props` target `net11.0` only. Source and samples inherit that TFM. No `net10.0` TFM remains in this repo.
-- Analyzer and tooling versions stay in `Directory.Packages.props` and match the SDK 11 analyzer generation (the known failure is IDE0055 when they drift).
-- `.github/workflows/workflow.yml` still installs the SDK from `global.json`, and the task branch CI is green on `ubuntu-latest`.
-- `documentation/user/installation.md`, `AGENTS.md`, and other hard ".NET 10 required" lines say .NET 11.
-- `dotnet build timewarp-amuru.slnx`, `dev test`, and a pack of both packages succeed.
-- Steve 2026-10-31 overruled wait-for-GA. This is the RC go-live. Hard-cut this repo off `net10.0` onto `net11.0`. Do not multi-target `net10.0`. Pin `global.json` to SDK `11.0.100-rc.3.26522.148` (or a newer installed 11.0 SDK). Docs that require .NET 10 say .NET 11.
+- XML doc examples under `source/timewarp-amuru-tools/dot-net-commands/` say `"net8.0", "net11.0"`.
+- `dot-net.md` samples call `WithFramework("net11.0")`.
+- Every `WithFramework("net10.0")` and `WithTemplateArg("net10.0")` under `tests/timewarp-amuru/single-file-tests/dot-net-commands/` becomes `net11.0`, and the expected command strings match that moniker.
+- The product lines in `documentation/posts/blips/amuru-1.0.0.md` and `documentation/posts/blips/amuru-1.0.0-x.md` say the library is for .NET 11.
+- The `<TargetFramework>` sample in `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md` is `net11.0`.
+- Shipped records stay as written: `documentation/release-notes/2.0.0.md`, `documentation/release-notes/3.0.0.md`, the `dnx` and `#:package` history lines in `documentation/user/installation.md`, `kanban/done/**`, and this kitchen's decision history.
+- The dotnet-command tests pass, and a warnings-as-errors build reports 0 warnings and 0 errors.
 
 ## Requirements
 
@@ -101,12 +100,12 @@ Acceptance for the product diff:
 - [x] `documentation/user/installation.md`: ".NET 10 File-Based Apps", "#:package is native to .NET 10", "requires .NET 10", download link to 10.0 — update to .NET 11 / 11.0.
 - [x] `AGENTS.md`: SDK pin note (`global.json` pins SDK 10.0.x; preview SDK fails IDE0055) to 11.0.x; "runnable .NET 10 file-based app" to .NET 11.
 - [x] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language. Readme, the two how-to guides, and architectural-layers now say .NET 11. `skills/tw-amuru` and both overview files had no .NET 10 requirement.
-- [ ] Steve 2026-10-31: sample monikers still say `net10.0`. See **Open work**. Replace those current samples, tests, blips, and the analysis snippet with `net11.0`. Do not rewrite the 2.0.0 release notes or the `dnx` / `#:package` history lines.
+- [x] Steve 2026-10-31: sample monikers still say `net10.0`. See **Open work**. Replace those current samples, tests, blips, and the analysis snippet with `net11.0`. Do not rewrite the 2.0.0 release notes or the `dnx` / `#:package` history lines. Done this pass. Builder XML docs, `dot-net.md`, the dotnet-command tests, both 1.0.0 blips, and the migration-analysis `<TargetFramework>` sample now say `net11.0`. The cli-smoke Design note names the 11.0 feature band, matching `global.json`. Shipped records were left as written.
 
 ### 6. Verification
 
 - [x] `dotnet build timewarp-amuru.slnx` (warnings-as-errors clean). Release build inside `workflow --mode pr` is 0 warnings, 0 errors.
-- [x] Full `dev test` / multi-file runners green. 732 passed, 1 skipped, 0 failed.
+- [x] Full `dev test` / multi-file runners green. 732 passed, 1 skipped, 0 failed. This pass ran `dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs` again after the sample moniker edits: same totals, including every `DotNetCommands` class and the live `nuget why` smoke.
 - [x] Pack both packages; AOT-compat analyzers clean. `IsAotCompatible=true` build is 0 warnings. Both nupkgs contain `lib/net11.0`.
 - [x] Manual smoke: file-based script with `#:package TimeWarp.Amuru@3.0.0` on SDK `11.0.100-rc.3.26522.148` captured `amuru-net11-smoke` from the local package.
 
@@ -213,6 +212,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 1414ca54-3135-46c5-9aa6-cf3d3454ed17, max-turns 120 — 2026-10-31T07:49:05Z
 - Fix pass (implement-fix-2): M1 passes `StringComparison.Ordinal` at the five char searches and drops the CA1307 pragmas. M2 drops CA1812 from the dev-cli `NoWarn` and suppresses the three mediator handlers that still fire it. M3 corrects the `dnx` and `#:package` history in `installation.md`.
 - Review oracle round 2: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 188 lines), turn cap 80, 2026-10-31. M1, M2, and M3 are fixed, and there are no new findings. Disposition is clean. See `review/round-2/merged.md` and `review/disposition.md`.
+- Implement oracle: sample monikers updated to `net11.0` by implementer-grok (grok-4.7), session 01a191aa-9292-7250-9de4-ecd6e73b64e7, 2026-10-31. Release build 0 warnings. Multi-file runner 732 passed, 1 skipped, 0 failed.
 
 ## Blocked
 
@@ -244,17 +244,30 @@ Round 1 ran on 2026-10-31 with one general reviewer at effort 2. The fix pass (`
 
 Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md` (final ledger), and `review/disposition.md`.
 
+### Sample monikers (2026-10-31)
+
+Live examples that still named `net10.0` now name `net11.0`. That is the XML doc examples on the dotnet builders, the samples in `dot-net.md`, every `WithFramework` / `WithTemplateArg` pair and its expected command string under `tests/timewarp-amuru/single-file-tests/dot-net-commands/`, the product lines in both 1.0.0 blips, and the `<TargetFramework>` sample in `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md`. The builder methods still accept any moniker. `documentation/release-notes/2.0.0.md`, `documentation/release-notes/3.0.0.md`, the `dnx` and `#:package` history lines in `installation.md`, and `kanban/done/**` were left as written. The cli-smoke Design note now says the copied `global.json` keeps roll-forward on the 11.0 feature band.
+
+`dotnet build timewarp-amuru.slnx -c Release --no-incremental -warnaserror` reported 0 warnings and 0 errors, and it packed both `3.0.0` nupkgs. `dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs` reported Total 733, Passed 732, Skipped 1, and exit 0. The `--filter-tag DotNetCommands` argument was ignored by `RunAllTests()`, so the run was the full suite. `CliSmoke_Given_` passed 18, including `NuGetWhy_Should_AcceptPositionalProject` with `--framework net11.0`.
+
 ### How to validate
 
 Smoke:
 
 ```bash
+rg -n 'net10\.0' \
+  source/timewarp-amuru-tools/dot-net-commands \
+  tests/timewarp-amuru/single-file-tests/dot-net-commands \
+  documentation/posts/blips \
+  .agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md
+dotnet build timewarp-amuru.slnx -c Release -warnaserror
+dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs
 dotnet --version
 dotnet build timewarp-amuru.slnx
 dotnet run --file tools/dev-cli/dev.cs -- workflow --mode pr
 ```
 
-Expect: `dotnet --version` prints `11.0.100-rc.3.26522.148` or a newer installed 11.0 SDK in that feature band. The build reports 0 warnings and 0 errors. The workflow prints `Pipeline SUCCEEDED`. The test grand total is 732 passed, 1 skipped, 0 failed. `artifacts/packages` contains `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, and each lists `lib/net11.0`.
+Expect: `rg` prints no `net10.0` hits in those live sample paths. Release and the plain build each report 0 warnings and 0 errors. The multi-file runner grand total is 732 passed, 1 skipped, 0 failed. `dotnet --version` prints `11.0.100-rc.3.26522.148` or a newer installed 11.0 SDK in that feature band. The workflow prints `Pipeline SUCCEEDED`. `artifacts/packages` contains `TimeWarp.Amuru.3.0.0.nupkg` and `TimeWarp.Amuru.Tools.3.0.0.nupkg`, and each lists `lib/net11.0`. This pass ran the `rg` check, the Release `-warnaserror` build, and the multi-file runner. It did not re-run `workflow --mode pr`.
 
 File-based package smoke, after that pack. Save this as a `.cs` file outside the repo so the repo `nuget.config` `<clear />` does not hide the GitHub packages feed, then `dotnet run --file` it:
 

@@ -60,7 +60,7 @@ namespace DotNet_
         .WithVersion("1.2.3")
         .WithConfigFile("./nuget.config")
         .WithToolManifest("./dotnet-tools.json")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithArchitecture("x64")
         .WithSource("https://example.test/v3/index.json")
         .WithSource("https://example.test/extra.json")
@@ -70,7 +70,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet tool install Some.Package --global --tool-path ./tools --version 1.2.3 --configfile ./nuget.config --tool-manifest ./dotnet-tools.json --framework net10.0 --arch x64 --add-source https://example.test/v3/index.json --add-source https://example.test/extra.json --prerelease --ignore-failed-sources --interactive");
+      command.ShouldBe("dotnet tool install Some.Package --global --tool-path ./tools --version 1.2.3 --configfile ./nuget.config --tool-manifest ./dotnet-tools.json --framework net11.0 --arch x64 --add-source https://example.test/v3/index.json --add-source https://example.test/extra.json --prerelease --ignore-failed-sources --interactive");
 
       await Task.CompletedTask;
     }
