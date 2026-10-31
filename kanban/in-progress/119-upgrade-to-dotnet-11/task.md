@@ -6,6 +6,29 @@ Bump TimeWarp.Amuru from .NET 10 to .NET 11 across TFMs, central package version
 
 As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-08). **GA scheduled 2026-11-10** (STS, support roughly Nov 2026 through Nov 2028). Prefer waiting for GA unless product needs an early RC soak.
 
+## Open work (Steve, 2026-10-31)
+
+The TFM bump, SDK pin, version `3.0.0`, and review disposition are already on this branch. Previous `## Results` do not close this pass. Do not redo the retarget and do not revert it.
+
+Steve: update every current reference so it shows .NET 11.
+
+Replace `net10.0` with `net11.0` in the live samples and tests:
+
+- XML doc examples on the dotnet builders (`"net8.0", "net10.0"` becomes `"net8.0", "net11.0"`) under `source/timewarp-amuru-tools/dot-net-commands/`
+- Samples in `source/timewarp-amuru-tools/dot-net-commands/dot-net.md`
+- Every `WithFramework("net10.0")`, `WithTemplateArg("net10.0")`, and the matching expected command strings under `tests/timewarp-amuru/single-file-tests/dot-net-commands/`
+- Product lines in `documentation/posts/blips/amuru-1.0.0.md` and `documentation/posts/blips/amuru-1.0.0-x.md` that say the library is for .NET 10
+- The `<TargetFramework>net10.0</TargetFramework>` sample in `.agent/workspace/2025-12-06T18-30-00_ganda-migration-analysis.md`
+
+Leave these strings. Changing them would make a shipped record false, or undo review finding M3:
+
+- `documentation/release-notes/2.0.0.md` (`2.0.0` shipped `lib/net10.0`)
+- `documentation/release-notes/3.0.0.md` (says `net10.0` is gone)
+- `documentation/user/installation.md` lines that say `dnx` and `#:package` arrived with the .NET 10 SDK. The requirement lines stay .NET 11.
+- `kanban/done/**` and this kitchen's decision history
+
+The builder API still accepts any moniker. Only the sample text changes. Re-run the dotnet-command tests and a warnings-as-errors build.
+
 ## Goal (implementer restatement)
 
 Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and the installed go-live SDK `11.0.100-rc.3.26522.148`, with `rollForward: latestFeature` and `allowPrerelease: true` so that RC resolves. Align `Microsoft.CodeAnalysis.NetAnalyzers` to that same RC build. Leave CodeStyle, BannedApi, Roslynator, CliWrap, and the other CPM pins where they are already the newest compatible release. Docs that require .NET 10 say .NET 11. The build stays warnings-as-errors clean, `dev test` stays green, and both packages pack with AOT compatibility analyzers clean. A file-based script that pulls the packed `TimeWarp.Amuru` with `#:package` runs on that SDK. Because this hard-cut is a breaking TFM and `2.0.0` is already published, `<Version>` becomes `3.0.0`. The githook self pins stay on the published `2.0.0` package until `3.0.0` is on the feed.
@@ -77,7 +100,8 @@ Acceptance for the product diff:
 
 - [x] `documentation/user/installation.md`: ".NET 10 File-Based Apps", "#:package is native to .NET 10", "requires .NET 10", download link to 10.0 — update to .NET 11 / 11.0.
 - [x] `AGENTS.md`: SDK pin note (`global.json` pins SDK 10.0.x; preview SDK fails IDE0055) to 11.0.x; "runnable .NET 10 file-based app" to .NET 11.
-- [x] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language. Readme, the two how-to guides, and architectural-layers now say .NET 11. `skills/tw-amuru` and both overview files had no .NET 10 requirement. Historical release notes, posts, and done kitchens stay as the record of what shipped. Dotnet-builder examples and tests still pass the string `net10.0` because that API accepts any moniker.
+- [x] Spot-check `readme.md` / `overview.md` / skills for leftover net10 language. Readme, the two how-to guides, and architectural-layers now say .NET 11. `skills/tw-amuru` and both overview files had no .NET 10 requirement.
+- [ ] Steve 2026-10-31: sample monikers still say `net10.0`. See **Open work**. Replace those current samples, tests, blips, and the analysis snippet with `net11.0`. Do not rewrite the 2.0.0 release notes or the `dnx` / `#:package` history lines.
 
 ### 6. Verification
 
@@ -159,6 +183,7 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 - Analysis machine: TWE-001 (WSL), master worktree read-only; kitchen authored in task-119 worktree only.
 - Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No .NET 11 product diff. Walk parked until the .NET 11 GA SDK is published.
 - Steve 2026-10-31 overruled that park: RC go-live, hard-cut off `net10.0`. Next walk retargets.
+- Steve 2026-10-31: current samples, tests, blips, and the analysis snippet still say `net10.0`. Update those references to `net11.0`. Leave shipped-version records.
 - Same walk, audit boy-scout: `ganda repo audit --fix` scaffolded `glossary.md`, refreshed `.githooks/pre-push.cs`, and pinned `TimeWarp.Nuru` / `TimeWarp.Nuru.DevCli` to `4.0.0-beta.10`. DevCli 4.0.0-beta.10 makes `NuGetVersionService`, `IRepoConfigService`, and `IPackableProjectService` internal, so `WorkflowCommand.Handler` is internal to match the package handlers. why: Steve 2026-10-19, audit --fix is the request (task 156)
 - Implement walk 2026-10-31 (RC go-live): hard-cut to `net11.0`, SDK `11.0.100-rc.3.26522.148`, NetAnalyzers `11.0.100-rc.3.26522.148`, package version `3.0.0`. The workflow handler constructor is public again. An internal constructor is invisible to the mediator, which is why `dev workflow` threw. The class stays internal.
 - Same walk: SDK 11 file-based apps restore as RID-specific AOT tool packages. Root `GeneratePackageOnBuild` then fails the hook with "GeneratePackageOnBuild is not supported for native compilation." `.githooks/Directory.Build.props` sets `IsPackable` and `GeneratePackageOnBuild` to false, the same opt-out samples already use. The product csprojs still pack.
