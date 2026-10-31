@@ -2,11 +2,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 513
-- Effort: 2
+- Lines changed: 188
+- Effort: 1
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 120 (--max-turns; cursor uncapped)
+- Turn cap: 80 (--max-turns; cursor uncapped)
 
 ## Round 1 framing
 
@@ -26,3 +26,12 @@
 - Review the diff and the call sites around it. Re-check claims that can be falsified against the repo and the installed SDK.
 - Whatever `ganda repo audit --fix` changes is policy and is not a finding (`.githooks/pre-push.cs`, `glossary.md` scaffold, Nuru pins).
 - A round is frozen once the next one opens. New work goes in `round-(N+1)/`.
+
+## Round 2 framing
+
+**Date:** 2026-10-31
+**Diff scope:** the fix delta `75b0006..0b1cccd` (commit `0b1cccd`). Round 1 base is in `round-1/base.sha`.
+**Plan / brief:** close round-1 M1, M2, and M3 (`round-1/merged.md`).
+**Effort:** 1 (by-diff, 188 lines)
+**Reviewer roster:** general
+**Session IDs:** review oracle, Claude Code (claude-opus-5-5), headless `ganda task work` print mode. The harness exposes no vendor session id.

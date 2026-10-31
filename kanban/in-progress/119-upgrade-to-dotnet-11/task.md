@@ -88,8 +88,8 @@ Acceptance for the product diff:
 
 ## Review
 
-- Round 1: open M1, M2, M3. Fix pass implemented all three. Round 2 has not run.
-
+- Round 1: open M1, M2, M3. Fix pass implemented all three.
+- Round 2: Done
 ## Notes
 
 ### Go-live decision (2026-10-31)
@@ -187,6 +187,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Review oracle round 1: general reviewer, Claude Code (claude-opus-5-5), effort 2 (by-diff, 513 lines), turn cap 120, 2026-10-31. Findings: 1 bug and 2 nits, all open. Fix pass needed. See `review/round-1/merged.md`.
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 1414ca54-3135-46c5-9aa6-cf3d3454ed17, max-turns 120 — 2026-10-31T07:49:05Z
 - Fix pass (implement-fix-2): M1 passes `StringComparison.Ordinal` at the five char searches and drops the CA1307 pragmas. M2 drops CA1812 from the dev-cli `NoWarn` and suppresses the three mediator handlers that still fire it. M3 corrects the `dnx` and `#:package` history in `installation.md`.
+- Review oracle round 2: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 188 lines), turn cap 80, 2026-10-31. M1, M2, and M3 are fixed, and there are no new findings. Disposition is clean. See `review/round-2/merged.md` and `review/disposition.md`.
 
 ## Blocked
 
@@ -208,13 +209,15 @@ Ubuntu CI is green. A branch push does not match `workflow.yml` (`push` is maste
 
 ### Review
 
-Round 1 ran on 2026-10-31 with one general reviewer at effort 2. The fix pass implemented every open finding. Round 2 has not reviewed the diff yet, so `review/round-1/merged.md` still says open and `review/disposition.md` is still unwritten.
+Round 1 ran on 2026-10-31 with one general reviewer at effort 2. The fix pass (`0b1cccd`) implemented every open finding. Round 2 ran on 2026-10-31 with one general reviewer at effort 1 over the fix delta `75b0006..0b1cccd`. It re-verified M1, M2, and M3 as fixed and raised no new findings. A Release `--no-incremental` build of `timewarp-amuru.slnx` gave 0 warnings and 0 errors. The `tools/dev-cli/dev.cs` Release build is clean, so the assembly CA1812 targets resolve. `./bin/dev test` passed with 1 skipped.
+
+**Disposition: clean.** Rounds: 2. Roster: general (effort 2, then effort 1). Final counts: bug 0 open / 1 fixed / 0 wontfix; suggestion 0 / 0 / 0; nit 0 open / 2 fixed / 0 wontfix. No wontfix and no escalations.
 
 - **M1 (bug):** the five call sites pass `StringComparison.Ordinal` and no longer suppress CA1307. Notes, the checklist, and the Results sentence above match that.
 - **M2 (nit):** CA1812 is not in the dev-cli `NoWarn`. A Release build of `tools/dev-cli/dev.cs` with that id enabled reports exactly three handlers: `WorkflowCommand.Handler`, and `ReleaseCommand.Handler` plus `SelfInstallCommand.Handler` from TimeWarp.Nuru.DevCli 4.0.0-beta.10 content. The first carries `[SuppressMessage]` on the type. The other two are assembly suppressions targeted at `~T:DevCli.ReleaseCommand.Handler` and `~T:DevCli.SelfInstallCommand.Handler`, because the content files live in the NuGet cache. `CleanCommand.Handler` and `CheckVersionCommand.Handler` do not fire CA1812. A dead internal class anywhere else in this CLI is reported again.
 - **M3 (nit):** `installation.md` says `#:package` and `dnx` are .NET SDK commands from .NET 10 onward. The requirement lines still say .NET 11.
 
-Paths: `review/review-framework.md` and `review/round-1/general.md`. The live ledger is `review/round-1/merged.md`. `review/disposition.md` is written after the fix pass and round 2.
+Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md` (final ledger), and `review/disposition.md`.
 
 ### How to validate
 
