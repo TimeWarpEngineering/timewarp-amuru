@@ -6,6 +6,19 @@ Bump TimeWarp.Amuru from .NET 10 to .NET 11 across TFMs, central package version
 
 As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-08). **GA scheduled 2026-11-10** (STS, support roughly Nov 2026 through Nov 2028). Prefer waiting for GA unless product needs an early RC soak.
 
+## Goal (implementer restatement)
+
+Move TimeWarp.Amuru from a single `net10.0` target and the SDK 10.0.301 pin onto a single `net11.0` target and a .NET 11 SDK pin. Keep `rollForward: latestFeature`. Align the central analyzer packages, the docs that require .NET 10, and CI (which already reads `global.json`) with that SDK. Leave the build warnings-as-errors clean, the full test suite green, and both packages packing with AOT compatibility analyzers clean. A file-based script that pulls `TimeWarp.Amuru` with `#:package` must run on that SDK.
+
+Acceptance for the product diff:
+
+- `global.json` names a .NET 11 GA SDK. Root and `tools/` `Directory.Build.props` target `net11.0`. Source and samples inherit that TFM.
+- Analyzer and tooling versions stay in `Directory.Packages.props` and match the SDK 11 analyzer generation (the known failure is IDE0055 when they drift).
+- `.github/workflows/workflow.yml` still installs the SDK from `global.json`, and the task branch CI is green on `ubuntu-latest`.
+- `documentation/user/installation.md`, `AGENTS.md`, and other hard ".NET 10 required" lines say .NET 11.
+- `dotnet build timewarp-amuru.slnx`, `dev test`, and a pack of both packages succeed.
+- No product diff until .NET 11 is GA, or until this kitchen records an explicit RC go-live. This walk records wait-for-GA.
+
 ## Requirements
 
 - Bump all project TFMs from `net10.0` to `net11.0` (no multi-TFM today; keep single TFM unless product decides otherwise).
@@ -22,13 +35,13 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 
 ### 1. Toolchains (do first — unlocks local build)
 
-- [ ] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message.
+- [x] Decide RC go-live vs wait-for-GA; record choice in Notes / commit message. Decision 2026-10-31: **wait for GA**. No product RC go-live.
 - [ ] Update `global.json` `sdk.version` from `10.0.301` to .NET 11 SDK (GA preferred).
 - [ ] Install matching SDK on TWE-001 / agent machines; confirm `dotnet --version`.
 - [ ] Confirm `LangVersion=latest` + `AnalysisLevel=latest-all` + `EnableNETAnalyzers=true` behave under SDK 11 (root `Directory.Build.props`).
 - [ ] Review `.editorconfig` experimental / style rules for SDK 11 analyzer changes (known risk: IDE0055 when SDK and analyzer package generation diverge).
 - [ ] **Pre-GA soak (can start now on RC1, `11.0.100-rc.1` is installed):** run the full suite on the .NET 11 runtime (`DOTNET_ROLL_FORWARD=Major` or a temporary `global.json`) and watch for behavior changes under CliWrap's output reading: Windows redirected stdio moved to overlapped I/O, macOS spawn moved to posix_spawn, Linux handle inheritance uses close_range. Record pass/fail per OS in Notes.
-- [ ] **Decision: replace CliWrap internally with the .NET 11 Process APIs?** .NET 11 adds `Process.Run/RunAsync`, `RunAndCaptureText[Async]`, deadlock-free `ReadAll*`, handle-based stdio redirection, `KillOnParentExit`, `ProcessExitStatus`, `SafeProcessHandle.WaitForExitOrKillOnCancellationAsync`, `Signal(PosixSignal)`. Task 091 already removed CliWrap from the public surface, so this is an internal swap. Evaluate against the execution modes in `core/command-result.cs` (capture, stream, pipe, passthrough, select, timeout graceful/forceful from task 044) and the mock layer; decide keep / swap / partial, record in Notes. Not a blocker for the TFM bump; may become its own task.
+- [x] **Decision: replace CliWrap internally with the .NET 11 Process APIs?** **Keep CliWrap for this TFM bump.** A swap is its own task. See Notes. .NET 11 adds `Process.Run/RunAsync`, `RunAndCaptureText[Async]`, deadlock-free `ReadAll*`, handle-based stdio redirection, `KillOnParentExit`, `ProcessExitStatus`, `SafeProcessHandle.WaitForExitOrKillOnCancellationAsync`, `Signal(PosixSignal)`. Task 091 already removed CliWrap from the public surface, so a later swap would be internal. Evaluated against the execution modes in `core/command-result.cs` (capture, stream, pipe, passthrough, select, timeout graceful/forceful from task 044) and the mock layer.
 
 ### 2. TFMs
 
@@ -73,6 +86,30 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 
 ## Notes
 
+### Go-live decision (2026-10-31)
+
+**Wait for GA.** Do not pin `global.json` to an RC SDK and do not retarget to `net11.0` on this walk.
+
+Checked 2026-10-31 against [the .NET 11 download page](https://dotnet.microsoft.com/en-us/download/dotnet/11.0) and the [11.0 release notes](https://github.com/dotnet/core/blob/main/release-notes/11.0/README.md):
+
+- Latest published build is **11.0.0-rc.3** (SDK `11.0.100-rc.3.26522.148`, 2026-10-25). It is go-live licensed. It is not GA.
+- GA is still scheduled **2026-11-10**. Support window on the release index is November 10, 2026 through November 9, 2028.
+- This machine has SDKs through `11.0.100-rc.3.26522.148`. `dotnet --version` under the repo pin is `10.0.403` (`global.json` is `10.0.301` with `rollForward: latestFeature`). There is no stable `11.0.100` SDK installed because it is not published.
+- `Microsoft.CodeAnalysis.NetAnalyzers` has no stable 11.0 package. The 11 line is `11.0.100-rc.3.26522.148`. The latest stable is `10.0.403` (CPM here is still `10.0.401`). Shipping the TFM bump on RC would pin CI and analyzers to prerelease builds that change again at GA, and it would be a breaking TFM for consumers while .NET 11 is not the supported GA runtime.
+- No product note asks for an early RC soak-as-ship. The kitchen says to prefer GA unless that need is recorded. Task 129 shipped 2.0.0 on `net10.0` and left this upgrade for after GA.
+
+Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was **not** run. It does not unblock the TFM bump, and the suite should be the GA verification run. RC3 is the installed candidate if a soak is wanted before November 10.
+
+### CliWrap (2026-10-31)
+
+**Keep** CliWrap 3.10.5 for the TFM bump. Do not partial-swap execution onto `Process.Run` / `RunAndCaptureText` in the same change.
+
+`source/timewarp-amuru/core/command-result.cs` builds the public modes on CliWrap: event streams for low-buffer capture, CliWrap's pipe operator for `Pipe`, and `ExecuteAsync(forceful, graceful)` for the task 044 timeout (SIGINT at the timeout, kill after `TimeoutGracePeriod`, exit 124 / `TimeoutException`). The mock layer matches every mode except pipelines and must not read CliWrap's last-stage `TargetFilePath`. `TtyPassthroughAsync` is already the raw `Process` boundary, and PTY stays out of scope (.NET 12 research). The .NET 11 process APIs are additive, so they do not force a rewrite. Task 083 is the consumer that wants those primitives; a swap belongs on its own task after this bump is green.
+
+### Pins observed 2026-10-31 (checklist text is the 2026-10-02 snapshot)
+
+`Directory.Packages.props` now has `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` at `4.0.0-beta.6`, and self pins `TimeWarp.Amuru` / `TimeWarp.Amuru.Tools` at `2.0.0`. A `net11.0` project can restore `net10.0` libraries through NuGet's forward TFM fallback, so sibling net11 builds are not a hard restore gate. The GA walk still confirms restore and AOT.
+
 ### Current values found (master checkout, 2026-10-02)
 
 | Area | Current |
@@ -110,3 +147,4 @@ As of ~2026-10-02: .NET 11 is **RC1** (`11.0.0-rc.1`, go-live license, 2026-09-0
 
 - Created: 506058 (2026-10-02)
 - Analysis machine: TWE-001 (WSL), master worktree read-only; kitchen authored in task-119 worktree only.
+- Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No product diff. Walk parked until the .NET 11 GA SDK is published.
