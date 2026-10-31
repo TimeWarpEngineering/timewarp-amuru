@@ -147,4 +147,5 @@ Pre-GA soak (checklist item, Linux `close_range` / CliWrap output reading) was *
 
 - Created: 506058 (2026-10-02)
 - Analysis machine: TWE-001 (WSL), master worktree read-only; kitchen authored in task-119 worktree only.
-- Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No product diff. Walk parked until the .NET 11 GA SDK is published.
+- Implement walk 2026-10-31: recorded wait-for-GA and keep-CliWrap. No .NET 11 product diff. Walk parked until the .NET 11 GA SDK is published.
+- Same walk, audit boy-scout: `ganda repo audit --fix` scaffolded `glossary.md`, refreshed `.githooks/pre-push.cs`, and pinned `TimeWarp.Nuru` / `TimeWarp.Nuru.DevCli` to `4.0.0-beta.10`. DevCli 4.0.0-beta.10 makes `NuGetVersionService`, `IRepoConfigService`, and `IPackableProjectService` internal, so `WorkflowCommand.Handler` is internal to match the package handlers. why: Steve 2026-10-19, audit --fix is the request (task 156)

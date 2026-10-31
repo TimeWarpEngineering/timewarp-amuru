@@ -11,6 +11,8 @@
     <!-- CA1303: Literal strings - OK for CLI output -->
     <!-- CA1508: Dead code analysis false positive -->
     <!-- CA1515: Internal types in exe projects are fine -->
+    <!-- CA1812: Nuru mediator constructs internal handlers; the analyzer does not see that.
+         DevCli 4.0.0-beta.10 made its handlers and services internal, and WorkflowCommand.Handler matches them. -->
     <!-- CA1849: Sync WriteLine is fine for CLI output -->
     <!-- CA2007: ConfigureAwait not needed in top-level console apps -->
     <!-- CA2016: CancellationToken forwarding - will address where needed -->
@@ -23,7 +25,7 @@
     <!-- IDE0211: dev.cs is a file-based app (runfile) and requires top-level statements -->
     <!-- IL2026, IL3050: reflection-based JsonSerializer in TimeWarp.Nuru.DevCli content files -->
     <!-- IL2104: Assembly produced trim warnings - StreamJsonRpc transitive dep on Newtonsoft.Json -->
-    <NoWarn>$(NoWarn);CA1031;CA1034;CA1303;CA1508;CA1515;CA1849;CA2007;CA2016;CA2000;CA5399;RCS1046;IDE0065;IDE0005;IDE0022;IDE0046;IDE0052;IDE0055;IDE0058;IDE0066;IDE0078;IDE0160;IDE0211;IDE0290;IL2026;IL2104;IL3050;IL3053</NoWarn>
+    <NoWarn>$(NoWarn);CA1031;CA1034;CA1303;CA1508;CA1515;CA1812;CA1849;CA2007;CA2016;CA2000;CA5399;RCS1046;IDE0065;IDE0005;IDE0022;IDE0046;IDE0052;IDE0055;IDE0058;IDE0066;IDE0078;IDE0160;IDE0211;IDE0290;IL2026;IL2104;IL3050;IL3053</NoWarn>
 
     <!-- AOT Support - enable only during publish, not build -->
     <PublishAot>true</PublishAot>

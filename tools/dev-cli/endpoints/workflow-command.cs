@@ -47,7 +47,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
   [Option("api-key", Description = "NuGet API key for publishing (from OIDC Trusted Publishing)")]
   public string? ApiKey { get; set; }
 
-  public sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
+  internal sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
   {
     private const string ArtifactsSubPath = "artifacts/packages";
 
@@ -57,7 +57,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
     private readonly IRepoConfigService ConfigService;
     private readonly IPackableProjectService PackableProjectService;
 
-    public Handler
+    internal Handler
     (
       ITerminal terminal,
       IRepoCleanService repoCleanService,
