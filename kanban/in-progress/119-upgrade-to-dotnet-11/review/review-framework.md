@@ -2,11 +2,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 188
-- Effort: 1
+- Lines changed: 851
+- Effort: 3
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 80 (--max-turns; cursor uncapped)
+- Turn cap: 200 (--max-turns; cursor uncapped)
 
 ## Round 1 framing
 
@@ -33,5 +33,14 @@
 **Diff scope:** the fix delta `75b0006..0b1cccd` (commit `0b1cccd`). Round 1 base is in `round-1/base.sha`.
 **Plan / brief:** close round-1 M1, M2, and M3 (`round-1/merged.md`).
 **Effort:** 1 (by-diff, 188 lines)
+**Reviewer roster:** general
+**Session IDs:** review oracle, Claude Code (claude-opus-5-5), headless `ganda task work` print mode. The harness exposes no vendor session id.
+
+## Round 3 framing
+
+**Date:** 2026-10-31
+**Diff scope:** product delta `0b1cccd..445f7ad` (commits `bd1f3c4` sample monikers to `net11.0`, `bc3b773` executable bit restored). A tree-wide sweep for current .NET 10 references was also in scope, because the open work asks for every current reference to show .NET 11.
+**Plan / brief:** `task.md` `## Open work (Steve, 2026-10-31)` and `## Goal (implementer restatement)`.
+**Effort:** 3 (by-diff budget, 851 lines, the full branch against merge base `53950d7`)
 **Reviewer roster:** general
 **Session IDs:** review oracle, Claude Code (claude-opus-5-5), headless `ganda task work` print mode. The harness exposes no vendor session id.
