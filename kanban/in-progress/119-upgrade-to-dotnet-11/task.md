@@ -233,6 +233,7 @@ SDK 11 NetAnalyzers flags `StartsWith(char)`, `EndsWith(char)`, and `LastIndexOf
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 87030fa1-7866-46d2-8253-60478c77ac2f, max-turns 200 — 2026-10-31T11:31:05Z
 - Fix pass (implement-fix-2): M4 sets the `readme.md` shields badge to `dotnet-11.0`. That readme is packed into both `3.0.0` nupkgs. implementer-grok (grok-4.7), session 01a191ba-7a5d-7462-982c-b858d216aaac, 2026-10-31.
 - Review oracle round 4: general reviewer, Claude Code (claude-opus-5-5), effort 1 (by-diff, 126 lines), turn cap 80, 2026-10-31. M4 is fixed, and there are no new findings. Disposition is clean. See `review/round-4/merged.md` and `review/disposition.md`.
+- 2026-11-01 pre-PR audit: `ganda repo audit --fix` pinned TimeWarp.Nuru and TimeWarp.Nuru.DevCli to `4.0.0-beta.11` and added `bin/dev`, `bin/dev.dbg`, and `bin/dev.exe` to `.gitignore`. why: Steve 2026-10-19, audit --fix is the request (task 156)
 
 ## Blocked
 
