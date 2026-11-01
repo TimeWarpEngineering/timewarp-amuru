@@ -148,11 +148,11 @@ namespace DotNet_
       string command = DotNet.NuGet()
         .Why("Microsoft.Extensions.Logging")
         .WithProject("MyApp.csproj")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet nuget why MyApp.csproj Microsoft.Extensions.Logging --framework net10.0");
+      command.ShouldBe("dotnet nuget why MyApp.csproj Microsoft.Extensions.Logging --framework net11.0");
 
       await Task.CompletedTask;
     }

@@ -11,7 +11,7 @@
 [![nuget](https://img.shields.io/nuget/dt/TimeWarp.Amuru?logo=nuget)](https://www.nuget.org/packages/TimeWarp.Amuru/)
 
 [![Twitter](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2FTimeWarpEngineering%2Ftimewarp-amuru)](https://twitter.com/intent/tweet?url=https://github.com/TimeWarpEngineering/timewarp-amuru)
-[![Dotnet](https://img.shields.io/badge/dotnet-10.0-blue)](https://dotnet.microsoft.com)
+[![Dotnet](https://img.shields.io/badge/dotnet-11.0-blue)](https://dotnet.microsoft.com)
 
 [![Discord](https://img.shields.io/discord/715274085940199487?logo=discord)](https://discord.gg/7F4bS2T)
 [![Twitter](https://img.shields.io/twitter/follow/StevenTCramer.svg)](https://twitter.com/intent/follow?screen_name=StevenTCramer)
@@ -34,7 +34,7 @@ Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scri
 - **Type Safety**: Catch errors at compile-time, not runtime
 - **No String Escaping Hell**: Use C# arrays and parameters naturally
 - **Native AOT Ready**: Both packages declare and validate AOT/trimming compatibility
-- **Built for .NET 10**: Modern C# features and first-class file-based app (runfile) support
+- **Built for .NET 11**: Modern C# features and first-class file-based app (runfile) support
 - **Script or Library**: Use it in quick scripts or production applications
 
 ## Give a Star! :star:
@@ -180,7 +180,7 @@ string selectedFile = await Fzf.Builder()
 - **Per-command timeout**: `WithTimeout` reports `TimedOut` and exit 124; a caller cancellation token still cancels
 - **Cross-Platform**: Works on Windows, Linux, and macOS (including `.cs` script execution on Windows via the dotnet host)
 - **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
-- **.NET 10 Script Support**: AppContext extensions and ScriptContext for file-based apps
+- **.NET 11 Script Support**: AppContext extensions and ScriptContext for file-based apps
 - **Native text**: `SelectString` (grep) and `ReplaceInFiles` (in-place replace) under `TimeWarp.Amuru.Native.Text`, with `Grep` / `Sed` bash aliases. See [Native text commands](documentation/developer/reference/native-text-commands.md)
 
 ## Output Handling
@@ -376,9 +376,9 @@ CliConfiguration.Reset();
 
 API: `SetCommandPath`, `ClearCommandPath`, `Reset`, `HasCustomPath`, `AllCommandPaths`. Overrides are process-global by design — use `CommandMock` for per-test isolation.
 
-## .NET 10 File-Based App Support
+## .NET 11 File-Based App Support
 
-TimeWarp.Amuru provides specialized support for .NET 10's file-based apps (single-file C# scripts):
+TimeWarp.Amuru provides specialized support for .NET 11 file-based apps (single-file C# scripts):
 
 - **AppContext Extensions** — `AppContext.EntryPointFilePath()` / `EntryPointFileDirectoryPath()` without magic strings
 - **ScriptContext** — scoped working-directory management with cleanup on dispose or process exit (contexts nest safely)

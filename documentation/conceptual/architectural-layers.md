@@ -11,7 +11,7 @@ This document explains the six distinct architectural layers and how they integr
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  6. Standalone Executables (/exe scripts + AOT binaries)   │
-│     - .NET 10 file-based apps with shebangs                 │
+│     - .NET 11 file-based apps with shebangs                 │
 │     - AOT-compiled binaries via 'timewarp install'          │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -631,7 +631,7 @@ timewarp install multiavatar  # Install AOT binary
 ## Layer 6: Standalone Executables
 
 ### Purpose
-**Standalone Executables** come in two forms: .NET 10 file-based apps for development and AOT-compiled binaries for production. They provide the highest level of flexibility and deployment options.
+**Standalone Executables** come in two forms: .NET 11 file-based apps for development and AOT-compiled binaries for production. They provide the highest level of flexibility and deployment options.
 
 ### 6A: /exe Directory Scripts
 
@@ -641,7 +641,7 @@ exe/*.cs
 ```
 
 #### Characteristics
-- .NET 10 file-based apps with shebang (`#!/usr/bin/dotnet --`)
+- .NET 11 file-based apps with shebang (`#!/usr/bin/dotnet --`)
 - Single .cs files with `#:package` directives
 - Can be run directly: `./exe/script.cs`
 - Used for testing, prototyping, repository-specific utilities

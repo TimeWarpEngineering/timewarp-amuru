@@ -1,12 +1,12 @@
-# How to Use ScriptContext for .NET 10 File-Based Apps
+# How to Use ScriptContext for .NET 11 File-Based Apps
 
 ## Overview
 
-`ScriptContext` provides automatic working directory management for .NET 10 file-based apps (single-file C# scripts). It ensures your script's working directory is properly set and restored, even when using `Environment.Exit()`.
+`ScriptContext` provides automatic working directory management for .NET 11 file-based apps (single-file C# scripts). It ensures your script's working directory is properly set and restored, even when using `Environment.Exit()`.
 
 ## Prerequisites
 
-- .NET 10 SDK
+- .NET 11 SDK
 - TimeWarp.Amuru package
 
 ## Basic Usage
@@ -124,7 +124,7 @@ using (var context = ScriptContext.FromEntryPoint())
 ## Troubleshooting
 
 ### Script Path is Null
-- Ensure you're running as a .NET 10 file-based app (not `dotnet run` on a project)
+- Ensure you're running as a .NET 11 file-based app (not `dotnet run` on a project)
 - Use the shebang: `#!/usr/bin/dotnet --`
 
 ### Directory Not Restored
@@ -138,4 +138,4 @@ using (var context = ScriptContext.FromEntryPoint())
 ## See Also
 
 - [How to Use AppContext Extensions](HowToUseAppContextExtensions.md)
-- [.NET 10 File-Based Apps Documentation](https://docs.microsoft.com/dotnet/core/file-based-apps)
+- [.NET file-based apps](https://learn.microsoft.com/dotnet/core/sdk/file-based-apps)

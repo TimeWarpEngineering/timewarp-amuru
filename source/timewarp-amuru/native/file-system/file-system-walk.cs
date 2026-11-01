@@ -48,7 +48,7 @@ internal static class FileSystemWalk
     }
 
     string name = fileSystemInfo.Name;
-    return name.StartsWith('.') && name is not "." and not "..";
+    return name.StartsWith('.', StringComparison.Ordinal) && name is not "." and not "..";
   }
 
   public static EnumerationOptions CreateEnumerationOptions()

@@ -38,14 +38,14 @@ namespace DotNet_
     {
       string command = DotNet.ListPackages()
         .WithProject("test.csproj")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithVerbosity("minimal")
         .WithFormat("console")
         .Outdated()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet list package test.csproj --framework net10.0 --verbosity minimal --format console --outdated");
+      command.ShouldBe("dotnet list package test.csproj --framework net11.0 --verbosity minimal --format console --outdated");
 
       await Task.CompletedTask;
     }

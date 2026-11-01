@@ -51,13 +51,13 @@ namespace DotNet_
       string command = DotNet.Build()
         .WithProject("test.csproj")
         .WithConfiguration("Debug")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithNoRestore()
         .WithOutput("bin/Debug")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet build test.csproj --configuration Debug --framework net10.0 --output bin/Debug --no-restore");
+      command.ShouldBe("dotnet build test.csproj --configuration Debug --framework net11.0 --output bin/Debug --no-restore");
 
       await Task.CompletedTask;
     }

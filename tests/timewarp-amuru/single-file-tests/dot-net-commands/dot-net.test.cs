@@ -51,14 +51,14 @@ namespace DotNet_
       string command = DotNet.Test()
         .WithProject("test.csproj")
         .WithConfiguration("Debug")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithNoRestore()
         .WithFilter("Category=Unit")
         .WithLogger("console")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet test test.csproj --configuration Debug --framework net10.0 --filter Category=Unit --logger console --no-restore");
+      command.ShouldBe("dotnet test test.csproj --configuration Debug --framework net11.0 --filter Category=Unit --logger console --no-restore");
 
       await Task.CompletedTask;
     }

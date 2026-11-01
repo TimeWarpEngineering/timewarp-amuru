@@ -39,13 +39,13 @@ namespace DotNet_
       string command = DotNet.Run()
         .WithProject("test.csproj")
         .WithConfiguration("Debug")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithNoRestore()
         .WithArguments("--help")
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet run --project test.csproj --configuration Debug --framework net10.0 --no-restore -- --help");
+      command.ShouldBe("dotnet run --project test.csproj --configuration Debug --framework net11.0 --no-restore -- --help");
 
       await Task.CompletedTask;
     }

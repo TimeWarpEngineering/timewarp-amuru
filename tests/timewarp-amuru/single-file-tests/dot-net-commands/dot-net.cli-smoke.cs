@@ -5,7 +5,7 @@
 #endregion
 
 #region Design
-// Each smoke runs in an empty directory that copies global.json, so roll-forward stays on the 10.0 feature band
+// Each smoke runs in an empty directory that copies global.json, so roll-forward stays on the 11.0 feature band
 // and dotnet does not select a project from the repo. Assertions require the CLI to accept the emitted flag:
 // a missing project is MSB1003, not MSB1009 from a terminal-logger mode token.
 // Tool smokes stay out of the user tool store: list/restore/run/uninstall use the empty directory,
@@ -169,13 +169,13 @@ namespace DotNet_
         .WithEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "1")
         .Why("TimeWarp.Amuru.NotADependency")
         .WithProject(project)
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .Build();
 
       string commandText = command.ToCommandString();
       commandText.ShouldNotContain("--project");
       commandText.ShouldContain(project);
-      commandText.ShouldContain("--framework net10.0");
+      commandText.ShouldContain("--framework net11.0");
 
       CommandOutput output = await command.CaptureAsync();
       output.Combined.ShouldContain("does not have a dependency");

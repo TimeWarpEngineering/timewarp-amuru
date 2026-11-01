@@ -119,7 +119,7 @@ public sealed class NuGetPackageService : INuGetPackageService
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(version);
 
-    string normalized = version.StartsWith('v') ? version[1..] : version;
+    string normalized = version.StartsWith('v', StringComparison.Ordinal) ? version[1..] : version;
 
     if (NuGetVersion.TryParse(normalized, out NuGetVersion? parsed))
     {

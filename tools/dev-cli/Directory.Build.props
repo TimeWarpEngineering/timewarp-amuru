@@ -11,6 +11,10 @@
     <!-- CA1303: Literal strings - OK for CLI output -->
     <!-- CA1508: Dead code analysis false positive -->
     <!-- CA1515: Internal types in exe projects are fine -->
+    <!-- CA1812 is intentionally absent. WorkflowCommand.Handler and the two
+         TimeWarp.Nuru.DevCli content handlers the mediator activates
+         (ReleaseCommand.Handler, SelfInstallCommand.Handler) carry SuppressMessage.
+         A project-wide NoWarn would hide a dead internal class in this CLI. -->
     <!-- CA1849: Sync WriteLine is fine for CLI output -->
     <!-- CA2007: ConfigureAwait not needed in top-level console apps -->
     <!-- CA2016: CancellationToken forwarding - will address where needed -->

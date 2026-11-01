@@ -30,7 +30,7 @@ internal static class GlobMatcher
       return (path, "*");
     }
 
-    int slashBefore = normalized.LastIndexOf('/', firstGlob);
+    int slashBefore = normalized.LastIndexOf('/', firstGlob, StringComparison.Ordinal);
     if (slashBefore < 0)
     {
       return (".", normalized);

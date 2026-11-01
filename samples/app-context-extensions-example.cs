@@ -3,14 +3,14 @@
 #:property LangVersion=preview
 #:property EnablePreviewFeatures=true
 
-// Example demonstrating AppContext extensions for .NET 10 file-based apps
+// Example demonstrating AppContext extensions for .NET 11 file-based apps
 
 using TimeWarp.Amuru;
 using TimeWarp.Terminal;
 
 await TimeWarpTerminal.Default.WriteLineAsync("=== AppContext Extensions Example ===\n");
 
-// These extension methods provide access to .NET 10's file-based app context data
+// These extension methods provide access to .NET 11 file-based app context data
 // without using magic strings
 
 await TimeWarpTerminal.Default.WriteLineAsync("File-based app context information:");

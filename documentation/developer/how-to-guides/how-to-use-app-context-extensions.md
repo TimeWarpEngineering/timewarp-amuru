@@ -1,12 +1,12 @@
-# How to Use AppContext Extensions for .NET 10 File-Based Apps
+# How to Use AppContext Extensions for .NET 11 File-Based Apps
 
 ## Overview
 
-TimeWarp.Amuru provides extension methods for `AppContext` using C# 14's new extension syntax, giving you clean access to .NET 10's file-based app metadata without magic strings.
+TimeWarp.Amuru provides extension methods for `AppContext` using C# extension members, giving you clean access to .NET 11 file-based app metadata without magic strings.
 
 ## Prerequisites
 
-- .NET 10 SDK
+- .NET 11 SDK
 - TimeWarp.Amuru package
 - C# script file (not a project)
 
@@ -89,7 +89,7 @@ if (scriptDir != null)
 
 ## How It Works
 
-These extension methods wrap the .NET 10 AppContext data:
+These extension methods wrap the .NET 11 file-based app AppContext data:
 - `AppContext.GetData("EntryPointFilePath")` → `AppContext.EntryPointFilePath()`
 - `AppContext.GetData("EntryPointFileDirectoryPath")` → `AppContext.EntryPointFileDirectoryPath()`
 
@@ -155,5 +155,5 @@ The script must:
 ## See Also
 
 - [How to Use ScriptContext](HowToUseScriptContext.md)
-- [.NET 10 File-Based Apps Documentation](https://docs.microsoft.com/dotnet/core/file-based-apps)
+- [.NET file-based apps](https://learn.microsoft.com/dotnet/core/sdk/file-based-apps)
 - [C# 14 Extension Everything](https://github.com/dotnet/csharplang/blob/main/proposals/extensions.md)

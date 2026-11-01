@@ -254,7 +254,7 @@ internal static class TextDiff
     }
 
     string normalized = NewlineStyle.Detect(text).ToLineFeed(text);
-    if (normalized.EndsWith('\n'))
+    if (normalized.EndsWith('\n', StringComparison.Ordinal))
     {
       normalized = normalized[..^1];
     }
@@ -269,7 +269,7 @@ internal static class TextDiff
 
   private static bool EndsWithNewline(string text)
   {
-    return NewlineStyle.Detect(text).ToLineFeed(text).EndsWith('\n');
+    return NewlineStyle.Detect(text).ToLineFeed(text).EndsWith('\n', StringComparison.Ordinal);
   }
 
   private readonly record struct Edit(char Kind, string Text);

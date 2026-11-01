@@ -66,14 +66,14 @@ namespace DotNet_
         .WithName("MyWebApp")
         .WithOutput("./web-output")
         .WithTemplateArg("--framework")
-        .WithTemplateArg("net10.0")
+        .WithTemplateArg("net11.0")
         .WithVerbosity("detailed")
         .WithNoUpdateCheck()
         .WithDiagnostics()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet new web --framework net10.0 --output ./web-output --name MyWebApp --verbosity detailed --no-update-check --diagnostics");
+      command.ShouldBe("dotnet new web --framework net11.0 --output ./web-output --name MyWebApp --verbosity detailed --no-update-check --diagnostics");
 
       await Task.CompletedTask;
     }

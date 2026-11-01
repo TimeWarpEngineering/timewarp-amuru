@@ -116,14 +116,14 @@ namespace DotNet_
     {
       string command = DotNet.Watch()
         .WithConfiguration("Release")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithRuntime("linux-x64")
         .WithVerbosity("detailed")
         .Run()
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet watch --framework net10.0 --configuration Release --runtime linux-x64 --verbosity detailed run");
+      command.ShouldBe("dotnet watch --framework net11.0 --configuration Release --runtime linux-x64 --verbosity detailed run");
 
       await Task.CompletedTask;
     }
@@ -175,7 +175,7 @@ namespace DotNet_
       string command = DotNet.Watch()
         .WithProject("MyApp.csproj")
         .WithConfiguration("Release")
-        .WithFramework("net10.0")
+        .WithFramework("net11.0")
         .WithVerbosity("minimal")
         .WithNoRestore()
         .WithArguments("--environment", "Production")
@@ -183,7 +183,7 @@ namespace DotNet_
         .Build()
         .ToCommandString();
 
-      command.ShouldBe("dotnet watch --project MyApp.csproj --no-restore --framework net10.0 --configuration Release --verbosity minimal run --environment Production");
+      command.ShouldBe("dotnet watch --project MyApp.csproj --no-restore --framework net11.0 --configuration Release --verbosity minimal run --environment Production");
 
       await Task.CompletedTask;
     }

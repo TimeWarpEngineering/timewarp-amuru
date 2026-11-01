@@ -32,6 +32,19 @@
 // download-artifact can read this repo's Actions artifacts.
 #endregion
 
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(
+  "Performance",
+  "CA1812",
+  Justification = "Activated by the Nuru mediator. Declared in TimeWarp.Nuru.DevCli content, which this repo cannot edit.",
+  Scope = "type",
+  Target = "~T:DevCli.ReleaseCommand.Handler")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(
+  "Performance",
+  "CA1812",
+  Justification = "Activated by the Nuru mediator. Declared in TimeWarp.Nuru.DevCli content, which this repo cannot edit.",
+  Scope = "type",
+  Target = "~T:DevCli.SelfInstallCommand.Handler")]
+
 namespace DevCli.Commands;
 
 using System.ComponentModel;
@@ -47,7 +60,11 @@ public sealed class WorkflowCommand : ICommand<Unit>
   [Option("api-key", Description = "NuGet API key for publishing (from OIDC Trusted Publishing)")]
   public string? ApiKey { get; set; }
 
-  public sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Performance",
+    "CA1812",
+    Justification = "Activated by the Nuru mediator")]
+  internal sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
   {
     private const string ArtifactsSubPath = "artifacts/packages";
 
@@ -57,6 +74,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
     private readonly IRepoConfigService ConfigService;
     private readonly IPackableProjectService PackableProjectService;
 
+    // Public so the mediator can activate this internal handler. The DevCli parameter types are internal.
     public Handler
     (
       ITerminal terminal,

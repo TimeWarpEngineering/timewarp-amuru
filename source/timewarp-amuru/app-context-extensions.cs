@@ -1,5 +1,5 @@
 #region Purpose
-// Extension members on AppContext exposing .NET 10 file-based app entry-point metadata
+// Extension members on AppContext exposing .NET 11 file-based app entry-point metadata
 // (script path and directory) as typed properties instead of string-keyed GetData calls.
 #endregion
 
@@ -7,7 +7,7 @@ namespace TimeWarp.Amuru;
 
 #pragma warning disable CA1034 // Nested types should not be visible
 /// <summary>
-/// Extension members on <see cref="AppContext"/> for .NET 10 file-based app (runfile) metadata.
+/// Extension members on <see cref="AppContext"/> for .NET 11 file-based app (runfile) metadata.
 /// </summary>
 public static class AppContextExtensions
 {
