@@ -32,6 +32,8 @@ Acceptance:
 - Steve 2026-11-01: source is `3.0.0` and was never published. The version to ship next is `3.0.0-beta.1`.
 - Implementation: 01a195dc-c1b2-7cb3-86dc-e636c5a4bebc (2026-11-01)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a195dc-c1b2-7cb3-86dc-e636c5a4bebc, max-turns 500, Done — 2026-11-01T06:51:39Z
+- Review oracle: general reviewer (claude, model claude-opus-5-5), effort 1, turn cap 80, round 1, disposition clean — 2026-11-01
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 8b9b531f-446f-4be0-a41e-99f58bc1d099, max-turns 80 — 2026-11-01T06:53:43Z
 
 ## Results
 
@@ -51,6 +53,18 @@ unzip -p artifacts/packages/TimeWarp.Amuru.Tools.3.0.0-beta.1.nupkg TimeWarp.Amu
 ```
 
 Expect: `check-version` reports source `3.0.0-beta.1` as new against NuGet `2.0.0`. The Release build reports 0 warnings and 0 errors and creates `artifacts/packages/TimeWarp.Amuru.3.0.0-beta.1.nupkg` and `artifacts/packages/TimeWarp.Amuru.Tools.3.0.0-beta.1.nupkg`. Both nuspec `<version>` values are `3.0.0-beta.1`, and both packages list `lib/net11.0`. This walk ran those commands and saw that output.
+
+### Review disposition
+
+- Rounds: 1. Roster: general only, effort 1.
+- Final counts: bug 0, suggestion 0, nit 0 (0 open, 0 fixed, 0 wontfix).
+- Disposition: `clean`. No wontfix and no escalation. The goal restatement matches the task, so there was no misread.
+- The reviewer confirmed with `dotnet msbuild -getProperty` that both packable projects evaluate `PackageVersion` to `3.0.0-beta.1` on `net11.0`. `dev check-version` and the pack were not re-run during review.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
