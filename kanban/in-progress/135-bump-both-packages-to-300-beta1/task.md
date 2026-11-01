@@ -31,6 +31,7 @@ Acceptance:
 - Created: 01a19090-91e1-7aa1-bc02-6725799fd66b (2026-11-01)
 - Steve 2026-11-01: source is `3.0.0` and was never published. The version to ship next is `3.0.0-beta.1`.
 - Implementation: 01a195dc-c1b2-7cb3-86dc-e636c5a4bebc (2026-11-01)
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a195dc-c1b2-7cb3-86dc-e636c5a4bebc, max-turns 500, Done — 2026-11-01T06:51:39Z
 
 ## Results
 
