@@ -1,0 +1,18 @@
+{
+  "files": {
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.new.cs": 890,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.nu-get.cs": 1801,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.publish.cs": 584,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.reference.cs": 515,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.run.cs": 525,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.sln.cs": 631,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.test.cs": 528,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.user-secrets.cs": 743,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.watch.cs": 661,
+    "source/timewarp-amuru-tools/dot-net-commands/dot-net.workload.cs": 1944,
+    "source/timewarp-amuru/core/command-result.cs": 1408,
+    "tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.cli-smoke.cs": 510,
+    "tests/timewarp-amuru/single-file-tests/native/text/direct.replace-in-files.cs": 533,
+    "tools/dev-cli/endpoints/workflow-command.cs": 867
+  }
+}
