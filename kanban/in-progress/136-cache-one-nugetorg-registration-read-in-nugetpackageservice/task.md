@@ -23,18 +23,57 @@ Installed ganda `nuget outdated` on timewarp-ganda (37 packages, serial) took 26
 - Do not cache a failure or a 404 as a successful empty list. A later call may retry. Concurrent callers of the failed attempt still share that one request.
 - Public method shapes stay the same.
 
+## Goal (implementer restatement)
+
+`SearchAsync` and `GetLatestVersionsAsync` both walk nuget.org registration for a package id, then keep different slices of that walk. Within one process, the first walk for an id should be the only walk: a second call, the other method, and any caller that arrives while the walk is still running all share that one read.
+
+The stored result is the full version list, including unlisted versions and the listed flag. `SearchAsync` returns that list (or null when the feed has no registration). `GetLatestVersionsAsync` picks the highest listed stable version and the highest listed prerelease from the same list, and returns null when nothing listed is present. Unlisted versions stay out of the latest-version result.
+
+A successful walk stays stored for the process. A 404 and a failed walk do not stay stored as an empty success. Callers that joined the failed attempt all see that one outcome. A call that starts after the attempt has finished may try again. `SearchAsync` and `GetLatestVersionsAsync` keep the signatures they have now.
+
 ## Checklist
 
-- [ ] Share one registration read per package id
-- [ ] `GetLatestVersionsAsync` derives from that list and stays listed-only
-- [ ] `SearchAsync` derives from that list and still includes unlisted versions
-- [ ] A repeat call does not hit the network
-- [ ] Tests for one download, the listed filter, and not-found
+- [x] Share one registration read per package id
+- [x] `GetLatestVersionsAsync` derives from that list and stays listed-only
+- [x] `SearchAsync` derives from that list and still includes unlisted versions
+- [x] A repeat call does not hit the network
+- [x] Tests for one download, the listed filter, and not-found
 
 ## Session
 
 - Created: 1664621 (2026-11-01)
+- Implementation: grok task-work (2026-11-07)
+- Audit: `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` window title. No tracked file changed. A follow-up audit passed (38 passed, 2 skipped).
 
 ## Notes
 
 Filed from timewarp-ganda task 537. Do not fix this inside ganda. Ganda task 538 is the disk cache, ETag, and flat-container follow-up on that side.
+
+## Results
+
+`NuGetPackageService` keeps one registration walk per package id. The parameterless constructor stores that walk for the process, including the in-flight task, so `SearchAsync` and `GetLatestVersionsAsync` share it. The stored list keeps unlisted versions. Latest selection still uses listed versions only. A 404 and a failed walk are removed when the attempt finishes, so a later call can retry, and callers that already joined that attempt see the same result. A caller's cancellation token cancels only that caller's wait.
+
+The new `NuGetPackageService(HttpMessageHandler)` constructor keeps an isolated cache so tests can count requests without filling the process cache. The caller owns the handler. `SearchAsync` and `GetLatestVersionsAsync` keep their existing signatures.
+
+### How to validate
+
+**Smoke**
+
+```bash
+dotnet run --file tests/timewarp-amuru/single-file-tests/repo-services/nuget-package-service.registration-cache.cs
+dotnet run --file tests/timewarp-amuru/single-file-tests/repo-services/nuget-package-service.cs
+```
+
+**Expect**
+
+- Registration cache: 9 passed. Repeat `SearchAsync` / `GetLatestVersionsAsync` for one id downloads the index and its external page once. Latest stable and prerelease ignore higher unlisted versions. A 404 and an HTTP failure return control to the caller and the next call hits the network again. Two overlapping callers share one in-flight request. Cancelling one caller leaves the shared walk for the other.
+- Live service tests: 31 passed. In one process, the first `SearchAsync("Newtonsoft.Json")` took 0.63s and the next search of that id took 0.00s. `GetLatestVersionsAsync("Newtonsoft.Json")` on a new instance also took 0.00s. A missing package id still took a network round trip (0.66s) and returned null.
+
+**Automated**
+
+```bash
+dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs
+# this session: Passed 741, Skipped 1, Failed 0
+```
+
+The skip is the existing `GetCommitsAheadOfDefaultBranch_Given_` test. `RegistrationCache_Given_` passed 9 in that run.
