@@ -1,1 +1,2 @@
 #nullable enable
+TimeWarp.Amuru.NuGetPackageService.NuGetPackageService(System.Net.Http.HttpMessageHandler! handler) -> void

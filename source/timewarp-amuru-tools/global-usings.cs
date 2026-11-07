@@ -5,6 +5,7 @@
 global using CliWrap;
 global using NuGet.Versioning;
 global using System;
+global using System.Collections.Concurrent;
 global using System.Globalization;
 global using System.Runtime.CompilerServices;
 global using System.Text;

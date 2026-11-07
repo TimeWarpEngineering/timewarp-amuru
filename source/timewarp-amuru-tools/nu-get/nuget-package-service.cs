@@ -1,5 +1,5 @@
 #region Purpose
-// Implementation of NuGet package operations using NuGet registration API
+// Reads nuget.org registration once per package id and derives search and latest versions from that read.
 #endregion
 
 #region Design
@@ -9,6 +9,14 @@
 // so existence checks see versions nuget.org still rejects on republish. Latest
 // selection skips catalogEntry.listed == false. The service targets nuget.org
 // package version checks, not authenticated/custom feeds.
+// The parameterless constructor stores one walk per package id for the process.
+// SearchAsync and GetLatestVersionsAsync share that walk, including a walk that
+// is still in flight. The stored list keeps every version. A 404 and a failed
+// walk are dropped when the attempt finishes so a later call can retry. Callers
+// that already joined the attempt observe that one result. The caller's
+// cancellation token cancels only that caller's wait. The HttpMessageHandler
+// constructor keeps a separate cache so a stand-in handler cannot fill the
+// process cache. The caller owns that handler.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -19,7 +27,7 @@ namespace TimeWarp.Amuru;
 public sealed class NuGetPackageService : INuGetPackageService
 {
   private const string RegistrationBaseUrl = "https://api.nuget.org/v3/registration5-gz-semver2";
-  private static readonly HttpClient HttpClient = new
+  private static readonly HttpClient SharedHttpClient = new
   (
     new HttpClientHandler
     {
@@ -28,32 +36,82 @@ public sealed class NuGetPackageService : INuGetPackageService
     }
   );
 
+  private static readonly ConcurrentDictionary<string, Task<RegistrationSnapshot>> ProcessRegistrations = new(StringComparer.Ordinal);
+
+  private readonly ConcurrentDictionary<string, Task<RegistrationSnapshot>> Registrations;
+  private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> SendAsync;
+
   /// <summary>
-  /// Creates a service that calls the nuget.org registration endpoint.
+  /// Creates a service that calls the nuget.org registration endpoint
+  /// and shares one registration walk per package id for the process.
   /// </summary>
   public NuGetPackageService()
+    : this
+    (
+      ProcessRegistrations,
+      static (request, cancellationToken) => SharedHttpClient.SendAsync(request, cancellationToken)
+    )
   {
+  }
+
+  /// <summary>
+  /// Creates a service that reads registration through <paramref name="handler"/>
+  /// and stores walks on this instance only.
+  /// The parameterless constructor stores walks in one process-wide cache.
+  /// The caller owns <paramref name="handler"/> and this service does not dispose it.
+  /// </summary>
+  /// <param name="handler">Handler that receives each registration request.</param>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
+  public NuGetPackageService(HttpMessageHandler handler)
+    : this
+    (
+      new ConcurrentDictionary<string, Task<RegistrationSnapshot>>(StringComparer.Ordinal),
+      CreateSend(handler)
+    )
+  {
+  }
+
+  private NuGetPackageService
+  (
+    ConcurrentDictionary<string, Task<RegistrationSnapshot>> registrations,
+    Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> sendAsync
+  )
+  {
+    Registrations = registrations;
+    SendAsync = sendAsync;
+  }
+
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Reliability",
+    "CA2000",
+    Justification = "disposeHandler is false. The invoker only forwards to the caller-owned handler and holds no resources of its own. The send delegate keeps it alive for the life of this service."
+  )]
+  private static Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> CreateSend(HttpMessageHandler handler)
+  {
+    ArgumentNullException.ThrowIfNull(handler);
+    HttpMessageInvoker invoker = new(handler, disposeHandler: false);
+    return (request, cancellationToken) => invoker.SendAsync(request, cancellationToken);
   }
 
   /// <summary>
   /// Returns every registration version for the package, including unlisted versions.
   /// </summary>
   /// <param name="packageId">Package id to look up on nuget.org.</param>
-  /// <param name="cancellationToken">Token that cancels the registration request.</param>
+  /// <param name="cancellationToken">Token that cancels this call's wait. A shared registration read keeps running for other callers.</param>
   /// <returns>The package id and its versions, or null when nuget.org has no registration for that id.</returns>
   /// <exception cref="ArgumentException">Thrown when <paramref name="packageId"/> is null or whitespace.</exception>
   public async Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<RegisteredPackageVersion> versionList = await GetVersionsAsync(packageId, includeUnlisted: true, cancellationToken).ConfigureAwait(false);
-    if (versionList.Count == 0)
+    RegistrationSnapshot snapshot = await GetRegistrationAsync(packageId, cancellationToken).ConfigureAwait(false);
+    if (!snapshot.Found || snapshot.Versions.Count == 0)
     {
       return null;
     }
 
     #pragma warning disable IDE0007
-    List<NuGetPackageVersion> packageVersions = versionList
+    List<NuGetPackageVersion> packageVersions = snapshot.Versions
 #pragma warning restore IDE0007
       .OrderByDescending(static v => v.Version, VersionComparer.Default)
       .Select(static v => new NuGetPackageVersion(v.Version.ToNormalizedString(), Listed: v.Listed))
@@ -66,20 +124,29 @@ public sealed class NuGetPackageService : INuGetPackageService
   /// Returns the highest listed stable version and the highest listed prerelease version.
   /// </summary>
   /// <param name="packageId">Package id to look up on nuget.org.</param>
-  /// <param name="cancellationToken">Token that cancels the registration request.</param>
+  /// <param name="cancellationToken">Token that cancels this call's wait. A shared registration read keeps running for other callers.</param>
   /// <returns>The latest listed stable and prerelease versions, or null when none are listed.</returns>
   /// <exception cref="ArgumentException">Thrown when <paramref name="packageId"/> is null or whitespace.</exception>
   public async Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
 
-    List<RegisteredPackageVersion> versions = await GetVersionsAsync(packageId, includeUnlisted: false, cancellationToken).ConfigureAwait(false);
+    RegistrationSnapshot snapshot = await GetRegistrationAsync(packageId, cancellationToken).ConfigureAwait(false);
+    if (!snapshot.Found)
+    {
+      return null;
+    }
 
     NuGetVersion? stableVersion = null;
     NuGetVersion? prereleaseVersion = null;
 
-    foreach (RegisteredPackageVersion registered in versions)
+    foreach (RegisteredPackageVersion registered in snapshot.Versions)
     {
+      if (!registered.Listed)
+      {
+        continue;
+      }
+
       NuGetVersion version = registered.Version;
       if (!version.IsPrerelease)
       {
@@ -196,67 +263,154 @@ public sealed class NuGetPackageService : INuGetPackageService
 
   private readonly record struct RegisteredPackageVersion(NuGetVersion Version, bool Listed);
 
-  private static async Task<List<RegisteredPackageVersion>> GetVersionsAsync
+  private readonly record struct RegistrationSnapshot
   (
-    string packageId,
-    bool includeUnlisted,
-    CancellationToken cancellationToken
-  )
+    bool Found,
+    IReadOnlyList<RegisteredPackageVersion> Versions
+  );
+
+  private async Task<RegistrationSnapshot> GetRegistrationAsync(string packageId, CancellationToken cancellationToken)
   {
-    string lowerPackageId = packageId.ToLowerInvariant();
-    string escapedPackageId = Uri.EscapeDataString(lowerPackageId);
+    string key = packageId.ToLowerInvariant();
+    Task<RegistrationSnapshot> registration = GetOrStartRegistration(key);
+    return await registration.WaitAsync(cancellationToken).ConfigureAwait(false);
+  }
+
+  private Task<RegistrationSnapshot> GetOrStartRegistration(string key)
+  {
+    while (true)
+    {
+      if (Registrations.TryGetValue(key, out Task<RegistrationSnapshot>? existing))
+      {
+        if (IsReusable(existing))
+        {
+          return existing;
+        }
+
+        Registrations.TryRemove(new KeyValuePair<string, Task<RegistrationSnapshot>>(key, existing));
+        continue;
+      }
+
+      TaskCompletionSource<RegistrationSnapshot> created = new(TaskCreationOptions.RunContinuationsAsynchronously);
+      if (!Registrations.TryAdd(key, created.Task))
+      {
+        continue;
+      }
+
+      StartRegistrationRead(key, created);
+      return created.Task;
+    }
+  }
+
+  private static bool IsReusable(Task<RegistrationSnapshot> registration)
+  {
+    if (!registration.IsCompleted)
+    {
+      return true;
+    }
+
+    return registration.Status == TaskStatus.RanToCompletion && registration.Result.Found;
+  }
+
+  private void StartRegistrationRead(string key, TaskCompletionSource<RegistrationSnapshot> created)
+  {
+    // Queue the walk so GetOrStartRegistration publishes the in-flight task
+    // before the walk can finish and drop a 404 or a failure.
+    _ = Task.Run(() => ReadAndPublishAsync(key, created));
+  }
+
+  [System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031",
+    Justification = "Every failed walk must leave the cache and complete the shared task. JSON, IO, and HTTP failures are all retryable and none of them may stick."
+  )]
+  private async Task ReadAndPublishAsync(string key, TaskCompletionSource<RegistrationSnapshot> created)
+  {
+    try
+    {
+      RegistrationSnapshot snapshot = await ReadRegistrationAsync(key).ConfigureAwait(false);
+      if (!snapshot.Found)
+      {
+        created.TrySetResult(snapshot);
+        Registrations.TryRemove(new KeyValuePair<string, Task<RegistrationSnapshot>>(key, created.Task));
+        return;
+      }
+
+      created.TrySetResult(snapshot);
+    }
+    catch (Exception exception)
+    {
+      created.TrySetException(exception);
+      Registrations.TryRemove(new KeyValuePair<string, Task<RegistrationSnapshot>>(key, created.Task));
+      ObserveFault(created.Task);
+    }
+  }
+
+  private static void ObserveFault(Task registration)
+  {
+    _ = registration.ContinueWith
+    (
+      static completed =>
+      {
+        _ = completed.Exception;
+      },
+      CancellationToken.None,
+      TaskContinuationOptions.OnlyOnFaulted,
+      TaskScheduler.Default
+    );
+  }
+
+  private async Task<RegistrationSnapshot> ReadRegistrationAsync(string packageId)
+  {
+    string escapedPackageId = Uri.EscapeDataString(packageId);
     string url = $"{RegistrationBaseUrl}/{escapedPackageId}/index.json";
 
     using HttpRequestMessage request = new(HttpMethod.Get, url);
-    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+    using HttpResponseMessage response = await SendAsync(request, CancellationToken.None).ConfigureAwait(false);
 
     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
     {
-      return [];
+      return new RegistrationSnapshot(false, []);
     }
 
     response.EnsureSuccessStatusCode();
 
-    using JsonDocument document = await ReadJsonDocumentAsync(response.Content, cancellationToken).ConfigureAwait(false);
+    using JsonDocument document = await ReadJsonDocumentAsync(response.Content, CancellationToken.None).ConfigureAwait(false);
 
     if (!document.RootElement.TryGetProperty("items", out JsonElement pagesElement) ||
         pagesElement.ValueKind != JsonValueKind.Array)
     {
-      return [];
+      return new RegistrationSnapshot(true, []);
     }
 
     List<RegisteredPackageVersion> versions = [];
     foreach (JsonElement pageElement in pagesElement.EnumerateArray())
     {
-      await AddPageVersionsAsync(pageElement, versions, includeUnlisted, cancellationToken).ConfigureAwait(false);
+      await AddPageVersionsAsync(pageElement, versions).ConfigureAwait(false);
     }
 
-    return versions;
+    return new RegistrationSnapshot(true, versions);
   }
 
-  private static async Task AddPageVersionsAsync
+  private async Task AddPageVersionsAsync
   (
     JsonElement pageElement,
-    List<RegisteredPackageVersion> versions,
-    bool includeUnlisted,
-    CancellationToken cancellationToken
+    List<RegisteredPackageVersion> versions
   )
   {
     if (pageElement.TryGetProperty("items", out JsonElement itemsElement))
     {
-      AddLeafVersions(itemsElement, versions, includeUnlisted);
+      AddLeafVersions(itemsElement, versions);
       return;
     }
 
-    await AddExternalPageVersionsAsync(pageElement, versions, includeUnlisted, cancellationToken).ConfigureAwait(false);
+    await AddExternalPageVersionsAsync(pageElement, versions).ConfigureAwait(false);
   }
 
-  private static async Task AddExternalPageVersionsAsync
+  private async Task AddExternalPageVersionsAsync
   (
     JsonElement pageElement,
-    List<RegisteredPackageVersion> versions,
-    bool includeUnlisted,
-    CancellationToken cancellationToken
+    List<RegisteredPackageVersion> versions
   )
   {
     if (!pageElement.TryGetProperty("@id", out JsonElement pageUrlElement))
@@ -271,7 +425,7 @@ public sealed class NuGetPackageService : INuGetPackageService
     }
 
     using HttpRequestMessage request = new(HttpMethod.Get, pageUrl);
-    using HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+    using HttpResponseMessage response = await SendAsync(request, CancellationToken.None).ConfigureAwait(false);
 
     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
     {
@@ -280,21 +434,20 @@ public sealed class NuGetPackageService : INuGetPackageService
 
     response.EnsureSuccessStatusCode();
 
-    using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, cancellationToken).ConfigureAwait(false);
+    using JsonDocument pageDocument = await ReadJsonDocumentAsync(response.Content, CancellationToken.None).ConfigureAwait(false);
 
     if (!pageDocument.RootElement.TryGetProperty("items", out JsonElement itemsElement))
     {
       return;
     }
 
-    AddLeafVersions(itemsElement, versions, includeUnlisted);
+    AddLeafVersions(itemsElement, versions);
   }
 
   private static void AddLeafVersions
   (
     JsonElement itemsElement,
-    List<RegisteredPackageVersion> versions,
-    bool includeUnlisted
+    List<RegisteredPackageVersion> versions
   )
   {
     if (itemsElement.ValueKind != JsonValueKind.Array)
@@ -314,10 +467,6 @@ public sealed class NuGetPackageService : INuGetPackageService
       // occupies the id/version on the feed.
       bool listed = !catalogEntryElement.TryGetProperty("listed", out JsonElement listedElement)
         || listedElement.ValueKind != JsonValueKind.False;
-      if (!listed && !includeUnlisted)
-      {
-        continue;
-      }
 
       string? version = versionElement.GetString();
       if (version != null && NuGetVersion.TryParse(version, out NuGetVersion? parsedVersion))
