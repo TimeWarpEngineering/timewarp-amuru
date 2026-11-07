@@ -14,9 +14,9 @@
     <PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.11" />
     <PackageVersion Include="TimeWarp.Terminal" Version="1.0.2" />
     <!-- Analyzers -->
-    <PackageVersion Include="Roslynator.Analyzers" Version="5.0.0" />
-    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="5.0.0" />
-    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="5.0.0" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
+    <PackageVersion Include="Roslynator.CodeAnalysis.Analyzers" Version="5.0.1" />
+    <PackageVersion Include="Roslynator.Formatting.Analyzers" Version="5.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="11.0.100-rc.3.26522.148" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
