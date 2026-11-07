@@ -45,6 +45,12 @@ A successful walk stays stored for the process. A 404 and a failed walk do not s
 - Implementation: grok task-work (2026-11-07)
 - Audit: `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` window title. No tracked file changed. A follow-up audit passed (38 passed, 2 skipped).
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1b678-ee95-7af2-93ef-376737647773, max-turns 500, Done — 2026-11-07T15:08:03Z
+- Review oracle: claude-opus-5-5 (tw-implementation-review, effort 2, roster general, turn cap 120), 1 round, accepted-exceptions — 2026-11-07
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 0ee8b6f4-9e3a-470a-a3d5-b99d000b286b, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-07T15:12:25Z
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
@@ -78,3 +84,18 @@ dotnet run --file tests/timewarp-amuru/multi-file-runners/run-tests.cs
 ```
 
 The skip is the existing `GetCommitsAheadOfDefaultBranch_Given_` test. `RegistrationCache_Given_` passed 9 in that run.
+
+### Review disposition
+
+- **Outcome:** accepted-exceptions, with 0 open findings after 1 round.
+- **Roster:** effort 2 (budget by diff, 747 lines), general reviewer only.
+- **Final counts:**
+  - bug: 0
+  - suggestion: 0
+  - nit: 1 wontfix (M1)
+- **M1:** after an external registration page returns 404, the walk keeps the partial version list in the process cache. This page-404 tolerance predates the change. The requirement covers the index 404 and thrown failures, and both are handled. The consumer is a short-lived CLI process. Freshness work belongs to ganda task 538.
+- **Restatement:** the implementer's goal restatement matches the task. No misread.
+- **Reviewer re-ran:**
+  - Registration-cache tests: 9/9 passed.
+  - Aggregate runner: 741 passed, 1 skipped, 0 failed.
+- **Artifacts:** `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`
