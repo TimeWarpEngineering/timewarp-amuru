@@ -14,7 +14,7 @@ public interface INuGetPackageService
   /// including unlisted ones (<see cref="NuGetPackageVersion.Listed"/> is false).
   /// </summary>
   /// <param name="packageId">The package ID to search for</param>
-  /// <param name="cancellationToken">Cancellation token</param>
+  /// <param name="cancellationToken">Cancels this call's wait. A shared registration read keeps running for other callers.</param>
   /// <returns>The search result with package versions, or null if not found</returns>
   Task<NuGetSearchResult?> SearchAsync(string packageId, CancellationToken cancellationToken = default);
 
@@ -23,7 +23,7 @@ public interface INuGetPackageService
   /// Unlisted versions are excluded.
   /// </summary>
   /// <param name="packageId">The package ID to search for</param>
-  /// <param name="cancellationToken">Cancellation token</param>
+  /// <param name="cancellationToken">Cancels this call's wait. A shared registration read keeps running for other callers.</param>
   /// <returns>Version info with latest stable and prerelease versions, or null if not found</returns>
   Task<PackageVersionInfo?> GetLatestVersionsAsync(string packageId, CancellationToken cancellationToken = default);
 
