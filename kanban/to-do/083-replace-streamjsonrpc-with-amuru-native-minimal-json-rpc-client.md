@@ -40,6 +40,7 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 ## Depends on
 
 - 119
+- 139
 
 ## Session
 
