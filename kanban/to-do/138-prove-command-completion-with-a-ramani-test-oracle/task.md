@@ -2,12 +2,37 @@
 
 ## Description
 
-[Brief description of the task]
+`CommandResult` finishes a run in one of a few phases, and two runners must agree on which phase a signal produces. The CliWrap wait (`TimeoutSession` plus `ListenWithTimeoutAsync`) and `TtyPassthroughAsync` each implement that protocol. Encode the protocol as a Ramani state machine and step it from tests. The runners stay the production implementation.
+
+The machine is a test oracle. `TimeWarp.Ramani` is referenced only from the test tree. `source/timewarp-amuru` and `source/timewarp-amuru-tools` do not gain a Ramani package reference, and neither shipped package gains that dependency.
+
+## Requirements
+
+- States are `Running`, `Interrupting`, `Exited`, `TimedOut`, and `Canceled`.
+- Signals are `ChildExited` (with the child's exit code), `TimeoutElapsed`, `GraceElapsed`, and `CallerCanceled`.
+- `Running` + `ChildExited` goes to `Exited` with that exit code. `TimedOut` is false.
+- `Running` + `TimeoutElapsed` goes to `Interrupting`. This is the SIGINT the grace period represents. It is not yet a result.
+- `Interrupting` + `ChildExited` goes to `Exited` with the child's exit code. A child that dies on the signal and is reported as an exit event is an exit, not a timeout.
+- `Interrupting` + `GraceElapsed` goes to `TimedOut`. The result exit code is `CommandResult.TimeoutExitCode` (124).
+- `CallerCanceled` from `Running` or `Interrupting` goes to `Canceled`. `TimedOut` stays false. This matches `TimeoutSession.TimedOut`, which is false when the caller token has fired.
+- `CallerCanceled` wins when it races `GraceElapsed`. The outcome is `Canceled`, not `TimedOut`.
+- A context flag selects validation. From `TimedOut`, default validation records the result and does not throw. Zero-exit validation records the result, then throws `TimeoutException`. `Canceled` throws `OperationCanceledException` and does not write `LastOutput`.
+- A second context flag selects TTY. TTY timeout still ends in `TimedOut` with exit 124, and it does not throw, including under zero-exit validation. That is the documented `TtyPassthroughAsync` exemption.
+- Starting a TTY run with configured standard input is refused, with the existing message `TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY`.
+- Starting a TTY run of a pipeline is refused, with the existing message `TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped`.
+- Both refusals are decided before any mock match. The machine records that order.
+- `.Exhaustive()` is on. Every other pair in this signal set is a refusal with a reason, not an implicit ignore.
+- The machine source lives under the test tree. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are not rewritten in this task.
+- A test steps each transition above. Where today's runner disagrees with the machine, record the disagreement in Notes and leave the runner alone.
 
 ## Checklist
 
-- [ ] Item 1
-- [ ] Item 2
+- [ ] Ramani machine under the test tree, exhaustive over the signal set
+- [ ] Tests for exit, interrupt-then-exit, grace timeout, caller cancel winning a race, strict timeout, and the TTY no-throw exemption
+- [ ] Tests for the two TTY start refusals, decided before a mock match
+- [ ] Packable projects have no Ramani reference
+- [ ] `./tools/dev-cli/dev.cs test` passes
+- [ ] `ganda repo audit` is clean
 
 ## Session
 
@@ -15,4 +40,6 @@
 
 ## Notes
 
-[Additional context]
+Filed from the Ramani review on 2026-11-07. The production contract this oracle copies is the Design region of `source/timewarp-amuru/core/command-result.cs`: graceful token at the timeout, forceful token after the grace period, caller cancellation not stored as `TimedOut`, exit 124 under default validation, `TimeoutException` only under zero-exit validation, and the TTY path reporting a timeout without throwing.
+
+Null commands (`NeverRanExitCode`) and the choice of `RunAsync` versus `CaptureAsync` are outside this machine. They are not phases of one run.
