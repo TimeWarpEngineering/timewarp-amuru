@@ -12,6 +12,8 @@ A timeout still sends the graceful signal and then waits for the grace period. I
 
 Acceptance: the three grace outcomes (child exit 0, child exit 7, grace elapsed) hold for the CliWrap runner and for `TtyPassthroughAsync`, a pipeline stage that exits during grace keeps its code, the Design region and the `TimedOut` / `TimeoutExitCode` / `WithTimeoutGracePeriod` docs name the 130 case, task 138's disagreement note comes out once production matches the oracle, `<Version>` is `3.0.0-beta.2`, both Unshipped files are header-only, `dev check-version` shows that version unpublished, and build, test, and `ganda repo audit` are clean.
 
+A slow stream reader does not turn a grace-period exit into a timeout. Once the process has exited during a positive grace period, the forceful deadline stops, and the pipes drain. The caller token and an abandoned enumerator still cancel that drain. The reader receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. A child that is still running when the grace period ends is still exit 124 with `TimedOut` true. A zero grace period does not stop the deadline, so that case stays the kill. The slow-reader test outlasts timeout plus grace, reads every line, reports the child's code, and leaves `TimedOut` false.
+
 Review round 1 left two open suggestions, and this pass closes them. A timed stream has to push back on the child the same way CliWrap's one-slot listen channel does: one waiting line, and the next write waits. A consumer that reads slower than the child must not collect the whole run in memory, and a kill or an abandoned enumerator must cancel a write that is waiting so the child does not stay stuck. `ListenWithTimeoutAsync` still sends a timeout into that path. Everything after that branch is only the no-timeout listen loop. Caller cancellation still propagates, the exit code still comes from the exited event, `Remember` still stores it, and disposing the enumerator still swallows the second cancellation. The comment that described a timeout on that loop goes away, and the `command-result.cs` line-cap baseline drops to the new line count.
 
 The cause is CliWrap. After the graceful token fires, `ExecuteAsync` throws `OperationCanceledException` when the process ends, whether the child exited by itself or the forceful token killed it. The exception does not carry the exit code, so the runner cannot tell the two cases apart from what CliWrap returns.
@@ -57,6 +59,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - [x] `ganda repo audit` is clean
 - [x] M1: timed stream keeps one line and waits on `WriteAsync` with CliWrap's pipe token
 - [x] M2: `ListenWithTimeoutAsync` remainder is the no-timeout listen loop, and the line-cap baseline is 1339
+- [x] M3: a child that exits during a positive grace period with a slow reader keeps every line, the child's code, and `TimedOut` false
 
 ## Depends on
 
@@ -71,10 +74,13 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Review oracle round 1: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 3, roster general, turn cap 200 — 2026-11-09. 2 suggestions open (M1, M2), fix pass requested. See `review/round-1/merged.md`.
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 8ac9a6f8-44df-45a3-ab90-5653488e918a, max-turns 200, artifacts general.md, merged.md — 2026-11-08T18:49:47Z
 - Fix pass: implement-fix-2 on 2026-11-09. M1 bounds the timed stream to one line. M2 drops the dead timeout branch in `ListenWithTimeoutAsync` and lowers the `command-result.cs` baseline from 1354 to 1339.
+- Review oracle round 2: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120 — 2026-11-09. Scope: delta `f7aed63..fa56fb5`. M1 and M2 are verified fixed. Bug M3 is open, and a fix pass is requested. See `review/round-2/merged.md`.
+- Fix pass: implement-fix-3 on 2026-11-09, session 01a1bc92-3c8b-7913-a974-2d52b9a29552. M3 stops the forceful deadline when the process exits during a positive grace period, so a slow reader finishes the lines the child wrote.
 
 ## Review
 
-- Round 1: M1 and M2 fixed on this branch. Round 2 has not run.
+- Round 1: M1 and M2 fixed on this branch.
+- Round 2: M3 was open. This fix pass stops the forceful deadline on that exit. Round 3 has not run.
 
 ## Notes
 
@@ -92,7 +98,9 @@ A child that exits during the timeout grace period keeps its own exit code and `
 
 A timed stream keeps one unread line and waits to write the next. The write uses CliWrap's pipe token, so a kill or an abandoned reader unblocks it. `ListenWithTimeoutAsync` after the timeout branch is only the no-timeout listen loop. The `command-result.cs` line-cap baseline is 1339.
 
-`./tools/dev-cli/dev.cs build` succeeded with 0 warnings and packed `TimeWarp.Amuru.3.0.0-beta.2.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.2.nupkg`. After the fix pass, `./tools/dev-cli/dev.cs test` reported 835 total, 834 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). `./tools/dev-cli/dev.cs check-version` reported source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and one prerelease increment ahead. `ganda repo audit` passed 39, failed 0, skipped 2.
+A positive grace period stops that deadline when the process exits. A slow reader then receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. Caller cancellation and an abandoned enumerator still cancel the drain. A zero grace period does not stop the deadline. A child that is still blocked in a write when grace elapses has not exited, and that run is still exit 124. A descendant that keeps the stdout pipe open after the direct child exits is no longer cut off by the grace timer.
+
+`./tools/dev-cli/dev.cs build` succeeded with 0 warnings and packed `TimeWarp.Amuru.3.0.0-beta.2.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.2.nupkg`. `./tools/dev-cli/dev.cs test` reported 836 total, 835 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). `./tools/dev-cli/dev.cs check-version` reported source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and one prerelease increment ahead. `ganda repo audit` passed 39, failed 0, skipped 2.
 
 ### How to validate
 
@@ -106,15 +114,17 @@ dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with
 
 **Expect**
 
-- The capture file reports 15 passed. Exit 0 keeps `TimedOut` false and strict validation does not throw. Exit 7 throws `CommandExecutionException` and leaves `LastOutput` null. Exit 130 keeps `TimedOut` false. A child that ignores SIGINT is exit 124 and `TimedOut` true. Caller cancellation leaves `LastOutput` null. The slow-consumer test reads `START`, waits, and the done marker is still absent. After the stream ends the marker exists, the exit code is 0, and `TimedOut` is false.
+- The capture file reports 16 passed. Exit 0 keeps `TimedOut` false and strict validation does not throw. Exit 7 throws `CommandExecutionException` and leaves `LastOutput` null. Exit 130 keeps `TimedOut` false. A child that ignores SIGINT is exit 124 and `TimedOut` true. Caller cancellation leaves `LastOutput` null. The slow-consumer test reads `START`, waits, and the done marker is still absent. After the stream ends the marker exists, the exit code is 0, and `TimedOut` is false. `StreamStdout_ChildExitsDuringGrace_Should_KeepEveryLineAndTheChildCode` reads `LINE 00` through `LINE 39`, takes longer than the 1s timeout plus the 2s grace, reports exit 0, and leaves `TimedOut` false.
 - The modes file reports 14 passed. `TtyPassthroughAsync` reports exit 0, exit 7 without throwing, and exit 130, and the ignored-SIGINT case is exit 124. The pipeline's last stage reports exit 7, and strict validation throws `CommandExecutionException`.
 - `check-version` prints source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and that the source version is not yet published.
 
 ### Review
 
-Round 1 ran with effort 3 and a general reviewer. The fix pass closed both suggestions on the round-1 ledger. Round 2 has not run, so disposition is not written. Ledger counts: bug 0, suggestion 2 fixed, nit 0.
+Round 1 ran with effort 3 and a general reviewer. The fix pass closed both suggestions on the round-1 ledger. Ledger counts after that pass: bug 0, suggestion 2 fixed, nit 0.
 
 - M1 fixed: the timed stream uses a one-slot channel and `WriteAsync` with CliWrap's pipe token.
 - M2 fixed: `ListenWithTimeoutAsync` below the timeout branch is only `ListenAsync(cancellationToken)`. The `command-result.cs` baseline is 1339.
 
-The reviewer re-ran both timeout test files (14/14 each) before the fix. After the fix, those files report 15/15 and 14/14, `ganda repo audit` is clean, and `check-version` still shows beta.2 unpublished. Paths: `review/review-framework.md` and `review/round-1/merged.md`. Round 2 is next.
+The reviewer re-ran both timeout test files (14/14 each) before the fix. After the fix, those files report 15/15 and 14/14, `ganda repo audit` is clean, and `check-version` still shows beta.2 unpublished. Paths: `review/review-framework.md` and `review/round-1/merged.md`.
+
+Round 2 ran with effort 2 and a general reviewer, on the fix delta `f7aed63..fa56fb5`. M1 and M2 are re-verified as fixed. The capture test file reported 15/15 before this pass, and the `command-result.cs` line count matches the 1339 baseline. A dropped enumerator unblocks a waiting write within about 1s and leaves no child behind. M3 was open: a slow reader turned a child's exit during grace into exit 124. This fix pass stops the forceful deadline on that exit. The capture file now reports 16/16, including the slow-reader grace test at about 7s. Round 3 has not run, so disposition is not written. Path: `review/round-2/merged.md`.

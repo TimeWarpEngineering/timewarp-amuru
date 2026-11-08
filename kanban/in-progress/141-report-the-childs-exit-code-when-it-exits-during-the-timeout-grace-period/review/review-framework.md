@@ -2,11 +2,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 1500
-- Effort: 3
+- Lines changed: 230
+- Effort: 2
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 200 (--max-turns; cursor uncapped)
+- Turn cap: 120 (--max-turns; cursor uncapped)
 
 ## Scope (task 141)
 
@@ -17,6 +17,14 @@
 **Effort:** 3 (by-diff budget). Roster axes: general only.
 **Reviewer roster:** general (review oracle, Claude Opus 5.5)
 **Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed to the oracle)
+
+## Round 2 scope
+
+**Date:** 2026-11-09
+**Diff scope:** fix delta `f7aed63..fa56fb5` (commit `6ce685d`, which fixes the stream backpressure, plus the kanban record). The scope is the round-1 M1/M2 fixes and new defects in that delta.
+**Effort:** 2 (by-diff budget, 230 lines). Roster axes: general only.
+**Reviewer roster:** general (review oracle, Claude Opus 5.5)
+**Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
 
 ## Ground rules
 
