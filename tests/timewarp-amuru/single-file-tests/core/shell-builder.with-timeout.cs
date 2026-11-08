@@ -40,6 +40,24 @@ namespace ShellBuilder_
           time.sleep(0.05)
       """;
 
+    private const string ExitSevenScript =
+      """
+      import signal, time
+      def handle(signum, frame):
+          raise SystemExit(7)
+      signal.signal(signal.SIGINT, handle)
+      while True:
+          time.sleep(0.05)
+      """;
+
+    private const string DefaultDispositionScript =
+      """
+      import signal, time
+      signal.signal(signal.SIGINT, signal.SIG_DFL)
+      while True:
+          time.sleep(0.05)
+      """;
+
     private const string GracefulMarkerScript =
       """
       import os, signal, time
@@ -70,7 +88,7 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
-    public static async Task DefaultValidation_Should_ReportExit124WithoutThrowing()
+    public static async Task GracefulExitZero_Should_ReportTheChildCode()
     {
       if (!CanDeliverSigInt())
       {
@@ -87,11 +105,77 @@ namespace ShellBuilder_
       CommandOutput output = await Python(GracefulScript, timeout, grace).CaptureAsync();
       stopwatch.Stop();
 
-      output.TimedOut.ShouldBeTrue();
-      output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
-      output.Success.ShouldBeFalse();
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(0);
+      output.Success.ShouldBeTrue();
       output.Stdout.ShouldContain("GRACEFUL");
       stopwatch.Elapsed.ShouldBeLessThan(timeout + TimeSpan.FromMilliseconds(1500));
+    }
+
+    [Timeout(20000)]
+    public static async Task GracefulExitZero_Strict_Should_NotThrow()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      CommandResult command = Python(GracefulScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), strict: true);
+
+      CommandOutput output = await command.CaptureAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(0);
+      output.Success.ShouldBeTrue();
+      command.LastOutput.ShouldBeSameAs(output);
+    }
+
+    [Timeout(20000)]
+    public static async Task GracefulExitSeven_Should_ReportSeven()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      CommandOutput output = await Python(ExitSevenScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3))
+        .CaptureAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(7);
+      output.Success.ShouldBeFalse();
+    }
+
+    [Timeout(20000)]
+    public static async Task GracefulExitSeven_Strict_Should_ThrowCommandExecutionException()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      CommandResult command = Python(ExitSevenScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), strict: true);
+
+      CliWrap.Exceptions.CommandExecutionException exception = await Should.ThrowAsync<CliWrap.Exceptions.CommandExecutionException>(
+        async () => await command.CaptureAsync());
+
+      exception.ExitCode.ShouldBe(7);
+      command.LastOutput.ShouldBeNull();
+    }
+
+    [Timeout(20000)]
+    public static async Task UnhandledSigInt_Should_ReportExit130()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      CommandOutput output = await Python(DefaultDispositionScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3))
+        .CaptureAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(130);
     }
 
     [Timeout(20000)]
@@ -103,7 +187,7 @@ namespace ShellBuilder_
       }
 
       TimeoutException exception = await Should.ThrowAsync<TimeoutException>(async () =>
-        await Python(GracefulScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), strict: true)
+        await Python(IgnoreScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), strict: true)
           .CaptureAsync());
 
       exception.Message.ShouldContain("timed out");
@@ -118,14 +202,13 @@ namespace ShellBuilder_
         return;
       }
 
-      CommandResult command = Python(GracefulScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), strict: true);
+      CommandResult command = Python(IgnoreScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), strict: true);
 
       await Should.ThrowAsync<TimeoutException>(async () => await command.CaptureAsync());
 
       command.LastOutput.ShouldNotBeNull();
       command.LastOutput.TimedOut.ShouldBeTrue();
       command.LastOutput.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
-      command.LastOutput.Stdout.ShouldContain("GRACEFUL");
     }
 
     [Timeout(20000)]
@@ -164,7 +247,7 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
-    public static async Task StreamStdout_Should_EndWithTimeoutState()
+    public static async Task StreamStdout_GracefulExit_Should_ReportTheChildCode()
     {
       if (!CanDeliverSigInt())
       {
@@ -180,12 +263,12 @@ namespace ShellBuilder_
 
       string.Join('\n', lines).ShouldContain("GRACEFUL");
       command.LastOutput.ShouldNotBeNull();
-      command.LastOutput.TimedOut.ShouldBeTrue();
-      command.LastOutput.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      command.LastOutput.TimedOut.ShouldBeFalse();
+      command.LastOutput.ExitCode.ShouldBe(0);
     }
 
     [Timeout(20000)]
-    public static async Task StreamStderr_Should_EndWithTimeoutState()
+    public static async Task StreamStderr_GracefulExit_Should_ReportTheChildCode()
     {
       if (!CanDeliverSigInt())
       {
@@ -201,8 +284,8 @@ namespace ShellBuilder_
 
       string.Join('\n', lines).ShouldContain("GRACEFUL-ERR");
       command.LastOutput.ShouldNotBeNull();
-      command.LastOutput.TimedOut.ShouldBeTrue();
-      command.LastOutput.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      command.LastOutput.TimedOut.ShouldBeFalse();
+      command.LastOutput.ExitCode.ShouldBe(0);
     }
 
     [Timeout(20000)]
@@ -214,9 +297,9 @@ namespace ShellBuilder_
       }
 
       CommandResult command = Python(
-        GracefulScript,
+        IgnoreScript,
         TimeSpan.FromSeconds(1),
-        TimeSpan.FromSeconds(3),
+        TimeSpan.FromSeconds(1),
         strict: true);
 
       await Should.ThrowAsync<TimeoutException>(async () =>
@@ -247,7 +330,7 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
-    public static async Task Passthrough_Should_ReportTimeout()
+    public static async Task Passthrough_GracefulExit_Should_ReportTheChildCode()
     {
       if (!CanDeliverSigInt())
       {
@@ -267,8 +350,8 @@ namespace ShellBuilder_
           .Build()
           .PassthroughAsync();
 
-        output.TimedOut.ShouldBeTrue();
-        output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+        output.TimedOut.ShouldBeFalse();
+        output.ExitCode.ShouldBe(0);
         output.Stdout.ShouldBeEmpty();
         (await File.ReadAllTextAsync(marker)).ShouldContain("GRACEFUL");
       }
@@ -279,7 +362,7 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
-    public static async Task TtyPassthrough_Should_ReportTimeoutWithoutThrowing()
+    public static async Task TtyPassthrough_GracefulExit_Should_ReportTheChildCodeWithoutThrowing()
     {
       if (!CanDeliverSigInt())
       {
@@ -299,8 +382,8 @@ namespace ShellBuilder_
           .Build()
           .TtyPassthroughAsync();
 
-        output.TimedOut.ShouldBeTrue();
-        output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+        output.TimedOut.ShouldBeFalse();
+        output.ExitCode.ShouldBe(0);
         (await File.ReadAllTextAsync(marker)).ShouldContain("GRACEFUL");
       }
       finally
@@ -327,6 +410,44 @@ namespace ShellBuilder_
       output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
       stopwatch.Elapsed.ShouldBeGreaterThanOrEqualTo(timeout + grace - TimeSpan.FromMilliseconds(300));
       stopwatch.Elapsed.ShouldBeLessThan(timeout + grace + TimeSpan.FromSeconds(4));
+    }
+
+    [Timeout(20000)]
+    public static async Task TtyPassthrough_GracefulExitSeven_Should_ReportSevenWithoutThrowing()
+    {
+      if (!CanDeliverSigInt())
+      {
+        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        return;
+      }
+
+      CommandOutput output = await Python(
+        ExitSevenScript,
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromSeconds(3),
+        strict: true).TtyPassthroughAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(7);
+    }
+
+    [Timeout(20000)]
+    public static async Task TtyPassthrough_UnhandledSigInt_Should_ReportExit130WithoutThrowing()
+    {
+      if (!CanDeliverSigInt())
+      {
+        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        return;
+      }
+
+      CommandOutput output = await Python(
+        DefaultDispositionScript,
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromSeconds(3),
+        strict: true).TtyPassthroughAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(130);
     }
 
     [Timeout(20000)]
@@ -389,7 +510,51 @@ namespace ShellBuilder_
     }
 
     [Timeout(20000)]
-    public static async Task Select_Should_ReturnCapturedTextAndRecordTimeout()
+    public static async Task Pipe_LastStageExitsDuringGrace_Should_ReportThatExitCode()
+    {
+      if (!CanDeliverSigInt())
+      {
+        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        return;
+      }
+
+      CommandOptions stage = new CommandOptions()
+        .WithTimeout(TimeSpan.FromSeconds(1))
+        .WithTimeoutGracePeriod(TimeSpan.FromSeconds(3));
+      CommandOutput output = await Shell.Builder("echo")
+        .WithArguments("stage")
+        .Pipe("python3", stage, "-c", ExitSevenScript)
+        .CaptureAsync();
+
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(7);
+    }
+
+    [Timeout(20000)]
+    public static async Task Pipe_LastStageExitsDuringGrace_Strict_Should_ThrowCommandExecutionException()
+    {
+      if (!CanDeliverSigInt())
+      {
+        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        return;
+      }
+
+      CommandOptions stage = new CommandOptions()
+        .WithTimeout(TimeSpan.FromSeconds(1))
+        .WithTimeoutGracePeriod(TimeSpan.FromSeconds(3))
+        .WithZeroExitCodeValidation();
+
+      CliWrap.Exceptions.CommandExecutionException exception = await Should.ThrowAsync<CliWrap.Exceptions.CommandExecutionException>(
+        async () => await Shell.Builder("echo")
+          .WithArguments("stage")
+          .Pipe("python3", stage, "-c", ExitSevenScript)
+          .CaptureAsync());
+
+      exception.ExitCode.ShouldBe(7);
+    }
+
+    [Timeout(20000)]
+    public static async Task Select_GracefulExit_Should_ReturnTheChildText()
     {
       if (!CanDeliverSigInt())
       {
@@ -402,12 +567,12 @@ namespace ShellBuilder_
 
       selected.ShouldContain("GRACEFUL");
       command.LastOutput.ShouldNotBeNull();
-      command.LastOutput.TimedOut.ShouldBeTrue();
-      command.LastOutput.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      command.LastOutput.TimedOut.ShouldBeFalse();
+      command.LastOutput.ExitCode.ShouldBe(0);
     }
 
     [Timeout(20000)]
-    public static async Task Run_Should_Return124()
+    public static async Task Run_GracefulExit_Should_ReturnTheChildCode()
     {
       if (!CanDeliverSigInt())
       {
@@ -416,11 +581,11 @@ namespace ShellBuilder_
 
       int exitCode = await Python(GracefulScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3)).RunAsync();
 
-      exitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      exitCode.ShouldBe(0);
     }
 
     [Timeout(20000)]
-    public static async Task RunAndCapture_Should_Report124AndKeepStdout()
+    public static async Task RunAndCapture_GracefulExit_Should_KeepStdout()
     {
       if (!CanDeliverSigInt())
       {
@@ -430,14 +595,14 @@ namespace ShellBuilder_
       CommandOutput output = await Python(GracefulScript, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3))
         .RunAndCaptureAsync();
 
-      output.TimedOut.ShouldBeTrue();
-      output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      output.TimedOut.ShouldBeFalse();
+      output.ExitCode.ShouldBe(0);
       output.Stdout.ShouldContain("GRACEFUL");
       output.Stderr.ShouldContain("GRACEFUL-ERR");
     }
 
     [Timeout(20000)]
-    public static async Task StreamToFile_Should_KeepPartialOutputAndRecordTimeout()
+    public static async Task StreamToFile_GracefulExit_Should_KeepTheChildOutput()
     {
       if (!CanDeliverSigInt())
       {
@@ -453,7 +618,8 @@ namespace ShellBuilder_
         await command.StreamToFileAsync(outputPath);
 
         command.LastOutput.ShouldNotBeNull();
-        command.LastOutput.TimedOut.ShouldBeTrue();
+        command.LastOutput.TimedOut.ShouldBeFalse();
+        command.LastOutput.ExitCode.ShouldBe(0);
         (await File.ReadAllTextAsync(outputPath)).ShouldContain("GRACEFUL");
       }
       finally

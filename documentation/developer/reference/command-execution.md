@@ -34,11 +34,16 @@ Default validation (`None`) reports a timeout as a result. It does not throw.
 
 | Outcome | What the caller sees |
 | --- | --- |
-| Timeout, default validation | `CommandOutput.TimedOut` is true, `ExitCode` is `CommandResult.TimeoutExitCode` (124), `Success` is false |
-| Child handles the graceful signal and exits 0 | Still a timeout: exit 124. The child's status is not preserved |
-| Timeout, `WithZeroExitCodeValidation()` | `TimeoutException` whose message says the command timed out and was terminated. Captured stdout and stderr are on `CommandResult.LastOutput` |
+| Grace period elapses, child killed, default validation | `CommandOutput.TimedOut` is true, `ExitCode` is `CommandResult.TimeoutExitCode` (124), `Success` is false |
+| Child exits during the grace period | The child's exit code, `TimedOut` false. A handled SIGINT that exits 0 is success. A handled SIGINT that exits 7 is exit 7 |
+| Unhandled SIGINT on Unix | Exit 130 (128 + SIGINT), `TimedOut` false. The signal killed the child. That is not a timeout |
+| Grace period elapses, `WithZeroExitCodeValidation()` | `TimeoutException` whose message says the command timed out and was terminated. Captured stdout and stderr are on `CommandResult.LastOutput` |
+| Child exits non-zero during the grace period, `WithZeroExitCodeValidation()` | `CommandExecutionException`, as for any other non-zero exit. `LastOutput` is left unchanged |
 | Caller cancels | `OperationCanceledException`. `TimedOut` is not set and `LastOutput` is left unchanged. `LastOutput` is likewise not updated when any other exception escapes (strict non-zero exit, a mock that throws) or when a stream is abandoned before completion |
-| `TtyPassthroughAsync` times out | The same exit-124 result, including under strict validation. This method does not throw on timeout |
+| `TtyPassthroughAsync` grace period elapses | The same exit-124 result, including under strict validation. This method does not throw on timeout or on a non-zero exit |
+| `TtyPassthroughAsync`, child exits during the grace period | The child's exit code, `TimedOut` false, and no exception |
+
+A zero grace period is the kill. The signal and the deadline are the same instant, so the result is exit 124 even if the signal also ends the child.
 
 124 is the exit code GNU `timeout` uses, so a shell-minded caller can recognize it.
 
@@ -46,7 +51,7 @@ Streaming methods (`StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsyn
 
 `Pipe` keeps one window for the whole pipeline. The shorter timeout wins. The grace period is the one from that shorter side; equal timeouts keep the smaller grace. Zero-exit validation on either stage makes the pipeline strict. `Pipe` without an options argument keeps the upstream timeout, grace, and validation.
 
-CliWrap applies those two tokens to the last stage. An earlier stage is the last stage's stdin command, and CliWrap cancels it with the forceful token when that pipe stops. The graceful signal is delivered to the last stage. Earlier stages are killed when the pipe cancellation fires, which is when the last stage exits or the forceful timer elapses.
+CliWrap applies those two tokens to the last stage. An earlier stage is the last stage's stdin command, and CliWrap cancels it with the forceful token when that pipe stops. The graceful signal is delivered to the last stage. That stage's own exit code is the pipeline result when it exits during the grace period. Earlier stages are killed when the pipe cancellation fires, which is when the last stage exits or the forceful timer elapses.
 
 ### Mocks
 

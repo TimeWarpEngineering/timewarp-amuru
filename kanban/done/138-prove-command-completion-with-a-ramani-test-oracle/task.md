@@ -65,10 +65,7 @@ Filed from the Ramani review on 2026-11-07. The production contract this oracle 
 
 Null commands (`NeverRanExitCode`) and the choice of `RunAsync` versus `CaptureAsync` are outside this machine. They are not phases of one run.
 
-Runner disagreement, left in place. `SendAsync_Given_.Interrupting_ChildExited_Should_ExitWithTheChildCode` steps `TimeoutElapsed` then `ChildExited(130)` and records `Exited` with that code and `TimedOut` false. The runners report exit 124 when the child exits during the grace period. `TimeoutSession.TimedOut` is true once the graceful token has fired, and both paths treat that as the result:
-
-- CliWrap (`ExecuteCliAsync`, used by capture, run, select, and passthrough) takes the `OperationCanceledException` when `session.TimedOut` and stores exit 124. `WithTimeout_Given_.DefaultValidation_Should_ReportExit124WithoutThrowing` runs a child that exits 0 on SIGINT and expects 124. The same shape is in `Passthrough_Should_ReportTimeout`, `Select_Should_ReturnCapturedTextAndRecordTimeout`, `Run_Should_Return124`, and `RunAndCapture_Should_Report124AndKeepStdout`.
-- `TtyPassthroughAsync` checks `session.TimedOut` after `WaitForExitAsync` returns, so a child that has already exited is still exit 124. `WithTimeout_Given_.TtyPassthrough_Should_ReportTimeoutWithoutThrowing` is that case, and it also shows the no-throw exemption under zero-exit validation. The oracle matches the exemption in `TimedOut_TtyZeroExit_Should_RecordWithoutThrowing`.
+Task 141 aligned the runners with this oracle. `SendAsync_Given_.Interrupting_ChildExited_Should_ExitWithTheChildCode` still steps `TimeoutElapsed` then `ChildExited(130)` and records `Exited` with that code and `TimedOut` false. Production now does the same: a child that exits during the grace period keeps its own code, including Unix exit 130 for an unhandled SIGINT, and `TimedOut` stays false. Grace elapsed is still exit 124. The production cases are `WithTimeout_Given_.GracefulExitZero_Should_ReportTheChildCode`, `UnhandledSigInt_Should_ReportExit130`, and `TtyPassthrough_UnhandledSigInt_Should_ReportExit130WithoutThrowing`.
 
 ## Results
 

@@ -11,7 +11,8 @@
 // - Two constructors: one from OutputLine list (streaming), one from strings (reconstruction)
 // - String constructor uses SplitLines so interior blanks (including whitespace-only) match CaptureAsync
 // - Convenience methods GetLines/GetStdoutLines/GetStderrLines for line-array access
-// - TimedOut is independent of Success. Success stays ExitCode == 0. A timeout reports exit 124, so Success is false.
+// - TimedOut is independent of Success. Success stays ExitCode == 0. A grace-period kill reports exit 124, so Success is false.
+//   A child that exits during the grace period keeps its own code and TimedOut stays false.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -39,8 +40,10 @@ public class CommandOutput
   public bool Success => ExitCode == 0;
 
   /// <summary>
-  /// Gets whether the command was ended because it exceeded its timeout.
+  /// Gets whether the command was killed because the timeout grace period elapsed.
   /// When true, <see cref="ExitCode"/> is <see cref="CommandResult.TimeoutExitCode"/> and <see cref="Success"/> is false.
+  /// A child that exits during the grace period leaves this false and keeps its own exit code.
+  /// On Unix an unhandled SIGINT is exit 130 and does not set this flag.
   /// A cancellation requested by the caller does not set this flag.
   /// </summary>
   public bool TimedOut { get; init; }
