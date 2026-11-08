@@ -2,11 +2,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 167
-- Effort: 1
+- Lines changed: 236
+- Effort: 2
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 80 (--max-turns; cursor uncapped)
+- Turn cap: 120 (--max-turns; cursor uncapped)
 
 ## Scope (task 141)
 
@@ -31,6 +31,14 @@
 **Date:** 2026-11-09
 **Diff scope:** fix delta `fa56fb5..003885a` (commit `f1fa4db`, which keeps a grace-period exit when the stream reader is behind, plus the kanban record `003885a`). The scope is the round-2 M3 fix and new defects in that delta.
 **Effort:** 1 (by-diff budget, 167 lines). Roster axes: general only.
+**Reviewer roster:** general (review oracle, Claude Opus 5.5)
+**Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
+
+## Round 4 scope
+
+**Date:** 2026-11-09
+**Diff scope:** fix delta `003885a..93204a3`. That is commit `1ad4bfc`, which bounds the timeout drain after the child exits, plus the kanban record `93204a3`. The scope is the round-3 M4 fix and any new defects in that delta.
+**Effort:** 2 (by-diff budget, 236 lines). Roster axes: general only.
 **Reviewer roster:** general (review oracle, Claude Opus 5.5)
 **Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
 

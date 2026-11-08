@@ -12,7 +12,7 @@ A timeout still sends the graceful signal and then waits for the grace period. I
 
 Acceptance: the three grace outcomes (child exit 0, child exit 7, grace elapsed) hold for the CliWrap runner and for `TtyPassthroughAsync`, a pipeline stage that exits during grace keeps its code, the Design region and the `TimedOut` / `TimeoutExitCode` / `WithTimeoutGracePeriod` docs name the 130 case, task 138's disagreement note comes out once production matches the oracle, `<Version>` is `3.0.0-beta.2`, both Unshipped files are header-only, `dev check-version` shows that version unpublished, and build, test, and `ganda repo audit` are clean.
 
-A slow stream reader does not turn a grace-period exit into a timeout, and a descendant does not erase the wall clock. When the direct child exits during a positive grace period, the forceful deadline moves from `Timeout + TimeoutGracePeriod` to `Timeout` plus twice the grace period. That extra grace is the only added drain. A reader that finishes inside it receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. The deadline stays armed. If a descendant still holds stdout or stderr when that deadline fires, the run ends then with the same child code and `TimedOut` false. It does not wait for the descendant. An exit before the graceful signal leaves the original `Timeout + TimeoutGracePeriod` deadline, and a pipe that stays open is cut off there on the same rule. A child that is still running when its deadline fires is still exit 124 with `TimedOut` true. A zero grace period does not move the deadline. The caller token and an abandoned enumerator still cancel the drain. The slow-reader test outlasts `Timeout + TimeoutGracePeriod`, finishes inside the doubled grace, reads every line, reports the child's code, and leaves `TimedOut` false. The descendant test ends near the armed deadline, reports the child's code, and leaves `TimedOut` false.
+A slow stream reader does not turn a grace-period exit into a timeout, and a descendant does not erase the wall clock. When the direct child exits during a positive grace period, the forceful deadline moves from `Timeout + TimeoutGracePeriod` to `Timeout` plus twice the grace period. That extra grace is the only added drain. A reader that finishes inside it receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. The deadline stays armed. If a descendant still holds stdout or stderr when that deadline fires, the run ends then with the same child code and `TimedOut` false. It does not wait for the descendant. An exit before the graceful signal leaves the original `Timeout + TimeoutGracePeriod` deadline, and a pipe that stays open is cut off there on the same rule. A child that is still running when its deadline fires is still exit 124 with `TimedOut` true. A zero grace period does not move the deadline. An exit before that signal still records the child, so a descendant that holds a pipe is cut off at `Timeout` with the child's exit code and `TimedOut` false. An exit at or after the zero-grace signal, and a child that is still running when that deadline fires, stay exit 124 with `TimedOut` true. The caller token and an abandoned enumerator still cancel the drain. The slow-reader test outlasts `Timeout + TimeoutGracePeriod`, finishes inside the doubled grace, reads every line, reports the child's code, and leaves `TimedOut` false. The descendant test ends near the armed deadline, reports the child's code, and leaves `TimedOut` false. The zero-grace descendant test ends near `Timeout`, reports exit 0, and leaves `TimedOut` false.
 
 Review round 1 left two open suggestions, and this pass closes them. A timed stream has to push back on the child the same way CliWrap's one-slot listen channel does: one waiting line, and the next write waits. A consumer that reads slower than the child must not collect the whole run in memory, and a kill or an abandoned enumerator must cancel a write that is waiting so the child does not stay stuck. `ListenWithTimeoutAsync` still sends a timeout into that path. Everything after that branch is only the no-timeout listen loop. Caller cancellation still propagates, the exit code still comes from the exited event, `Remember` still stores it, and disposing the enumerator still swallows the second cancellation. The comment that described a timeout on that loop goes away, and the `command-result.cs` line-cap baseline drops to the new line count.
 
@@ -61,6 +61,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - [x] M2: `ListenWithTimeoutAsync` remainder is the no-timeout listen loop, and the line-cap baseline is 1339
 - [x] M3: a child that exits during a positive grace period with a slow reader keeps every line, the child's code, and `TimedOut` false
 - [x] M4: a timed command whose descendant holds stdout still ends at a bounded time after the child exits, with a test, and the docs match the rule
+- [x] M5: with a zero grace period, a child that exits before the timeout while a descendant holds a pipe keeps the child's code and `TimedOut` false, and the deadline stays at `Timeout`
 
 ## Depends on
 
@@ -79,13 +80,15 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Fix pass: implement-fix-3 on 2026-11-09, session 01a1bc92-3c8b-7913-a974-2d52b9a29552. M3 stops the forceful deadline when the process exits during a positive grace period, so a slow reader finishes the lines the child wrote.
 - Review oracle round 3: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 1, roster general, turn cap 80, on 2026-11-09. The scope was the delta `fa56fb5..003885a`. M3 is verified fixed. Bug M4 is open: the deadline stop leaves no bound on a timed run when a descendant holds the pipe. A fix pass is requested. See `review/round-3/merged.md`.
 - Fix pass: implement-fix-4 on 2026-11-09, session 01a1bca4-a073-70f0-9fc5-eb59e8cecc55. M4 keeps a forceful deadline after the direct child exits. An exit during grace moves that deadline to `Timeout` plus two grace periods. An earlier exit leaves `Timeout` plus one grace period. A later cancel reports the child's code with `TimedOut` false.
+- Review oracle round 4: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120, on 2026-11-09. The scope was the delta `003885a..93204a3`. M4 is verified fixed for a positive grace period. Bug M5 is open: with a zero grace period, a child that exits before the timeout while a descendant holds a pipe still reports 124. The new docs say that case keeps the child's code. A fix pass is requested. See `review/round-4/merged.md`.
+- Fix pass: implement-fix-5 on 2026-11-09, session 01a1bcbb-0ceb-7130-b375-ebef6e8ad2ca. M5 records an exit before the zero-grace signal and does not move the deadline. A descendant that holds a pipe is cut off at `Timeout` with the child's code and `TimedOut` false. An exit at or after that signal stays exit 124.
 
 ## Review
 
 - Round 1: M1 and M2 fixed on this branch.
 - Round 2: M3 was open. The implement-fix-3 pass stopped the forceful deadline on that exit.
 - Round 3: M3 is fixed. M4 was open. This pass keeps a bounded deadline after the child exits.
-- Round 4 has not run.
+- Round 4: M4 is fixed. M5 was open. This pass records an exit before the zero-grace signal and leaves the deadline at `Timeout`.
 
 ## Notes
 
@@ -95,7 +98,7 @@ Why 124 was chosen originally: the runner only sees CliWrap's `OperationCanceled
 
 Related: task 119 notes a possible CliWrap swap for a later release. This task does not need that swap, but if the exit-code capture turns out to need it, stop and record the finding rather than widening the task.
 
-The exit code is read from the process `Exited` event. CliWrap stays the process library. A zero grace period is still exit 124, because the signal and the kill are the same instant. `TtyPassthroughAsync` reports exit 7 during grace and does not throw, which is the existing TTY validation exemption. `documentation/overview.md` states no package version, so it was left as it is. The githook pins in `Directory.Packages.props` stay at `2.0.0`.
+The exit code is read from the process `Exited` event. CliWrap stays the process library. A zero grace period is still exit 124 when the child is still running, because the signal and the kill are the same instant. An exit before that signal keeps the child's code. `TtyPassthroughAsync` reports exit 7 during grace and does not throw, which is the existing TTY validation exemption. `documentation/overview.md` states no package version, so it was left as it is. The githook pins in `Directory.Packages.props` stay at `2.0.0`.
 
 ## Results
 
@@ -103,9 +106,11 @@ A child that exits during the timeout grace period keeps its own exit code and `
 
 A timed stream keeps one unread line and waits to write the next. The write uses CliWrap's pipe token, so a kill or an abandoned reader unblocks it. `ListenWithTimeoutAsync` after the timeout branch is only the no-timeout listen loop. The `command-result.cs` line-cap baseline is 1339.
 
-A positive grace period moves that deadline to `Timeout` plus two grace periods when the direct child exits during grace. A slow reader that finishes inside the window receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. An exit before the graceful signal leaves the original `Timeout` plus one grace period. A descendant that still holds a pipe is cut off at the armed deadline with the child's code and `TimedOut` false. Caller cancellation and an abandoned enumerator still cancel the drain. A zero grace period does not move the deadline. A child that is still running when its deadline fires is still exit 124.
+A positive grace period moves that deadline to `Timeout` plus two grace periods when the direct child exits during grace. A slow reader that finishes inside the window receives every line the child wrote, the result keeps the child's exit code, and `TimedOut` stays false. An exit before the graceful signal leaves the original `Timeout` plus one grace period. A descendant that still holds a pipe is cut off at the armed deadline with the child's code and `TimedOut` false. Caller cancellation and an abandoned enumerator still cancel the drain. A zero grace period does not move the deadline. When the direct child exits before that signal, the same cut-off keeps the child's code and `TimedOut` stays false. A child that is still running when its deadline fires is still exit 124.
 
-`./tools/dev-cli/dev.cs build` succeeded with 0 warnings and packed `TimeWarp.Amuru.3.0.0-beta.2.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.2.nupkg`. `./tools/dev-cli/dev.cs test` reported 838 total, 837 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). `./tools/dev-cli/dev.cs check-version` reported source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and one prerelease increment ahead. `ganda repo audit` passed 39, failed 0, skipped 2. The `command-result.cs` line count is still 1339.
+The three descendant probes live in `shell-builder.with-timeout.descendants.cs`. The capture file stays at 442 lines, under the 500-line cap. `command-result.cs` is still 1339 lines.
+
+`./tools/dev-cli/dev.cs build` succeeded with 0 warnings and packed `TimeWarp.Amuru.3.0.0-beta.2.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.2.nupkg`. `./tools/dev-cli/dev.cs test` reported 839 total, 838 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). `./tools/dev-cli/dev.cs check-version` reported source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and one prerelease increment ahead. `ganda repo audit` passed 39, failed 0, skipped 2. The `command-result.cs` line count is still 1339. The capture file is 442 lines.
 
 ### How to validate
 
@@ -113,13 +118,15 @@ A positive grace period moves that deadline to `Timeout` plus two grace periods 
 
 ```bash
 dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-timeout.cs
+dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-timeout.descendants.cs
 dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-timeout.modes.cs
 ./tools/dev-cli/dev.cs check-version
 ```
 
 **Expect**
 
-- The capture file reports 18 passed. Exit 0 keeps `TimedOut` false and strict validation does not throw. Exit 7 throws `CommandExecutionException` and leaves `LastOutput` null. Exit 130 keeps `TimedOut` false. A child that ignores SIGINT is exit 124 and `TimedOut` true. Caller cancellation leaves `LastOutput` null. The slow-consumer test reads `START`, waits, and the done marker is still absent. After the stream ends the marker exists, the exit code is 0, and `TimedOut` is false. `StreamStdout_ChildExitsDuringGrace_Should_KeepEveryLineAndTheChildCode` reads `LINE 00` through `LINE 39`, uses a 1s timeout and a 4s grace, takes longer than that 5s deadline and less than the 9s drain bound, reports exit 0, and leaves `TimedOut` false. `Capture_DescendantHoldsStdoutBeforeTimeout_Should_EndAtTheOriginalDeadline` runs `sleep 15 & echo started` with a 1s timeout and a 1s grace, ends in about 2s with stdout `started`, exit 0, and `TimedOut` false. `Capture_DescendantHoldsStdoutDuringGrace_Should_EndAtTheDrainBound` ends in about 3s, which is past the 2s original deadline and at the 3s drain bound, with exit 0 and `TimedOut` false.
+- The capture file reports 16 passed. Exit 0 keeps `TimedOut` false and strict validation does not throw. Exit 7 throws `CommandExecutionException` and leaves `LastOutput` null. Exit 130 keeps `TimedOut` false. A child that ignores SIGINT is exit 124 and `TimedOut` true. Caller cancellation leaves `LastOutput` null. The slow-consumer test reads `START`, waits, and the done marker is still absent. After the stream ends the marker exists, the exit code is 0, and `TimedOut` is false. `StreamStdout_ChildExitsDuringGrace_Should_KeepEveryLineAndTheChildCode` reads `LINE 00` through `LINE 39`, uses a 1s timeout and a 4s grace, takes longer than that 5s deadline and less than the 9s drain bound, reports exit 0, and leaves `TimedOut` false.
+- The descendants file reports 3 passed. `Capture_DescendantHoldsStdoutBeforeTimeout_Should_EndAtTheOriginalDeadline` runs `sleep 15 & echo started` with a 1s timeout and a 1s grace, ends in about 2s with stdout `started`, exit 0, and `TimedOut` false. `Capture_DescendantHoldsStdoutWithZeroGrace_Should_KeepTheChildCodeAtTimeout` uses the same command with grace 0, ends in about 1s, which is at `Timeout` and short of the 15s sleep, with stdout `started`, exit 0, and `TimedOut` false. `Capture_DescendantHoldsStdoutDuringGrace_Should_EndAtTheDrainBound` ends in about 3s, which is past the 2s original deadline and at the 3s drain bound, with exit 0 and `TimedOut` false.
 - The modes file reports 14 passed. `TtyPassthroughAsync` reports exit 0, exit 7 without throwing, and exit 130, and the ignored-SIGINT case is exit 124. The pipeline's last stage reports exit 7, and strict validation throws `CommandExecutionException`.
 - `check-version` prints source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and that the source version is not yet published.
 
@@ -138,4 +145,33 @@ Round 3 ran with effort 1 and a general reviewer, on the fix delta `fa56fb5..003
 
 Probe: `sh -c "sleep 15 & echo started"` with timeout 1s and grace 1s. At `fa56fb5` it ends in 2.1s with exit 124. Before this pass it ends in 15.0s with exit 0, and it never ends if the descendant never exits.
 
-This pass keeps the deadline. The same probe ends in about 2.1s with exit 0 and `TimedOut` false. A descendant started from the grace-period handler ends at `Timeout` plus two grace periods, about 3.1s here, with the child's code and `TimedOut` false. The slow-reader test still reads all 40 lines. Round 4 has not run, so disposition is not written. Path: `review/round-3/merged.md`.
+This pass keeps the deadline. The same probe ends in about 2.1s with exit 0 and `TimedOut` false. A descendant started from the grace-period handler ends at `Timeout` plus two grace periods, about 3.1s here, with the child's code and `TimedOut` false. The slow-reader test still reads all 40 lines. Path: `review/round-3/merged.md`.
+
+Round 4 ran with effort 2 and a general reviewer, on the fix delta `003885a..93204a3`. M4 is re-verified as fixed for a positive grace period:
+
+- The capture file reports 18/18 and the modes file reports 14/14.
+- The round-3 probe ends in 2.1s with exit 0 and `TimedOut` false.
+- Strict capture, strict non-zero, and `StreamStdoutAsync` with a descendant each end at about 2.1s with the child's result.
+- `command-result.cs` is still 1339 lines.
+
+M5 is a new open bug. With a zero grace period, `NoteChildExit` returns before it records the exit. A child that exits with 0 before the timeout, while a descendant holds stdout, reports exit 124 with `TimedOut` true at 1.1s. The new `command-execution.md` row, the Design region, and the Goal restatement say that cut-off keeps the child's code.
+
+Ledger counts:
+
+| Severity | Open | Fixed | Wontfix |
+| --- | --- | --- | --- |
+| Bug | 1 | 2 | 0 |
+| Suggestion | 0 | 2 | 0 |
+| Nit | 0 | 0 | 0 |
+
+Disposition is not written because M5 is open. Path: `review/round-4/merged.md`.
+
+This pass fixes M5. `NoteChildExit` records an exit that happens before the zero-grace signal and does not call `CancelAfter`. The deadline stays at `Timeout`. The same probe with grace 0 ends in about 1.1s with stdout `started`, exit 0, and `TimedOut` false. A child that is still running at that deadline is still exit 124. The descendant probes moved to `shell-builder.with-timeout.descendants.cs` because the capture file had crossed the 500-line cap. Round 5 has not run, so disposition is not written.
+
+Ledger counts after this pass:
+
+| Severity | Open | Fixed | Wontfix |
+| --- | --- | --- | --- |
+| Bug | 0 | 3 | 0 |
+| Suggestion | 0 | 2 | 0 |
+| Nit | 0 | 0 | 0 |
