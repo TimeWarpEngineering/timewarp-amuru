@@ -64,6 +64,7 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 - Review oracle round 1: general reviewer (claude-opus-5-5), effort 3, turn cap 200; harness session id not exposed. 2 bugs and 6 other findings open, fix pass requested — 2026-11-08
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 6a6489e7-96a3-4850-af4f-4fa5ee83f23c, max-turns 200, artifacts general.md, merged.md — 2026-11-08T11:02:29Z
 - Fix pass for review round 1 (M1–M8): implementer-grok, session 01a1bad2-f495-76a3-ba93-d65e90ab9555 — 2026-11-08
+- The MCP server shebang was not executable, so the commit hook skipped attestation. The bit is set — 2026-11-08
 
 ## Review
 
