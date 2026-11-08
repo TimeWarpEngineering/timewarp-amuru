@@ -99,6 +99,7 @@ This fix pass closes the second review. A test that sends `ChildExited` while St
 - Review oracle round 2: claude-opus-5-5 (Claude Code, headless), effort 3, roster general, scope `3704ce6..a45b10f`, 2026-11-08. M1–M5 verified fixed. Opened M6 (flaky Stopping test), M7 (Accept prunes unread results), and M8 (Release writes the map off the pump). See `review/round-2/merged.md`.
 - Fix pass (round 2): closed M6–M8 on this branch (2026-11-08). The Stopping child-exited test holds the fake stop. A finished payload stays until the host sends `Release`, and that effect is the only removal. It runs on the pump.
 - Review oracle round 3: claude-opus-5-5 (Claude Code, headless), effort 2, roster general, scope `a45b10f..c20e40a`, 2026-11-08. M6–M8 verified fixed. Raised M9 (host-side map lookup can run while the pump writes the map) and marked it wontfix, deferred to 083. Disposition: accepted-exceptions with 0 open. See `review/round-3/merged.md` and `review/disposition.md`.
+- Installed ganda changed during this walk: was 50149104 bytes b51f94e1326b460cf3fb84a243f29aa6c06d50b98efd18e24bf1c72cd568bdae; now 50165856 bytes a9fb3425ddf63e8109666ff31e4e3ab0844b010d9bf42f2cc00c05cd63918409
 
 ## Review
 
