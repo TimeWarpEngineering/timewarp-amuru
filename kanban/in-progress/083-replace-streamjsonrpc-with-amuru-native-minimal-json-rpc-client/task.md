@@ -65,11 +65,12 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 6a6489e7-96a3-4850-af4f-4fa5ee83f23c, max-turns 200, artifacts general.md, merged.md — 2026-11-08T11:02:29Z
 - Fix pass for review round 1 (M1–M8): implementer-grok, session 01a1bad2-f495-76a3-ba93-d65e90ab9555 — 2026-11-08
 - The MCP server shebang was not executable, so the commit hook skipped attestation. The bit is set — 2026-11-08
+- Review oracle round 2: one general reviewer (claude-opus-5-5), effort 3, turn cap 200, fix delta `a087dba..b47b9bb`; the harness did not expose a session id. M1–M8 fixed. Nits M9 and M10 wontfix. Disposition accepted-exceptions — 2026-11-08
 
 ## Review
 
 - Round 1: findings M1–M8 implemented in this pass. `review/round-1/merged.md` stays the reviewer's ledger until round 2.
-
+- Round 2: Done
 ## Notes
 
 ### Why this task exists
@@ -162,7 +163,19 @@ The session machine file reports 31 passed. The guard file reports 14 passed, in
 
 ### Review
 
-Round 1 had one general reviewer at effort 3 (by-diff budget, 2343 lines). The reviewer re-ran the client tests (14 passed) and the machine tests (31 and 12 passed). This pass implements M1 through M8. Round 2 has not reviewed the result. The ledger at `review/round-1/merged.md` is unchanged.
+**Disposition: accepted-exceptions.** 2 rounds. The final open count is 0.
+
+Each round had one general reviewer at effort 3. Round 1 used the by-diff budget for 2343 lines. Round 2 used the budget for 832 lines and reviewed the fix delta `a087dba..b47b9bb`.
+
+Final counts: bug 2 fixed. Suggestion 4 fixed. Nit 2 fixed and 2 wontfix.
+
+Round 2 re-verified M1 through M8 as fixed. It re-ran the client file (20 passed, including the real MCP server), the machine file (31 passed), and the guard file (14 passed), and a Release build of the library (0 warnings). Round 2 raised two new nits, both marked wontfix by the review oracle:
+- M9: start uses a `Task.Yield` loop, bounded at 2 s, to wait for the state to be published.
+- M10: the test-only MCP server build cache misses props changes and the Windows `.exe` name.
+
+The rationale is in `review/disposition.md`.
+
+Round 1 had re-run the client tests (14 passed) and the machine tests (31 and 12 passed).
 
 - M1: both serializer paths use `GetTypeInfo` and the `JsonTypeInfo` overloads. The suppression is gone.
 - M2: `mcp-stdio-server` is a file-based ModelContextProtocol 2.4.0 stdio server. The client test builds its apphost and runs initialize, `notifications/initialized`, and tools/list.
@@ -173,7 +186,11 @@ Round 1 had one general reviewer at effort 3 (by-diff budget, 2343 lines). The r
 - M7: `StopAsync` disposes the standard-error cancellation source.
 - M8: dispose waits on the settled completion, bounded by grace plus margin.
 
-Paths: `review/review-framework.md` and `review/round-1/merged.md` (the live ledger). `review/round-1/general.md` holds the reviewer's own findings.
+Paths:
+- `review/review-framework.md`
+- `review/round-1/general.md` and `review/round-1/merged.md` (frozen)
+- `review/round-2/general.md` and `review/round-2/merged.md` (the final ledger)
+- `review/disposition.md`
 
 ## Learnings
 
