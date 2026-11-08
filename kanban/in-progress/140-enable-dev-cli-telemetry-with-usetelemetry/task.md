@@ -78,6 +78,7 @@ Expect: the command exits 0. The collector receives a `/v1/traces` payload whose
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1bb54-19e4-7781-bd05-c788438499f8, max-turns 500, Done — 2026-11-08T13:33:18Z
 - Review oracle: claude-opus-5-5 (anthropic), tw-implementation-review, effort 2, roster general, turn cap 120. Round 1 disposition clean (0 findings) — 2026-11-08
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session ea617b36-8bff-42b0-a9be-684437d24e00, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-08T13:35:16Z
+- Installed ganda changed during this walk: was 50165856 bytes a9fb3425ddf63e8109666ff31e4e3ab0844b010d9bf42f2cc00c05cd63918409; now 50245520 bytes 6960d933b0215f2d5776a313661be767146c85b1b1580b012d28042e019026ce
 
 ## Review
 
