@@ -1620,3 +1620,4 @@ virtual TimeWarp.Amuru.WorktreeEntry.<Clone>$() -> TimeWarp.Amuru.WorktreeEntry!
 virtual TimeWarp.Amuru.WorktreeEntry.EqualityContract.get -> System.Type!
 virtual TimeWarp.Amuru.WorktreeEntry.Equals(TimeWarp.Amuru.WorktreeEntry? other) -> bool
 virtual TimeWarp.Amuru.WorktreeEntry.PrintMembers(System.Text.StringBuilder! builder) -> bool
+TimeWarp.Amuru.NuGetPackageService.NuGetPackageService(System.Net.Http.HttpMessageHandler! handler) -> void
