@@ -55,3 +55,14 @@ Null commands (`NeverRanExitCode`) and the choice of `RunAsync` versus `CaptureA
 ## Blocked
 
 2026-11-08: Finish the command-completion machine so it compiles (SM010 terminal refusals without a dummy transition, and one consistent using-declaration style that satisfies both IDE0007 and IDE0008), get the send-async oracle tests green, run the repo test gate and `ganda repo audit`, write kitchen Results, then commit and push the task branch.
+
+### Resume note (2026-11-08, cockpit a875b3a1)
+
+The first implement pass stopped on two compile conflicts. Both have precedent in this repo:
+
+- **SM010** (terminal states that only refuse are not final). Keep `Exited`, `TimedOut`, and `Canceled` as ordinary non-final states, exactly as 139 did for `Exited` and `Faulted`. Suppress SM010 for the oracle file in the test-tree `.editorconfig` with a reason comment, following the `[timewarp-amuru/json-rpc/json-rpc-session-machine.cs]` block in `source/.editorconfig`. Do not add a dummy transition. A UML final state would discard the signals the spec says to refuse with a reason.
+- **IDE0007 vs IDE0008.** Root `.editorconfig` sets `csharp_style_var_when_type_is_apparent = true` and `var_elsewhere = false`. So `using var run = new Run(...)` when the type is apparent from `new`, and an explicit type otherwise. Do not suppress either rule.
+
+The disagreement found so far (TTY and CliWrap runners report exit 124 when the child exits during the grace period, while the oracle says `Exited` with the child's code) is exactly what the spec asks to record under Notes. Leave the runners alone and write it down with the test name that shows it.
+
+Uncommitted work from the first pass is in the worktree: `tests/timewarp-amuru/command-completion/`, `tests/timewarp-amuru/single-file-tests/core/command-completion-machine.send-async.cs`, and `tests/timewarp-amuru/Directory.Build.props`. Continue from it.
