@@ -22,7 +22,18 @@
     <!-- Shared test helpers compiled into all test files -->
     <Compile Include="$(MSBuildThisFileDirectory)test-helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)git-repository-fixture.cs" />
+    <!-- The completion oracle is test-only. It is not a package reference: the core project
+         already restores TimeWarp.Ramani, and the generator does not flow through that reference. -->
+    <Compile Include="$(MSBuildThisFileDirectory)command-completion/*.cs" />
   </ItemGroup>
+
+  <!-- The generator does not flow through the core ProjectReference. The package is already
+       restored for source/timewarp-amuru. This is an analyzer item, not a PackageReference. -->
+  <Target Name="AddCommandCompletionRamaniGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Include="$(NuGetPackageRoot)timewarp.ramani/1.0.0-beta.23/analyzers/dotnet/cs/TimeWarp.Ramani.Generators.dll" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <!-- Global usings for all test projects -->
     <Using Include="TimeWarp.Amuru.Testing" />

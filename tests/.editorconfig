@@ -1,0 +1,5 @@
+[timewarp-amuru/command-completion/command-completion-machine.cs]
+# SM010: Exited, TimedOut, and Canceled stay non-final so SendAsync returns Refused with a reason.
+# Each of those states refuses the whole signal set. A UML final state would discard those signals.
+# Task 138.
+dotnet_diagnostic.SM010.severity = none
