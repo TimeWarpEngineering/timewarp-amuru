@@ -10,6 +10,8 @@ The machine is a test oracle, so its source lives under the test tree, not in a 
 
 A test-only Ramani machine is the oracle for how one command run finishes. It is stepped with four signals and five states. A normal exit records the child's exit code and is not a timeout. A timeout signal moves the run into an interrupting grace phase and is not yet a result. If the child then exits, that exit stands. If the grace period elapses first, the result is a timeout with exit 124. Caller cancellation from either active phase becomes cancellation, leaves no last output, and is not a timeout. When cancellation and the end of the grace period are both true, cancellation wins. Strict validation records the timeout and then throws; a TTY run records the same timeout and does not throw. Starting a TTY run refuses configured standard input or a pipeline, with the messages the product already uses, and that decision is recorded before any mock match. Every other state and signal pair is an explicit refusal. The production runners stay as they are. A runner that classifies a case differently is written up in Notes.
 
+The test props attach that generator from the `TimeWarp.Ramani` entry in `Directory.Packages.props`. The NuGet cache folder is that version, lowercased. The version string is not copied into the analyzer path. If the generator file is not in the cache, the build stops with an error that names the path.
+
 ## Requirements
 
 - States are `Running`, `Interrupting`, `Exited`, `TimedOut`, and `Canceled`.
@@ -39,6 +41,7 @@ A test-only Ramani machine is the oracle for how one command run finishes. It is
 - [x] Oracle source under the test tree; `TimeWarp.Amuru.Tools` has no Ramani reference
 - [x] `./tools/dev-cli/dev.cs test` passes
 - [x] `ganda repo audit` is clean
+- [x] Generator path follows the central `TimeWarp.Ramani` PackageVersion, and a missing generator file fails the build
 
 ## Session
 
@@ -47,6 +50,13 @@ A test-only Ramani machine is the oracle for how one command run finishes. It is
 - Implement oracle: implemented by implementer-grok (not reported, model grok-4.7), session 01a1bbe6-b892-72d0-8b8f-ce2a79c01596, max-turns 4, Blocked — 2026-11-08T16:04:19Z
 - Implement resume: session 01a1bbe9-8923-72c1-846c-362c633470a7 (2026-11-08). Removed the dummy terminal transitions, suppressed SM010 in `tests/.editorconfig`, and constructed the harness with `using var run = new Run(...)` so IDE0007 and IDE0008 both hold. Oracle tests are green. Runners were left alone.
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1bbe9-8923-72c1-846c-362c633470a7, max-turns 500, Done — 2026-11-08T16:24:02Z
+- Review round 1 (2026-11-08): review oracle Claude Opus 5.5, effort 2, roster general. Result: 0 bugs, 1 open suggestion, 0 nits. M1: the Ramani generator path in `tests/timewarp-amuru/Directory.Build.props` types out the version a second time. A fix pass was requested and there is no disposition yet. Files: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 110094b4-8f0c-43b4-bacd-e0fe9ca277fa, max-turns 120, artifacts general.md, merged.md — 2026-11-08T16:27:15Z
+- Fix pass (review round 1 M1): session 01a1bbfc-4901-77c3-80bf-9facc295a31f (2026-11-08). The analyzer path reads the `TimeWarp.Ramani` PackageVersion and lowercases it. A missing generator dll fails the build and names the path.
+
+## Review
+
+- Round 1: M1 fixed on this branch. Review round 2 has not run.
 
 ## Notes
 
@@ -61,9 +71,11 @@ Runner disagreement, left in place. `SendAsync_Given_.Interrupting_ChildExited_S
 
 ## Results
 
-The test tree holds `CommandCompletionMachine`, an exhaustive Ramani oracle over `ChildExited`, `TimeoutElapsed`, `GraceElapsed`, and `CallerCanceled`. `Exited`, `TimedOut`, and `Canceled` stay non-final and refuse every signal with a reason. SM010 is suppressed for that file in `tests/.editorconfig`, because a final state would discard those signals. The generator is attached from the Ramani package the core project already restores. `source/timewarp-amuru-tools` has no Ramani reference. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are unchanged.
+The test tree holds `CommandCompletionMachine`, an exhaustive Ramani oracle over `ChildExited`, `TimeoutElapsed`, `GraceElapsed`, and `CallerCanceled`. `Exited`, `TimedOut`, and `Canceled` stay non-final and refuse every signal with a reason. SM010 is suppressed for that file in `tests/.editorconfig`, because a final state would discard those signals. The generator is attached from the Ramani package the core project restores. Its cache path is the central `TimeWarp.Ramani` PackageVersion, lowercased, and a missing dll fails the build with that path (review round 1 M1). `source/timewarp-amuru-tools` has no Ramani reference. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are unchanged.
 
-`SendAsync_Given_` steps each accepted transition, the caller-cancel race, strict timeout, the TTY no-throw exemption, both TTY start refusals (including empty standard input, and standard input winning over a pipeline), and every refusal. `./tools/dev-cli/dev.cs test`: 826 total, 825 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing).
+Review round 1 (general, effort 2) raised one suggestion and no bugs. M1 is fixed on this branch. Disposition waits for review round 2. Ledger: `review/round-1/merged.md`.
+
+`SendAsync_Given_` steps each accepted transition, the caller-cancel race, strict timeout, the TTY no-throw exemption, both TTY start refusals (including empty standard input, and standard input winning over a pipeline), and every refusal. `./bin/dev test` on this pass: 826 total, 825 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing).
 
 ### How to validate
 
@@ -88,7 +100,7 @@ dotnet run tests/timewarp-amuru/single-file-tests/core/command-completion-machin
 **Automated**
 
 ```bash
-./tools/dev-cli/dev.cs test
+./bin/dev test
 # expect: Failed: 0 (this session: Passed 825, Skipped 1, Total 826)
 ganda repo audit
 ```
