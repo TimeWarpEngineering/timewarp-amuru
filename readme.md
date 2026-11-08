@@ -34,6 +34,7 @@ Designed for modern C# developers, TimeWarp.Amuru brings the power of shell scri
 - **Type Safety**: Catch errors at compile-time, not runtime
 - **No String Escaping Hell**: Use C# arrays and parameters naturally
 - **Native AOT Ready**: Both packages declare and validate AOT/trimming compatibility
+- **JSON-RPC 2.0**: Request and response over a child process, with `System.Text.Json` and no Newtonsoft.Json dependency
 - **Built for .NET 11**: Modern C# features and first-class file-based app (runfile) support
 - **Script or Library**: Use it in quick scripts or production applications
 

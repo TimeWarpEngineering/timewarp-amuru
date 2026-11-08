@@ -4,7 +4,8 @@
 
 #region Design
 // The map lives on the context. Effects on the pump are its only writers, including Release.
-// Status is published after the payload so a reader that observes Completed or Failed can read Payload.
+// Payload is stored, then Status is published, then Completion is set. A waiter that observes
+// the task can read Payload. The task is the public client's result path.
 // TimedOut completes the id and is not a session fault. The entry stays until the host sends Release.
 #endregion
 
@@ -20,6 +21,9 @@ internal enum JsonRpcInFlightStatus
 
 internal sealed class JsonRpcInFlight
 {
+  private readonly TaskCompletionSource<JsonRpcInFlightStatus> Gate =
+    new(TaskCreationOptions.RunContinuationsAsynchronously);
+
   private int StatusValue;
 
   public JsonRpcInFlight(string id)
@@ -32,22 +36,30 @@ internal sealed class JsonRpcInFlight
 
   public string? Payload { get; private set; }
 
+  public Task<JsonRpcInFlightStatus> Completion => Gate.Task;
+
   public JsonRpcInFlightStatus Status => (JsonRpcInFlightStatus)Volatile.Read(ref StatusValue);
 
   public void Complete(string payload)
   {
     Payload = payload;
-    Volatile.Write(ref StatusValue, (int)JsonRpcInFlightStatus.Completed);
+    Publish(JsonRpcInFlightStatus.Completed);
   }
 
   public void TimeOut()
   {
-    Volatile.Write(ref StatusValue, (int)JsonRpcInFlightStatus.TimedOut);
+    Publish(JsonRpcInFlightStatus.TimedOut);
   }
 
   public void Fail(string reason)
   {
     Payload = reason;
-    Volatile.Write(ref StatusValue, (int)JsonRpcInFlightStatus.Failed);
+    Publish(JsonRpcInFlightStatus.Failed);
+  }
+
+  private void Publish(JsonRpcInFlightStatus status)
+  {
+    Volatile.Write(ref StatusValue, (int)status);
+    Gate.TrySetResult(status);
   }
 }

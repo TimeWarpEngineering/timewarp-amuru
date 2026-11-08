@@ -7,6 +7,7 @@
 // None of these records carries a completion source. The caller reads MachineStep from SendAsync.
 // Started is posted by the Starting activity's completion. The host does not send it.
 // Release drops one finished id. The host sends it after reading the payload. The effect runs on the pump.
+// Notify is an outbound frame with no id. It does not enter the in-flight map.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;
@@ -18,6 +19,8 @@ internal sealed record Start : ISignal;
 internal sealed record Started : ISignal;
 
 internal sealed record Send(string Id, string Method, string? ParamsJson) : ISignal;
+
+internal sealed record Notify(string Method, string? ParamsJson) : ISignal;
 
 internal sealed record Response(string Id, string Frame) : ISignal;
 

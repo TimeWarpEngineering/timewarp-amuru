@@ -29,6 +29,43 @@ namespace JsonRpcSessionMachine_
     [ModuleInitializer]
     internal static void Register() => RegisterTests<SendAsync_Given_Guard_>();
 
+    public static async Task Ready_Notify_Should_WriteAFrameWithoutAnId()
+    {
+      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, FakeJsonRpcProcessSeam seam) = await ReadyAsync();
+
+      MachineStep step = await machine.SendAsync(new Notify("notifications/initialized", null));
+
+      step.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Ready);
+      context.InFlight.Count.ShouldBe(0);
+      await UntilAsync(() => seam.Frames().Length == 1);
+      string frame = seam.Frames()[0];
+      frame.ShouldEndWith("\n");
+      frame.ShouldContain("\"method\":\"notifications/initialized\"");
+      frame.ShouldNotContain("\"id\"");
+    }
+
+    public static async Task Notify_Should_BeRefusedWhenTheChildIsNotReadyOrHasExited()
+    {
+      (JsonRpcSessionMachine idle, _, _) = Create();
+      await AssertRefusedAsync(
+        idle,
+        JsonRpcSessionState.Idle,
+        new Notify("notifications/initialized", null),
+        "the child is not ready"
+      );
+
+      (JsonRpcSessionMachine exited, _, _) = await ReadyAsync();
+      MachineStep childExited = await exited.SendAsync(new ChildExited());
+      childExited.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      await AssertRefusedAsync(
+        exited,
+        JsonRpcSessionState.Exited,
+        new Notify("notifications/initialized", null),
+        "the child has exited"
+      );
+    }
+
     public static async Task InboundFrame_Should_ClassifyResponseNotificationAndRequest()
     {
       JsonRpcInbound response = JsonRpcFrames.ReadInbound("""{"jsonrpc":"2.0","id":"7","result":true}""");

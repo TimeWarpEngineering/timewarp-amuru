@@ -5,8 +5,9 @@
 #region Design
 // Utf8JsonWriter and JsonDocument stay inside the AOT-compatible surface.
 // The outbound frame includes the trailing newline. TryReadId accepts that form and a bare line.
-// ReadInbound posts a Response only for a result or error object with no method and a string or number id.
-// A method is a notification or a server request. A null id is an error that matches no client request.
+// WriteNotification omits id. ReadInbound posts a Response only for a result or error object
+// with no method and a string or number id.
+// An inbound method is a notification or a server request. A null id is an error that matches no client request.
 // Those are ignored. A frame that is not a JSON object with a method or a result or an error is malformed.
 #endregion
 
@@ -33,6 +34,27 @@ internal static class JsonRpcFrames
       writer.WriteStartObject();
       writer.WriteString("jsonrpc", "2.0");
       writer.WriteString("id", id);
+      writer.WriteString("method", method);
+      if (paramsJson is not null)
+      {
+        writer.WritePropertyName("params");
+        writer.WriteRawValue(paramsJson);
+      }
+
+      writer.WriteEndObject();
+    }
+
+    return Encoding.UTF8.GetString(stream.ToArray()) + "\n";
+  }
+
+  public static string WriteNotification(string method, string? paramsJson)
+  {
+    ArgumentException.ThrowIfNullOrEmpty(method);
+    using MemoryStream stream = new();
+    using (Utf8JsonWriter writer = new(stream))
+    {
+      writer.WriteStartObject();
+      writer.WriteString("jsonrpc", "2.0");
       writer.WriteString("method", method);
       if (paramsJson is not null)
       {
