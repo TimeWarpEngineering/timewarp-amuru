@@ -47,7 +47,7 @@ A zero grace period is the kill. The signal and the deadline are the same instan
 
 124 is the exit code GNU `timeout` uses, so a shell-minded caller can recognize it.
 
-Streaming methods (`StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync`) finish the enumerator on timeout under default validation. The lines already produced are yielded. `LastOutput` is set before the enumerator ends; for a real stream it records exit code, timeout, and runtime. Strict validation throws `TimeoutException` after that. `SelectAsync` returns the captured text under default validation and throws under strict validation.
+Streaming methods (`StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync`) finish the enumerator on timeout under default validation. The lines already produced are yielded. When the child exits during a positive grace period, the forceful deadline stops. A reader that is still behind receives the lines the child wrote, and the result stays that child's exit code with `TimedOut` false. Caller cancellation and an abandoned enumerator still interrupt that read. A zero grace period does not stop the deadline. `LastOutput` is set before the enumerator ends; for a real stream it records exit code, timeout, and runtime. Strict validation throws `TimeoutException` after that. `SelectAsync` returns the captured text under default validation and throws under strict validation.
 
 `Pipe` keeps one window for the whole pipeline. The shorter timeout wins. The grace period is the one from that shorter side; equal timeouts keep the smaller grace. Zero-exit validation on either stage makes the pipeline strict. `Pipe` without an options argument keeps the upstream timeout, grace, and validation.
 

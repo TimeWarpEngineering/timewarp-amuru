@@ -11,6 +11,7 @@
 // Temp directories come from CreateTempSubdirectory, not a hardcoded /tmp path.
 // Stream, passthrough, TTY, pipe, select, and run live in shell-builder.with-timeout.modes.cs.
 // A timed stream keeps one unread line. A slow consumer must stall the child before the burst finishes.
+// A child that exits during grace still yields every line to a slow reader, with the child's code and TimedOut false.
 #endregion
 
 #if !JARIBU_MULTI
@@ -368,6 +369,47 @@ namespace ShellBuilder_
       {
         Directory.Delete(directory, recursive: true);
       }
+    }
+
+    [Timeout(30000)]
+    public static async Task StreamStdout_ChildExitsDuringGrace_Should_KeepEveryLineAndTheChildCode()
+    {
+      if (!CanDeliverSigInt())
+      {
+        return;
+      }
+
+      const string script =
+        """
+        import signal, time
+        def handle(signum, frame):
+            for index in range(40):
+                print(f"LINE {index:02d}", flush=True)
+            raise SystemExit(0)
+        signal.signal(signal.SIGINT, handle)
+        while True:
+            time.sleep(0.05)
+        """;
+
+      var timeout = TimeSpan.FromSeconds(1);
+      var grace = TimeSpan.FromSeconds(2);
+      CommandResult command = Python(script, timeout, grace);
+      List<string> lines = [];
+      var stopwatch = Stopwatch.StartNew();
+      await foreach (string line in command.StreamStdoutAsync())
+      {
+        lines.Add(line);
+        await Task.Delay(TimeSpan.FromMilliseconds(150));
+      }
+
+      stopwatch.Stop();
+      lines.Count.ShouldBe(40);
+      lines[0].ShouldBe("LINE 00");
+      lines[39].ShouldBe("LINE 39");
+      stopwatch.Elapsed.ShouldBeGreaterThan(timeout + grace);
+      command.LastOutput.ShouldNotBeNull();
+      command.LastOutput.ExitCode.ShouldBe(0);
+      command.LastOutput.TimedOut.ShouldBeFalse();
     }
 
     private static bool CanDeliverSigInt() =>

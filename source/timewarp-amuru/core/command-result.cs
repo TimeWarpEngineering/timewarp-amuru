@@ -40,7 +40,7 @@
 // - Timeout is per command, stored with the options snapshot. CliWrap 3.10.5 ExecuteAsync(forceful, graceful)
 //   sends SIGINT on the graceful token and kills on the forceful token. The graceful token fires at Timeout;
 //   the forceful token fires at Timeout plus TimeoutGracePeriod, or immediately when the caller cancels.
-//   A child that exits before the forceful token fires keeps its own exit code and TimedOut stays false.
+//   A child that exits during a positive grace period keeps its own exit code and TimedOut stays false. That exit stops the forceful deadline, so a slow reader still receives the lines the child wrote.
 //   That includes a child that dies from an unhandled SIGINT: Unix reports 130 (128 + SIGINT), and that is an exit, not a timeout.
 //   Only the forceful token (grace elapsed, child killed) records TimedOut and exit 124.
 //   A zero grace period is that kill: the signal and the deadline are the same instant, so the result is 124.
@@ -390,7 +390,7 @@ public partial class CommandResult
       CliWrap.CommandResult result;
       if (session.HasTimeout)
       {
-        capture = new ProcessExitCapture();
+        capture = new ProcessExitCapture(session.StopForcefulDeadline);
         result = await command.ExecuteAsync
         (
           configureProcessStartInfo: null,

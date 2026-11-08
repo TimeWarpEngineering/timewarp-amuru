@@ -7,6 +7,8 @@
 // CliWrap's cancellation exception has no exit code and the process is already disposed, so ProcessExitCapture
 // copies the code from the Exited event. TimedOut is the grace-period kill only.
 // A zero grace period is that kill. A positive grace period keeps the child's code, including Unix exit 130.
+// That exit stops the forceful deadline so a slow reader can finish lines the child already wrote.
+// The caller token and an abandoned enumerator still cancel the drain. A zero grace period does not stop the deadline.
 // The timed stream cannot use ListenAsync: that event arrives only after ExecuteAsync returns a result.
 // It writes each line into a one-slot channel and waits. CliWrap's pipe token cancels a blocked write
 // when the run is abandoned or killed, so a slow consumer pushes back on the child instead of buffering the run.
@@ -222,7 +224,13 @@ public partial class CommandResult
   // CliWrap throws after it disposes the process, so the exit code has to be copied while Exited still can read it.
   private sealed class ProcessExitCapture
   {
+    private readonly Action? ChildExited;
     private readonly TaskCompletionSource<int> ExitCodeSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public ProcessExitCapture(Action? childExited = null)
+    {
+      ChildExited = childExited;
+    }
 
     public void Attach(Process process)
     {
@@ -250,6 +258,7 @@ public partial class CommandResult
 
     private void Publish(Process process)
     {
+      ChildExited?.Invoke();
       try
       {
         ExitCodeSource.TrySetResult(process.ExitCode);
@@ -290,6 +299,27 @@ public partial class CommandResult
         || (Grace == TimeSpan.Zero && GracefulSignaled));
 
     public bool TimedOut => GraceElapsed;
+
+    // A positive grace period has a cooperative window. Once the child has exited, the kill timer
+    // must not cancel a pipe write that is still draining those lines. Infinite stops the countdown
+    // and leaves an already-canceled source canceled, so a grace-period kill stays a timeout.
+    // A zero grace period is the kill itself and does not stop.
+    public void StopForcefulDeadline()
+    {
+      if (Grace <= TimeSpan.Zero || ForcefulDelaySource is null)
+      {
+        return;
+      }
+
+      try
+      {
+        ForcefulDelaySource.CancelAfter(System.Threading.Timeout.InfiniteTimeSpan);
+      }
+      catch (ObjectDisposedException)
+      {
+        // The exit event can be delivered after the session is disposed.
+      }
+    }
 
     public TimeoutSession(
       TimeSpan? timeout,
