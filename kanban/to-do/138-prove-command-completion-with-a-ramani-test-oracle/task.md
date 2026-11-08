@@ -4,7 +4,7 @@
 
 `CommandResult` finishes a run in one of a few phases, and two runners must agree on which phase a signal produces. The CliWrap wait (`TimeoutSession` plus `ListenWithTimeoutAsync`) and `TtyPassthroughAsync` each implement that protocol. Encode the protocol as a Ramani state machine and step it from tests. The runners stay the production implementation.
 
-The machine is a test oracle. `TimeWarp.Ramani` is referenced only from the test tree. `source/timewarp-amuru` and `source/timewarp-amuru-tools` do not gain a Ramani package reference, and neither shipped package gains that dependency.
+The machine is a test oracle, so its source lives under the test tree, not in a shipped package. Since task 139 merged (2026-11-08), `source/timewarp-amuru` already references `TimeWarp.Ramani` 1.0.0-beta.23 and the test files reach it with `using TimeWarp.Ramani;` through the core project reference. The test tree needs no package reference of its own. `source/timewarp-amuru-tools` must not gain a Ramani reference.
 
 ## Requirements
 
@@ -21,7 +21,9 @@ The machine is a test oracle. `TimeWarp.Ramani` is referenced only from the test
 - Starting a TTY run with configured standard input is refused, with the existing message `TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY`.
 - Starting a TTY run of a pipeline is refused, with the existing message `TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped`.
 - Both refusals are decided before any mock match. The machine records that order.
-- `.Exhaustive()` is on. Every other pair in this signal set is a refusal with a reason, not an implicit ignore.
+- `.Exhaustive()` is on. Declare the signal universe with `.Signals<ChildExited, TimeoutElapsed, GraceElapsed, CallerCanceled>()` so the proof covers all four. Every other pair in this signal set is a refusal with a reason, not an implicit ignore. Use per-state `.Refuse<T>(reason)` or a state-level `RefuseOthers`, not a machine-wide one.
+- Tests read the refusal from the `MachineStep` that `SendAsync` returns (Ramani 1.0.0-beta.22 and later): `Outcome == Refused` and `Reason`. No step observer and no completion source on the signal.
+- Behaviors are copied into generated static methods: lambdas capture nothing, and the validation and TTY flags live on the context. The machine is a `partial` class whose `Machine.Named(...)...Build()` chain is one expression. See `source/timewarp-amuru/json-rpc/json-rpc-session-machine.cs` for the shape this repo already uses.
 - The machine source lives under the test tree. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are not rewritten in this task.
 - A test steps each transition above. Where today's runner disagrees with the machine, record the disagreement in Notes and leave the runner alone.
 
@@ -30,13 +32,14 @@ The machine is a test oracle. `TimeWarp.Ramani` is referenced only from the test
 - [ ] Ramani machine under the test tree, exhaustive over the signal set
 - [ ] Tests for exit, interrupt-then-exit, grace timeout, caller cancel winning a race, strict timeout, and the TTY no-throw exemption
 - [ ] Tests for the two TTY start refusals, decided before a mock match
-- [ ] Packable projects have no Ramani reference
+- [ ] Oracle source under the test tree; `TimeWarp.Amuru.Tools` has no Ramani reference
 - [ ] `./tools/dev-cli/dev.cs test` passes
 - [ ] `ganda repo audit` is clean
 
 ## Session
 
 - Created: 01a1b4c4-827b-7d70-9fd0-358726b63b0b (2026-11-07)
+- Spec review after 139 merged: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08). Dependency paragraph updated; MachineStep and Signals notes added. Production contract unchanged.
 
 ## Notes
 
