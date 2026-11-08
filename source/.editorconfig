@@ -3,6 +3,11 @@
 # Require ConfigureAwait(false) — this is a library; consumers may block on a SynchronizationContext
 dotnet_diagnostic.CA2007.severity = error
 
+[timewarp-amuru/json-rpc/json-rpc-session-machine.cs]
+# SM010: Exited and Faulted refuse every signal. They stay non-final so SendAsync
+# returns Refused with a reason. A UML final state would discard those signals. Task 139.
+dotnet_diagnostic.SM010.severity = none
+
 # RS0026 flags multiple public overloads that take optional parameters.
 # The shipped surface includes those overload sets (GetChildItem and several Git helpers).
 # Splitting them would be a breaking redesign, which this baseline does not do.
