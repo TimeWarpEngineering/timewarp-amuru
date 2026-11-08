@@ -178,7 +178,7 @@ string selectedFile = await Fzf.Builder()
 - **Standard Input Support**: Provide stdin to commands with `.WithStandardInput()`
 - **NO CACHING Philosophy**: Like shells, commands run fresh every time
 - **Cancellation Support**: Full CancellationToken support throughout
-- **Per-command timeout**: a child that exits during the grace period keeps its own exit code; if the grace period elapses, `WithTimeout` reports `TimedOut` and exit 124. A caller cancellation token still cancels
+- **Per-command timeout**: a child that exits during the grace period keeps its own exit code; if the grace period elapses, `WithTimeout` reports `TimedOut` and exit 124. A descendant that holds a pipe is cut off at the armed deadline with the child's code. A caller cancellation token still cancels
 - **Cross-Platform**: Works on Windows, Linux, and macOS (including `.cs` script execution on Windows via the dotnet host)
 - **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
 - **.NET 11 Script Support**: AppContext extensions and ScriptContext for file-based apps

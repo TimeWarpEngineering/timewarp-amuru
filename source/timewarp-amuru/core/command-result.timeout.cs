@@ -7,8 +7,10 @@
 // CliWrap's cancellation exception has no exit code and the process is already disposed, so ProcessExitCapture
 // copies the code from the Exited event. TimedOut is the grace-period kill only.
 // A zero grace period is that kill. A positive grace period keeps the child's code, including Unix exit 130.
-// That exit stops the forceful deadline so a slow reader can finish lines the child already wrote.
-// The caller token and an abandoned enumerator still cancel the drain. A zero grace period does not stop the deadline.
+// An exit during that grace moves the forceful deadline to Timeout plus two grace periods. The drain stays bounded.
+// An exit before the graceful signal leaves the original deadline. A later deadline cancel after either exit
+// reports the captured code with TimedOut false. A zero grace period does not move the deadline.
+// The caller token and an abandoned enumerator still cancel the drain.
 // The timed stream cannot use ListenAsync: that event arrives only after ExecuteAsync returns a result.
 // It writes each line into a one-slot channel and waits. CliWrap's pipe token cancels a blocked write
 // when the run is abandoned or killed, so a slow consumer pushes back on the child instead of buffering the run.
@@ -279,6 +281,9 @@ public partial class CommandResult
     private readonly CancellationTokenSource? GracefulSource;
     private readonly CancellationTokenSource? ForcefulDelaySource;
     private readonly CancellationTokenSource? LinkedForcefulSource;
+    private readonly TimeSpan Limit;
+    private readonly long StartedTimestamp;
+    private int ChildExitedBeforeDeadlineFlag;
 
     public bool HasTimeout { get; }
     public CancellationToken GracefulToken { get; }
@@ -300,20 +305,43 @@ public partial class CommandResult
 
     public bool TimedOut => GraceElapsed;
 
-    // A positive grace period has a cooperative window. Once the child has exited, the kill timer
-    // must not cancel a pipe write that is still draining those lines. Infinite stops the countdown
-    // and leaves an already-canceled source canceled, so a grace-period kill stays a timeout.
-    // A zero grace period is the kill itself and does not stop.
-    public void StopForcefulDeadline()
+    // The direct child exited before the forceful deadline fired.
+    public bool ChildExitedBeforeDeadline => Volatile.Read(ref ChildExitedBeforeDeadlineFlag) == 1;
+
+    // A positive grace period keeps a wall-clock bound after the direct child exits.
+    // An exit before the graceful signal leaves the deadline at Timeout plus grace.
+    // An exit after that signal moves it to Timeout plus two grace periods.
+    // An already-canceled source stays canceled, so a grace-period kill stays a timeout.
+    // A zero grace period is the kill itself and does not move the deadline.
+    public void NoteChildExit()
     {
-      if (Grace <= TimeSpan.Zero || ForcefulDelaySource is null)
+      if (Grace <= TimeSpan.Zero || ForcefulDelaySource is not CancellationTokenSource forcefulDelaySource)
       {
         return;
       }
 
       try
       {
-        ForcefulDelaySource.CancelAfter(System.Threading.Timeout.InfiniteTimeSpan);
+        if (forcefulDelaySource.IsCancellationRequested)
+        {
+          return;
+        }
+
+        if (GracefulSignaled)
+        {
+          TimeSpan target = AddGrace(AddGrace(Limit, Grace), Grace);
+          TimeSpan elapsed = Stopwatch.GetElapsedTime(StartedTimestamp);
+          TimeSpan remaining = target - elapsed;
+          if (remaining > TimeSpan.Zero)
+          {
+            forcefulDelaySource.CancelAfter(remaining);
+          }
+        }
+
+        if (!forcefulDelaySource.IsCancellationRequested)
+        {
+          Volatile.Write(ref ChildExitedBeforeDeadlineFlag, 1);
+        }
       }
       catch (ObjectDisposedException)
       {
@@ -332,12 +360,16 @@ public partial class CommandResult
       Grace = grace;
       if (timeout is not TimeSpan limit)
       {
+        Limit = TimeSpan.Zero;
+        StartedTimestamp = 0;
         GracefulToken = CancellationToken.None;
         ForcefulToken = callerToken;
         return;
       }
 
       HasTimeout = true;
+      Limit = limit;
+      StartedTimestamp = Stopwatch.GetTimestamp();
       GracefulSource = new CancellationTokenSource(limit);
       ForcefulDelaySource = new CancellationTokenSource(AddGrace(limit, grace));
       LinkedForcefulSource = abandonToken.CanBeCanceled

@@ -40,9 +40,9 @@
 // - Timeout is per command, stored with the options snapshot. CliWrap 3.10.5 ExecuteAsync(forceful, graceful)
 //   sends SIGINT on the graceful token and kills on the forceful token. The graceful token fires at Timeout;
 //   the forceful token fires at Timeout plus TimeoutGracePeriod, or immediately when the caller cancels.
-//   A child that exits during a positive grace period keeps its own exit code and TimedOut stays false. That exit stops the forceful deadline, so a slow reader still receives the lines the child wrote.
+//   A child that exits during a positive grace period keeps its own exit code and TimedOut stays false. That exit moves the forceful deadline to Timeout plus two grace periods, so a slow reader can finish inside that drain. A descendant that still holds a pipe is cut off at the armed deadline with the same code. An exit before the graceful signal leaves Timeout plus one grace period.
 //   That includes a child that dies from an unhandled SIGINT: Unix reports 130 (128 + SIGINT), and that is an exit, not a timeout.
-//   Only the forceful token (grace elapsed, child killed) records TimedOut and exit 124.
+//   Only the forceful token, when the child is still running, records TimedOut and exit 124.
 //   A zero grace period is that kill: the signal and the deadline are the same instant, so the result is 124.
 //   Zero-exit validation throws TimeoutException for that kill, and CommandExecutionException for any other non-zero code.
 //   The caller's own cancellation still propagates as OperationCanceledException and does not set TimedOut.
@@ -69,7 +69,7 @@
 //   CaptureAsync records arrival order. RunAndCaptureAsync rebuilds OutputLines from separate strings,
 //   so those lines are all stdout, then all stderr.
 // - Streaming enumerators complete on a grace-period kill under default validation. LastOutput is set before the enumerator ends.
-//   A child that exits during the grace period completes the enumerator with that exit code and TimedOut false.
+//   A child that exits during the grace period completes the enumerator with that exit code and TimedOut false, including when the drain bound cuts off a descendant that still holds a pipe.
 //   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
 //   The no-timeout path disposes CliWrap's ListenAsync, which awaits the command task again. A caller cancellation
 //   stored on that task surfaces from dispose and is swallowed; the loop already propagated it.
@@ -390,7 +390,7 @@ public partial class CommandResult
       CliWrap.CommandResult result;
       if (session.HasTimeout)
       {
-        capture = new ProcessExitCapture(session.StopForcefulDeadline);
+        capture = new ProcessExitCapture(session.NoteChildExit);
         result = await command.ExecuteAsync
         (
           configureProcessStartInfo: null,
@@ -415,7 +415,7 @@ public partial class CommandResult
     {
       throw PropagateCallerCancellation(exception, cancellationToken);
     }
-    catch (OperationCanceledException) when (session.GraceElapsed)
+    catch (OperationCanceledException) when (session.GraceElapsed && !session.ChildExitedBeforeDeadline)
     {
       stopwatch.Stop();
       return new CliExecution
