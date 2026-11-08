@@ -84,6 +84,7 @@ Acceptance: the machine is exhaustive over Idle, Starting, Ready, Stopping, Exit
 - Spec review: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-07). Blocked on Ramani publishing to nuget.org (Ramani 016) and on `SendAsync` returning the step (Ramani 013). Both shipped in 1.0.0-beta.23; spec revised 2026-11-08.
 - Implement: internal machine, seam, and SendAsync tests (2026-11-08). `ganda repo audit --fix` wrote the local gitignored `.vscode/settings.json` so the window-icon advisory passes in this worktree. The test file was split so the fake seam is its own file under the 500-line cap.
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ba1d-527e-7e32-b55f-ee53bd850cfd, max-turns 500, Done — 2026-11-08T08:23:50Z
+- Review oracle round 1: claude-opus-5-5 (Claude Code, headless), effort 3, roster general, 2026-11-08. Found 5 open findings (2 bug, 3 suggestion) and requested a fix pass. See `review/round-1/merged.md`.
 
 ## Notes
 
@@ -96,6 +97,10 @@ Review findings folded in on 2026-11-08: Ramani effects are synchronous (channel
 InternalsVisibleTo choice: grant `run-tests` and `json-rpc-session-machine.send-async` on `TimeWarp.Amuru`. `dev test` compiles `tests/timewarp-amuru/multi-file-runners/run-tests.cs`, whose assembly name is `run-tests`, and that compilation includes the session tests plus `json-rpc-session-machine.fake-seam.cs`. The second friend is the assembly name `dotnet run` would give the session test file alone. The fake is a sibling file, so the aggregate suite is the run that compiles both. `TimeWarp.Amuru.Tools` does not get InternalsVisibleTo and does not reference Ramani. Exited and Faulted stay non-final so a refused `SendAsync` still returns a reason; SM010 is suppressed on the machine file for that reason.
 
 ## Results
+
+### Review (in progress)
+
+Round 1 used effort 3 and the general reviewer. It has 5 open findings: 2 bugs (M1, a duplicate `Send` id throws instead of being refused; M2, an id-less notification frame faults the session) and 3 suggestions (M3, Stopping never posts `ChildExited`; M4, the standalone test mode does not compile, so one `InternalsVisibleTo` entry is dead; M5, the in-flight map is never pruned). The review has no disposition yet, and a fix pass is pending. Artifacts: `review/review-framework.md` and `review/round-1/general.md`, `review/round-1/merged.md`. The reviewer re-ran `dev test`: 773 total, 772 passed, 1 skipped, `SendAsync_Given_` 31/31.
 
 The session is an internal exhaustive Ramani machine, `JsonRpcSessionMachine`, in `TimeWarp.Amuru.JsonRpc`. `TimeWarp.Ramani` 1.0.0-beta.23 is pinned in `Directory.Packages.props` and referenced only by the core project. `<Version>` is still `3.0.0-beta.1`. `AsJsonRpcClient()` stays commented. PublicAPI.Unshipped.txt is unchanged.
 
