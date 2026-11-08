@@ -7,14 +7,19 @@
 // Completion. The machine's MachineStep is the refusal. A completion source is not added to the signal.
 // After the payload is read, the client sends Release. Request timeout and caller cancellation both
 // send RequestTimeout so the id does not stay pending.
-// JsonSerializerContext is the NativeAOT serializer. JsonSerializerOptions uses reflection and is
-// suppressed at the branch that runs only when no context was supplied.
-// The client does not dispatch server methods, notifications, or proxies.
+// Both serializer paths resolve JsonTypeInfo and call the JsonTypeInfo overloads.
+// A source-generated context is the NativeAOT path. Options supply a resolver, which may be
+// that same context. There is no trim suppression on this path.
+// NotifyAsync writes a frame with no id and does not create an in-flight entry.
+// The host waits on Context.Ready and Context.Settled. Those complete in the transition effect,
+// which runs before the state assignment, so the waiter yields until the state is published.
+// Dispose bounds its wait by the child's shutdown grace plus a margin.
+// The client does not dispatch server methods or inbound notifications.
 #endregion
 
 namespace TimeWarp.Amuru;
 
-using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization.Metadata;
 using TimeWarp.Amuru.JsonRpc;
 using TimeWarp.Ramani;
 
@@ -24,6 +29,7 @@ using TimeWarp.Ramani;
 /// </summary>
 public sealed class JsonRpcClient : IAsyncDisposable
 {
+  private static readonly TimeSpan SettleMargin = TimeSpan.FromSeconds(2);
   private readonly JsonRpcChildProcess Child;
   private readonly JsonRpcSessionMachine Machine;
   private readonly JsonRpcSessionContext Context;
@@ -65,7 +71,7 @@ public sealed class JsonRpcClient : IAsyncDisposable
   /// <typeparam name="TResult">The result type</typeparam>
   /// <param name="method">The JSON-RPC method name</param>
   /// <returns>The deserialized result. Null when the response result is JSON null and the type allows it.</returns>
-  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, or the result could not be read.</exception>
+  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, the serializer has no metadata for the parameter or result type, or the result could not be read.</exception>
   /// <exception cref="TimeoutException">The request exceeded the timeout from <see cref="ShellBuilder.WithTimeout"/>.</exception>
   /// <exception cref="OperationCanceledException">The caller's cancellation token fired.</exception>
   public Task<TResult?> SendAsync<TResult>(string method)
@@ -80,7 +86,7 @@ public sealed class JsonRpcClient : IAsyncDisposable
   /// <param name="method">The JSON-RPC method name</param>
   /// <param name="cancellationToken">Cancels the wait for the response</param>
   /// <returns>The deserialized result. Null when the response result is JSON null and the type allows it.</returns>
-  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, or the result could not be read.</exception>
+  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, the serializer has no metadata for the parameter or result type, or the result could not be read.</exception>
   /// <exception cref="TimeoutException">The request exceeded the timeout from <see cref="ShellBuilder.WithTimeout"/>.</exception>
   /// <exception cref="OperationCanceledException">The caller's cancellation token fired.</exception>
   public Task<TResult?> SendAsync<TResult>(string method, CancellationToken cancellationToken)
@@ -98,7 +104,7 @@ public sealed class JsonRpcClient : IAsyncDisposable
   /// <param name="parameters">The parameters. Null omits the params member.</param>
   /// <param name="cancellationToken">Cancels the wait for the response</param>
   /// <returns>The deserialized result. Null when the response result is JSON null and the type allows it.</returns>
-  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, or the result could not be read.</exception>
+  /// <exception cref="JsonRpcException">The response is an error, the session refused the request, the serializer has no metadata for the parameter or result type, or the result could not be read.</exception>
   /// <exception cref="TimeoutException">The request exceeded the timeout from <see cref="ShellBuilder.WithTimeout"/>.</exception>
   /// <exception cref="OperationCanceledException">The caller's cancellation token fired.</exception>
   public async Task<TResult?> SendAsync<TParams, TResult>
@@ -134,7 +140,58 @@ public sealed class JsonRpcClient : IAsyncDisposable
   }
 
   /// <summary>
+  /// Sends a notification. The frame has no id, and the client does not wait for a response.
+  /// </summary>
+  /// <param name="method">The JSON-RPC method name</param>
+  /// <exception cref="JsonRpcException">The session refused the notification.</exception>
+  /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+  public Task NotifyAsync(string method)
+  {
+    return NotifyAsync<object?>(method, null, CancellationToken.None);
+  }
+
+  /// <summary>
+  /// Sends a notification. The frame has no id, and the client does not wait for a response.
+  /// </summary>
+  /// <param name="method">The JSON-RPC method name</param>
+  /// <param name="cancellationToken">Cancels the call before the session accepts it</param>
+  /// <exception cref="JsonRpcException">The session refused the notification.</exception>
+  /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+  /// <exception cref="OperationCanceledException">The caller's cancellation token fired.</exception>
+  public Task NotifyAsync(string method, CancellationToken cancellationToken)
+  {
+    return NotifyAsync<object?>(method, null, cancellationToken);
+  }
+
+  /// <summary>
+  /// Sends a notification. The frame has no id, and the client does not wait for a response.
+  /// A null parameter value omits the params member.
+  /// </summary>
+  /// <typeparam name="TParams">The parameter type</typeparam>
+  /// <param name="method">The JSON-RPC method name</param>
+  /// <param name="parameters">The parameters. Null omits the params member.</param>
+  /// <param name="cancellationToken">Cancels the call before the session accepts it</param>
+  /// <exception cref="JsonRpcException">The session refused the notification, or the serializer has no metadata for the parameter type.</exception>
+  /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+  /// <exception cref="OperationCanceledException">The caller's cancellation token fired.</exception>
+  public async Task NotifyAsync<TParams>
+  (
+    string method,
+    TParams? parameters,
+    CancellationToken cancellationToken = default
+  )
+  {
+    ArgumentException.ThrowIfNullOrEmpty(method);
+    ObjectDisposedException.ThrowIf(Volatile.Read(ref Disposed) != 0, this);
+    cancellationToken.ThrowIfCancellationRequested();
+    string? paramsJson = SerializeParams(parameters);
+    MachineStep sent = await Machine.SendAsync(new Notify(method, paramsJson)).ConfigureAwait(false);
+    ThrowIfRefused(sent);
+  }
+
+  /// <summary>
   /// Stops the child and releases the session.
+  /// The wait for the session to settle is bounded by the shutdown grace plus a short margin.
   /// </summary>
   public async ValueTask DisposeAsync()
   {
@@ -150,11 +207,14 @@ public sealed class JsonRpcClient : IAsyncDisposable
       return;
     }
 
-    await WaitUntilAsync
-    (
-      () => Machine.State is JsonRpcSessionState.Exited or JsonRpcSessionState.Faulted,
-      CancellationToken.None
-    ).ConfigureAwait(false);
+    try
+    {
+      await Context.Settled.WaitAsync(Child.Grace + SettleMargin).ConfigureAwait(false);
+    }
+    catch (TimeoutException)
+    {
+      await Child.StopAsync(CancellationToken.None).ConfigureAwait(false);
+    }
   }
 
   internal static async Task<JsonRpcClient> StartAsync
@@ -174,13 +234,8 @@ public sealed class JsonRpcClient : IAsyncDisposable
     {
       MachineStep step = await machine.SendAsync(new Start()).ConfigureAwait(false);
       ThrowIfRefused(step);
-      await WaitUntilAsync
-      (
-        () => machine.State is JsonRpcSessionState.Ready
-          or JsonRpcSessionState.Exited
-          or JsonRpcSessionState.Faulted,
-        cancellationToken
-      ).ConfigureAwait(false);
+      await WaitForReadyOrSettledAsync(context, cancellationToken).ConfigureAwait(false);
+      await WaitUntilStatePublishedAsync(machine).ConfigureAwait(false);
       if (machine.State != JsonRpcSessionState.Ready)
       {
         throw new JsonRpcException(context.FaultReason ?? "the child did not become ready");
@@ -192,11 +247,17 @@ public sealed class JsonRpcClient : IAsyncDisposable
     {
       if (machine.State == JsonRpcSessionState.Starting)
       {
-        await WaitUntilAsync
-        (
-          () => machine.State != JsonRpcSessionState.Starting,
-          CancellationToken.None
-        ).ConfigureAwait(false);
+        try
+        {
+          await Task.WhenAny(context.Ready, context.Settled)
+            .WaitAsync(child.Grace + SettleMargin, CancellationToken.None)
+            .ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+        }
+
+        await WaitUntilStatePublishedAsync(machine).ConfigureAwait(false);
       }
 
       await client.DisposeAsync().ConfigureAwait(false);
@@ -285,7 +346,7 @@ public sealed class JsonRpcClient : IAsyncDisposable
 
       return DeserializeResult<TResult>(parsed.ResultJson ?? "null");
     }
-    catch (JsonException exception)
+    catch (Exception exception) when (exception is JsonException or InvalidOperationException or NotSupportedException)
     {
       throw new JsonRpcException("the JSON-RPC result could not be read", exception);
     }
@@ -301,16 +362,6 @@ public sealed class JsonRpcClient : IAsyncDisposable
     await Machine.SendAsync(new Release(id)).ConfigureAwait(false);
   }
 
-  [UnconditionalSuppressMessage(
-    "Trimming",
-    "IL2026:RequiresUnreferencedCode",
-    Justification = "Reflection serialization runs only when the caller passed JsonSerializerOptions and no JsonSerializerContext."
-  )]
-  [UnconditionalSuppressMessage(
-    "AOT",
-    "IL3050:RequiresDynamicCode",
-    Justification = "Reflection serialization runs only when the caller passed JsonSerializerOptions and no JsonSerializerContext."
-  )]
   private string? SerializeParams<T>(T? value)
   {
     if (value is null)
@@ -318,32 +369,40 @@ public sealed class JsonRpcClient : IAsyncDisposable
       return null;
     }
 
-    if (SerializerContext is not null)
+    try
     {
-      return JsonSerializer.Serialize(value, typeof(T), SerializerContext);
+      return JsonSerializer.Serialize(value, TypeInfo(typeof(T)));
     }
-
-    return JsonSerializer.Serialize(value, SerializerOptions);
+    catch (Exception exception) when (exception is JsonException or InvalidOperationException or NotSupportedException)
+    {
+      throw new JsonRpcException("the JSON-RPC parameters could not be written", exception);
+    }
   }
 
-  [UnconditionalSuppressMessage(
-    "Trimming",
-    "IL2026:RequiresUnreferencedCode",
-    Justification = "Reflection deserialization runs only when the caller passed JsonSerializerOptions and no JsonSerializerContext."
-  )]
-  [UnconditionalSuppressMessage(
-    "AOT",
-    "IL3050:RequiresDynamicCode",
-    Justification = "Reflection deserialization runs only when the caller passed JsonSerializerOptions and no JsonSerializerContext."
-  )]
   private TResult? DeserializeResult<TResult>(string json)
+  {
+    return (TResult?)JsonSerializer.Deserialize(json, TypeInfo(typeof(TResult)));
+  }
+
+  private JsonTypeInfo TypeInfo(Type type)
   {
     if (SerializerContext is not null)
     {
-      return (TResult?)JsonSerializer.Deserialize(json, typeof(TResult), SerializerContext);
+      JsonTypeInfo? resolved = SerializerContext.GetTypeInfo(type);
+      if (resolved is null)
+      {
+        throw new NotSupportedException($"the serializer context has no metadata for {type.FullName}");
+      }
+
+      return resolved;
     }
 
-    return JsonSerializer.Deserialize<TResult>(json, SerializerOptions);
+    if (SerializerOptions is null)
+    {
+      throw new InvalidOperationException("no JSON serializer was configured");
+    }
+
+    return SerializerOptions.GetTypeInfo(type);
   }
 
   private static void ThrowIfRefused(MachineStep step)
@@ -354,11 +413,29 @@ public sealed class JsonRpcClient : IAsyncDisposable
     }
   }
 
-  private static async Task WaitUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
+  private static async Task WaitForReadyOrSettledAsync
+  (
+    JsonRpcSessionContext context,
+    CancellationToken cancellationToken
+  )
   {
-    while (!condition())
+    Task completed = await Task.WhenAny(context.Ready, context.Settled)
+      .WaitAsync(cancellationToken)
+      .ConfigureAwait(false);
+    await completed.ConfigureAwait(false);
+  }
+
+  private static async Task WaitUntilStatePublishedAsync(JsonRpcSessionMachine machine)
+  {
+    DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+    while (machine.State is JsonRpcSessionState.Starting or JsonRpcSessionState.Stopping)
     {
-      await Task.Delay(10, cancellationToken).ConfigureAwait(false);
+      if (DateTime.UtcNow > deadline)
+      {
+        return;
+      }
+
+      await Task.Yield();
     }
   }
 }

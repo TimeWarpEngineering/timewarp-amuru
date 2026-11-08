@@ -6,6 +6,9 @@
   <ItemGroup>
     <!-- External packages -->
     <PackageVersion Include="CliWrap" Version="3.10.5" />
+    <!-- MCP stdio validation server only. The product does not reference these. -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
     <PackageVersion Include="NuGet.Versioning" Version="7.9.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />

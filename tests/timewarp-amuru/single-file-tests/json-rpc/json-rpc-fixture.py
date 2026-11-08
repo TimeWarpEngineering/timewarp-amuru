@@ -45,6 +45,9 @@ for raw in sys.stdin:
     request_id = message.get("id")
     params = message.get("params") or {}
 
+    if request_id is None:
+        continue
+
     if method == "initialize":
         sys.stderr.write("stderr:initialize\n")
         sys.stderr.flush()
@@ -85,5 +88,20 @@ for raw in sys.stdin:
 
     if method == "crash":
         os.kill(os.getpid(), signal.SIGKILL)
+
+    if method == "garbage":
+        sys.stdout.write("this is not json\n")
+        sys.stdout.flush()
+        continue
+
+    if method == "close-stdout":
+        respond(request_id, {"ok": True})
+        # CPython opens stdout with closefd=False, so closing the file object
+        # leaves the descriptor open and the parent never reads end of file.
+        descriptor = sys.stdout.fileno()
+        sys.stdout.close()
+        os.close(descriptor)
+        time.sleep(30)
+        os._exit(0)
 
     fail(request_id, -32601, "Method not found")

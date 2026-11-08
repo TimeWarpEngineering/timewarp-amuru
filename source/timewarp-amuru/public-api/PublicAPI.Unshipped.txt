@@ -2,6 +2,9 @@
 TimeWarp.Amuru.JsonRpcClient
 TimeWarp.Amuru.JsonRpcClient.DisposeAsync() -> System.Threading.Tasks.ValueTask
 TimeWarp.Amuru.JsonRpcClient.ExitStatus.get -> System.Diagnostics.ProcessExitStatus?
+TimeWarp.Amuru.JsonRpcClient.NotifyAsync(string! method) -> System.Threading.Tasks.Task!
+TimeWarp.Amuru.JsonRpcClient.NotifyAsync(string! method, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+TimeWarp.Amuru.JsonRpcClient.NotifyAsync<TParams>(string! method, TParams? parameters, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 TimeWarp.Amuru.JsonRpcClient.SendAsync<TParams, TResult>(string! method, TParams? parameters, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TResult?>!
 TimeWarp.Amuru.JsonRpcClient.SendAsync<TResult>(string! method) -> System.Threading.Tasks.Task<TResult?>!
 TimeWarp.Amuru.JsonRpcClient.SendAsync<TResult>(string! method, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResult?>!

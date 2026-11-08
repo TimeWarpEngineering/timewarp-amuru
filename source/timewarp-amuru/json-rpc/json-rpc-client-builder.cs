@@ -37,8 +37,10 @@ public sealed class JsonRpcClientBuilder
   }
 
   /// <summary>
-  /// Uses reflection serialization with these options.
-  /// NativeAOT callers use <see cref="WithJsonSerializerContext"/> instead.
+  /// Uses these options to resolve JSON type metadata for each call.
+  /// NativeAOT callers pass a source-generated <see cref="JsonSerializerContext"/>,
+  /// or options whose <see cref="JsonSerializerOptions.TypeInfoResolver"/> is one.
+  /// Options with no resolver require reflection serialization, which NativeAOT disables.
   /// </summary>
   /// <param name="options">The serializer options</param>
   /// <returns>This builder</returns>

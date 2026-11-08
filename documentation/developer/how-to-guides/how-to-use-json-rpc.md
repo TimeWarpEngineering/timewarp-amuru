@@ -46,13 +46,15 @@ partial class ProtocolJsonContext : JsonSerializerContext
 }
 ```
 
-`WithTimeout` limits each request. Dispose stops the child. `WithTimeoutGracePeriod` is the time shutdown waits after the terminate signal before the process is killed.
+`WithTimeout` limits each request. Dispose stops the child. `WithTimeoutGracePeriod` is the time shutdown waits after the terminate signal before the process is killed. Dispose waits for the session to settle, and that wait is the grace period plus a short margin.
+
+Closing the child's standard output ends the session. The client waits briefly for the process to exit, then kills a child that is still running.
 
 `samples/json-rpc/aot-json-rpc-example.cs` is a file-based program in this shape. Build it, or publish it with `PublishAot=true`. Pass `run` to start the repository fixture. A second argument is the fixture path when the process has no entry-point directory, which is the published binary.
 
 ## Reflection serializer
 
-A host that still allows reflection serialization can pass `JsonSerializerOptions` instead of a context. When both are set, the context performs serialization. A host that has disabled reflection serialization throws `InvalidOperationException` from `System.Text.Json` if the options path is used without a `TypeInfoResolver`.
+A host can pass `JsonSerializerOptions` instead of a context. The client resolves metadata with `JsonSerializerOptions.GetTypeInfo` and serializes through that `JsonTypeInfo`. When both are set, the context performs serialization. NativeAOT and the file-based programs in this repository disable reflection, so options need a `TypeInfoResolver` (often the same source-generated context). A missing parameter or result type throws `JsonRpcException`.
 
 ```csharp
 JsonSerializerOptions options = new()
@@ -72,11 +74,24 @@ await using JsonRpcClient client = await Shell.Builder("python3")
 | What happened | What the caller sees |
 | --- | --- |
 | The response has an error object | `JsonRpcException` with `Error` set to the code, message, and raw data JSON |
-| The session refused the request, or the result could not be read | `JsonRpcException` with `Error` null |
+| The session refused the request, the serializer has no metadata for the type, or the result could not be read | `JsonRpcException` with `Error` null |
 | `WithTimeout` elapsed | `TimeoutException` |
 | The caller's `CancellationToken` fired | `OperationCanceledException` |
 
 A notification from the child is ignored. The next response for the outstanding request is still delivered.
+
+## Outbound notifications
+
+`NotifyAsync` writes one frame with no id and does not wait for a response. MCP clients send `notifications/initialized` after `initialize` and before `tools/list`.
+
+```csharp
+InitializeResult? initialize = await client.SendAsync<InitializeParams, InitializeResult>(
+  "initialize",
+  new InitializeParams("2025-06-18", new ClientCapabilities(), new ClientInfo("amuru", "1"))
+);
+await client.NotifyAsync("notifications/initialized");
+ToolsListResult? tools = await client.SendAsync<ToolsListResult>("tools/list");
+```
 
 ## Standard error
 

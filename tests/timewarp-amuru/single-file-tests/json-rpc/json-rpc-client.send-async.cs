@@ -20,6 +20,7 @@ namespace JsonRpcClient_
 {
   using System.Collections.Concurrent;
   using System.Runtime.InteropServices;
+  using System.Text.Json;
   using System.Text.Json.Serialization;
 
   [TestTag("JsonRpc")]
@@ -83,6 +84,7 @@ namespace JsonRpcClient_
       await using JsonRpcClient client = await StartAsync();
 
       InitializeResult? initialize = await client.SendAsync<InitializeResult>("initialize");
+      await client.NotifyAsync("notifications/initialized");
       ToolsListResult? tools = await client.SendAsync<ToolsListResult>("tools/list");
 
       initialize.ShouldNotBeNull();
@@ -189,6 +191,100 @@ namespace JsonRpcClient_
       await Should.ThrowAsync<InvalidOperationException>(async () => await builder.StartAsync());
     }
 
+    public static async Task SerializerOptions_Should_ReturnTheSum()
+    {
+      JsonSerializerOptions options = new()
+      {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        TypeInfoResolver = FixtureJsonContext.Default
+      };
+      await using JsonRpcClient client = await Shell.Builder("python3")
+        .WithArguments(FixturePath())
+        .AsJsonRpcClient()
+        .WithJsonSerializerOptions(options)
+        .StartAsync();
+
+      AddResult? result = await client.SendAsync<AddParams, AddResult>("add", new AddParams(2, 3));
+
+      result.ShouldNotBeNull();
+      result.Sum.ShouldBe(5);
+    }
+
+    public static async Task MissingSerializerMetadata_Should_ThrowJsonRpcException()
+    {
+      await using JsonRpcClient client = await StartAsync();
+
+      JsonRpcException exception = await Should.ThrowAsync<JsonRpcException>(
+        async () => await client.SendAsync<UnknownParams, AddResult>("add", new UnknownParams("x"))
+      );
+
+      exception.InnerException.ShouldBeOfType<NotSupportedException>();
+    }
+
+    public static async Task MalformedStdout_Should_FaultTheSession()
+    {
+      await using JsonRpcClient client = await StartAsync();
+
+      JsonRpcException exception = await Should.ThrowAsync<JsonRpcException>(
+        async () => await client.SendAsync<OkResult>("garbage")
+      );
+
+      exception.Message.ShouldContain("not a response");
+    }
+
+    public static async Task SendAfterDispose_Should_ThrowObjectDisposedException()
+    {
+      JsonRpcClient client = await StartAsync();
+      await client.DisposeAsync();
+
+      await Should.ThrowAsync<ObjectDisposedException>(
+        async () => await client.SendAsync<OkResult>("add")
+      );
+    }
+
+    public static async Task ClosedStdout_Should_EndTheSession()
+    {
+      await using JsonRpcClient client = await StartAsync(grace: TimeSpan.FromSeconds(2));
+
+      OkResult? result = await client.SendAsync<OkResult>("close-stdout");
+
+      result.ShouldNotBeNull();
+      result.Ok.ShouldBeTrue();
+      ProcessExitStatus status = (await WaitForStatusAsync(client)).ShouldNotBeNull();
+      if (!OperatingSystem.IsWindows())
+      {
+        status.Signal.ShouldBe(PosixSignal.SIGKILL);
+      }
+    }
+
+    public static async Task RealMcpServer_Should_InitializeAndListTools()
+    {
+      string server = await McpServerPathAsync();
+      await using JsonRpcClient client = await Shell.Builder(server)
+        .WithTimeout(TimeSpan.FromSeconds(20))
+        .AsJsonRpcClient()
+        .WithJsonSerializerContext(FixtureJsonContext.Default)
+        .StartAsync();
+
+      InitializeResult? initialize = await client.SendAsync<McpInitializeParams, InitializeResult>(
+        "initialize",
+        new McpInitializeParams(
+          "2025-06-18",
+          new McpClientCapabilities(),
+          new McpClientInfo("amuru-json-rpc-test", "1")
+        )
+      );
+      await client.NotifyAsync("notifications/initialized");
+      ToolsListResult? tools = await client.SendAsync<ToolsListResult>("tools/list");
+
+      initialize.ShouldNotBeNull();
+      initialize.ProtocolVersion.ShouldBe("2025-06-18");
+      initialize.ServerInfo.Name.ShouldBe("mcp-stdio-server");
+      tools.ShouldNotBeNull();
+      tools.Tools.ShouldContain(tool => tool.Name == "add");
+    }
+
     public static Task ConfiguredStandardInput_Should_RefuseAsJsonRpcClient()
     {
       Should.Throw<InvalidOperationException>(
@@ -226,16 +322,7 @@ namespace JsonRpcClient_
 
     private static string FixturePath()
     {
-      string? root = Git.FindRoot();
-      root.ShouldNotBeNull();
-      return Path.Combine(
-        root,
-        "tests",
-        "timewarp-amuru",
-        "single-file-tests",
-        "json-rpc",
-        "json-rpc-fixture.py"
-      );
+      return Path.Combine(JsonRpcDirectory(), "json-rpc-fixture.py");
     }
 
     private static async Task<ProcessExitStatus?> WaitForStatusAsync(JsonRpcClient client)
@@ -251,6 +338,36 @@ namespace JsonRpcClient_
       }
 
       return client.ExitStatus;
+    }
+
+    private static async Task<string> McpServerPathAsync()
+    {
+      string source = Path.Combine(JsonRpcDirectory(), "mcp-stdio-server", "mcp-stdio-server.cs");
+      string outDir = Path.Combine(Path.GetTempPath(), "timewarp-amuru-083-mcp-server");
+      string built = Path.Combine(outDir, "mcp-stdio-server");
+      if (File.Exists(built) && File.GetLastWriteTimeUtc(built) >= File.GetLastWriteTimeUtc(source))
+      {
+        return built;
+      }
+
+      Directory.CreateDirectory(outDir);
+      CommandOutput output = await Shell.Builder("dotnet")
+        .WithArguments("build", source, "-o", outDir, "-c", "Release", "--nologo", "-v", "q")
+        .WithNoValidation()
+        .CaptureAsync();
+      if (output.ExitCode != 0)
+      {
+        throw new InvalidOperationException(output.Combined);
+      }
+
+      return built;
+    }
+
+    private static string JsonRpcDirectory()
+    {
+      string? root = Git.FindRoot();
+      root.ShouldNotBeNull();
+      return Path.Combine(root, "tests", "timewarp-amuru", "single-file-tests", "json-rpc");
     }
 
     private static async Task WaitUntilAsync(Func<bool> condition)
@@ -274,6 +391,19 @@ namespace JsonRpcClient_
     internal sealed record ToolsListResult(ToolInfo[] Tools);
 
     internal sealed record ToolInfo(string Name);
+
+    internal sealed record UnknownParams(string Value);
+
+    internal sealed record McpInitializeParams
+    (
+      string ProtocolVersion,
+      McpClientCapabilities Capabilities,
+      McpClientInfo ClientInfo
+    );
+
+    internal sealed record McpClientCapabilities();
+
+    internal sealed record McpClientInfo(string Name, string Version);
   }
 
   [JsonSourceGenerationOptions(
@@ -287,6 +417,9 @@ namespace JsonRpcClient_
   [JsonSerializable(typeof(SendAsync_Given_.ServerInfo))]
   [JsonSerializable(typeof(SendAsync_Given_.ToolsListResult))]
   [JsonSerializable(typeof(SendAsync_Given_.ToolInfo))]
+  [JsonSerializable(typeof(SendAsync_Given_.McpInitializeParams))]
+  [JsonSerializable(typeof(SendAsync_Given_.McpClientCapabilities))]
+  [JsonSerializable(typeof(SendAsync_Given_.McpClientInfo))]
   internal sealed partial class FixtureJsonContext : JsonSerializerContext
   {
   }

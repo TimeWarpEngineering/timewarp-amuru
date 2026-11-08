@@ -6,7 +6,9 @@
 // Amuru creates the three anonymous pipes and passes the child ends through ProcessStartInfo
 // handle properties. The parent keeps the other ends. CliWrap is not on this path.
 // Stdout and stderr reads are asynchronous. Stderr is drained on its own task and never joined
-// to the JSON-RPC frames. Blank lines are not frames.
+// to the JSON-RPC frames. Blank lines are not frames. StopAsync disposes the stderr cancellation source.
+// A closed stdout ends the session. The read path waits asynchronously for the child to exit,
+// then kills a child that is still running. That wait uses WaitForExitStatusAsync.
 // KillOnParentExit is set where that property exists. Stop sends SIGTERM on Unix, then
 // SafeProcessHandle.WaitForExitOrKillOnCancellationAsync when the grace period or the caller token fires.
 // ProcessExitStatus records an exit code or a terminating signal.
@@ -20,7 +22,7 @@ using System.Diagnostics.CodeAnalysis;
 [SuppressMessage(
   "Design",
   "CA1001",
-  Justification = "StopAsync releases the process, pipes, and readers. JsonRpcClient.DisposeAsync is that path."
+  Justification = "StopAsync releases the process, pipes, readers, and the standard-error cancellation source. JsonRpcClient.DisposeAsync is that path."
 )]
 internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
 {
@@ -28,7 +30,6 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
   private readonly string[] Arguments;
   private readonly string? WorkingDirectory;
   private readonly Dictionary<string, string?>? EnvironmentVariables;
-  private readonly TimeSpan Grace;
   private readonly Action<string>? StandardErrorObserver;
   private readonly CancellationTokenSource StandardErrorCancellation = new();
   private Process? Child;
@@ -58,6 +59,8 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
     Grace = grace;
     StandardErrorObserver = standardErrorObserver;
   }
+
+  internal TimeSpan Grace { get; }
 
   public ProcessExitStatus? ExitStatus => Volatile.Read(ref ExitStatusValue);
 
@@ -139,7 +142,7 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
       await WaitOrKillAsync(linked.Token).ConfigureAwait(false);
     }
 
-    RememberExitStatus();
+    await RememberExitStatusAsync().ConfigureAwait(false);
     await DisposeReadersAsync().ConfigureAwait(false);
     await StandardErrorCancellation.CancelAsync().ConfigureAwait(false);
     if (StandardErrorTask is not null)
@@ -155,6 +158,7 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
 
     Child?.Dispose();
     Child = null;
+    StandardErrorCancellation.Dispose();
   }
 
   [SuppressMessage(
@@ -205,19 +209,20 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
     }
   }
 
-  private Task FinishAfterStdoutClosedAsync()
+  private async Task FinishAfterStdoutClosedAsync()
   {
     if (Child is null)
     {
-      return Task.CompletedTask;
+      return;
     }
 
     if (!HasExited() && !OperatingSystem.IsIOS() && !OperatingSystem.IsTvOS())
     {
-      if (Child.TryWaitForExitStatus(TimeSpan.FromMilliseconds(500), out ProcessExitStatus? status) && status is not null)
+      ProcessExitStatus? status = await WaitForExitStatusAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+      if (status is not null)
       {
         Volatile.Write(ref ExitStatusValue, status);
-        return Task.CompletedTask;
+        return;
       }
 
       try
@@ -229,8 +234,7 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
       }
     }
 
-    RememberExitStatus();
-    return Task.CompletedTask;
+    await RememberExitStatusAsync().ConfigureAwait(false);
   }
 
   private async Task WaitOrKillAsync(CancellationToken cancellationToken)
@@ -264,20 +268,39 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
     }
     catch (InvalidOperationException)
     {
-      RememberExitStatus();
+      await RememberExitStatusAsync().ConfigureAwait(false);
     }
   }
 
-  private void RememberExitStatus()
+  private async Task RememberExitStatusAsync()
   {
     if (ExitStatus is not null || Child is null || OperatingSystem.IsIOS() || OperatingSystem.IsTvOS())
     {
       return;
     }
 
-    if (Child.TryWaitForExitStatus(TimeSpan.FromSeconds(2), out ProcessExitStatus? status) && status is not null)
+    ProcessExitStatus? status = await WaitForExitStatusAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
+    if (status is not null)
     {
       Volatile.Write(ref ExitStatusValue, status);
+    }
+  }
+
+  private async Task<ProcessExitStatus?> WaitForExitStatusAsync(TimeSpan timeout)
+  {
+    if (Child is null)
+    {
+      return null;
+    }
+
+    using CancellationTokenSource timeoutSource = new(timeout);
+    try
+    {
+      return await Child.WaitForExitStatusAsync(timeoutSource.Token).ConfigureAwait(false);
+    }
+    catch (OperationCanceledException)
+    {
+      return null;
     }
   }
 

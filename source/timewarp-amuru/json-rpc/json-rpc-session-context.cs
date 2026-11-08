@@ -13,6 +13,8 @@
 // complete or fail map entries.
 // The machine reference lets a behavior call Send. SendAsync stays with the host.
 // FaultReason keeps the first failure text, including a start failure that has no in-flight id.
+// Ready completes when the Started effect runs. Settled completes when a transition fails pending
+// work, which is every path into Exited or Faulted. The host awaits those tasks instead of polling.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;
@@ -22,6 +24,10 @@ using System.Threading.Channels;
 internal sealed class JsonRpcSessionContext
 {
   private readonly ConcurrentDictionary<string, JsonRpcInFlight> Requests = new();
+  private readonly TaskCompletionSource ReadyGate =
+    new(TaskCreationOptions.RunContinuationsAsynchronously);
+  private readonly TaskCompletionSource SettledGate =
+    new(TaskCreationOptions.RunContinuationsAsynchronously);
 
   public JsonRpcSessionContext(IJsonRpcProcessSeam jsonRpcProcessSeam, JsonRpcSessionMachine machine)
   {
@@ -46,6 +52,10 @@ internal sealed class JsonRpcSessionContext
     );
 
   public string? FaultReason { get; private set; }
+
+  public Task Ready => ReadyGate.Task;
+
+  public Task Settled => SettledGate.Task;
 
   public IReadOnlyDictionary<string, JsonRpcInFlight> InFlight => Requests;
 
@@ -85,6 +95,7 @@ internal sealed class JsonRpcSessionContext
   public void FailPending(string reason)
   {
     FaultReason ??= reason;
+    SettledGate.TrySetResult();
     foreach (JsonRpcInFlight entry in Requests.Values)
     {
       if (entry.Status == JsonRpcInFlightStatus.Pending)
@@ -102,5 +113,17 @@ internal sealed class JsonRpcSessionContext
     }
 
     Requests.TryRemove(release.Id, out _);
+  }
+
+  public void MarkReady() => ReadyGate.TrySetResult();
+
+  public void WriteNotification(Notify notify)
+  {
+    ArgumentException.ThrowIfNullOrEmpty(notify.Method);
+    string frame = JsonRpcFrames.WriteNotification(notify.Method, notify.ParamsJson);
+    if (!Outbound.Writer.TryWrite(frame))
+    {
+      throw new InvalidOperationException("the outbound frame channel is closed");
+    }
   }
 }

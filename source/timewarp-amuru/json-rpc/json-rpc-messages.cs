@@ -3,8 +3,9 @@
 #endregion
 
 #region Design
-// The supported surface is request and response. Notifications, server requests, and proxy
-// generation are outside it. Frames stay newline-delimited JSON.
+// The supported surface is request, response, and an outbound notification (no id).
+// Inbound notifications, server requests, and proxy generation are outside it.
+// Frames stay newline-delimited JSON.
 // JsonDocument parses a response without reflecting over the caller's result type.
 // The result payload is raw JSON so the caller serializer can read it.
 #endregion

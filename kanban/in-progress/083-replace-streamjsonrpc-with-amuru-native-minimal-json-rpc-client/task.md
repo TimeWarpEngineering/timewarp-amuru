@@ -2,13 +2,13 @@
 
 ## Goal (implementer restatement)
 
-Ship a small JSON-RPC 2.0 client that Amuru owns. A caller starts an arbitrary child with `ShellBuilder.AsJsonRpcClient()`, sends a request on the child's stdin, and reads one correlated response from stdout. The client does not generate proxies, dispatch server methods, or speak events.
+Ship a small JSON-RPC 2.0 client that Amuru owns. A caller starts an arbitrary child with `ShellBuilder.AsJsonRpcClient()`, sends a request on the child's stdin, and reads one correlated response from stdout. The client does not generate proxies or dispatch methods the child calls back.
 
-The child runs on the .NET 11 process APIs: Amuru creates the stdio pipes, redirects them with handle properties, and asks the OS to kill the child if the parent dies. Stderr is read and can be observed. It is never mixed into the JSON-RPC stream. Request bytes and response bytes use `System.Text.Json`. A source-generated `JsonSerializerContext` is the NativeAOT path. `JsonSerializerOptions` remains available for callers who are not publishing NativeAOT. There is no formatter interface.
+The child runs on the .NET 11 process APIs. Amuru creates the stdio pipes, redirects them with handle properties, and asks the OS to kill the child if the parent dies. Stderr is observed and never mixed into the JSON-RPC stream. Bytes use `System.Text.Json`. Metadata comes from `JsonTypeInfo` (a source-generated context, or options whose resolver supplies that metadata). There is no formatter interface and no trim suppression hiding a reflection serializer.
 
-The session still uses the task 139 machine and its fake seam. This work adds the real process seam and the public client on top. A caller waiting for a result waits on a completion that belongs to that one in-flight entry. The in-flight map is a concurrent dictionary so taking that completion is safe while the pump accepts or releases another id.
+The session still uses the task 139 machine. This pass adds an outbound notification (a frame with no id and no in-flight entry), because MCP requires `notifications/initialized`. Closing stdout ends the session: the client waits asynchronously, then kills a child that is still running. Dispose waits on the session's settled completion, bounded by the shutdown grace. Serializer metadata misses throw `JsonRpcException`. The standard-error cancellation source is disposed when the child stops.
 
-Acceptance: the package still has no StreamJsonRpc and no Newtonsoft.Json dependency; request, response, error, timeout, and cancellation work against a child; an MCP initialize and tools/list exchange works over the same client; the public surface, XML docs, and an AOT sample are updated; existing machine tests still pass.
+Acceptance: the package still has no StreamJsonRpc and no Newtonsoft.Json dependency; request, response, error, timeout, cancellation, notification, and dispose work against a child; a real MCP SDK stdio server completes initialize, `notifications/initialized`, and tools/list; the public surface, XML docs, and the AOT sample stay accurate; existing machine tests still pass.
 
 ## Description
 
@@ -61,6 +61,13 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 - Spec updated for the 139 machine and the API decision: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08)
 - Implemented the public client, the real process seam, tests, and the AOT sample: implementer oracle (2026-11-08)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1baa5-b54c-7622-a513-e3fc5692ee03, max-turns 500, Done — 2026-11-08T10:57:57Z
+- Review oracle round 1: general reviewer (claude-opus-5-5), effort 3, turn cap 200; harness session id not exposed. 2 bugs and 6 other findings open, fix pass requested — 2026-11-08
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 6a6489e7-96a3-4850-af4f-4fa5ee83f23c, max-turns 200, artifacts general.md, merged.md — 2026-11-08T11:02:29Z
+- Fix pass for review round 1 (M1–M8): implementer-grok, session 01a1bad2-f495-76a3-ba93-d65e90ab9555 — 2026-11-08
+
+## Review
+
+- Round 1: findings M1–M8 implemented in this pass. `review/round-1/merged.md` stays the reviewer's ledger until round 2.
 
 ## Notes
 
@@ -134,16 +141,40 @@ A response that arrives in the same moment as a timeout or caller cancellation i
 
 ## Results
 
-The public client is `Shell.Builder(...).AsJsonRpcClient()`. It starts one child on anonymous pipes and the .NET 11 handle redirection APIs, then speaks JSON-RPC 2.0 on stdin and stdout. Standard error is drained on its own task and is never merged into that stream. A source-generated `JsonSerializerContext` serializes requests and results. `JsonSerializerOptions` remains for a host that allows reflection. There is no formatter interface. The task 139 machine, its signals, and its tests are unchanged aside from the in-flight map.
+The public client is `Shell.Builder(...).AsJsonRpcClient()`. It starts one child on anonymous pipes and the .NET 11 handle redirection APIs, then speaks JSON-RPC 2.0 on stdin and stdout. Standard error is drained on its own task and is never merged into that stream. Both serializer paths resolve `JsonTypeInfo` and call those overloads. A source-generated context is the NativeAOT path. `JsonSerializerOptions` is the other path, and a file-based host sets `TypeInfoResolver` because reflection is disabled. There is no formatter interface and no IL2026/IL3050 suppression. `NotifyAsync` writes one frame with no id and no in-flight entry. Closing the child's stdout descriptor ends the session: the read path waits asynchronously, then kills a child that is still running. Dispose waits on the session settled completion, bounded by the shutdown grace plus a short margin. A missing serializer type throws `JsonRpcException`. `StopAsync` disposes the standard-error cancellation source.
+
+The task 139 machine gained a `Notify` signal. Its other signals and the fake seam stay. The in-flight map is still a `ConcurrentDictionary` with one completion per entry.
 
 M9: each in-flight entry has its own completion, and the map is a `ConcurrentDictionary`. The public client waits on that completion and then sends Release. The completion is not placed on the signal.
 
-`ganda repo audit` is clean. The child-process file was over the 500 line cap, so pipe ownership moved to `json-rpc-pipe-ends.cs`. `ganda repo audit --fix` wrote the local VS Code window title into gitignored `.vscode/settings.json`.
+`ganda repo audit` is clean. Central package versions now pin `ModelContextProtocol` 2.4.0 and `Microsoft.Extensions.Hosting` 10.0.1 for the validation server only. The aggregate runner excludes that server file so its top-level statements do not collide with the runner. The child-process file was over the 500 line cap, so pipe ownership moved to `json-rpc-pipe-ends.cs`. `ganda repo audit --fix` wrote the local VS Code window title into gitignored `.vscode/settings.json`.
 
 ### How to validate
 
 Smoke: `dotnet run tests/timewarp-amuru/single-file-tests/json-rpc/json-rpc-client.send-async.cs`
 
-Expect: 14 passed. `add` of 2 and 3 returns sum 5, `initialize` reports protocolVersion `2024-11-05`, a short `WithTimeout` around `sleep` throws `TimeoutException`, and dispose records a `ProcessExitStatus`.
+Expect: 20 passed. `add` of 2 and 3 returns sum 5 through `WithJsonSerializerOptions` when the options use camelCase and `TypeInfoResolver` is the source-generated context. `close-stdout` records a SIGKILL `ProcessExitStatus` on non-Windows. The ModelContextProtocol 2.4.0 server completes initialize at protocol `2025-06-18`, `notifications/initialized`, and tools/list containing `add`. A short `WithTimeout` around `sleep` throws `TimeoutException`, and dispose records a `ProcessExitStatus`.
 
-`./bin/dev test` reported 798 passed, 1 skipped, and 0 failed. `./bin/dev verify-samples` compiled 3 samples. `dotnet publish samples/json-rpc/aot-json-rpc-example.cs -c Release -p:PublishAot=true` produced a native binary whose publish directory and the packed `TimeWarp.Amuru` nuspec contain no Newtonsoft.Json and no StreamJsonRpc. Running that binary with `run` and the fixture path prints `5`.
+The session machine file reports 31 passed. The guard file reports 14 passed, including a notification frame with no id. `./bin/dev test` reported 806 passed, 1 skipped, and 0 failed.
+
+`./bin/dev verify-samples` compiled 3 samples this pass. The earlier implement pass published `samples/json-rpc/aot-json-rpc-example.cs` with `PublishAot=true`. That publish directory and the packed `TimeWarp.Amuru` nuspec contained no Newtonsoft.Json and no StreamJsonRpc, and running that binary with `run` and the fixture path printed `5`. This pass did not publish again.
+
+### Review
+
+Round 1 had one general reviewer at effort 3 (by-diff budget, 2343 lines). The reviewer re-ran the client tests (14 passed) and the machine tests (31 and 12 passed). This pass implements M1 through M8. Round 2 has not reviewed the result. The ledger at `review/round-1/merged.md` is unchanged.
+
+- M1: both serializer paths use `GetTypeInfo` and the `JsonTypeInfo` overloads. The suppression is gone.
+- M2: `mcp-stdio-server` is a file-based ModelContextProtocol 2.4.0 stdio server. The client test builds its apphost and runs initialize, `notifications/initialized`, and tools/list.
+- M3: `NotifyAsync` writes a frame with no id and creates no in-flight entry.
+- M4: stdout end-of-file waits with `WaitForExitStatusAsync`, then kills a child that is still running. The Python fixture closes the descriptor. Closing the Python file object alone leaves it open.
+- M5: serialize and deserialize failures are `JsonRpcException`.
+- M6: tests cover serializer options, malformed stdout, and `SendAsync` after dispose.
+- M7: `StopAsync` disposes the standard-error cancellation source.
+- M8: dispose waits on the settled completion, bounded by grace plus margin.
+
+Paths: `review/review-framework.md` and `review/round-1/merged.md` (the live ledger). `review/round-1/general.md` holds the reviewer's own findings.
+
+## Learnings
+
+- Misread (review round 1): the task checklist says "validate compatibility with real MCP servers". The implementer restatement's acceptance became "an MCP initialize and tools/list exchange works over the same client", and that was met with a hand-written Python mock. The restatement dropped "real", and the checklist box was then checked. See review M2.
+- `JsonSerializerOptions.GetTypeInfo` does not reuse a source-generated context's naming policy. Options that set `TypeInfoResolver` to that context still need `PropertyNamingPolicy` when the wire format is camelCase. CPython's stdout wrapper is created with `closefd` false, so `sys.stdout.close()` does not end the pipe.
