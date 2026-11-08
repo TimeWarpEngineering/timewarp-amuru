@@ -8,9 +8,9 @@ Task 083 adds an Amuru-native JSON-RPC client over a child process. The session 
 
 ## Goal (implementer restatement)
 
-A JSON-RPC child is a long-lived session. Start, ready, in-flight requests, stop, exit, and fault are different phases, and a send is legal only while the child is ready. This task encodes that session as an internal Ramani machine in `TimeWarp.Amuru`. `TimeWarp.Ramani` 1.0.0-beta.23 is a direct package dependency of the core library, restored from nuget.org. `TimeWarp.Amuru.Tools` does not reference it. The public surface stays as it is, including the commented `AsJsonRpcClient()` stub, and `<Version>` stays `3.0.0-beta.1`.
+The JSON-RPC child session is a long-lived conversation, and a send is legal only while that child is ready. This task models the session as an internal Ramani machine in `TimeWarp.Amuru`: Idle, Starting, Ready, Stopping, Exited, and Faulted, exhaustive over the eight signals, with a refusal reason on every illegal pair. `TimeWarp.Ramani` 1.0.0-beta.23 is a direct dependency of the core library only. The public surface, including the commented `AsJsonRpcClient()` stub, and `<Version>` `3.0.0-beta.1` stay as they are. Tests drive a narrow process seam and read `MachineStep` from `SendAsync`.
 
-Acceptance: the machine is exhaustive over Idle, Starting, Ready, Stopping, Exited, and Faulted, and over the eight signals, with a refusal reason on every illegal pair. A narrow process seam (start, write one frame, read one frame, stop) is what tests fake. The Ready do-activity is the only place that writes a frame and reads stdout. The Starting do-activity's completion posts `Started`; the host does not. A thrown Ready read and a `ReadFault` signal both end in Faulted. A timeout completes one in-flight id and leaves the session in Ready. `ChildExited` fails every in-flight id. An unknown response id is refused. Tests read `MachineStep` from `SendAsync`. The test assembly sees the internal machine through `InternalsVisibleTo`. `dev build`, `dev test`, and `ganda repo audit` pass.
+The fix pass closes the open review. A `Send` whose id is already in the map, pending or finished, is `Refused` with `duplicate request id` and does not throw. The Ready read posts `Response` only for a response frame (`result` or `error`, and no `method`). A notification, an error with a null id, and a server request do not fault the session and do not complete a pending client id. When Stopping's stop activity finishes, its completion posts `ChildExited`, the session enters Exited, and pending ids fail. A finished map entry is removed by `Release` and by the next accepted `Send`, so a live session does not retain one payload per request. Each session test file runs by itself: a block-scoped namespace, the fake seam included beside it, and `InternalsVisibleTo` for that assembly. `dev build`, `dev test`, and `ganda repo audit` pass.
 
 ## Requirements
 
@@ -77,6 +77,11 @@ Acceptance: the machine is exhaustive over Idle, Starting, Ready, Stopping, Exit
 - [x] Tests reach the internal machine: decide `InternalsVisibleTo` for the test tree or a test-only seam, and record the choice in Notes
 - [x] `./tools/dev-cli/dev.cs build` and `./tools/dev-cli/dev.cs test` pass
 - [x] `ganda repo audit` is clean
+- [x] Duplicate `Send` id, including a finished id, is `Refused` with `duplicate request id`
+- [x] Notifications, null-id errors, and server requests do not fault the session or complete a client id
+- [x] Stopping's activity completion posts `ChildExited` and fails pending ids
+- [x] Finished in-flight entries leave on `Release` and on the next accepted `Send`
+- [x] `json-rpc-session-machine.send-async.cs` and the guard file each run alone
 
 ## Session
 
@@ -84,6 +89,14 @@ Acceptance: the machine is exhaustive over Idle, Starting, Ready, Stopping, Exit
 - Spec review: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-07). Blocked on Ramani publishing to nuget.org (Ramani 016) and on `SendAsync` returning the step (Ramani 013). Both shipped in 1.0.0-beta.23; spec revised 2026-11-08.
 - Implement: internal machine, seam, and SendAsync tests (2026-11-08). `ganda repo audit --fix` wrote the local gitignored `.vscode/settings.json` so the window-icon advisory passes in this worktree. The test file was split so the fake seam is its own file under the 500-line cap.
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ba1d-527e-7e32-b55f-ee53bd850cfd, max-turns 500, Done — 2026-11-08T08:23:50Z
+- Review oracle round 1: claude-opus-5-5 (Claude Code, headless), effort 3, roster general, 2026-11-08. Found 5 open findings (2 bug, 3 suggestion) and requested a fix pass. See `review/round-1/merged.md`.
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 2d45f039-f119-4ed9-9f1d-86940ac5713f, max-turns 200, artifacts general.md, merged.md — 2026-11-08T08:29:23Z
+- Fix pass: closed M1–M5 on this branch (2026-11-08). Duplicate ids are refused, non-response frames are ignored, Stopping posts `ChildExited`, finished map entries are dropped, and both session test files run alone.
+
+## Review
+
+- Round 1: Blocked — open M1, M2, M3, M4, M5
+- Fix pass: M1–M5 implemented. Round 2 is the host review.
 
 ## Notes
 
@@ -93,19 +106,25 @@ Do not model one state per request. Two overlapping sends would then be illegal.
 
 Review findings folded in on 2026-11-08: Ramani effects are synchronous (channel plus do-activity for writes), one do-activity per state, the activity never writes the context, `OnFault` maps read exceptions to `Faulted`, `.Signals<...>()` closes the exhaustiveness gap, unknown ids need `.Else()`, and refusals reach the caller through the step `SendAsync` returns. The repo has no `InternalsVisibleTo` today; the checklist item leaves that decision to the implementer.
 
-InternalsVisibleTo choice: grant `run-tests` and `json-rpc-session-machine.send-async` on `TimeWarp.Amuru`. `dev test` compiles `tests/timewarp-amuru/multi-file-runners/run-tests.cs`, whose assembly name is `run-tests`, and that compilation includes the session tests plus `json-rpc-session-machine.fake-seam.cs`. The second friend is the assembly name `dotnet run` would give the session test file alone. The fake is a sibling file, so the aggregate suite is the run that compiles both. `TimeWarp.Amuru.Tools` does not get InternalsVisibleTo and does not reference Ramani. Exited and Faulted stay non-final so a refused `SendAsync` still returns a reason; SM010 is suppressed on the machine file for that reason.
+InternalsVisibleTo choice: grant `run-tests`, `json-rpc-session-machine.send-async`, and `json-rpc-session-machine.send-async.guard` on `TimeWarp.Amuru`. `dev test` compiles `tests/timewarp-amuru/multi-file-runners/run-tests.cs`, whose assembly name is `run-tests`, and that compilation includes the session tests plus `json-rpc-session-machine.fake-seam.cs`. The other friends are the assembly names `dotnet run` gives those two test files alone. Each file includes the fake with `#:include` and uses a block-scoped namespace so the standalone entry point compiles. `TimeWarp.Amuru.Tools` does not get InternalsVisibleTo and does not reference Ramani. Exited and Faulted stay non-final so a refused `SendAsync` still returns a reason; SM010 is suppressed on the machine file for that reason.
 
 ## Results
 
-The session is an internal exhaustive Ramani machine, `JsonRpcSessionMachine`, in `TimeWarp.Amuru.JsonRpc`. `TimeWarp.Ramani` 1.0.0-beta.23 is pinned in `Directory.Packages.props` and referenced only by the core project. `<Version>` is still `3.0.0-beta.1`. `AsJsonRpcClient()` stays commented. PublicAPI.Unshipped.txt is unchanged.
+### Fix pass (round 1 findings)
 
-States are Idle, Starting, Ready, Stopping, Exited, and Faulted. Signals are Start, Started, Send, Response, RequestTimeout, ChildExited, ReadFault, and Dispose, declared with `.Signals<...>()` and `.Exhaustive()`. Each state names every signal. There is no machine-wide `RefuseOthers`. A request is a map entry. `Send` enqueues one newline-delimited JSON frame; the single Ready do-activity drains that channel and reads the seam. The Starting do-activity posts `Started` when the seam start completes. `OnFault` on Ready, Starting, and Stopping goes to Faulted. Unknown response and timeout ids are a guard plus `.Refuse` (`unknown request id`).
+M1: Ready `Send` is guarded on "id not in the map" and otherwise `.Refuse<Send>("duplicate request id")`. A second send of a pending id, and a send of an id that has completed and has not been released, return `Refused` and do not throw. M2: the Ready read posts `Response` only for a frame with `result` or `error`, no `method`, and a string or number id. A notification, an `"id": null` error, and a server request stay in Ready and leave the pending client id pending. A malformed frame still takes `OnFault`. M3: Stopping's do-activity returns `bool`, and that completion posts `ChildExited`, so pending ids fail without the host sending the signal. M4: `json-rpc-session-machine.send-async.cs` and `json-rpc-session-machine.send-async.guard.cs` use block-scoped namespaces and `#:include` the fake seam. Both `dotnet run` alone. `InternalsVisibleTo` names `run-tests` and those two assembly names. The aggregate omits the fake from the compile glob and suppresses `CS2002`, because both files include that one seam. M5: `Release` drops one finished entry, and the next accepted `Send` drops every finished entry. A pending id stays.
+
+Round 1 artifacts stay at `review/round-1/merged.md`. This pass does not dispose them. Round 2 is the host review.
+
+The session is an internal exhaustive Ramani machine, `JsonRpcSessionMachine`, in `TimeWarp.Amuru.JsonRpc`. `TimeWarp.Ramani` 1.0.0-beta.23 is pinned in `Directory.Packages.props` and referenced only by the core project. `<Version>` is still `3.0.0-beta.1`. `AsJsonRpcClient()` stays commented. PublicAPI.Unshipped.txt is unchanged.
 
 | Gate | Result |
 |------|--------|
 | `./tools/dev-cli/dev.cs build` | Build succeeded, 0 warnings, 0 errors. Packages: `TimeWarp.Amuru.3.0.0-beta.1.nupkg`, `TimeWarp.Amuru.Tools.3.0.0-beta.1.nupkg` |
-| `./tools/dev-cli/dev.cs test` | Total 773, Passed 772, Failed 0, Skipped 1. `SendAsync_Given_` 31 passed. `All tests passed!` |
-| `ganda repo audit` | Passed 38, Failed 0, Skipped 2, after `--fix` wrote the local gitignored `.vscode/settings.json` |
+| `dotnet run` `json-rpc-session-machine.send-async.cs` | Total 31, Passed 31 |
+| `dotnet run` `json-rpc-session-machine.send-async.guard.cs` | Total 9, Passed 9 |
+| `./tools/dev-cli/dev.cs test` | Total 782, Passed 781, Failed 0, Skipped 1. `SendAsync_Given_` 31 passed. `SendAsync_Given_Guard_` 9 passed. `All tests passed!` |
+| `ganda repo audit` | Passed 38, Failed 0, Skipped 2 |
 
 ### How to validate
 
@@ -113,6 +132,8 @@ States are Idle, Starting, Ready, Stopping, Exited, and Faulted. Signals are Sta
 
 ```bash
 ./tools/dev-cli/dev.cs build
+dotnet run tests/timewarp-amuru/single-file-tests/json-rpc/json-rpc-session-machine.send-async.cs
+dotnet run tests/timewarp-amuru/single-file-tests/json-rpc/json-rpc-session-machine.send-async.guard.cs
 ./tools/dev-cli/dev.cs test
 ganda repo audit
 ```
@@ -120,5 +141,6 @@ ganda repo audit
 **Expect**
 
 - Build prints `Build succeeded.` with `0 Warning(s)` and `0 Error(s)`, and writes `TimeWarp.Amuru.3.0.0-beta.1.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.1.nupkg`. `source/Directory.Build.props` `<Version>` is still `3.0.0-beta.1`.
-- Tests print `Failed: 0` with `Total` greater than 0 (this run: Total 773, Passed 772, Skipped 1) and `All tests passed!`. `SendAsync_Given_` is 31 passed.
+- Each standalone file prints `Passed` equal to `Total` (`31` and `9`) and does not fail to compile.
+- The suite prints `Failed: 0` with `Total` greater than 0 (this run: Total 782, Passed 781, Skipped 1) and `All tests passed!`. `SendAsync_Given_` is 31 passed and `SendAsync_Given_Guard_` is 9 passed.
 - Audit prints `Failed: 0` and `Repository passes all audit checks.` A fresh clone without `.vscode/settings.json` still reports the window-icon advisory; that file is gitignored and `ganda repo audit --fix` creates it locally.
