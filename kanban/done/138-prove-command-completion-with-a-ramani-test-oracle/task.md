@@ -65,7 +65,7 @@ Filed from the Ramani review on 2026-11-07. The production contract this oracle 
 
 Null commands (`NeverRanExitCode`) and the choice of `RunAsync` versus `CaptureAsync` are outside this machine. They are not phases of one run.
 
-Task 141 aligned the runners with this oracle. `SendAsync_Given_.Interrupting_ChildExited_Should_ExitWithTheChildCode` still steps `TimeoutElapsed` then `ChildExited(130)` and records `Exited` with that code and `TimedOut` false. Production now does the same: a child that exits during the grace period keeps its own code, including Unix exit 130 for an unhandled SIGINT, and `TimedOut` stays false. Grace elapsed is still exit 124. The production cases are `WithTimeout_Given_.GracefulExitZero_Should_ReportTheChildCode`, `UnhandledSigInt_Should_ReportExit130`, and `TtyPassthrough_UnhandledSigInt_Should_ReportExit130WithoutThrowing`.
+Task 141 aligned the runners with this oracle. `SendAsync_Given_.Interrupting_ChildExited_Should_ExitWithTheChildCode` still steps `TimeoutElapsed` then `ChildExited(130)` and records `Exited` with that code and `TimedOut` false. Production now does the same: a child that exits during the grace period keeps its own code, including Unix exit 130 for an unhandled SIGINT, and `TimedOut` stays false. Grace elapsed is still exit 124. The production cases are `WithTimeout_Given_.GracefulExitZero_Should_ReportTheChildCode`, `UnhandledSigInt_Should_ReportExit130`, and `WithTimeoutModes_Given_.TtyPassthrough_UnhandledSigInt_Should_ReportExit130WithoutThrowing`.
 
 ## Results
 

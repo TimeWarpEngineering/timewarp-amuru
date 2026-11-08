@@ -10,7 +10,7 @@
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.user-secrets.cs": 743,
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.watch.cs": 661,
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.workload.cs": 1944,
-    "source/timewarp-amuru/core/command-result.cs": 1408,
+    "source/timewarp-amuru/core/command-result.cs": 1354,
     "tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.cli-smoke.cs": 510,
     "tests/timewarp-amuru/single-file-tests/native/text/direct.replace-in-files.cs": 533,
     "tools/dev-cli/endpoints/workflow-command.cs": 867
