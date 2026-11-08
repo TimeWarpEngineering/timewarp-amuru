@@ -98,6 +98,7 @@ This fix pass closes the second review. A test that sends `ChildExited` while St
 - Fix pass: closed M1–M5 on this branch (2026-11-08). Duplicate ids are refused, non-response frames are ignored, Stopping posts `ChildExited`, finished map entries are dropped, and both session test files run alone.
 - Review oracle round 2: claude-opus-5-5 (Claude Code, headless), effort 3, roster general, scope `3704ce6..a45b10f`, 2026-11-08. M1–M5 verified fixed. Opened M6 (flaky Stopping test), M7 (Accept prunes unread results), and M8 (Release writes the map off the pump). See `review/round-2/merged.md`.
 - Fix pass (round 2): closed M6–M8 on this branch (2026-11-08). The Stopping child-exited test holds the fake stop. A finished payload stays until the host sends `Release`, and that effect is the only removal. It runs on the pump.
+- Review oracle round 3: claude-opus-5-5 (Claude Code, headless), effort 2, roster general, scope `a45b10f..c20e40a`, 2026-11-08. M6–M8 verified fixed. Raised M9 (host-side map lookup can run while the pump writes the map) and marked it wontfix, deferred to 083. Disposition: accepted-exceptions with 0 open. See `review/round-3/merged.md` and `review/disposition.md`.
 
 ## Review
 
@@ -105,7 +106,7 @@ This fix pass closes the second review. A test that sends `ChildExited` while St
 - Fix pass: M1–M5 implemented. Round 2 is the host review.
 - Round 2: Blocked — open M6, M7, M8
 - Fix pass: M6–M8 implemented. Round 3 is the host review.
-
+- Round 3: Done
 ## Notes
 
 Filed from the Ramani review on 2026-11-07. Task 083 remains the public client: `ShellBuilder.AsJsonRpcClient()` (or the equivalent entry point), `JsonSerializerOptions` / `JsonSerializerContext`, stderr observation, PublicAPI, XML docs, the NativeAOT sample, the MCP sample, and the docs. After this task merges, 083 implements the real process seam behind the interface this machine calls and deletes nothing this task proved.
@@ -115,6 +116,8 @@ Do not model one state per request. Two overlapping sends would then be illegal.
 Review findings folded in on 2026-11-08: Ramani effects are synchronous (channel plus do-activity for writes), one do-activity per state, the activity never writes the context, `OnFault` maps read exceptions to `Faulted`, `.Signals<...>()` closes the exhaustiveness gap, unknown ids need `.Else()`, and refusals reach the caller through the step `SendAsync` returns. The repo has no `InternalsVisibleTo` today; the checklist item leaves that decision to the implementer.
 
 InternalsVisibleTo choice: grant `run-tests`, `json-rpc-session-machine.send-async`, and `json-rpc-session-machine.send-async.guard` on `TimeWarp.Amuru`. `dev test` compiles `tests/timewarp-amuru/multi-file-runners/run-tests.cs`, whose assembly name is `run-tests`, and that compilation includes the session tests plus `json-rpc-session-machine.fake-seam.cs`. The other friends are the assembly names `dotnet run` gives those two test files alone. Each file includes the fake with `#:include` and uses a block-scoped namespace so the standalone entry point compiles. `TimeWarp.Amuru.Tools` does not get InternalsVisibleTo and does not reference Ramani. Exited and Faulted stay non-final so a refused `SendAsync` still returns a reason; SM010 is suppressed on the machine file for that reason.
+
+Handoff to 083 from review round 3 (M9, wontfix here). `JsonRpcSessionContext.Requests` is a plain `Dictionary`. Pump effects are its only writers: `Accept` adds and `Release` removes. When the host reads `InFlight[id]` from another thread while one of those effects runs, the lookup is unsafe. 083 must choose one approach before concurrent callers can reach the map: a `ConcurrentDictionary`, reading results on the pump, or an awaitable completion per entry.
 
 ## Results
 
@@ -129,6 +132,15 @@ Round 1 artifacts stay at `review/round-1/merged.md`. This pass does not dispose
 M6: `Stopping_ChildExitedFromReadyRequest_Should_FailTheId` calls `HoldStop` before `Dispose`, so Stopping's activity cannot post `ChildExited` before the test signal. The other Stopping tests already use `StoppingAsync`, which holds the stop. Twelve standalone runs of the send-async file passed. M7: `Accept` no longer removes finished entries. The map is the only copy of a result, so the next `Send` leaves an unread payload in place. `NextSend_Should_KeepAnUnreadResult` checks that. M8: `Release` is a signal. Ready, Stopping, Exited, and Faulted take it for a finished id and refuse a pending or unknown id. The effect is the only removal, and it runs on the pump with `Accept` and `FailPending`. A second `.Signals<Release>()` call declares it, because one call holds eight type arguments.
 
 Round 2 artifacts stay at `review/round-2/merged.md`. This pass does not dispose them. Round 3 is the host review.
+
+### Review disposition
+
+- **Outcome:** accepted-exceptions. Final open count: 0.
+- **Rounds:** 3, with general as the only reviewer. Rounds 1 and 2 used effort 3. Round 3 used effort 2 (285 lines in the diff).
+- **Final counts:** 4 bugs fixed (M1, M2, M6, M7). 4 suggestions fixed (M3, M4, M5, M8). 1 suggestion wontfix (M9). No nits.
+- **Exception:** M9. The host looks up the plain `Dictionary` map while the pump still adds and removes keys. This is deferred to task 083, which owns the public client's read path. Nothing in task 139 reads the map concurrently. See Notes.
+- **Round 3 gates (c20e40a):** `dev build` passed with 0 warnings and 0 errors. The send-async file ran alone 14 times and passed 31/31 each time. The guard file ran alone 5 times and passed 12/12 each time. `dev test`: Total 785, Passed 784, Skipped 1, Failed 0. `ganda repo audit` passed.
+- **Artifacts:** `review/review-framework.md`, `review/round-3/merged.md` (final ledger), `review/round-3/general.md`, `review/disposition.md`.
 
 The session is an internal exhaustive Ramani machine, `JsonRpcSessionMachine`, in `TimeWarp.Amuru.JsonRpc`. `TimeWarp.Ramani` 1.0.0-beta.23 is pinned in `Directory.Packages.props` and referenced only by the core project. `<Version>` is still `3.0.0-beta.1`. `AsJsonRpcClient()` stays commented. PublicAPI.Unshipped.txt is unchanged.
 
