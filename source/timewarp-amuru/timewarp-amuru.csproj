@@ -12,7 +12,18 @@
 
   <ItemGroup>
     <PackageReference Include="CliWrap" />
+    <PackageReference Include="TimeWarp.Ramani" />
     <PackageReference Include="TimeWarp.Terminal" />
+  </ItemGroup>
+
+  <!-- dev test compiles tests/timewarp-amuru/multi-file-runners/run-tests.cs (assembly run-tests).
+       dotnet run of a session test file uses that file name as its assembly name.
+       Each of those files includes the fake seam. Task 139.
+       A direct InternalsVisibleTo from TimeWarp.Amuru.Tools stays absent. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="run-tests" />
+    <InternalsVisibleTo Include="json-rpc-session-machine.send-async" />
+    <InternalsVisibleTo Include="json-rpc-session-machine.send-async.guard" />
   </ItemGroup>
 
   <!-- Surface guard for this packable project only. PrivateAssets keeps it out of the nupkg.
