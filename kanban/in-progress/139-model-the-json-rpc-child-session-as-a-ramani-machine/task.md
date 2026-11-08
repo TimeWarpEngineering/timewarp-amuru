@@ -83,6 +83,7 @@ Acceptance: the machine is exhaustive over Idle, Starting, Ready, Stopping, Exit
 - Created: 01a1b4c4-827b-7d70-9fd0-358726b63b0b (2026-11-07)
 - Spec review: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-07). Blocked on Ramani publishing to nuget.org (Ramani 016) and on `SendAsync` returning the step (Ramani 013). Both shipped in 1.0.0-beta.23; spec revised 2026-11-08.
 - Implement: internal machine, seam, and SendAsync tests (2026-11-08). `ganda repo audit --fix` wrote the local gitignored `.vscode/settings.json` so the window-icon advisory passes in this worktree. The test file was split so the fake seam is its own file under the 500-line cap.
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ba1d-527e-7e32-b55f-ee53bd850cfd, max-turns 500, Done — 2026-11-08T08:23:50Z
 
 ## Notes
 
