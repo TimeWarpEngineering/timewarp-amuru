@@ -33,18 +33,19 @@ A test-only Ramani machine is the oracle for how one command run finishes. It is
 
 ## Checklist
 
-- [ ] Ramani machine under the test tree, exhaustive over the signal set
-- [ ] Tests for exit, interrupt-then-exit, grace timeout, caller cancel winning a race, strict timeout, and the TTY no-throw exemption
-- [ ] Tests for the two TTY start refusals, decided before a mock match
-- [ ] Oracle source under the test tree; `TimeWarp.Amuru.Tools` has no Ramani reference
-- [ ] `./tools/dev-cli/dev.cs test` passes
-- [ ] `ganda repo audit` is clean
+- [x] Ramani machine under the test tree, exhaustive over the signal set
+- [x] Tests for exit, interrupt-then-exit, grace timeout, caller cancel winning a race, strict timeout, and the TTY no-throw exemption
+- [x] Tests for the two TTY start refusals, decided before a mock match
+- [x] Oracle source under the test tree; `TimeWarp.Amuru.Tools` has no Ramani reference
+- [x] `./tools/dev-cli/dev.cs test` passes
+- [x] `ganda repo audit` is clean
 
 ## Session
 
 - Created: 01a1b4c4-827b-7d70-9fd0-358726b63b0b (2026-11-07)
 - Spec review after 139 merged: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08). Dependency paragraph updated; MachineStep and Signals notes added. Production contract unchanged.
 - Implement oracle: implemented by implementer-grok (not reported, model grok-4.7), session 01a1bbe6-b892-72d0-8b8f-ce2a79c01596, max-turns 4, Blocked — 2026-11-08T16:04:19Z
+- Implement resume: session 01a1bbe9-8923-72c1-846c-362c633470a7 (2026-11-08). Removed the dummy terminal transitions, suppressed SM010 in `tests/.editorconfig`, and constructed the harness with `using var run = new Run(...)` so IDE0007 and IDE0008 both hold. Oracle tests are green. Runners were left alone.
 
 ## Notes
 
@@ -52,17 +53,41 @@ Filed from the Ramani review on 2026-11-07. The production contract this oracle 
 
 Null commands (`NeverRanExitCode`) and the choice of `RunAsync` versus `CaptureAsync` are outside this machine. They are not phases of one run.
 
-## Blocked
+Runner disagreement, left in place. `SendAsync_Given_.Interrupting_ChildExited_Should_ExitWithTheChildCode` steps `TimeoutElapsed` then `ChildExited(130)` and records `Exited` with that code and `TimedOut` false. The runners report exit 124 when the child exits during the grace period. `TimeoutSession.TimedOut` is true once the graceful token has fired, and both paths treat that as the result:
 
-2026-11-08: Finish the command-completion machine so it compiles (SM010 terminal refusals without a dummy transition, and one consistent using-declaration style that satisfies both IDE0007 and IDE0008), get the send-async oracle tests green, run the repo test gate and `ganda repo audit`, write kitchen Results, then commit and push the task branch.
+- CliWrap (`ExecuteCliAsync`, used by capture, run, select, and passthrough) takes the `OperationCanceledException` when `session.TimedOut` and stores exit 124. `WithTimeout_Given_.DefaultValidation_Should_ReportExit124WithoutThrowing` runs a child that exits 0 on SIGINT and expects 124. The same shape is in `Passthrough_Should_ReportTimeout`, `Select_Should_ReturnCapturedTextAndRecordTimeout`, `Run_Should_Return124`, and `RunAndCapture_Should_Report124AndKeepStdout`.
+- `TtyPassthroughAsync` checks `session.TimedOut` after `WaitForExitAsync` returns, so a child that has already exited is still exit 124. `WithTimeout_Given_.TtyPassthrough_Should_ReportTimeoutWithoutThrowing` is that case, and it also shows the no-throw exemption under zero-exit validation. The oracle matches the exemption in `TimedOut_TtyZeroExit_Should_RecordWithoutThrowing`.
 
-### Resume note (2026-11-08, cockpit a875b3a1)
+## Results
 
-The first implement pass stopped on two compile conflicts. Both have precedent in this repo:
+The test tree holds `CommandCompletionMachine`, an exhaustive Ramani oracle over `ChildExited`, `TimeoutElapsed`, `GraceElapsed`, and `CallerCanceled`. `Exited`, `TimedOut`, and `Canceled` stay non-final and refuse every signal with a reason. SM010 is suppressed for that file in `tests/.editorconfig`, because a final state would discard those signals. The generator is attached from the Ramani package the core project already restores. `source/timewarp-amuru-tools` has no Ramani reference. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are unchanged.
 
-- **SM010** (terminal states that only refuse are not final). Keep `Exited`, `TimedOut`, and `Canceled` as ordinary non-final states, exactly as 139 did for `Exited` and `Faulted`. Suppress SM010 for the oracle file in the test-tree `.editorconfig` with a reason comment, following the `[timewarp-amuru/json-rpc/json-rpc-session-machine.cs]` block in `source/.editorconfig`. Do not add a dummy transition. A UML final state would discard the signals the spec says to refuse with a reason.
-- **IDE0007 vs IDE0008.** Root `.editorconfig` sets `csharp_style_var_when_type_is_apparent = true` and `var_elsewhere = false`. So `using var run = new Run(...)` when the type is apparent from `new`, and an explicit type otherwise. Do not suppress either rule.
+`SendAsync_Given_` steps each accepted transition, the caller-cancel race, strict timeout, the TTY no-throw exemption, both TTY start refusals (including empty standard input, and standard input winning over a pipeline), and every refusal. `./tools/dev-cli/dev.cs test`: 826 total, 825 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing).
 
-The disagreement found so far (TTY and CliWrap runners report exit 124 when the child exits during the grace period, while the oracle says `Exited` with the child's code) is exactly what the spec asks to record under Notes. Leave the runners alone and write it down with the test name that shows it.
+### How to validate
 
-Uncommitted work from the first pass is in the worktree: `tests/timewarp-amuru/command-completion/`, `tests/timewarp-amuru/single-file-tests/core/command-completion-machine.send-async.cs`, and `tests/timewarp-amuru/Directory.Build.props`. Continue from it.
+**Smoke**
+
+```bash
+dotnet run tests/timewarp-amuru/single-file-tests/core/command-completion-machine.send-async.cs
+```
+
+**Expect**
+
+- 19 passed, 0 failed.
+- `Running` + `ChildExited(3)` ends in `Exited`, exit code 3, `TimedOut` false, and the order is tty-stdin, tty-pipeline, mock-match.
+- `TimeoutElapsed` then `ChildExited(130)` ends in `Exited` with 130, not a timeout.
+- `TimeoutElapsed` then `GraceElapsed` ends in `TimedOut` with exit 124.
+- `CallerCanceled`, and `GraceElapsed` after `CallerTokenFired`, throw `OperationCanceledException`, stay `Canceled`, and leave `LastOutput` unset.
+- Zero-exit validation records exit 124 and then throws `TimeoutException`. The same path with `IsTty` records 124 and does not throw.
+- A TTY start with configured standard input (empty included) throws `TtyPassthroughAsync requires console stdin; configured standard input cannot be used with a TTY` and the order stops at `refusal`, before `mock-match`.
+- A TTY pipeline throws `TtyPassthroughAsync cannot run a pipeline; the upstream stage would be dropped` after the stdin check and before `mock-match`.
+- Every other signal in `Exited`, `TimedOut`, and `Canceled` is `MachineStepOutcome.Refused` with that state's reason.
+
+**Automated**
+
+```bash
+./tools/dev-cli/dev.cs test
+# expect: Failed: 0 (this session: Passed 825, Skipped 1, Total 826)
+ganda repo audit
+```
