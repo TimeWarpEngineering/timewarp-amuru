@@ -53,11 +53,12 @@ The test props attach that generator from the `TimeWarp.Ramani` entry in `Direct
 - Review round 1 (2026-11-08): review oracle Claude Opus 5.5, effort 2, roster general. Result: 0 bugs, 1 open suggestion, 0 nits. M1: the Ramani generator path in `tests/timewarp-amuru/Directory.Build.props` types out the version a second time. A fix pass was requested and there is no disposition yet. Files: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 110094b4-8f0c-43b4-bacd-e0fe9ca277fa, max-turns 120, artifacts general.md, merged.md — 2026-11-08T16:27:15Z
 - Fix pass (review round 1 M1): session 01a1bbfc-4901-77c3-80bf-9facc295a31f (2026-11-08). The analyzer path reads the `TimeWarp.Ramani` PackageVersion and lowercases it. A missing generator dll fails the build and names the path.
+- Review round 2 (2026-11-08): review oracle Claude Opus 5.5 (headless `ganda task work`), effort 1, roster general, scope b44b799..21b7a1f. M1 is fixed and nothing new was found. Disposition is clean. Files: `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Review
 
-- Round 1: M1 fixed on this branch. Review round 2 has not run.
-
+- Round 1: M1 (suggestion) raised.
+- Round 2: Done
 ## Notes
 
 Filed from the Ramani review on 2026-11-07. The production contract this oracle copies is the Design region of `source/timewarp-amuru/core/command-result.cs`: graceful token at the timeout, forceful token after the grace period, caller cancellation not stored as `TimedOut`, exit 124 under default validation, `TimeoutException` only under zero-exit validation, and the TTY path reporting a timeout without throwing.
@@ -73,7 +74,7 @@ Runner disagreement, left in place. `SendAsync_Given_.Interrupting_ChildExited_S
 
 The test tree holds `CommandCompletionMachine`, an exhaustive Ramani oracle over `ChildExited`, `TimeoutElapsed`, `GraceElapsed`, and `CallerCanceled`. `Exited`, `TimedOut`, and `Canceled` stay non-final and refuse every signal with a reason. SM010 is suppressed for that file in `tests/.editorconfig`, because a final state would discard those signals. The generator is attached from the Ramani package the core project restores. Its cache path is the central `TimeWarp.Ramani` PackageVersion, lowercased, and a missing dll fails the build with that path (review round 1 M1). `source/timewarp-amuru-tools` has no Ramani reference. Production `CommandResult`, `TimeoutSession`, and `TtyPassthroughAsync` are unchanged.
 
-Review round 1 (general, effort 2) raised one suggestion and no bugs. M1 is fixed on this branch. Disposition waits for review round 2. Ledger: `review/round-1/merged.md`.
+Review: 2 rounds, roster general (round 1 effort 2, round 2 effort 1). Final counts: bug 0, suggestion 1 fixed (M1), nit 0. Open 0, wontfix 0. Disposition: **clean**. Files: `review/review-framework.md`, `review/round-2/merged.md` (final ledger), `review/disposition.md`.
 
 `SendAsync_Given_` steps each accepted transition, the caller-cancel race, strict timeout, the TTY no-throw exemption, both TTY start refusals (including empty standard input, and standard input winning over a pipeline), and every refusal. `./bin/dev test` on this pass: 826 total, 825 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing).
 
