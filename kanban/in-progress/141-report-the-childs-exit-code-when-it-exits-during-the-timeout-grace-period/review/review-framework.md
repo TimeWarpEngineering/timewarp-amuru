@@ -2,7 +2,7 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 236
+- Lines changed: 362
 - Effort: 2
 - TCB hits: none
 - Roster axes: general
@@ -39,6 +39,14 @@
 **Date:** 2026-11-09
 **Diff scope:** fix delta `003885a..93204a3`. That is commit `1ad4bfc`, which bounds the timeout drain after the child exits, plus the kanban record `93204a3`. The scope is the round-3 M4 fix and any new defects in that delta.
 **Effort:** 2 (by-diff budget, 236 lines). Roster axes: general only.
+**Reviewer roster:** general (review oracle, Claude Opus 5.5)
+**Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
+
+## Round 5 scope
+
+**Date:** 2026-11-09
+**Diff scope:** fix delta `93204a3..e33d046`. That is commit `013b1cf`, which keeps the child's exit code when a zero grace period cuts off a descendant, plus the kanban record `4451757` and the executable-bit fix `e33d046`. The scope is the round-4 M5 fix and any new defects in that delta.
+**Effort:** 2 (by-diff budget, 362 lines). Roster axes: general only.
 **Reviewer roster:** general (review oracle, Claude Opus 5.5)
 **Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
 

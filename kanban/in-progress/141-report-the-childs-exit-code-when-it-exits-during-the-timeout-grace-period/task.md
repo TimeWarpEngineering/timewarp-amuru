@@ -82,6 +82,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Fix pass: implement-fix-4 on 2026-11-09, session 01a1bca4-a073-70f0-9fc5-eb59e8cecc55. M4 keeps a forceful deadline after the direct child exits. An exit during grace moves that deadline to `Timeout` plus two grace periods. An earlier exit leaves `Timeout` plus one grace period. A later cancel reports the child's code with `TimedOut` false.
 - Review oracle round 4: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120, on 2026-11-09. The scope was the delta `003885a..93204a3`. M4 is verified fixed for a positive grace period. Bug M5 is open: with a zero grace period, a child that exits before the timeout while a descendant holds a pipe still reports 124. The new docs say that case keeps the child's code. A fix pass is requested. See `review/round-4/merged.md`.
 - Fix pass: implement-fix-5 on 2026-11-09, session 01a1bcbb-0ceb-7130-b375-ebef6e8ad2ca. M5 records an exit before the zero-grace signal and does not move the deadline. A descendant that holds a pipe is cut off at `Timeout` with the child's code and `TimedOut` false. An exit at or after that signal stays exit 124.
+- Review oracle round 5: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120, on 2026-11-09. The scope was the delta `93204a3..e33d046`. M5 is verified fixed. No new findings. Disposition is `clean`. See `review/round-5/merged.md` and `review/disposition.md`.
 
 ## Review
 
@@ -89,7 +90,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Round 2: M3 was open. The implement-fix-3 pass stopped the forceful deadline on that exit.
 - Round 3: M3 is fixed. M4 was open. This pass keeps a bounded deadline after the child exits.
 - Round 4: M4 is fixed. M5 was open. This pass records an exit before the zero-grace signal and leaves the deadline at `Timeout`.
-
+- Round 5: Done
 ## Notes
 
 Filed from the 138 merge on 2026-11-09. Steve: "SIGINT ending something != timeout to me."
@@ -175,3 +176,17 @@ Ledger counts after this pass:
 | Bug | 0 | 3 | 0 |
 | Suggestion | 0 | 2 | 0 |
 | Nit | 0 | 0 | 0 |
+
+Round 5 ran with effort 2 and a general reviewer, on the fix delta `93204a3..e33d046`. M5 is re-verified as fixed and the round raised no new findings.
+
+- The descendants file reports 3/3. The zero-grace case took 1.18s.
+- The capture file reports 16/16, the modes file 14/14, and `command-result.concurrency.cs` 5/5.
+- These probes used grace 0:
+  - `StreamStdoutAsync` and strict `CaptureAsync` on `sleep 15 & echo started` each ended in 1.1s with exit 0 and `TimedOut` false.
+  - A `sleep 15` child that was still running at the deadline ended with exit 124 and `TimedOut` true.
+- `command-result.cs` is still 1339 lines.
+- The new runfile has its executable bit set.
+
+The Goal restatement matches the original task and the rolled-in version bump, and no misread was found.
+
+**Review disposition: `clean`.** Five rounds ran, each with a general reviewer (Claude Opus 5.5) at effort 3, 2, 1, 2, and 2. Final counts are bug 3 fixed, suggestion 2 fixed, nit 0, with 0 open and 0 wontfix. There were no escalations. Paths: `review/review-framework.md`, `review/round-5/merged.md`, and `review/disposition.md`.
