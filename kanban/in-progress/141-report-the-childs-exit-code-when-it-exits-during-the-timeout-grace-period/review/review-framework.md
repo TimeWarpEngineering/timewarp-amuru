@@ -2,11 +2,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 230
-- Effort: 2
+- Lines changed: 167
+- Effort: 1
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 120 (--max-turns; cursor uncapped)
+- Turn cap: 80 (--max-turns; cursor uncapped)
 
 ## Scope (task 141)
 
@@ -23,6 +23,14 @@
 **Date:** 2026-11-09
 **Diff scope:** fix delta `f7aed63..fa56fb5` (commit `6ce685d`, which fixes the stream backpressure, plus the kanban record). The scope is the round-1 M1/M2 fixes and new defects in that delta.
 **Effort:** 2 (by-diff budget, 230 lines). Roster axes: general only.
+**Reviewer roster:** general (review oracle, Claude Opus 5.5)
+**Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
+
+## Round 3 scope
+
+**Date:** 2026-11-09
+**Diff scope:** fix delta `fa56fb5..003885a` (commit `f1fa4db`, which keeps a grace-period exit when the stream reader is behind, plus the kanban record `003885a`). The scope is the round-2 M3 fix and new defects in that delta.
+**Effort:** 1 (by-diff budget, 167 lines). Roster axes: general only.
 **Reviewer roster:** general (review oracle, Claude Opus 5.5)
 **Session IDs:** review oracle under `ganda task work` (Claude Code headless print mode; no vendor session id exposed)
 
