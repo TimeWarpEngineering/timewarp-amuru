@@ -3,9 +3,9 @@
 #endregion
 
 #region Design
-// The map lives on the context and is mutated only by effects on the pump.
+// The map lives on the context. Effects on the pump are its only writers, including Release.
 // Status is published after the payload so a reader that observes Completed or Failed can read Payload.
-// TimedOut completes the id and is not a session fault.
+// TimedOut completes the id and is not a session fault. The entry stays until the host sends Release.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;

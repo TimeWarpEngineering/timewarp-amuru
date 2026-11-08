@@ -4,8 +4,9 @@
 dotnet_diagnostic.CA2007.severity = error
 
 [timewarp-amuru/json-rpc/json-rpc-session-machine.cs]
-# SM010: Exited and Faulted refuse every signal. They stay non-final so SendAsync
-# returns Refused with a reason. A UML final state would discard those signals. Task 139.
+# SM010: Exited and Faulted stay non-final so SendAsync returns Refused with a reason.
+# Release of a finished id is an internal transition. Every other signal is refused.
+# A UML final state would discard those signals. Task 139.
 dotnet_diagnostic.SM010.severity = none
 
 # RS0026 flags multiple public overloads that take optional parameters.

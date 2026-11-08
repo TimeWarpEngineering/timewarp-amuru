@@ -6,8 +6,10 @@
 // The chain is one expression with a constant name, which is what the Ramani generator reads.
 // .Exhaustive() and .Signals close every (state, signal) pair. Refusals are per state.
 // A machine-wide RefuseOthers would make that proof vacuous.
-// Ready keeps Send, Response, and RequestTimeout internal so the do-activity keeps running.
+// Ready keeps Send, Response, RequestTimeout, and Release internal so the do-activity keeps running.
 // Send is guarded on "id not in the map". A duplicate, including a finished id, is Refuse.
+// Release is guarded on a finished id. It removes that id and stays in the state. Accept does not.
+// Release is a second Signals call. One call holds eight type arguments.
 // An unknown id is a guard plus Refuse. A guard alone would leave the pair undecided.
 // Stopping's activity completion posts ChildExited, the same way Starting posts Started.
 // OnFault on Ready, Starting, and Stopping maps a thrown activity to Faulted.
@@ -25,6 +27,7 @@ internal sealed partial class JsonRpcSessionMachine
     Machine.Named<JsonRpcSessionState, JsonRpcSessionContext>("json-rpc-session")
       .Exhaustive()
       .Signals<Start, Started, Send, Response, RequestTimeout, ChildExited, ReadFault, Dispose>()
+      .Signals<Release>()
       .Initial(JsonRpcSessionState.Idle)
       .State(JsonRpcSessionState.Idle)
         .On<Start>().GoTo(JsonRpcSessionState.Starting).Done()
@@ -32,6 +35,7 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Send>("the child is not ready")
         .Refuse<Response>("the child is not ready")
         .Refuse<RequestTimeout>("the child is not ready")
+        .Refuse<Release>("the child is not running")
         .Refuse<ChildExited>("the child is not running")
         .Refuse<ReadFault>("the child is not running")
         .Refuse<Dispose>("the child is not running")
@@ -46,6 +50,7 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Send>("the child is not ready")
         .Refuse<Response>("the child is not ready")
         .Refuse<RequestTimeout>("the child is not ready")
+        .Refuse<Release>("the child is not ready")
         .Refuse<Dispose>("the child is not ready")
         .Done()
       .State(JsonRpcSessionState.Ready)
@@ -56,6 +61,8 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Response>("unknown request id")
         .On<RequestTimeout>().When(static (context, signal) => context.ContainsPending(signal.Id)).Internal().Effect(static (context, signal) => context.TimeOut(signal)).Done()
         .Refuse<RequestTimeout>("unknown request id")
+        .On<Release>().When(static (context, signal) => context.ContainsFinished(signal.Id)).Internal().Effect(static (context, signal) => context.Release(signal)).Done()
+        .Refuse<Release>("the request is not finished")
         .On<ChildExited>().GoTo(JsonRpcSessionState.Exited).Effect(static (context, _) => context.FailPending("the child exited")).Done()
         .On<ReadFault>().GoTo(JsonRpcSessionState.Faulted).Effect(static (context, _) => context.FailPending("read failed")).Done()
         .On<Dispose>().GoTo(JsonRpcSessionState.Stopping).Done()
@@ -68,6 +75,8 @@ internal sealed partial class JsonRpcSessionMachine
         .On<ChildExited>().GoTo(JsonRpcSessionState.Exited).Effect(static (context, _) => context.FailPending("the child exited")).Done()
         .On<ReadFault>().GoTo(JsonRpcSessionState.Faulted).Effect(static (context, _) => context.FailPending("read failed")).Done()
         .OnFault().GoTo(JsonRpcSessionState.Faulted).Effect(static (context, fault) => context.FailPending(fault.Exception.Message)).Done()
+        .On<Release>().When(static (context, signal) => context.ContainsFinished(signal.Id)).Internal().Effect(static (context, signal) => context.Release(signal)).Done()
+        .Refuse<Release>("the request is not finished")
         .Refuse<Start>("the child is stopping")
         .Refuse<Started>("the child is stopping")
         .Refuse<Send>("the child is stopping")
@@ -76,6 +85,8 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Dispose>("the child is stopping")
         .Done()
       .State(JsonRpcSessionState.Exited)
+        .On<Release>().When(static (context, signal) => context.ContainsFinished(signal.Id)).Internal().Effect(static (context, signal) => context.Release(signal)).Done()
+        .Refuse<Release>("the request is not finished")
         .Refuse<Start>("the child has exited")
         .Refuse<Started>("the child has exited")
         .Refuse<Send>("the child has exited")
@@ -86,6 +97,8 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Dispose>("the child has exited")
         .Done()
       .State(JsonRpcSessionState.Faulted)
+        .On<Release>().When(static (context, signal) => context.ContainsFinished(signal.Id)).Internal().Effect(static (context, signal) => context.Release(signal)).Done()
+        .Refuse<Release>("the request is not finished")
         .Refuse<Start>("the session is faulted")
         .Refuse<Started>("the session is faulted")
         .Refuse<Send>("the session is faulted")

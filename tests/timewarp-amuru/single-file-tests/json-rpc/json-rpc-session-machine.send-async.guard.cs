@@ -9,6 +9,7 @@
 // This file runs alone. #:include brings in the fake seam, and the namespace is block-scoped
 // because the standalone entry point is a top-level statement.
 // The aggregate runner compiles it with JARIBU_MULTI, which drops that entry point.
+// A finished payload stays until the host sends Release. The next Send does not drop it.
 #endregion
 
 #if !JARIBU_MULTI
@@ -53,8 +54,8 @@ namespace JsonRpcSessionMachine_
       await UntilAsync(() => seam.Frames().Length == 1);
 
       await AssertRefusedAsync(machine, JsonRpcSessionState.Ready, new Send("7", "tools/list", null), "duplicate request id");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Ready, new Release("7"), "the request is not finished");
 
-      context.Release("7").ShouldBeFalse();
       context.InFlight.Count.ShouldBe(1);
       context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Pending);
       seam.Frames().Length.ShouldBe(1);
@@ -69,7 +70,8 @@ namespace JsonRpcSessionMachine_
       context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Completed);
 
       await AssertRefusedAsync(machine, JsonRpcSessionState.Ready, new Send("7", "again", null), "duplicate request id");
-      context.Release("7").ShouldBeTrue();
+      MachineStep released = await machine.SendAsync(new Release("7"));
+      released.Outcome.ShouldBe(MachineStepOutcome.Taken);
       context.InFlight.ContainsKey("7").ShouldBeFalse();
 
       MachineStep again = await machine.SendAsync(new Send("7", "again", null));
@@ -78,20 +80,76 @@ namespace JsonRpcSessionMachine_
       context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Pending);
     }
 
-    public static async Task NextSend_Should_DropFinishedEntries()
+    public static async Task NextSend_Should_KeepAnUnreadResult()
     {
       (JsonRpcSessionMachine machine, JsonRpcSessionContext context, _) = await ReadyAsync();
       await machine.SendAsync(new Send("7", "tools/list", null));
       await machine.SendAsync(new Send("8", "tools/call", null));
-      await machine.SendAsync(new Response("7", """{"id":"7","result":1}"""));
+      string payload = """{"id":"7","result":1}""";
+      await machine.SendAsync(new Response("7", payload));
 
       MachineStep next = await machine.SendAsync(new Send("9", "ping", null));
 
       next.Outcome.ShouldBe(MachineStepOutcome.Taken);
-      context.InFlight.ContainsKey("7").ShouldBeFalse();
+      context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Completed);
+      context.InFlight["7"].Payload.ShouldBe(payload);
       context.InFlight["8"].Status.ShouldBe(JsonRpcInFlightStatus.Pending);
       context.InFlight["9"].Status.ShouldBe(JsonRpcInFlightStatus.Pending);
+      context.InFlight.Count.ShouldBe(3);
+
+      MachineStep released = await machine.SendAsync(new Release("7"));
+      released.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Ready);
+      context.InFlight.ContainsKey("7").ShouldBeFalse();
       context.InFlight.Count.ShouldBe(2);
+    }
+
+    public static async Task Stopping_Release_Should_DropAFinishedId()
+    {
+      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, FakeJsonRpcProcessSeam seam) = await ReadyAsync();
+      await machine.SendAsync(new Send("7", "tools/list", null));
+      await machine.SendAsync(new Response("7", """{"id":"7","result":1}"""));
+      seam.HoldStop();
+      MachineStep dispose = await machine.SendAsync(new Dispose());
+      dispose.Outcome.ShouldBe(MachineStepOutcome.Taken);
+
+      MachineStep released = await machine.SendAsync(new Release("7"));
+
+      released.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Stopping);
+      context.InFlight.ContainsKey("7").ShouldBeFalse();
+    }
+
+    public static async Task Faulted_Release_Should_DropTheFailedId()
+    {
+      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, FakeJsonRpcProcessSeam seam) = await ReadyAsync();
+      await machine.SendAsync(new Send("7", "tools/list", null));
+      seam.EnqueueFault(new InvalidOperationException("broken pipe"));
+      await UntilAsync(() => machine.State == JsonRpcSessionState.Faulted);
+      context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Failed);
+      context.InFlight["7"].Payload.ShouldBe("broken pipe");
+
+      MachineStep released = await machine.SendAsync(new Release("7"));
+
+      released.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Faulted);
+      context.InFlight.ContainsKey("7").ShouldBeFalse();
+    }
+
+    public static async Task Exited_Release_Should_DropTheFailedId()
+    {
+      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, _) = await ReadyAsync();
+      await machine.SendAsync(new Send("7", "tools/list", null));
+      MachineStep exited = await machine.SendAsync(new ChildExited());
+      exited.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      context.InFlight["7"].Status.ShouldBe(JsonRpcInFlightStatus.Failed);
+      context.InFlight["7"].Payload.ShouldBe("the child exited");
+
+      MachineStep released = await machine.SendAsync(new Release("7"));
+
+      released.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Exited);
+      context.InFlight.ContainsKey("7").ShouldBeFalse();
     }
 
     public static async Task Notification_Should_LeaveThePendingId()

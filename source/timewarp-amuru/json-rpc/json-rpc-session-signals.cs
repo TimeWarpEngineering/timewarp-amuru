@@ -6,6 +6,7 @@
 // Declared with .Signals so exhaustiveness includes a signal no state happens to mention.
 // None of these records carries a completion source. The caller reads MachineStep from SendAsync.
 // Started is posted by the Starting activity's completion. The host does not send it.
+// Release drops one finished id. The host sends it after reading the payload. The effect runs on the pump.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;
@@ -21,6 +22,8 @@ internal sealed record Send(string Id, string Method, string? ParamsJson) : ISig
 internal sealed record Response(string Id, string Frame) : ISignal;
 
 internal sealed record RequestTimeout(string Id) : ISignal;
+
+internal sealed record Release(string Id) : ISignal;
 
 internal sealed record ChildExited : ISignal;
 

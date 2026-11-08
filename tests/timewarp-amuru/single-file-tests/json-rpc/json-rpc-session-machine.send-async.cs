@@ -9,6 +9,7 @@
 // The fake seam stands in for the child process. SendAsync's MachineStep is the assertion.
 // Started is not sent by the test. The Starting activity's completion posts it.
 // ChildExited is not sent by the host after Dispose. The Stopping activity's completion posts it.
+// A test that sends ChildExited while Stopping holds the fake stop, so that completion cannot win the race.
 // InternalsVisibleTo on TimeWarp.Amuru names this file's assembly and the multi-file runner.
 // #:include pulls in the fake seam, so this file runs alone. The namespace is block-scoped
 // because the standalone entry point is a top-level statement.
@@ -78,6 +79,7 @@ namespace JsonRpcSessionMachine_
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new Send("1", "m", null), "the child is not ready");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new Response("1", "{}"), "the child is not ready");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new RequestTimeout("1"), "the child is not ready");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new Release("1"), "the child is not running");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new ChildExited(), "the child is not running");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new ReadFault(), "the child is not running");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Idle, new Dispose(), "the child is not running");
@@ -138,6 +140,7 @@ namespace JsonRpcSessionMachine_
 
       await AssertRefusedAsync(machine, JsonRpcSessionState.Starting, new Response("1", "{}"), "the child is not ready");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Starting, new RequestTimeout("1"), "the child is not ready");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Starting, new Release("1"), "the child is not ready");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Starting, new Dispose(), "the child is not ready");
     }
 
@@ -304,10 +307,12 @@ namespace JsonRpcSessionMachine_
 
     public static async Task Stopping_ChildExitedFromReadyRequest_Should_FailTheId()
     {
-      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, _) = await ReadyAsync();
+      (JsonRpcSessionMachine machine, JsonRpcSessionContext context, FakeJsonRpcProcessSeam seam) = await ReadyAsync();
       await machine.SendAsync(new Send("7", "tools/list", null));
+      seam.HoldStop();
       MachineStep dispose = await machine.SendAsync(new Dispose());
       dispose.Outcome.ShouldBe(MachineStepOutcome.Taken);
+      machine.State.ShouldBe(JsonRpcSessionState.Stopping);
 
       MachineStep step = await machine.SendAsync(new ChildExited());
 
@@ -341,6 +346,7 @@ namespace JsonRpcSessionMachine_
       await AssertRefusedAsync(machine, JsonRpcSessionState.Stopping, new Started(), "the child is stopping");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Stopping, new Response("1", "{}"), "the child is stopping");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Stopping, new RequestTimeout("1"), "the child is stopping");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Stopping, new Release("1"), "the request is not finished");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Stopping, new Dispose(), "the child is stopping");
     }
 
@@ -359,6 +365,7 @@ namespace JsonRpcSessionMachine_
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new Started(), "the child has exited");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new Response("1", "{}"), "the child has exited");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new RequestTimeout("1"), "the child has exited");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new Release("1"), "the request is not finished");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new ChildExited(), "the child has exited");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new ReadFault(), "the child has exited");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Exited, new Dispose(), "the child has exited");
@@ -379,6 +386,7 @@ namespace JsonRpcSessionMachine_
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new Started(), "the session is faulted");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new Response("1", "{}"), "the session is faulted");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new RequestTimeout("1"), "the session is faulted");
+      await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new Release("1"), "the request is not finished");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new ChildExited(), "the session is faulted");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new ReadFault(), "the session is faulted");
       await AssertRefusedAsync(machine, JsonRpcSessionState.Faulted, new Dispose(), "the session is faulted");
