@@ -40,19 +40,19 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 
 ## Checklist
 
-- [ ] Production test: child handles SIGINT and exits 0 during grace, result exit 0 and `TimedOut` false, strict validation does not throw
-- [ ] Production test: child handles SIGINT and exits 7 during grace, result exit 7, strict validation throws `CommandExecutionException`
-- [ ] Production test: child ignores SIGINT, grace elapses, result 124 and `TimedOut` true (unchanged)
-- [ ] Same three cases for `TtyPassthroughAsync` where a TTY is available, or recorded as skipped with the reason
-- [ ] Pipeline stage case
-- [ ] Design region and XML docs updated, including the exit 130 case
-- [ ] 138 oracle and production now agree; Notes on 138 updated
-- [ ] `<Version>` is `3.0.0-beta.2` in `source/Directory.Build.props`
-- [ ] Unshipped lines moved to Shipped for both packable projects; Unshipped is header-only; RS0016/RS0017 clean
-- [ ] `documentation/release-notes/3.0.0-beta.2.md` written
-- [ ] `dev check-version` reports 3.0.0-beta.2 unpublished
-- [ ] `./tools/dev-cli/dev.cs build` and `./tools/dev-cli/dev.cs test` pass
-- [ ] `ganda repo audit` is clean
+- [x] Production test: child handles SIGINT and exits 0 during grace, result exit 0 and `TimedOut` false, strict validation does not throw
+- [x] Production test: child handles SIGINT and exits 7 during grace, result exit 7, strict validation throws `CommandExecutionException`
+- [x] Production test: child ignores SIGINT, grace elapses, result 124 and `TimedOut` true (unchanged)
+- [x] Same three cases for `TtyPassthroughAsync` where a TTY is available, or recorded as skipped with the reason
+- [x] Pipeline stage case
+- [x] Design region and XML docs updated, including the exit 130 case
+- [x] 138 oracle and production now agree; Notes on 138 updated
+- [x] `<Version>` is `3.0.0-beta.2` in `source/Directory.Build.props`
+- [x] Unshipped lines moved to Shipped for both packable projects; Unshipped is header-only; RS0016/RS0017 clean
+- [x] `documentation/release-notes/3.0.0-beta.2.md` written
+- [x] `dev check-version` reports 3.0.0-beta.2 unpublished
+- [x] `./tools/dev-cli/dev.cs build` and `./tools/dev-cli/dev.cs test` pass
+- [x] `ganda repo audit` is clean
 
 ## Depends on
 
@@ -62,6 +62,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 
 - Created: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
 - Version bump to 3.0.0-beta.2 rolled in: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
+- Implementation: 01a1bc56-2621-7af3-9055-ab81b04064d2 (2026-11-09). The grace-period growth tripped `source-file-line-cap`. The timeout session, exit capture, and timed stream moved to `command-result.timeout.cs`, the mode tests moved to `shell-builder.with-timeout.modes.cs`, and the `command-result.cs` baseline shrank from 1408 to 1354.
 
 ## Notes
 
@@ -70,3 +71,27 @@ Filed from the 138 merge on 2026-11-09. Steve: "SIGINT ending something != timeo
 Why 124 was chosen originally: the runner only sees CliWrap's `OperationCanceledException` after the graceful token fires, so 124 was the only code it could report. The grace period was still useful because the child got to flush and clean up, but its answer was discarded.
 
 Related: task 119 notes a possible CliWrap swap for a later release. This task does not need that swap, but if the exit-code capture turns out to need it, stop and record the finding rather than widening the task.
+
+The exit code is read from the process `Exited` event. CliWrap stays the process library. A zero grace period is still exit 124, because the signal and the kill are the same instant. `TtyPassthroughAsync` reports exit 7 during grace and does not throw, which is the existing TTY validation exemption. `documentation/overview.md` states no package version, so it was left as it is. The githook pins in `Directory.Packages.props` stay at `2.0.0`.
+
+## Results
+
+A child that exits during the timeout grace period keeps its own exit code and `TimedOut` stays false. The grace-period kill is still exit 124. Unix exit 130 for an unhandled SIGINT is the child's code. Caller cancellation is unchanged. The version is `3.0.0-beta.2`. Both Unshipped files are header-only. Nothing was tagged or published.
+
+`./tools/dev-cli/dev.cs build` succeeded with 0 warnings and packed `TimeWarp.Amuru.3.0.0-beta.2.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.2.nupkg`. `./tools/dev-cli/dev.cs test` reported 834 total, 833 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). `./tools/dev-cli/dev.cs check-version` reported source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and one prerelease increment ahead. The commit hook attested the line-cap commit and the version-bump commit.
+
+### How to validate
+
+**Smoke**
+
+```bash
+dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-timeout.cs
+dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-timeout.modes.cs
+./tools/dev-cli/dev.cs check-version
+```
+
+**Expect**
+
+- The capture file reports 14 passed. Exit 0 keeps `TimedOut` false and strict validation does not throw. Exit 7 throws `CommandExecutionException` and leaves `LastOutput` null. Exit 130 keeps `TimedOut` false. A child that ignores SIGINT is exit 124 and `TimedOut` true. Caller cancellation leaves `LastOutput` null.
+- The modes file reports 14 passed. `TtyPassthroughAsync` reports exit 0, exit 7 without throwing, and exit 130, and the ignored-SIGINT case is exit 124. The pipeline's last stage reports exit 7, and strict validation throws `CommandExecutionException`.
+- `check-version` prints source `3.0.0-beta.2`, latest NuGet `3.0.0-beta.1`, and that the source version is not yet published.
