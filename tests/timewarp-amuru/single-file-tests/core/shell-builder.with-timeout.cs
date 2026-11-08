@@ -12,7 +12,7 @@
 // Stream, passthrough, TTY, pipe, select, and run live in shell-builder.with-timeout.modes.cs.
 // A timed stream keeps one unread line. A slow consumer must stall the child before the burst finishes.
 // A child that exits during grace still yields every line to a slow reader, with the child's code and TimedOut false.
-// A descendant that keeps the pipe open ends at the armed deadline with that same code.
+// A descendant that keeps a pipe open lives in shell-builder.with-timeout.descendants.cs.
 #endregion
 
 #if !JARIBU_MULTI
@@ -411,63 +411,6 @@ namespace ShellBuilder_
       command.LastOutput.ShouldNotBeNull();
       command.LastOutput.ExitCode.ShouldBe(0);
       command.LastOutput.TimedOut.ShouldBeFalse();
-    }
-
-    [Timeout(15000)]
-    public static async Task Capture_DescendantHoldsStdoutBeforeTimeout_Should_EndAtTheOriginalDeadline()
-    {
-      if (!CanDeliverSigInt())
-      {
-        return;
-      }
-
-      var timeout = TimeSpan.FromSeconds(1);
-      var grace = TimeSpan.FromSeconds(1);
-      var stopwatch = Stopwatch.StartNew();
-      CommandOutput output = await Shell.Builder("sh")
-        .WithArguments("-c", "sleep 15 & echo started")
-        .WithNoValidation()
-        .WithTimeout(timeout)
-        .WithTimeoutGracePeriod(grace)
-        .CaptureAsync();
-      stopwatch.Stop();
-
-      output.ExitCode.ShouldBe(0);
-      output.TimedOut.ShouldBeFalse();
-      output.Stdout.ShouldContain("started");
-      stopwatch.Elapsed.ShouldBeGreaterThan(timeout);
-      stopwatch.Elapsed.ShouldBeLessThan(timeout + grace + TimeSpan.FromSeconds(2));
-    }
-
-    [Timeout(15000)]
-    public static async Task Capture_DescendantHoldsStdoutDuringGrace_Should_EndAtTheDrainBound()
-    {
-      if (!CanDeliverSigInt())
-      {
-        return;
-      }
-
-      const string script =
-        """
-        import os, signal, time
-        def handle(signum, frame):
-            if os.fork() == 0:
-                time.sleep(15); os._exit(0)
-            raise SystemExit(0)
-        signal.signal(signal.SIGINT, handle)
-        while True: time.sleep(0.05)
-        """;
-
-      var timeout = TimeSpan.FromSeconds(1);
-      var grace = TimeSpan.FromSeconds(1);
-      var stopwatch = Stopwatch.StartNew();
-      CommandOutput output = await Python(script, timeout, grace).CaptureAsync();
-      stopwatch.Stop();
-
-      output.ExitCode.ShouldBe(0);
-      output.TimedOut.ShouldBeFalse();
-      stopwatch.Elapsed.ShouldBeGreaterThan(timeout + grace);
-      stopwatch.Elapsed.ShouldBeLessThan(timeout + grace + grace + TimeSpan.FromSeconds(2));
     }
 
     private static bool CanDeliverSigInt() =>

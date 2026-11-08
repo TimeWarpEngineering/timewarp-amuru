@@ -36,7 +36,7 @@ Default validation (`None`) reports a timeout as a result. It does not throw.
 | --- | --- |
 | Grace period elapses, child killed, default validation | `CommandOutput.TimedOut` is true, `ExitCode` is `CommandResult.TimeoutExitCode` (124), `Success` is false |
 | Child exits during the grace period | The child's exit code, `TimedOut` false. A handled SIGINT that exits 0 is success. A handled SIGINT that exits 7 is exit 7 |
-| Direct child has already exited, and a descendant still holds a pipe when the armed deadline fires | The child's exit code, `TimedOut` false. The run ends at that deadline. An exit before the graceful signal keeps `Timeout` plus one grace period. An exit during a positive grace period uses `Timeout` plus two grace periods |
+| Direct child has already exited, and a descendant still holds a pipe when the armed deadline fires | The child's exit code, `TimedOut` false. The run ends at that deadline. An exit before the graceful signal keeps `Timeout` plus one grace period. A zero grace period leaves that deadline at `Timeout`. An exit during a positive grace period uses `Timeout` plus two grace periods |
 | Unhandled SIGINT on Unix | Exit 130 (128 + SIGINT), `TimedOut` false. The signal killed the child. That is not a timeout |
 | Grace period elapses, `WithZeroExitCodeValidation()` | `TimeoutException` whose message says the command timed out and was terminated. Captured stdout and stderr are on `CommandResult.LastOutput` |
 | Child exits non-zero during the grace period, `WithZeroExitCodeValidation()` | `CommandExecutionException`, as for any other non-zero exit. `LastOutput` is left unchanged |
@@ -44,7 +44,7 @@ Default validation (`None`) reports a timeout as a result. It does not throw.
 | `TtyPassthroughAsync` grace period elapses | The same exit-124 result, including under strict validation. This method does not throw on timeout or on a non-zero exit |
 | `TtyPassthroughAsync`, child exits during the grace period | The child's exit code, `TimedOut` false, and no exception |
 
-A zero grace period is the kill. The signal and the deadline are the same instant, so the result is exit 124 even if the signal also ends the child.
+A zero grace period is the kill when the child is still running. The signal and the deadline are the same instant, so the result is exit 124 even if the signal also ends the child. A direct child that already exited before that signal keeps its code, and a descendant that holds a pipe is cut off at `Timeout` with `TimedOut` false.
 
 124 is the exit code GNU `timeout` uses, so a shell-minded caller can recognize it.
 

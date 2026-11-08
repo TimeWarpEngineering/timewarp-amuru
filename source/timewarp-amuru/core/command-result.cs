@@ -43,7 +43,7 @@
 //   A child that exits during a positive grace period keeps its own exit code and TimedOut stays false. That exit moves the forceful deadline to Timeout plus two grace periods, so a slow reader can finish inside that drain. A descendant that still holds a pipe is cut off at the armed deadline with the same code. An exit before the graceful signal leaves Timeout plus one grace period.
 //   That includes a child that dies from an unhandled SIGINT: Unix reports 130 (128 + SIGINT), and that is an exit, not a timeout.
 //   Only the forceful token, when the child is still running, records TimedOut and exit 124.
-//   A zero grace period is that kill: the signal and the deadline are the same instant, so the result is 124.
+//   A zero grace period is that kill when the child is still running. An exit before the signal keeps the child's code, and the deadline stays at Timeout.
 //   Zero-exit validation throws TimeoutException for that kill, and CommandExecutionException for any other non-zero code.
 //   The caller's own cancellation still propagates as OperationCanceledException and does not set TimedOut.
 //   CliWrap's cancellation exception does not carry the exit code and the process is already disposed.
@@ -429,7 +429,7 @@ public partial class CommandResult
     {
       throw;
     }
-    catch (OperationCanceledException) when (session.GracefulSignaled)
+    catch (OperationCanceledException) when (session.GracefulSignaled || session.ChildExitedBeforeDeadline)
     {
       stopwatch.Stop();
       if (capture is null)

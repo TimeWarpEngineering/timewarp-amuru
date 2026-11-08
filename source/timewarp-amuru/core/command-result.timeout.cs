@@ -6,10 +6,10 @@
 // This file is the timeout half of CommandResult. The line-cap ratchet on command-result.cs cannot grow.
 // CliWrap's cancellation exception has no exit code and the process is already disposed, so ProcessExitCapture
 // copies the code from the Exited event. TimedOut is the grace-period kill only.
-// A zero grace period is that kill. A positive grace period keeps the child's code, including Unix exit 130.
+// A zero grace period is that kill when the child is still running. A positive grace period keeps the child's code, including Unix exit 130.
 // An exit during that grace moves the forceful deadline to Timeout plus two grace periods. The drain stays bounded.
-// An exit before the graceful signal leaves the original deadline. A later deadline cancel after either exit
-// reports the captured code with TimedOut false. A zero grace period does not move the deadline.
+// An exit before the graceful signal leaves the original deadline. Zero grace does not move it, and that early exit still keeps the child's code.
+// A later deadline cancel after either exit reports the captured code with TimedOut false.
 // The caller token and an abandoned enumerator still cancel the drain.
 // The timed stream cannot use ListenAsync: that event arrives only after ExecuteAsync returns a result.
 // It writes each line into a one-slot channel and waits. CliWrap's pipe token cancels a blocked write
@@ -312,10 +312,11 @@ public partial class CommandResult
     // An exit before the graceful signal leaves the deadline at Timeout plus grace.
     // An exit after that signal moves it to Timeout plus two grace periods.
     // An already-canceled source stays canceled, so a grace-period kill stays a timeout.
-    // A zero grace period is the kill itself and does not move the deadline.
+    // A zero grace period does not move the deadline. An exit before that signal still records the child.
+    // An exit at or after the zero-grace signal stays the kill, because the signal and the deadline are one instant.
     public void NoteChildExit()
     {
-      if (Grace <= TimeSpan.Zero || ForcefulDelaySource is not CancellationTokenSource forcefulDelaySource)
+      if (ForcefulDelaySource is not CancellationTokenSource forcefulDelaySource)
       {
         return;
       }
@@ -324,6 +325,17 @@ public partial class CommandResult
       {
         if (forcefulDelaySource.IsCancellationRequested)
         {
+          return;
+        }
+
+        // Zero grace has no drain window to extend. Skip CancelAfter and keep the original deadline.
+        if (Grace <= TimeSpan.Zero)
+        {
+          if (!GracefulSignaled)
+          {
+            Volatile.Write(ref ChildExitedBeforeDeadlineFlag, 1);
+          }
+
           return;
         }
 
