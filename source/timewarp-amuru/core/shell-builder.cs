@@ -7,6 +7,8 @@
 // Build delegates to CommandExtensions.Run, and the execution methods forward to that result.
 // PassthroughAsync keeps configured stdin. TtyPassthroughAsync refuses it because the child inherits the terminal.
 // WithTimeout stores the limit on CommandOptions. There is no static default timeout.
+// AsJsonRpcClient owns stdin and stdout for a long-lived JSON-RPC child. Configured stdin is refused.
+// The per-request limit is CommandOptions.Timeout. The channel does not use CliWrap.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -279,12 +281,21 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
     await Build().StreamToFileAsync(filePath, cancellationToken).ConfigureAwait(false);
   }
 
-  // /// <summary>
-  // /// Configures the command to be executed as a JSON-RPC client for interactive process communication.
-  // /// </summary>
-  // /// <returns>A JsonRpcClientBuilder for further configuration</returns>
-  // public JsonRpcClientBuilder AsJsonRpcClient()
-  // {
-  //   return new JsonRpcClientBuilder(Executable, Arguments, Options);
-  // }
+  /// <summary>
+  /// Starts a JSON-RPC client whose child is this command.
+  /// The client writes requests to the child's standard input and reads responses from standard output.
+  /// </summary>
+  /// <returns>A builder for serializer settings and standard-error observation</returns>
+  /// <exception cref="InvalidOperationException">Standard input was configured with <see cref="WithStandardInput"/>.</exception>
+  public JsonRpcClientBuilder AsJsonRpcClient()
+  {
+    if (StandardInput is not null)
+    {
+      throw new InvalidOperationException(
+        "AsJsonRpcClient owns standard input; WithStandardInput cannot be combined with it."
+      );
+    }
+
+    return new JsonRpcClientBuilder(Executable, Arguments.ToArray(), Options);
+  }
 }

@@ -72,3 +72,7 @@ There is no size limit. The limit is process memory.
 | `StreamToFileAsync` | Writes each line to the file and does not keep the text on `CommandOutput` |
 
 `CaptureAsync` records lines in arrival order, so stdout and stderr may interleave in `OutputLines`. `RunAndCaptureAsync`, and any `CommandOutput` built from separate stdout and stderr strings, orders all stdout lines before all stderr lines. Those two strings do not carry interleaving.
+
+## JSON-RPC
+
+`ShellBuilder.AsJsonRpcClient()` uses the same `WithTimeout` value as the per-request limit and the same `WithTimeoutGracePeriod` for shutdown. The JSON-RPC stream is the child's standard output. Standard error is observed separately and is not merged. See [How to call a JSON-RPC child](../how-to-guides/how-to-use-json-rpc.md).

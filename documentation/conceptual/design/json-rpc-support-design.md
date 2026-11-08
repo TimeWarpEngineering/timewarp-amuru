@@ -1,357 +1,52 @@
-> **STATUS: feature currently DISABLED.** The StreamJsonRpc-based implementation described
-> here was removed from the package to keep AOT consumers free of the transitive
-> Newtonsoft.Json dependency (kanban task 084). A native minimal JSON-RPC client is planned
-> post-1.0 (kanban task 083); this document preserves the design intent.
+# JSON-RPC support
 
-# JSON-RPC Support Design Document
+TimeWarp.Amuru speaks JSON-RPC 2.0 with a child process. Requests go to the child's standard input. Responses come back on standard output, one JSON object per line. The client correlates each response to the request that produced it.
 
-## Executive Summary
+The supported surface is request and response. Amuru does not generate proxies, dispatch server methods, raise notification events, or multiplex streams. MCP initialize and tools/list are one consumer of this surface. They do not define it.
 
-This document outlines the design and implementation of JSON-RPC support for TimeWarp.Amuru, enabling seamless communication with interactive processes like MCP servers, Language Server Protocol implementations, and custom JSON-RPC services. The feature extends Amuru's fluent builder pattern to eliminate the 200+ lines of boilerplate typically required for JSON-RPC communication.
+## Entry point
 
-## Problem Statement
-
-Currently, developers using Amuru must write verbose Process.Start() code with manual stream management, timeout handling, and request/response correlation when working with JSON-RPC processes. This contradicts Amuru's core mission of eliminating process execution verbosity.
-
-## Design Goals
-
-1. **Simplicity**: Enable JSON-RPC communication with 10-20 lines of code
-2. **Type Safety**: Provide strongly-typed request/response handling
-3. **Reliability**: Handle edge cases, timeouts, and errors gracefully
-4. **Extensibility**: Support various JSON-RPC protocols (MCP, LSP, custom)
-5. **Testability**: Provide mock implementations for unit testing
-6. **Performance**: Support concurrent requests with proper correlation
-
-## Architecture Overview
-
-### Component Diagram
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   User Application                   │
-└─────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│              Shell.Builder Extension                 │
-│                 AsJsonRpcClient()                    │
-└─────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│                  IJsonRpcClient                      │
-│  - SendRequestAsync<T>()                             │
-│  - SendNotificationAsync()                           │
-│  - DisposeAsync()                                    │
-└─────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│                   JsonRpcClient                      │
-│  ┌──────────────────────────────────────────────┐   │
-│  │            StreamJsonRpc.JsonRpc              │   │
-│  │  - Request/Response Correlation               │   │
-│  │  - Message Serialization                      │   │
-│  │  - Stream Management                          │   │
-│  └──────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────┐
-│                  Process (stdio)                     │
-│            MCP Server / LSP Server / etc.            │
-└─────────────────────────────────────────────────────┘
-```
-
-## Core Components
-
-### 1. IJsonRpcClient Interface
+`ShellBuilder.AsJsonRpcClient()` returns a `JsonRpcClientBuilder` for that command. The builder starts one child and returns a `JsonRpcClient`. Configured standard input is refused, because the client owns that stream.
 
 ```csharp
-public interface IJsonRpcClient : IAsyncDisposable
-{
-    Task<TResponse> SendRequestAsync<TResponse>(
-        string method,
-        object? parameters = null,
-        CancellationToken cancellationToken = default);
+await using JsonRpcClient client = await Shell.Builder("python3")
+  .WithArguments("server.py")
+  .WithTimeout(TimeSpan.FromSeconds(5))
+  .AsJsonRpcClient()
+  .WithJsonSerializerContext(ProtocolJsonContext.Default)
+  .StartAsync();
 
-    Task SendNotificationAsync(
-        string method,
-        object? parameters = null);
-
-    event EventHandler<JsonRpcNotificationEventArgs> NotificationReceived;
-
-    bool IsConnected { get; }
-}
+AddResult? added = await client.SendAsync<AddParams, AddResult>("add", new AddParams(2, 3));
 ```
 
-### 2. JsonRpcClient Implementation
+`WithTimeout` is the per-request limit. It is the same `CommandOptions.Timeout` used by command execution. It does not limit the life of the child. `WithTimeoutGracePeriod` is how long shutdown waits after the terminate signal before the process is killed.
 
-The implementation leverages Microsoft's StreamJsonRpc library for robust JSON-RPC handling:
+## Serializer
 
-- **Message Transport**: Uses stdio streams (stdin/stdout) for process communication
-- **Serialization**: System.Text.Json with configurable options
-- **Request Correlation**: Handled by StreamJsonRpc
-- **Lifecycle Management**: IAsyncDisposable with graceful shutdown
+The builder accepts a source-generated `JsonSerializerContext` or a `JsonSerializerOptions`. When both are set, the context performs serialization. There is no formatter interface.
 
-### 3. JsonRpcClientBuilder
+NativeAOT callers pass a `JsonSerializerContext`. `JsonSerializerOptions` uses reflection. A host that has disabled reflection serialization, including NativeAOT and the file-based programs in this repository, must pass a context. `StartAsync` throws `InvalidOperationException` when neither was set.
 
-Provides fluent configuration for JSON-RPC clients:
+## Messages
 
-```csharp
-public class JsonRpcClientBuilder
-{
-    public JsonRpcClientBuilder WithTimeout(TimeSpan timeout);
-    public JsonRpcClientBuilder WithJsonOptions(JsonSerializerOptions options);
-    public JsonRpcClientBuilder WithTracing(bool enable);
-    public Task<IJsonRpcClient> StartAsync();
-}
-```
+A request is a JSON-RPC 2.0 object with a string id, a method, and an optional params member. A null parameter value omits params. Ids are decimal strings allocated by the client.
 
-### 4. Shell Extension
+A response is either a result or an error object. `SendAsync` deserializes the result to `TResult`. An error object becomes `JsonRpcError` (code, message, and the raw JSON of data) and `SendAsync` throws `JsonRpcException`. A session refusal and a frame that cannot be read also throw `JsonRpcException`, with `Error` left null.
 
-```csharp
-public static class ShellBuilderJsonRpcExtensions
-{
-    public static JsonRpcClientBuilder AsJsonRpcClient(
-        this IShellBuilder builder);
-}
-```
+A notification, a server request, and an error with a null id are ignored. They are not dispatched.
 
-## Implementation Details
+## Process
 
-### Message Format Support
+The client creates three anonymous pipes and passes the child ends through `ProcessStartInfo` handle properties. The parent keeps the other ends and reads them asynchronously. CliWrap is not on this path. Standard error is drained on its own task. `WithStandardErrorObserver` receives each line. An exception from that callback is ignored so a full standard-error pipe cannot stall the child. Standard error is never merged into the JSON-RPC stream.
 
-1. **Newline-Delimited JSON**: Default for MCP servers
-2. **Content-Length Headers**: LSP-style communication
-3. **AOT-Only**: Requires SystemTextJsonFormatter with JsonSerializerContext
-4. **No Newtonsoft.Json**: Not supported due to AOT incompatibility
+Where the operating system supports it, the child is marked to die when the parent dies. `DisposeAsync` closes standard input, sends SIGTERM on Unix, and then waits. The grace period or a cancelled dispose kills the child. `JsonRpcClient.ExitStatus` is a `ProcessExitStatus` once that status is known. `Signal` is set when a signal terminated the child. `Canceled` is set when shutdown killed the child because the grace period elapsed or the caller cancelled.
 
-### Error Handling Strategy
+## Session
 
-| Error Type | Handling Approach |
-|------------|-------------------|
-| Timeout | CancellationTokenSource with configurable duration |
-| Malformed JSON | ConnectionLostException with details |
-| Process Crash | Dispose client, raise ProcessExited event |
-| Network Issues | Retry with exponential backoff (future) |
-| Protocol Errors | JsonRpcError with error code and message |
+An internal Ramani machine tracks the child: Idle, Starting, Ready, Stopping, Exited, and Faulted. The public client sends the machine's signals and waits on a completion that belongs to that one in-flight request. The completion is not placed on the signal. The in-flight map is a concurrent dictionary so the client can take one entry's completion while the pump accepts or releases another id. Pump effects are the only writers of an entry. After the client reads the payload it sends Release, and the effect removes the entry.
 
-### Concurrent Request Management
+A request timeout and caller cancellation both complete that entry. A response that arrives in the same moment is the result the caller receives. Otherwise caller cancellation throws `OperationCanceledException` and the timeout throws `TimeoutException`.
 
-- StreamJsonRpc handles request queuing and correlation
-- Thread-safe request tracking
-- Proper cancellation token propagation
-- Deadlock prevention through async/await patterns
+## Package graph
 
-### Lifecycle Management
-
-1. **Initialization**:
-   - Start process using existing Shell infrastructure
-   - Establish stdio streams
-   - Initialize StreamJsonRpc.JsonRpc instance
-   - Configure message formatter and handlers
-
-2. **Operation**:
-   - Send requests with automatic ID generation
-   - Correlate responses using StreamJsonRpc
-   - Handle notifications through event system
-   - Monitor process health
-
-3. **Shutdown**:
-   - Send shutdown request (if protocol supports)
-   - Graceful timeout period
-   - Force kill if necessary
-   - Clean up resources
-
-## API Usage Examples
-
-### Basic MCP Server Communication (AOT-Compatible)
-
-```csharp
-// Create formatter with appropriate JsonSerializerContext for AOT
-var formatter = new SystemTextJsonFormatter(McpJsonContext.Default);
-
-var client = await Shell.Builder("dotnet")
-    .WithArguments("run", "--project", mcpServerPath)
-    .AsJsonRpcClient()
-    .WithFormatter(formatter) // Required for AOT
-    .WithTimeout(TimeSpan.FromSeconds(30))
-    .StartAsync();
-
-// Initialize connection
-var initResponse = await client.SendRequestAsync<InitializeResponse>(
-    "initialize",
-    new {
-        protocolVersion = "1.0.0",
-        clientInfo = new { name = "amuru-client", version = "1.0.0" }
-    });
-
-// List available tools
-var tools = await client.SendRequestAsync<ToolsListResponse>("tools/list");
-
-// Call a tool
-var result = await client.SendRequestAsync<dynamic>(
-    "tools/call",
-    new { toolName = "weather", arguments = new { location = "Seattle" } });
-
-await client.DisposeAsync();
-```
-
-### Language Server Protocol
-
-```csharp
-var lsp = await Shell.Builder("typescript-language-server")
-    .WithArguments("--stdio")
-    .AsJsonRpcClient()
-    .StartAsync();
-
-// Handle server notifications
-lsp.NotificationReceived += (sender, args) =>
-{
-    if (args.Method == "textDocument/publishDiagnostics")
-    {
-        var diagnostics = args.Parameters?.ToObject<PublishDiagnosticsParams>();
-        // Handle diagnostics
-    }
-};
-
-// Initialize LSP
-await lsp.SendRequestAsync<InitializeResult>(
-    "initialize",
-    new InitializeParams
-    {
-        ProcessId = Process.GetCurrentProcess().Id,
-        RootUri = "file:///workspace",
-        Capabilities = new ClientCapabilities()
-    });
-
-// Open a document
-await lsp.SendNotificationAsync(
-    "textDocument/didOpen",
-    new DidOpenTextDocumentParams
-    {
-        TextDocument = new TextDocumentItem
-        {
-            Uri = "file:///workspace/test.ts",
-            LanguageId = "typescript",
-            Version = 1,
-            Text = fileContent
-        }
-    });
-```
-
-## Testing Strategy
-
-### Unit Tests
-
-- Mock JsonRpcClient for isolated testing
-- Test request/response correlation
-- Verify timeout behavior
-- Test error handling paths
-
-### Integration Tests
-
-```csharp
-[Fact]
-public async Task Should_Communicate_With_Real_McpServer()
-{
-    // Arrange
-    var client = await CreateMcpClient();
-
-    // Act
-    var response = await client.SendRequestAsync<InitializeResponse>(
-        "initialize",
-        new { protocolVersion = "1.0.0" });
-
-    // Assert
-    response.ProtocolVersion.Should().Be("1.0.0");
-    response.ServerInfo.Should().NotBeNull();
-}
-```
-
-### Performance Tests
-
-- Concurrent request handling (100+ simultaneous requests)
-- Large message handling (>1MB payloads)
-- Long-running connection stability
-- Memory leak detection
-
-## Security Considerations
-
-1. **Input Validation**: Validate all incoming JSON against expected schemas
-2. **Process Isolation**: Run JSON-RPC processes with minimal privileges
-3. **Timeout Protection**: Prevent resource exhaustion through configurable timeouts
-4. **Secret Management**: Never log sensitive data from requests/responses
-5. **Injection Prevention**: Sanitize all user inputs before passing to processes
-
-## Migration Path
-
-For existing users with manual JSON-RPC implementations:
-
-1. **Phase 1**: Introduce new API alongside existing code
-2. **Phase 2**: Provide migration guide with examples
-3. **Phase 3**: Deprecate manual approach in favor of new API
-
-## Future Enhancements
-
-### Short Term (v1.1)
-- Batch request support for improved performance
-- WebSocket transport for remote servers
-- Built-in retry logic with exponential backoff
-
-### Medium Term (v2.0)
-- Connection pooling for multiple clients
-- Streaming response support (Server-Sent Events)
-- Protocol-specific client implementations (McpClient, LspClient)
-
-### Long Term
-- gRPC support alongside JSON-RPC
-- GraphQL subscription support
-- Custom protocol plugins
-
-## Dependencies
-
-### Required
-- **StreamJsonRpc** (6.x): Core JSON-RPC implementation
-- **System.Text.Json** (10.x): JSON serialization
-- **Microsoft.Extensions.Logging**: Diagnostic logging
-
-### Optional
-- **Polly**: Resilience and retry policies
-- **System.Threading.Channels**: Advanced queue management
-
-## Performance Targets
-
-| Metric | Target | Current |
-|--------|--------|---------|
-| Request Latency | < 10ms | ~5ms |
-| Concurrent Requests | 100+ | Untested |
-| Memory per Client | < 10MB | ~8MB |
-| Startup Time | < 100ms | ~50ms |
-
-## Risks and Mitigations
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| StreamJsonRpc bugs | High | Stay on stable versions, monitor issues |
-| Protocol incompatibilities | Medium | Extensive integration testing |
-| Performance degradation | Medium | Continuous benchmarking |
-| Breaking API changes | Low | Semantic versioning, deprecation notices |
-
-## Decision Log
-
-| Date | Decision | Rationale |
-|------|----------|-----------|
-| 2025-01-24 | Use StreamJsonRpc | Mature, battle-tested, reduces complexity |
-| 2025-01-24 | System.Text.Json over Newtonsoft | Better performance, native to .NET |
-| 2025-01-24 | Extension method pattern | Consistent with Amuru's API design |
-| 2025-01-24 | IAsyncDisposable | Proper async resource cleanup |
-
-## References
-
-- [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
-- [StreamJsonRpc Documentation](https://microsoft.github.io/vs-streamjsonrpc/)
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-- [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)
-- [GitHub Issue #18](https://github.com/TimeWarpEngineering/timewarp-amuru/issues/18)
+The implementation uses `System.Text.Json` only. The package does not reference StreamJsonRpc or Newtonsoft.Json.

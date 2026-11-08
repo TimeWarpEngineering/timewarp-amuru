@@ -1,5 +1,15 @@
 # Add an Amuru-native minimal JSON-RPC client over child-process stdio
 
+## Goal (implementer restatement)
+
+Ship a small JSON-RPC 2.0 client that Amuru owns. A caller starts an arbitrary child with `ShellBuilder.AsJsonRpcClient()`, sends a request on the child's stdin, and reads one correlated response from stdout. The client does not generate proxies, dispatch server methods, or speak events.
+
+The child runs on the .NET 11 process APIs: Amuru creates the stdio pipes, redirects them with handle properties, and asks the OS to kill the child if the parent dies. Stderr is read and can be observed. It is never mixed into the JSON-RPC stream. Request bytes and response bytes use `System.Text.Json`. A source-generated `JsonSerializerContext` is the NativeAOT path. `JsonSerializerOptions` remains available for callers who are not publishing NativeAOT. There is no formatter interface.
+
+The session still uses the task 139 machine and its fake seam. This work adds the real process seam and the public client on top. A caller waiting for a result waits on a completion that belongs to that one in-flight entry. The in-flight map is a concurrent dictionary so taking that completion is safe while the pump accepts or releases another id.
+
+Acceptance: the package still has no StreamJsonRpc and no Newtonsoft.Json dependency; request, response, error, timeout, and cancellation work against a child; an MCP initialize and tools/list exchange works over the same client; the public surface, XML docs, and an AOT sample are updated; existing machine tests still pass.
+
 ## Description
 
 **Reframed 2026-10-07.** Task 084 already removed `StreamJsonRpc` (and its transitive `Newtonsoft.Json`) from Amuru; no JSON-RPC code ships today (only a commented-out `AsJsonRpcClient` stub in `core/shell-builder.cs`). This is therefore an **additive feature**, not a replacement: a small Amuru-native JSON-RPC client that talks to an arbitrary child process over stdin/stdout, written to this repository's conventions and AOT-clean.
@@ -14,24 +24,24 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 
 ## Checklist
 
-- [ ] Define the supported JSON-RPC surface Amuru will own (request/response only, no proxy generation, no server dispatch)
-- [ ] Design Amuru-native JSON-RPC message models for requests, responses, and errors
-- [ ] Implement newline-delimited JSON-RPC transport over process stdin/stdout
-- [ ] Implement request id generation and in-flight request correlation
-- [ ] Implement typed request serialization using `System.Text.Json`
-- [ ] Implement typed response and error deserialization using `System.Text.Json`
-- [ ] Implement timeout and cancellation handling for requests
-- [ ] Implement stderr observation/logging behavior for child processes
-- [ ] Real `IJsonRpcProcessSeam` over a child process; the 139 fake seam and tests stay
-- [ ] Thread-safe result read path chosen and recorded (139 handoff M9)
-- [ ] Process layer on net11 primitives (anonymous pipes + handle redirection, `KillOnParentExit`, `ProcessExitStatus`), wrapped in an Amuru abstraction; no CliWrap in the channel
-- [ ] Builder accepts `JsonSerializerOptions` / `JsonSerializerContext` (source-generated, AOT-safe); no formatter interface in the public API
-- [ ] Restore `ShellBuilder.AsJsonRpcClient()` (or equivalent entry point) and remove the commented stub
-- [ ] PublicAPI Unshipped updated; XML docs; `IsAotCompatible` publish clean
-- [ ] Verify a NativeAOT sample consumer builds with no `Newtonsoft.Json` in its graph
-- [ ] Add/update tests for generic JSON-RPC request/response behavior
-- [ ] Add/update MCP sample/tests to validate compatibility with real MCP servers
-- [ ] Update documentation and examples to reflect the new JSON-RPC implementation
+- [x] Define the supported JSON-RPC surface Amuru will own (request/response only, no proxy generation, no server dispatch)
+- [x] Design Amuru-native JSON-RPC message models for requests, responses, and errors
+- [x] Implement newline-delimited JSON-RPC transport over process stdin/stdout
+- [x] Implement request id generation and in-flight request correlation
+- [x] Implement typed request serialization using `System.Text.Json`
+- [x] Implement typed response and error deserialization using `System.Text.Json`
+- [x] Implement timeout and cancellation handling for requests
+- [x] Implement stderr observation/logging behavior for child processes
+- [x] Real `IJsonRpcProcessSeam` over a child process; the 139 fake seam and tests stay
+- [x] Thread-safe result read path chosen and recorded (139 handoff M9)
+- [x] Process layer on net11 primitives (anonymous pipes + handle redirection, `KillOnParentExit`, `ProcessExitStatus`), wrapped in an Amuru abstraction; no CliWrap in the channel
+- [x] Builder accepts `JsonSerializerOptions` / `JsonSerializerContext` (source-generated, AOT-safe); no formatter interface in the public API
+- [x] Restore `ShellBuilder.AsJsonRpcClient()` (or equivalent entry point) and remove the commented stub
+- [x] PublicAPI Unshipped updated; XML docs; `IsAotCompatible` publish clean
+- [x] Verify a NativeAOT sample consumer builds with no `Newtonsoft.Json` in its graph
+- [x] Add/update tests for generic JSON-RPC request/response behavior
+- [x] Add/update MCP sample/tests to validate compatibility with real MCP servers
+- [x] Update documentation and examples to reflect the new JSON-RPC implementation
 
 ## Non-Goals
 
@@ -49,6 +59,7 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 - Created: ses_27dd18c7effe1K4rnFRhnQezjn (2026-04-14)
 - Reframed as additive, depends on 119: 522eb63d (2026-10-07)
 - Spec updated for the 139 machine and the API decision: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08)
+- Implemented the public client, the real process seam, tests, and the AOT sample: implementer oracle (2026-11-08)
 
 ## Notes
 
@@ -105,9 +116,33 @@ Handoff from the 139 review (finding M9, deferred here): `JsonRpcSessionContext.
 
 The machine's `SendAsync` returns `MachineStep`. A `Refused` outcome with `Reason` (for example `the child is not ready`, `already running`, `duplicate request id`) is what the public client turns into its error. Do not add a completion source on the signal.
 
+### M9 result path
+
+Chosen: an awaitable completion on each in-flight entry, and a `ConcurrentDictionary` for the map.
+
+`JsonRpcInFlight.Completion` is a `TaskCompletionSource`. Pump effects are still the only writers. An effect stores the payload, publishes `Status`, then completes the task. `SendAsync` on the public client waits on that task from the caller thread. It does not poll the map. After it reads the payload it sends `Release`, and the effect removes the entry. The dictionary is concurrent so taking one entry's task is safe while another effect accepts or releases a different id. The completion source is not added to the signal. `Machine.SendAsync` returns `MachineStep` and takes only the signal. A `Refused` step becomes `JsonRpcException`.
+
+A response that arrives in the same moment as a timeout or caller cancellation is the result the caller receives. Otherwise caller cancellation throws `OperationCanceledException` and the request timeout throws `TimeoutException`.
+
 ### Success criteria
 
 - Amuru no longer depends on `StreamJsonRpc`
 - Amuru no longer pulls `Newtonsoft.Json` into downstream package graphs through JSON-RPC support
 - Existing JSON-RPC scenarios continue to work for generic process-based request/response use cases
 - MCP sample/test scenarios still work as validation, but do not define the entire feature surface
+
+## Results
+
+The public client is `Shell.Builder(...).AsJsonRpcClient()`. It starts one child on anonymous pipes and the .NET 11 handle redirection APIs, then speaks JSON-RPC 2.0 on stdin and stdout. Standard error is drained on its own task and is never merged into that stream. A source-generated `JsonSerializerContext` serializes requests and results. `JsonSerializerOptions` remains for a host that allows reflection. There is no formatter interface. The task 139 machine, its signals, and its tests are unchanged aside from the in-flight map.
+
+M9: each in-flight entry has its own completion, and the map is a `ConcurrentDictionary`. The public client waits on that completion and then sends Release. The completion is not placed on the signal.
+
+`ganda repo audit` is clean. The child-process file was over the 500 line cap, so pipe ownership moved to `json-rpc-pipe-ends.cs`. `ganda repo audit --fix` wrote the local VS Code window title into gitignored `.vscode/settings.json`.
+
+### How to validate
+
+Smoke: `dotnet run tests/timewarp-amuru/single-file-tests/json-rpc/json-rpc-client.send-async.cs`
+
+Expect: 14 passed. `add` of 2 and 3 returns sum 5, `initialize` reports protocolVersion `2024-11-05`, a short `WithTimeout` around `sleep` throws `TimeoutException`, and dispose records a `ProcessExitStatus`.
+
+`./bin/dev test` reported 798 passed, 1 skipped, and 0 failed. `./bin/dev verify-samples` compiled 3 samples. `dotnet publish samples/json-rpc/aot-json-rpc-example.cs -c Release -p:PublishAot=true` produced a native binary whose publish directory and the packed `TimeWarp.Amuru` nuspec contain no Newtonsoft.Json and no StreamJsonRpc. Running that binary with `run` and the fixture path prints `5`.

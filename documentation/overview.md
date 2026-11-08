@@ -10,6 +10,7 @@ Technical documentation for developers using TimeWarp.Amuru in their projects.
 - **[How-To Guides](developer/how-to-guides/)** - Step-by-step instructions for specific tasks
   - [How to Use ScriptContext](developer/how-to-guides/how-to-use-script-context.md)
   - [How to Use AppContext Extensions](developer/how-to-guides/how-to-use-app-context-extensions.md)
+  - [How to call a JSON-RPC child](developer/how-to-guides/how-to-use-json-rpc.md)
 
 - **[Reference](developer/reference/)** - Detailed technical reference
   - [Shell Commands Reference](developer/reference/shell-commands.md) - Complete shell command reference
@@ -23,6 +24,7 @@ Technical documentation for developers using TimeWarp.Amuru in their projects.
 Working code examples demonstrating library features:
 - `app-context-extensions-example.cs` - Using AppContext extensions in scripts
 - `script-context-example.cs` - Directory management with ScriptContext
+- `json-rpc/aot-json-rpc-example.cs` - JSON-RPC 2.0 child with a source-generated serializer
 
 ## Quick Links
 

@@ -4,12 +4,15 @@
 
 #region Design
 // Effects on the pump are the only writers of the map and the channel. Release is one of those effects.
-// The host sends Release after it has read a finished payload. That effect is the only removal.
+// The map is a ConcurrentDictionary so a host thread can take an entry while another effect
+// accepts or releases a different id. The host waits on JsonRpcInFlight.Completion.
+// It does not add or remove keys. The host sends Release after it has read a finished payload.
 // Accept does not remove finished entries. The map is the only copy of a result, so a later Send
 // leaves an unread payload in place. A pending id stays until it completes, times out, or fails.
 // The Ready do-activity does not write this context. It posts Response or ChildExited; those effects
-// complete or fail map entries. The host reads Status and Payload. It does not add or remove keys.
+// complete or fail map entries.
 // The machine reference lets a behavior call Send. SendAsync stays with the host.
+// FaultReason keeps the first failure text, including a start failure that has no in-flight id.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;
@@ -18,7 +21,7 @@ using System.Threading.Channels;
 
 internal sealed class JsonRpcSessionContext
 {
-  private readonly Dictionary<string, JsonRpcInFlight> Requests = [];
+  private readonly ConcurrentDictionary<string, JsonRpcInFlight> Requests = new();
 
   public JsonRpcSessionContext(IJsonRpcProcessSeam jsonRpcProcessSeam, JsonRpcSessionMachine machine)
   {
@@ -42,6 +45,8 @@ internal sealed class JsonRpcSessionContext
       }
     );
 
+  public string? FaultReason { get; private set; }
+
   public IReadOnlyDictionary<string, JsonRpcInFlight> InFlight => Requests;
 
   public bool Contains(string id) => Requests.ContainsKey(id);
@@ -54,7 +59,12 @@ internal sealed class JsonRpcSessionContext
 
   public void Accept(Send send)
   {
-    Requests.Add(send.Id, new JsonRpcInFlight(send.Id));
+    JsonRpcInFlight entry = new(send.Id);
+    if (!Requests.TryAdd(send.Id, entry))
+    {
+      throw new InvalidOperationException("duplicate request id");
+    }
+
     string frame = JsonRpcFrames.WriteRequest(send.Id, send.Method, send.ParamsJson);
     if (!Outbound.Writer.TryWrite(frame))
     {
@@ -74,6 +84,7 @@ internal sealed class JsonRpcSessionContext
 
   public void FailPending(string reason)
   {
+    FaultReason ??= reason;
     foreach (JsonRpcInFlight entry in Requests.Values)
     {
       if (entry.Status == JsonRpcInFlightStatus.Pending)
@@ -90,6 +101,6 @@ internal sealed class JsonRpcSessionContext
       return;
     }
 
-    Requests.Remove(release.Id);
+    Requests.TryRemove(release.Id, out _);
   }
 }
