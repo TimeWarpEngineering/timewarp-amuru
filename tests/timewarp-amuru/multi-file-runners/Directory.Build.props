@@ -5,15 +5,20 @@
   <PropertyGroup>
     <!-- Enable Jaribu multi-mode test registration -->
     <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
-    <!-- Suppress IDE0161 for multi-file compilation (block-scoped namespaces in test files) -->
-    <NoWarn>$(NoWarn);IDE0161;IDE0065</NoWarn>
+    <!-- Suppress IDE0161 for multi-file compilation (block-scoped namespaces in test files).
+         CS2002: json-rpc-session-machine.send-async.cs and its guard file each #:include the fake
+         seam so each file runs alone. The aggregate sees that one file twice. -->
+    <NoWarn>$(NoWarn);IDE0161;IDE0065;CS2002</NoWarn>
     <!-- Enable transitive directives for single-file tests compiled in multi-file mode -->
     <ExperimentalFileBasedProgramEnableTransitiveDirectives>true</ExperimentalFileBasedProgramEnableTransitiveDirectives>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Recursive: a new sibling folder under single-file-tests is part of the aggregate run. -->
+    <!-- Recursive: a new sibling folder under single-file-tests is part of the aggregate run.
+         The fake seam is compiled through #:include on the session test files. Listing it here
+         as well warns CS2002. -->
     <Compile Include="../single-file-tests/**/*.cs" />
+    <Compile Remove="../single-file-tests/json-rpc/json-rpc-session-machine.fake-seam.cs" />
   </ItemGroup>
 
 </Project>

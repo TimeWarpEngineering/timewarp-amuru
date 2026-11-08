@@ -5,11 +5,12 @@
 #region Design
 // Only a do-activity may await. These methods capture nothing; the seam and the channel arrive on the context.
 // StartChildAsync's bool result is applied on the pump, and that result behavior posts Started.
+// StopChildAsync's bool result posts ChildExited the same way. The host does not send either signal.
 // RunReadyAsync drains the outbound channel and reads frames in one activity, because a state has one Do.
-// It posts Response or ChildExited with Send. It does not write the context, and it does not call SendAsync.
-// A null read is the child closing stdout. Any other read failure is thrown so Ready's OnFault runs.
-// After ChildExited the activity waits on the token the exit cancels, so its own completion does not
-// overtake that signal. Activity ends are drained before host signals.
+// It posts Response for a response frame, and ChildExited for a null read, with Send. It does not write the context.
+// A notification, a null-id error, and a server request are ignored. A malformed frame is thrown so OnFault runs.
+// After ChildExited from the read loop the activity waits on the token the exit cancels, so its own completion
+// does not overtake that signal. Activity ends are drained before host signals.
 #endregion
 
 namespace TimeWarp.Amuru.JsonRpc;
@@ -25,9 +26,10 @@ internal static class JsonRpcSessionActivities
     return true;
   }
 
-  public static async Task StopChildAsync(JsonRpcSessionContext context, CancellationToken cancellationToken)
+  public static async Task<bool> StopChildAsync(JsonRpcSessionContext context, CancellationToken cancellationToken)
   {
     await context.JsonRpcProcessSeam.StopAsync(cancellationToken).ConfigureAwait(false);
+    return true;
   }
 
   public static async Task RunReadyAsync(JsonRpcSessionContext context, CancellationToken cancellationToken)
@@ -50,15 +52,20 @@ internal static class JsonRpcSessionActivities
           return;
         }
 
-        if (!JsonRpcFrames.TryReadId(frame, out string id))
+        JsonRpcInbound inbound = JsonRpcFrames.ReadInbound(frame);
+        if (inbound.Kind == JsonRpcInboundKind.Malformed)
         {
-          throw new JsonException("a JSON-RPC frame has no id");
+          throw new JsonException("a JSON-RPC frame is not a response");
         }
 
-        // Send posts and returns. SendAsync is the host's step. CA1849 treats the pair as blocking.
-        #pragma warning disable CA1849
-        context.Machine.Send(new Response(id, frame));
-        #pragma warning restore CA1849
+        if (inbound.Kind == JsonRpcInboundKind.Response)
+        {
+          // Send posts and returns. SendAsync is the host's step. CA1849 treats the pair as blocking.
+          #pragma warning disable CA1849
+          context.Machine.Send(new Response(inbound.Id, frame));
+          #pragma warning restore CA1849
+        }
+
         pendingRead = context.JsonRpcProcessSeam.ReadFrameAsync(cancellationToken);
         continue;
       }

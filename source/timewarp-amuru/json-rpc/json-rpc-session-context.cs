@@ -3,9 +3,11 @@
 #endregion
 
 #region Design
-// Effects on the pump are the only writers of the map and the channel.
-// The Ready do-activity reads the channel and the seam. It does not write this context.
-// It posts Response, ChildExited, and nothing else; those effects complete or fail map entries.
+// Effects on the pump are the only writers of the map and the channel, except Release.
+// Release drops one finished entry after the host has read it. Accept drops every finished entry
+// before adding the new id, so a session that keeps sending does not retain one payload per request.
+// A pending id stays until it completes, times out, or fails. The Ready do-activity does not write this context.
+// It posts Response or ChildExited; those effects complete or fail map entries.
 // The machine reference lets a behavior call Send. SendAsync stays with the host.
 #endregion
 
@@ -41,11 +43,25 @@ internal sealed class JsonRpcSessionContext
 
   public IReadOnlyDictionary<string, JsonRpcInFlight> InFlight => Requests;
 
+  public bool Contains(string id) => Requests.ContainsKey(id);
+
   public bool ContainsPending(string id) =>
     Requests.TryGetValue(id, out JsonRpcInFlight? entry) && entry.Status == JsonRpcInFlightStatus.Pending;
 
+  public bool Release(string id)
+  {
+    if (!Requests.TryGetValue(id, out JsonRpcInFlight? entry)
+      || entry.Status == JsonRpcInFlightStatus.Pending)
+    {
+      return false;
+    }
+
+    return Requests.Remove(id);
+  }
+
   public void Accept(Send send)
   {
+    RemoveFinished();
     Requests.Add(send.Id, new JsonRpcInFlight(send.Id));
     string frame = JsonRpcFrames.WriteRequest(send.Id, send.Method, send.ParamsJson);
     if (!Outbound.Writer.TryWrite(frame))
@@ -72,6 +88,31 @@ internal sealed class JsonRpcSessionContext
       {
         entry.Fail(reason);
       }
+    }
+  }
+
+  private void RemoveFinished()
+  {
+    List<string>? finished = null;
+    foreach (KeyValuePair<string, JsonRpcInFlight> pair in Requests)
+    {
+      if (pair.Value.Status == JsonRpcInFlightStatus.Pending)
+      {
+        continue;
+      }
+
+      finished ??= [];
+      finished.Add(pair.Key);
+    }
+
+    if (finished is null)
+    {
+      return;
+    }
+
+    foreach (string id in finished)
+    {
+      Requests.Remove(id);
     }
   }
 }

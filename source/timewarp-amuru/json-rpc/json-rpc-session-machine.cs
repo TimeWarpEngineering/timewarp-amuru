@@ -7,7 +7,9 @@
 // .Exhaustive() and .Signals close every (state, signal) pair. Refusals are per state.
 // A machine-wide RefuseOthers would make that proof vacuous.
 // Ready keeps Send, Response, and RequestTimeout internal so the do-activity keeps running.
+// Send is guarded on "id not in the map". A duplicate, including a finished id, is Refuse.
 // An unknown id is a guard plus Refuse. A guard alone would leave the pair undecided.
+// Stopping's activity completion posts ChildExited, the same way Starting posts Started.
 // OnFault on Ready, Starting, and Stopping maps a thrown activity to Faulted.
 // ReadFault remains a signal the fake can inject. Both routes end in Faulted.
 // A request timeout completes one id and stays in Ready.
@@ -48,7 +50,8 @@ internal sealed partial class JsonRpcSessionMachine
         .Done()
       .State(JsonRpcSessionState.Ready)
         .Do(JsonRpcSessionActivities.RunReadyAsync)
-        .On<Send>().Internal().Effect(static (context, signal) => context.Accept(signal)).Done()
+        .On<Send>().When(static (context, signal) => !context.Contains(signal.Id)).Internal().Effect(static (context, signal) => context.Accept(signal)).Done()
+        .Refuse<Send>("duplicate request id")
         .On<Response>().When(static (context, signal) => context.ContainsPending(signal.Id)).Internal().Effect(static (context, signal) => context.Complete(signal)).Done()
         .Refuse<Response>("unknown request id")
         .On<RequestTimeout>().When(static (context, signal) => context.ContainsPending(signal.Id)).Internal().Effect(static (context, signal) => context.TimeOut(signal)).Done()
@@ -61,7 +64,7 @@ internal sealed partial class JsonRpcSessionMachine
         .Refuse<Started>("already running")
         .Done()
       .State(JsonRpcSessionState.Stopping)
-        .Do(JsonRpcSessionActivities.StopChildAsync)
+        .Do<bool>(JsonRpcSessionActivities.StopChildAsync, static (context, _) => context.Machine.Send(new ChildExited()))
         .On<ChildExited>().GoTo(JsonRpcSessionState.Exited).Effect(static (context, _) => context.FailPending("the child exited")).Done()
         .On<ReadFault>().GoTo(JsonRpcSessionState.Faulted).Effect(static (context, _) => context.FailPending("read failed")).Done()
         .OnFault().GoTo(JsonRpcSessionState.Faulted).Effect(static (context, fault) => context.FailPending(fault.Exception.Message)).Done()
