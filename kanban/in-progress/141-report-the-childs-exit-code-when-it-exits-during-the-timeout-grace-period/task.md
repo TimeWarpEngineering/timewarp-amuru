@@ -83,6 +83,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Review oracle round 4: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120, on 2026-11-09. The scope was the delta `003885a..93204a3`. M4 is verified fixed for a positive grace period. Bug M5 is open: with a zero grace period, a child that exits before the timeout while a descendant holds a pipe still reports 124. The new docs say that case keeps the child's code. A fix pass is requested. See `review/round-4/merged.md`.
 - Fix pass: implement-fix-5 on 2026-11-09, session 01a1bcbb-0ceb-7130-b375-ebef6e8ad2ca. M5 records an exit before the zero-grace signal and does not move the deadline. A descendant that holds a pipe is cut off at `Timeout` with the child's code and `TimedOut` false. An exit at or after that signal stays exit 124.
 - Review oracle round 5: Claude Opus 5.5 (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120, on 2026-11-09. The scope was the delta `93204a3..e33d046`. M5 is verified fixed. No new findings. Disposition is `clean`. See `review/round-5/merged.md` and `review/disposition.md`.
+- Installed ganda changed during this walk: was 50245520 bytes 6960d933b0215f2d5776a313661be767146c85b1b1580b012d28042e019026ce; now 50404368 bytes 4cddea1b1ea98bf485ebbf9a8de534c3316dead53097be626514fa4b1b7831a0
 
 ## Review
 
