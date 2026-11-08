@@ -21,6 +21,17 @@ The cause is CliWrap. After the graceful token fires, `ExecuteAsync` throws `Ope
 - Remove the disagreement entry from 138's Notes only if the oracle test and the production test now agree. Otherwise leave it.
 - Public API: no signature changes expected. If one is needed, `PublicAPI.Unshipped.txt` gets the line. `<Version>` stays `3.0.0-beta.1`.
 
+### Version bump to 3.0.0-beta.2 (rolled into this task)
+
+This task is also the version-bump PR for the next beta. Steve asked for it on 2026-11-09. Do the bump in the same branch, after the timeout change is green, as its own commit.
+
+- `source/Directory.Build.props`: `<Version>` from `3.0.0-beta.1` to `3.0.0-beta.2`. The version is typed exactly once, here. No tag, no `dev release`, no publish in this task. Release is cut from master after merge with `/tw-release`.
+- Public API roll-over, per AGENTS.md "Release": move every line in `source/timewarp-amuru/public-api/PublicAPI.Unshipped.txt` (the 083 JSON-RPC surface, 26 lines today, plus anything this task adds) into `PublicAPI.Shipped.txt`, and leave Unshipped as only `#nullable enable`. Do the same for `source/timewarp-amuru-tools/public-api/` (one line today). Build must stay clean under RS0016/RS0017.
+- Release note `documentation/release-notes/3.0.0-beta.2.md`, same shape as `3.0.0-beta.1.md`. Sections: what is new (Amuru-native JSON-RPC client, `ShellBuilder.AsJsonRpcClient()`, `JsonRpcClientBuilder`, `JsonRpcClient`, source-generated serializer context, stderr observer; dev CLI telemetry via `UseTelemetry`), new dependency (`TimeWarp.Ramani` 1.0.0-beta.23 for the internal session machine, from nuget.org, depends only on `TimeWarp.Builder`), behavior change (this task: a child that exits during the timeout grace period reports its own exit code and `TimedOut` false; grace elapsed is still 124; exit 130 for an unhandled SIGINT), and unchanged (CliWrap stays the process library for ordinary commands; the JSON-RPC child uses the .NET 11 handle APIs). Mention tasks 083, 119, 138, 139, 140, 141 by number.
+- `readme.md` and `documentation/overview.md`: if they state a version or a package list, update them. Do not add marketing text.
+- Githook pins for `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` in `Directory.Packages.props` stay at the published version. They move only after `3.0.0-beta.2` is on the feed, in a later task.
+- `./tools/dev-cli/dev.cs check-version` must report `3.0.0-beta.2` as not yet published.
+
 ## Checklist
 
 - [ ] Production test: child handles SIGINT and exits 0 during grace, result exit 0 and `TimedOut` false, strict validation does not throw
@@ -30,6 +41,10 @@ The cause is CliWrap. After the graceful token fires, `ExecuteAsync` throws `Ope
 - [ ] Pipeline stage case
 - [ ] Design region and XML docs updated, including the exit 130 case
 - [ ] 138 oracle and production now agree; Notes on 138 updated
+- [ ] `<Version>` is `3.0.0-beta.2` in `source/Directory.Build.props`
+- [ ] Unshipped lines moved to Shipped for both packable projects; Unshipped is header-only; RS0016/RS0017 clean
+- [ ] `documentation/release-notes/3.0.0-beta.2.md` written
+- [ ] `dev check-version` reports 3.0.0-beta.2 unpublished
 - [ ] `./tools/dev-cli/dev.cs build` and `./tools/dev-cli/dev.cs test` pass
 - [ ] `ganda repo audit` is clean
 
@@ -40,6 +55,7 @@ The cause is CliWrap. After the graceful token fires, `ExecuteAsync` throws `Ope
 ## Session
 
 - Created: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
+- Version bump to 3.0.0-beta.2 rolled in: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
 
 ## Notes
 
