@@ -46,6 +46,7 @@ A test-only Ramani machine is the oracle for how one command run finishes. It is
 - Spec review after 139 merged: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08). Dependency paragraph updated; MachineStep and Signals notes added. Production contract unchanged.
 - Implement oracle: implemented by implementer-grok (not reported, model grok-4.7), session 01a1bbe6-b892-72d0-8b8f-ce2a79c01596, max-turns 4, Blocked — 2026-11-08T16:04:19Z
 - Implement resume: session 01a1bbe9-8923-72c1-846c-362c633470a7 (2026-11-08). Removed the dummy terminal transitions, suppressed SM010 in `tests/.editorconfig`, and constructed the harness with `using var run = new Run(...)` so IDE0007 and IDE0008 both hold. Oracle tests are green. Runners were left alone.
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1bbe9-8923-72c1-846c-362c633470a7, max-turns 500, Done — 2026-11-08T16:24:02Z
 
 ## Notes
 
