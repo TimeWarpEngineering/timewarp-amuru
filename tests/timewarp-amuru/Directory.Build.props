@@ -22,7 +22,28 @@
     <!-- Shared test helpers compiled into all test files -->
     <Compile Include="$(MSBuildThisFileDirectory)test-helpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)git-repository-fixture.cs" />
+    <!-- The completion oracle is test-only. It is not a package reference: the core project
+         already restores TimeWarp.Ramani, and the generator does not flow through that reference. -->
+    <Compile Include="$(MSBuildThisFileDirectory)command-completion/*.cs" />
   </ItemGroup>
+
+  <!-- The generator does not flow through the core ProjectReference. source/timewarp-amuru
+       restores TimeWarp.Ramani. This is an analyzer item, not a PackageReference.
+       The cache folder is the central PackageVersion, lowercased. NuGet stores the
+       package id and the version in lowercase. -->
+  <Target Name="AddCommandCompletionRamaniGenerator" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <RamaniPackageVersion>@(PackageVersion->WithMetadataValue('Identity', 'TimeWarp.Ramani')->'%(Version)')</RamaniPackageVersion>
+      <RamaniPackageVersion>$([System.String]::Copy('$(RamaniPackageVersion)').ToLowerInvariant())</RamaniPackageVersion>
+      <RamaniGeneratorPath>$(NuGetPackageRoot)timewarp.ramani/$(RamaniPackageVersion)/analyzers/dotnet/cs/TimeWarp.Ramani.Generators.dll</RamaniGeneratorPath>
+    </PropertyGroup>
+    <Error
+      Condition="!Exists('$(RamaniGeneratorPath)')"
+      Text="TimeWarp.Ramani generator '$(RamaniPackageVersion)' was not found at '$(RamaniGeneratorPath)'. That version is the PackageVersion item for TimeWarp.Ramani in Directory.Packages.props. Restore the package before compiling test runfiles." />
+    <ItemGroup>
+      <Analyzer Include="$(RamaniGeneratorPath)" Condition="Exists('$(RamaniGeneratorPath)')" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <!-- Global usings for all test projects -->
     <Using Include="TimeWarp.Amuru.Testing" />
