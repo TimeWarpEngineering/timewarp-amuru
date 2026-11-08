@@ -63,6 +63,7 @@ This task is also the version-bump PR for the next beta. Steve asked for it on 2
 - Created: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
 - Version bump to 3.0.0-beta.2 rolled in: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
 - Implementation: 01a1bc56-2621-7af3-9055-ab81b04064d2 (2026-11-09). The grace-period growth tripped `source-file-line-cap`. The timeout session, exit capture, and timed stream moved to `command-result.timeout.cs`, the mode tests moved to `shell-builder.with-timeout.modes.cs`, and the `command-result.cs` baseline shrank from 1408 to 1354.
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1bc56-2621-7af3-9055-ab81b04064d2, max-turns 500, Done — 2026-11-08T18:43:25Z
 
 ## Notes
 
