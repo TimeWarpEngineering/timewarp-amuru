@@ -8,6 +8,8 @@
 // copies the code from the Exited event. TimedOut is the grace-period kill only.
 // A zero grace period is that kill. A positive grace period keeps the child's code, including Unix exit 130.
 // The timed stream cannot use ListenAsync: that event arrives only after ExecuteAsync returns a result.
+// It writes each line into a one-slot channel and waits. CliWrap's pipe token cancels a blocked write
+// when the run is abandoned or killed, so a slow consumer pushes back on the child instead of buffering the run.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -29,7 +31,15 @@ public partial class CommandResult
   private async IAsyncEnumerable<CommandEvent> ListenDuringTimeoutAsync(
     [EnumeratorCancellation] CancellationToken cancellationToken)
   {
-    var channel = Channel.CreateUnbounded<CommandEvent>();
+    // One waiting line. Stdout and stderr both write, so the channel is not single-writer.
+    var channel = Channel.CreateBounded<CommandEvent>
+    (
+      new BoundedChannelOptions(1)
+      {
+        FullMode = BoundedChannelFullMode.Wait,
+        SingleReader = true
+      }
+    );
     Command command = InternalCommand!
       .WithStandardOutputPipe
       (
@@ -38,7 +48,10 @@ public partial class CommandResult
           InternalCommand.StandardOutputPipe,
           PipeTarget.ToDelegate
           (
-            line => channel.Writer.TryWrite(new StandardOutputCommandEvent(line)),
+            async (line, token) =>
+            {
+              await channel.Writer.WriteAsync(new StandardOutputCommandEvent(line), token).ConfigureAwait(false);
+            },
             Encoding.Default
           )
         )
@@ -50,7 +63,10 @@ public partial class CommandResult
           InternalCommand.StandardErrorPipe,
           PipeTarget.ToDelegate
           (
-            line => channel.Writer.TryWrite(new StandardErrorCommandEvent(line)),
+            async (line, token) =>
+            {
+              await channel.Writer.WriteAsync(new StandardErrorCommandEvent(line), token).ConfigureAwait(false);
+            },
             Encoding.Default
           )
         )

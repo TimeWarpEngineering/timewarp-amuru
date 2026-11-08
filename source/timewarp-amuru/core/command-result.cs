@@ -71,10 +71,11 @@
 // - Streaming enumerators complete on a grace-period kill under default validation. LastOutput is set before the enumerator ends.
 //   A child that exits during the grace period completes the enumerator with that exit code and TimedOut false.
 //   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
-//   The no-timeout path disposes CliWrap's ListenAsync, which awaits the command task again. That second await throws the
-//   termination OperationCanceledException; the dispose is swallowed so the classified result stands.
+//   The no-timeout path disposes CliWrap's ListenAsync, which awaits the command task again. A caller cancellation
+//   stored on that task surfaces from dispose and is swallowed; the loop already propagated it.
 //   The timeout path cannot use that event for the exit code: ListenAsync yields ExitedCommandEvent only after
-//   ExecuteAsync returns a result, and a graceful cancellation throws instead. It reads the process exit event.
+//   ExecuteAsync returns a result, and a graceful cancellation throws instead. It reads the process exit event
+//   and keeps one unread line, the same backpressure as ListenAsync.
 #endregion
 
 #region Execution Modes
@@ -590,17 +591,13 @@ public partial class CommandResult
       yield break;
     }
 
-    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
     var stopwatch = Stopwatch.StartNew();
-    IAsyncEnumerable<CommandEvent> events = session.HasTimeout
-      ? InternalCommand!.ListenAsync(Encoding.Default, Encoding.Default, session.ForcefulToken, session.GracefulToken)
-      : InternalCommand!.ListenAsync(cancellationToken);
+    IAsyncEnumerable<CommandEvent> events = InternalCommand!.ListenAsync(cancellationToken);
 
-    // None keeps the tokens passed to ListenAsync. A caller token passed here is linked into the forceful token.
+    // The caller token is already the ListenAsync argument. None avoids linking a second token.
     IAsyncEnumerator<CommandEvent> enumerator = events.GetAsyncEnumerator(CancellationToken.None);
     try
     {
-      bool timedOut = false;
       int exitCode = 0;
       while (true)
       {
@@ -609,14 +606,9 @@ public partial class CommandResult
         {
           moved = await enumerator.MoveNextAsync().ConfigureAwait(false);
         }
-        catch (OperationCanceledException exception) when (session.CallerCancelled)
+        catch (OperationCanceledException exception) when (cancellationToken.IsCancellationRequested)
         {
           throw PropagateCallerCancellation(exception, cancellationToken);
-        }
-        catch (OperationCanceledException) when (session.TimedOut)
-        {
-          timedOut = true;
-          break;
         }
 
         if (!moved)
@@ -633,19 +625,12 @@ public partial class CommandResult
       }
 
       stopwatch.Stop();
-      if (timedOut)
-      {
-        RememberTimeout(string.Empty, string.Empty, stopwatch.Elapsed, throwOnStrictTimeout: true);
-        yield break;
-      }
-
       Remember(new CommandOutput(string.Empty, string.Empty, exitCode) { RunTime = stopwatch.Elapsed });
     }
     finally
     {
-      // ListenAsync awaits the command task again while disposing. CliWrap 3.10.5 stores
-      // graceful and forceful termination on that task as OperationCanceledException, and the
-      // dispose path does not swallow a token it already translated. The loop above classified it.
+      // ListenAsync awaits the command task again while disposing. A caller cancellation stored
+      // on that task surfaces here. The loop above already propagated it.
       try
       {
         await enumerator.DisposeAsync().ConfigureAwait(false);

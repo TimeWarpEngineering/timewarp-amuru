@@ -10,6 +10,7 @@
 // Signal-specific cases run on Linux and macOS. Other platforms still assert the exit-124 result.
 // Temp directories come from CreateTempSubdirectory, not a hardcoded /tmp path.
 // Stream, passthrough, TTY, pipe, select, and run live in shell-builder.with-timeout.modes.cs.
+// A timed stream keeps one unread line. A slow consumer must stall the child before the burst finishes.
 #endregion
 
 #if !JARIBU_MULTI
@@ -315,6 +316,58 @@ namespace ShellBuilder_
       command.LastOutput.ShouldNotBeNull();
       command.LastOutput.ExitCode.ShouldBe(3);
       command.LastOutput.TimedOut.ShouldBeFalse();
+    }
+
+    [Timeout(20000)]
+    public static async Task StreamStdout_WithTimeout_Should_PushBackOnASlowConsumer()
+    {
+      string directory = Directory.CreateTempSubdirectory("amuru-stream-backpressure-").FullName;
+      try
+      {
+        string marker = Path.Combine(directory, "done");
+        const string script =
+          """
+          import os, pathlib
+          path = pathlib.Path(os.environ["AMURU_MARKER"])
+          print("START", flush=True)
+          line = "x" * 1024
+          for _ in range(4096):
+              print(line, flush=True)
+          path.write_text("done", encoding="utf-8")
+          print("DONE", flush=True)
+          """;
+
+        CommandResult command = Shell.Builder("python3")
+          .WithArguments("-c", script)
+          .WithEnvironmentVariable("AMURU_MARKER", marker)
+          .WithTimeout(TimeSpan.FromSeconds(15))
+          .WithTimeoutGracePeriod(TimeSpan.FromSeconds(2))
+          .Build();
+
+        bool held = false;
+        await foreach (string line in command.StreamStdoutAsync())
+        {
+          if (held)
+          {
+            continue;
+          }
+
+          line.ShouldBe("START");
+          held = true;
+          await Task.Delay(TimeSpan.FromSeconds(2));
+          File.Exists(marker).ShouldBeFalse();
+        }
+
+        held.ShouldBeTrue();
+        File.Exists(marker).ShouldBeTrue();
+        command.LastOutput.ShouldNotBeNull();
+        command.LastOutput.ExitCode.ShouldBe(0);
+        command.LastOutput.TimedOut.ShouldBeFalse();
+      }
+      finally
+      {
+        Directory.Delete(directory, recursive: true);
+      }
     }
 
     private static bool CanDeliverSigInt() =>
