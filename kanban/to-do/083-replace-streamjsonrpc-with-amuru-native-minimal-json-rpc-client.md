@@ -22,6 +22,8 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 - [ ] Implement typed response and error deserialization using `System.Text.Json`
 - [ ] Implement timeout and cancellation handling for requests
 - [ ] Implement stderr observation/logging behavior for child processes
+- [ ] Real `IJsonRpcProcessSeam` over a child process; the 139 fake seam and tests stay
+- [ ] Thread-safe result read path chosen and recorded (139 handoff M9)
 - [ ] Process layer on net11 primitives (anonymous pipes + handle redirection, `KillOnParentExit`, `ProcessExitStatus`), wrapped in an Amuru abstraction; no CliWrap in the channel
 - [ ] Builder accepts `JsonSerializerOptions` / `JsonSerializerContext` (source-generated, AOT-safe); no formatter interface in the public API
 - [ ] Restore `ShellBuilder.AsJsonRpcClient()` (or equivalent entry point) and remove the commented stub
@@ -46,6 +48,7 @@ The new implementation should support Amuru's intended scope: JSON-RPC request/r
 
 - Created: ses_27dd18c7effe1K4rnFRhnQezjn (2026-04-14)
 - Reframed as additive, depends on 119: 522eb63d (2026-10-07)
+- Spec updated for the 139 machine and the API decision: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-08)
 
 ## Notes
 
@@ -78,12 +81,29 @@ Amuru does **not** currently appear to need the broader StreamJsonRpc feature se
 - Use `System.Text.Json` and source-generation/AOT-friendly patterns where appropriate
 - Favor a minimal, understandable implementation over feature completeness
 
-### Public API question
+### Public API decision
 
-Today `JsonRpcClientBuilder` accepts a `StreamJsonRpc.IJsonRpcMessageFormatter`. That is a leaky external dependency in the Amuru public API. This task should explicitly decide whether:
+Resolved 2026-11-08: the builder accepts `JsonSerializerOptions` and a `JsonSerializerContext` (source-generated, AOT-safe). No formatter abstraction in the public API. `StreamJsonRpc.IJsonRpcMessageFormatter` is gone with task 084 and does not come back under another name.
 
-1. the formatter concept remains, but becomes an Amuru abstraction; or
-2. the builder instead accepts `JsonSerializerOptions`, `JsonSerializerContext`, or another Amuru-native configuration model.
+### Built on task 139
+
+Task 139 (merged 2026-11-08, PR #133) shipped the internal session machine `JsonRpcSessionMachine` in `TimeWarp.Amuru.JsonRpc`, an exhaustive Ramani machine with states Idle, Starting, Ready, Stopping, Exited, Faulted and the internal seam:
+
+```csharp
+internal interface IJsonRpcProcessSeam
+{
+  Task StartAsync(CancellationToken cancellationToken);
+  Task WriteFrameAsync(string frame, CancellationToken cancellationToken);
+  Task<string?> ReadFrameAsync(CancellationToken cancellationToken);
+  Task StopAsync(CancellationToken cancellationToken);
+}
+```
+
+This task implements that seam over a real child process on the net11 primitives, and builds the public client on top of the machine. Do not rewrite the machine, its signals, or its tests. Add to them. `TimeWarp.Ramani` 1.0.0-beta.23 is already pinned and referenced by the core package only; keep it out of `TimeWarp.Amuru.Tools`.
+
+Handoff from the 139 review (finding M9, deferred here): `JsonRpcSessionContext.Requests` is a plain `Dictionary`. Pump effects are its only writers (`Accept` adds, `Release` removes). A host that reads an entry from another thread while an effect runs is unsafe. Before any concurrent caller can reach the map, choose one: a `ConcurrentDictionary`, reads performed on the pump, or an awaitable completion per entry. The public `SendAsync` result path is where this lands. Record the choice in Notes.
+
+The machine's `SendAsync` returns `MachineStep`. A `Refused` outcome with `Reason` (for example `the child is not ready`, `already running`, `duplicate request id`) is what the public client turns into its error. Do not add a completion source on the signal.
 
 ### Success criteria
 
