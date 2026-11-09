@@ -64,7 +64,7 @@ CommandOutput output = await Shell.Builder("git").WithArguments("log").CaptureAs
 
 output.ExitCode      // int - process exit code (CommandResult.NeverRanExitCode / -1 if it never ran)
 output.Success       // bool - true if ExitCode == 0
-output.TimedOut      // bool - true when the command exceeded WithTimeout (exit 124)
+output.TimedOut      // bool - true when the grace period elapsed and the child was killed (exit 124)
 output.RunTime       // TimeSpan - zero for mocks and commands that never ran
 output.Stdout        // string - captured stdout (lazy, thread-safe)
 output.Stderr        // string - captured stderr (lazy, thread-safe)
@@ -266,7 +266,7 @@ CliConfiguration.Reset();
 
 Default validation is `None`. A non-zero exit is reported on `CommandOutput.ExitCode` and `Success`. It is not thrown. `WithNoValidation()` states that default explicitly. `WithZeroExitCodeValidation()` opts into throwing. A command that never ran reports `CommandResult.NeverRanExitCode` (`-1`), not success.
 
-`WithTimeout(TimeSpan)` on `ShellBuilder`, `CommandOptions`, or `DotNetBuilder` limits that command. On expiry the graceful signal is sent (SIGINT / Ctrl+C), then the process tree is killed after `WithTimeoutGracePeriod` (default 5 seconds). Default validation sets `CommandOutput.TimedOut` and exit `CommandResult.TimeoutExitCode` (124) and does not throw. Strict validation throws `TimeoutException`. Cancelling the caller's token still throws `OperationCanceledException` and does not set `TimedOut`. Windows non-console children do not receive SIGINT, so the grace period ends in the kill. See `documentation/developer/reference/command-execution.md`.
+`WithTimeout(TimeSpan)` on `ShellBuilder`, `CommandOptions`, or `DotNetBuilder` limits that command. On expiry the graceful signal is sent (SIGINT / Ctrl+C), then the process tree is killed after `WithTimeoutGracePeriod` (default 5 seconds). A child that exits during that wait keeps its own exit code and `TimedOut` stays false. A descendant that keeps a pipe open does not hold the run past the armed deadline; that cut-off keeps the child's code. On Unix an unhandled SIGINT is exit 130 and is that exit, not a timeout. Default validation sets `CommandOutput.TimedOut` and exit `CommandResult.TimeoutExitCode` (124) only when the grace period elapses, and does not throw. Strict validation throws `TimeoutException` for that kill, and `CommandExecutionException` for any other non-zero code. Cancelling the caller's token still throws `OperationCanceledException` and does not set `TimedOut`. Windows non-console children do not receive SIGINT, so the grace period ends in the kill. See `documentation/developer/reference/command-execution.md`.
 
 `TtyPassthroughAsync` is the exception: it never throws on a non-zero exit or a timeout, even when zero-exit validation is set. Inspect `ExitCode` / `Success` / `TimedOut`.
 

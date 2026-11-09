@@ -105,6 +105,8 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
 
   /// <summary>
   /// Sets how long to wait after the graceful termination signal before the process is killed.
+  /// A child that exits during a positive wait keeps its own exit code. On Unix an unhandled SIGINT is exit 130.
+  /// Zero ends the run as exit <see cref="CommandResult.TimeoutExitCode"/>.
   /// </summary>
   /// <param name="gracePeriod">Zero or a positive duration</param>
   /// <returns>The builder instance for method chaining</returns>

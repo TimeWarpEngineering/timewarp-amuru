@@ -40,12 +40,20 @@
 // - Timeout is per command, stored with the options snapshot. CliWrap 3.10.5 ExecuteAsync(forceful, graceful)
 //   sends SIGINT on the graceful token and kills on the forceful token. The graceful token fires at Timeout;
 //   the forceful token fires at Timeout plus TimeoutGracePeriod, or immediately when the caller cancels.
-//   Default validation records TimedOut and exit 124. Zero-exit validation throws TimeoutException.
+//   A child that exits during a positive grace period keeps its own exit code and TimedOut stays false. That exit moves the forceful deadline to Timeout plus two grace periods, so a slow reader can finish inside that drain. A descendant that still holds a pipe is cut off at the armed deadline with the same code. An exit before the graceful signal leaves Timeout plus one grace period.
+//   That includes a child that dies from an unhandled SIGINT: Unix reports 130 (128 + SIGINT), and that is an exit, not a timeout.
+//   Only the forceful token, when the child is still running, records TimedOut and exit 124.
+//   A zero grace period is that kill when the child is still running. An exit before the signal keeps the child's code, and the deadline stays at Timeout.
+//   Zero-exit validation throws TimeoutException for that kill, and CommandExecutionException for any other non-zero code.
 //   The caller's own cancellation still propagates as OperationCanceledException and does not set TimedOut.
+//   CliWrap's cancellation exception does not carry the exit code and the process is already disposed.
+//   The runner reads the code from the process exit event before that exception surfaces.
 // - Pipe stages share one window: the pipeline keeps the shorter timeout and that stage's grace period.
+//   CliWrap delivers the graceful signal to the last stage. That stage's own exit code is the pipeline result when it exits during grace.
 // - TtyPassthroughAsync sends SIGINT itself on Linux and macOS, then kills the tree after the grace period.
+//   A child that exits during the grace period keeps its exit code, including 130 for an unhandled SIGINT.
 //   Windows non-console children receive no SIGINT, so the grace period ends in the kill.
-//   TtyPassthroughAsync still does not throw on timeout; it reports the result.
+//   TtyPassthroughAsync still does not throw on timeout or on a non-zero exit; it reports the result.
 // - The instance is immutable aside from LastOutput. Execution methods may be called concurrently.
 //   Each call returns its own CommandOutput, exit code, or streamed lines.
 // - LastOutput is the most recent execution on this instance. It is not meaningful when the same
@@ -60,10 +68,14 @@
 //   buffer output. There is no size limit; the limit is process memory.
 //   CaptureAsync records arrival order. RunAndCaptureAsync rebuilds OutputLines from separate strings,
 //   so those lines are all stdout, then all stderr.
-// - Streaming enumerators complete on timeout under default validation. LastOutput is set before the enumerator ends.
+// - Streaming enumerators complete on a grace-period kill under default validation. LastOutput is set before the enumerator ends.
+//   A child that exits during the grace period completes the enumerator with that exit code and TimedOut false, including when the drain bound cuts off a descendant that still holds a pipe.
 //   Real stream text stays on the enumerator. LastOutput records exit code, timeout, and runtime.
-//   Disposing CliWrap's ListenAsync awaits the command task again. That second await throws the
-//   termination OperationCanceledException; the dispose is swallowed so the classified result stands.
+//   The no-timeout path disposes CliWrap's ListenAsync, which awaits the command task again. A caller cancellation
+//   stored on that task surfaces from dispose and is swallowed; the loop already propagated it.
+//   The timeout path cannot use that event for the exit code: ListenAsync yields ExitedCommandEvent only after
+//   ExecuteAsync returns a result, and a graceful cancellation throws instead. It reads the process exit event
+//   and keeps one unread line, the same backpressure as ListenAsync.
 #endregion
 
 #region Execution Modes
@@ -89,9 +101,13 @@ namespace TimeWarp.Amuru;
 /// The execution surface over a built command: run, capture, stream, pipe, select,
 /// and passthrough behaviors from one fluent object. Create via <see cref="Shell.Builder"/>
 /// (then <c>Build()</c>) or <see cref="Shell.Run"/>.
-/// A configured timeout ends the command with <see cref="CommandOutput.TimedOut"/> and
-/// <see cref="TimeoutExitCode"/>. Strict validation throws <see cref="TimeoutException"/> instead.
-/// <see cref="TtyPassthroughAsync"/> reports that result and does not throw.
+/// A configured timeout sends the graceful signal, then waits for the grace period.
+/// A child that exits during that wait keeps its own exit code and <see cref="CommandOutput.TimedOut"/> stays false.
+/// On Unix an unhandled SIGINT is exit 130 and is that same kind of exit, not a timeout.
+/// The grace-period kill ends the command with <see cref="CommandOutput.TimedOut"/> and
+/// <see cref="TimeoutExitCode"/>. Strict validation throws <see cref="TimeoutException"/> for that kill,
+/// and <see cref="CliWrap.Exceptions.CommandExecutionException"/> for any other non-zero exit.
+/// <see cref="TtyPassthroughAsync"/> reports the kill and does not throw.
 /// Cancelling the caller's token throws <see cref="OperationCanceledException"/> and leaves <see cref="LastOutput"/> unchanged.
 /// </summary>
 /// <remarks>
@@ -100,7 +116,7 @@ namespace TimeWarp.Amuru;
 /// <see cref="LastOutput"/> is the most recent execution on this instance.
 /// It is not meaningful when the same instance executes concurrently. Prefer the returned <see cref="CommandOutput"/>.
 /// </remarks>
-public class CommandResult
+public partial class CommandResult
 {
   /// <summary>
   /// Exit code reported when a command never ran (invalid construction, failed pipe composition).
@@ -109,7 +125,9 @@ public class CommandResult
   public const int NeverRanExitCode = -1;
 
   /// <summary>
-  /// Exit code reported when a command exceeds its timeout. Matches GNU timeout.
+  /// Exit code reported when the grace period elapses and the child is killed. Matches GNU timeout.
+  /// A child that exits during the grace period keeps its own code. This constant is not that code.
+  /// On Unix a child that dies from an unhandled SIGINT exits 130, and that exit is not a timeout.
   /// </summary>
   public const int TimeoutExitCode = 124;
 
@@ -359,15 +377,33 @@ public class CommandResult
     public TimeSpan RunTime { get; init; }
   }
 
-  private async Task<CliExecution> ExecuteCliAsync(Command command, CancellationToken cancellationToken)
+  private async Task<CliExecution> ExecuteCliAsync(
+    Command command,
+    CancellationToken cancellationToken,
+    CancellationToken abandonToken = default)
   {
     var stopwatch = Stopwatch.StartNew();
-    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
+    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken, abandonToken);
+    ProcessExitCapture? capture = null;
     try
     {
-      CliWrap.CommandResult result = session.HasTimeout
-        ? await command.ExecuteAsync(session.ForcefulToken, session.GracefulToken).ConfigureAwait(false)
-        : await command.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+      CliWrap.CommandResult result;
+      if (session.HasTimeout)
+      {
+        capture = new ProcessExitCapture(session.NoteChildExit);
+        result = await command.ExecuteAsync
+        (
+          configureProcessStartInfo: null,
+          configureProcess: capture.Attach,
+          forcefulCancellationToken: session.ForcefulToken,
+          gracefulCancellationToken: session.GracefulToken
+        ).ConfigureAwait(false);
+      }
+      else
+      {
+        result = await command.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+      }
+
       stopwatch.Stop();
       return new CliExecution
       {
@@ -379,7 +415,7 @@ public class CommandResult
     {
       throw PropagateCallerCancellation(exception, cancellationToken);
     }
-    catch (OperationCanceledException) when (session.TimedOut)
+    catch (OperationCanceledException) when (session.GraceElapsed && !session.ChildExitedBeforeDeadline)
     {
       stopwatch.Stop();
       return new CliExecution
@@ -389,6 +425,42 @@ public class CommandResult
         RunTime = stopwatch.Elapsed
       };
     }
+    catch (OperationCanceledException) when (session.Abandoned)
+    {
+      throw;
+    }
+    catch (OperationCanceledException) when (session.GracefulSignaled || session.ChildExitedBeforeDeadline)
+    {
+      stopwatch.Stop();
+      if (capture is null)
+      {
+        throw new InvalidOperationException(
+          "The child exited during the timeout grace period, and its exit code was not captured.");
+      }
+
+      int exitCode = await capture.ReadExitCodeAsync().ConfigureAwait(false);
+      ThrowIfStrictNonZero(command, exitCode);
+      return new CliExecution
+      {
+        ExitCode = exitCode,
+        RunTime = stopwatch.Elapsed
+      };
+    }
+  }
+
+  private void ThrowIfStrictNonZero(Command command, int exitCode)
+  {
+    if (Validation != CommandResultValidation.ZeroExitCode || exitCode == 0)
+    {
+      return;
+    }
+
+    throw new CliWrap.Exceptions.CommandExecutionException(
+      command,
+      exitCode,
+      "Command execution failed because the underlying process returned a non-zero exit code ("
+        + exitCode.ToString(CultureInfo.InvariantCulture)
+        + ").");
   }
 
   private CommandOutput FinishCli(CliExecution execution, string stdout, string stderr, bool throwOnStrictTimeout)
@@ -509,17 +581,23 @@ public class CommandResult
   private async IAsyncEnumerable<CommandEvent> ListenWithTimeoutAsync(
     [EnumeratorCancellation] CancellationToken cancellationToken)
   {
-    using var session = new TimeoutSession(Timeout, TimeoutGracePeriod, cancellationToken);
-    var stopwatch = Stopwatch.StartNew();
-    IAsyncEnumerable<CommandEvent> events = session.HasTimeout
-      ? InternalCommand!.ListenAsync(Encoding.Default, Encoding.Default, session.ForcefulToken, session.GracefulToken)
-      : InternalCommand!.ListenAsync(cancellationToken);
+    if (Timeout is not null)
+    {
+      await foreach (CommandEvent commandEvent in ListenDuringTimeoutAsync(cancellationToken).ConfigureAwait(false))
+      {
+        yield return commandEvent;
+      }
 
-    // None keeps the tokens passed to ListenAsync. A caller token passed here is linked into the forceful token.
+      yield break;
+    }
+
+    var stopwatch = Stopwatch.StartNew();
+    IAsyncEnumerable<CommandEvent> events = InternalCommand!.ListenAsync(cancellationToken);
+
+    // The caller token is already the ListenAsync argument. None avoids linking a second token.
     IAsyncEnumerator<CommandEvent> enumerator = events.GetAsyncEnumerator(CancellationToken.None);
     try
     {
-      bool timedOut = false;
       int exitCode = 0;
       while (true)
       {
@@ -528,14 +606,9 @@ public class CommandResult
         {
           moved = await enumerator.MoveNextAsync().ConfigureAwait(false);
         }
-        catch (OperationCanceledException exception) when (session.CallerCancelled)
+        catch (OperationCanceledException exception) when (cancellationToken.IsCancellationRequested)
         {
           throw PropagateCallerCancellation(exception, cancellationToken);
-        }
-        catch (OperationCanceledException) when (session.TimedOut)
-        {
-          timedOut = true;
-          break;
         }
 
         if (!moved)
@@ -552,19 +625,12 @@ public class CommandResult
       }
 
       stopwatch.Stop();
-      if (timedOut)
-      {
-        RememberTimeout(string.Empty, string.Empty, stopwatch.Elapsed, throwOnStrictTimeout: true);
-        yield break;
-      }
-
       Remember(new CommandOutput(string.Empty, string.Empty, exitCode) { RunTime = stopwatch.Elapsed });
     }
     finally
     {
-      // ListenAsync awaits the command task again while disposing. CliWrap 3.10.5 stores
-      // graceful and forceful termination on that task as OperationCanceledException, and the
-      // dispose path does not swallow a token it already translated. The loop above classified it.
+      // ListenAsync awaits the command task again while disposing. A caller cancellation stored
+      // on that task surfaces here. The loop above already propagated it.
       try
       {
         await enumerator.DisposeAsync().ConfigureAwait(false);
@@ -573,143 +639,6 @@ public class CommandResult
       {
       }
     }
-  }
-
-  private static async Task WaitForExitAfterKillAsync(Process process)
-  {
-    TryKill(process);
-    using CancellationTokenSource bound = new(TimeSpan.FromSeconds(2));
-    try
-    {
-      await process.WaitForExitAsync(bound.Token).ConfigureAwait(false);
-    }
-    catch (OperationCanceledException)
-    {
-      // The process outlived the kill. The caller still reports timeout or cancellation.
-    }
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Design",
-    "CA1031",
-    Justification = "Cancellation-token callback on a timer thread must never throw."
-  )]
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Roslynator",
-    "RCS1075",
-    Justification = "Swallowing is the contract: the callback must never throw."
-  )]
-  private static void TryKill(Process process)
-  {
-    try
-    {
-      if (!process.HasExited)
-      {
-        process.Kill(entireProcessTree: true);
-      }
-    }
-    catch (Exception)
-    {
-      // Runs as a cancellation-token callback on a timer thread: must never throw.
-      // Covers already-exited processes, Win32/permission failures, and AggregateException from tree kill.
-    }
-  }
-
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Design",
-    "CA1031",
-    Justification = "Cancellation-token callback on a timer thread must never throw."
-  )]
-  [System.Diagnostics.CodeAnalysis.SuppressMessage(
-    "Roslynator",
-    "RCS1075",
-    Justification = "Swallowing is the contract: the callback must never throw."
-  )]
-  private static void TryInterrupt(Process process)
-  {
-    try
-    {
-      if (process.HasExited)
-      {
-        return;
-      }
-
-      // Windows has no SIGINT for a non-console child. The grace timer still force-kills it.
-      if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-      {
-        _ = NativeSignals.Kill(process.Id, NativeSignals.Interrupt);
-      }
-    }
-    catch (Exception)
-    {
-      // Runs as a cancellation-token callback on a timer thread: must never throw.
-    }
-  }
-
-  private sealed class TimeoutSession : IDisposable
-  {
-    private readonly CancellationToken CallerToken;
-    private readonly CancellationTokenSource? GracefulSource;
-    private readonly CancellationTokenSource? ForcefulDelaySource;
-    private readonly CancellationTokenSource? LinkedForcefulSource;
-
-    public bool HasTimeout { get; }
-    public CancellationToken GracefulToken { get; }
-    public CancellationToken ForcefulToken { get; }
-    public bool CallerCancelled => CallerToken.IsCancellationRequested;
-
-    public bool TimedOut =>
-      HasTimeout
-      && !CallerToken.IsCancellationRequested
-      && ((GracefulSource?.IsCancellationRequested ?? false) || (ForcefulDelaySource?.IsCancellationRequested ?? false));
-
-    public TimeoutSession(TimeSpan? timeout, TimeSpan grace, CancellationToken callerToken)
-    {
-      CallerToken = callerToken;
-      if (timeout is not TimeSpan limit)
-      {
-        GracefulToken = CancellationToken.None;
-        ForcefulToken = callerToken;
-        return;
-      }
-
-      HasTimeout = true;
-      GracefulSource = new CancellationTokenSource(limit);
-      ForcefulDelaySource = new CancellationTokenSource(AddGrace(limit, grace));
-      LinkedForcefulSource = CancellationTokenSource.CreateLinkedTokenSource(callerToken, ForcefulDelaySource.Token);
-      GracefulToken = GracefulSource.Token;
-      ForcefulToken = LinkedForcefulSource.Token;
-    }
-
-    public void Dispose()
-    {
-      LinkedForcefulSource?.Dispose();
-      ForcefulDelaySource?.Dispose();
-      GracefulSource?.Dispose();
-    }
-
-    private static TimeSpan AddGrace(TimeSpan timeout, TimeSpan grace)
-    {
-      double milliseconds = timeout.TotalMilliseconds + grace.TotalMilliseconds;
-      if (milliseconds > int.MaxValue)
-      {
-        return TimeSpan.FromMilliseconds(int.MaxValue);
-      }
-
-      return TimeSpan.FromMilliseconds(milliseconds);
-    }
-  }
-
-  private static class NativeSignals
-  {
-    internal const int Interrupt = 2;
-
-    // DllImport stays here so CommandResult does not have to be partial for one libc call.
-    [DllImport("libc", EntryPoint = "kill", SetLastError = true)]
-    [DefaultDllImportSearchPaths(DllImportSearchPath.SafeDirectories)]
-    [System.Runtime.Versioning.SupportedOSPlatform("linux")]
-    [System.Runtime.Versioning.SupportedOSPlatform("macos")]
-    internal static extern int Kill(int pid, int signal);
   }
 
   /// <summary>
@@ -824,7 +753,9 @@ public class CommandResult
   /// Validation options do not apply here: this method never throws on a
   /// non-zero exit code (even with WithZeroExitCodeValidation); inspect
   /// the returned CommandOutput's ExitCode/Success instead.
-  /// A timeout is reported the same way: <see cref="CommandOutput.TimedOut"/> and exit
+  /// A child that exits during the grace period keeps its own exit code, and <see cref="CommandOutput.TimedOut"/> stays false.
+  /// On Unix an unhandled SIGINT is exit 130 and is that exit, not a timeout.
+  /// When the grace period elapses the result is <see cref="CommandOutput.TimedOut"/> and exit
   /// <see cref="TimeoutExitCode"/>, with no exception.
   /// On Linux and macOS the child receives SIGINT when the timeout elapses, then a tree kill after the grace period.
   /// Windows non-console children receive no SIGINT, so the grace period ends in that kill.

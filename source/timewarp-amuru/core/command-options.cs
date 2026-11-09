@@ -56,7 +56,9 @@ public class CommandOptions
 
   /// <summary>
   /// Gets how long to wait after the graceful termination signal before the process is killed.
-  /// Defaults to <see cref="DefaultTimeoutGracePeriod"/>. Zero kills immediately after the signal is sent.
+  /// Defaults to <see cref="DefaultTimeoutGracePeriod"/>. Zero kills immediately after the signal is sent,
+  /// so that run is exit <see cref="CommandResult.TimeoutExitCode"/>.
+  /// A child that exits during a positive wait keeps its own exit code. On Unix an unhandled SIGINT is exit 130.
   /// On Windows the graceful signal is not delivered to non-console children, so this wait ends in a force kill.
   /// </summary>
   public TimeSpan TimeoutGracePeriod { get; private set; } = DefaultTimeoutGracePeriod;
@@ -147,6 +149,9 @@ public class CommandOptions
 
   /// <summary>
   /// Sets how long to wait after the graceful termination signal before the process is killed.
+  /// A child that exits during a positive wait keeps its own exit code, and <see cref="CommandOutput.TimedOut"/> stays false.
+  /// On Unix a child that dies from an unhandled SIGINT exits 130; that is the child's code, not a timeout.
+  /// Zero ends the run as soon as the signal is sent, with exit <see cref="CommandResult.TimeoutExitCode"/>.
   /// </summary>
   /// <param name="gracePeriod">Zero or a positive duration. Zero kills immediately after the signal is sent.</param>
   /// <returns>A new CommandOptions instance with the grace period set</returns>
