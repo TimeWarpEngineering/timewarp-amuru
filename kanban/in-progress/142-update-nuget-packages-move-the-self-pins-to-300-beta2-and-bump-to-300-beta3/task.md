@@ -57,6 +57,8 @@ Acceptance: `ganda nuget outdated` on this branch decides the package table, and
 - Created: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-09)
 - Implementation: 01a1bf5f-566c-7a93-b87a-ed5507a865a5 (2026-11-09)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1bf5f-566c-7a93-b87a-ed5507a865a5, max-turns 500, Done — 2026-11-09T08:32:00Z
+- Review oracle: claude-opus-5-5 (Claude Code, headless `ganda task work`), body tw-implementation-review, effort 2, roster general, turn cap 120 — disposition clean, 2026-11-09
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session e6335acb-95d8-4e07-8568-c9d93590ad59, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-09T08:35:11Z
 
 ## Results
 
@@ -82,11 +84,19 @@ Each `.githooks/*.cs` runfile restored `TimeWarp.Amuru` `3.0.0-beta.2` and `Time
 
 `./tools/dev-cli/dev.cs check-version` printed source `3.0.0-beta.3`, latest NuGet `3.0.0-beta.2`, one prerelease increment ahead, and that the source version is new. `./tools/dev-cli/dev.cs build` packed `TimeWarp.Amuru.3.0.0-beta.3.nupkg` and `TimeWarp.Amuru.Tools.3.0.0-beta.3.nupkg` with 0 warnings. `./tools/dev-cli/dev.cs test` reported 839 total, 838 passed, 1 skipped (`GetCommitsAheadOfDefaultBranch_Given_`, pre-existing). That suite ran on the pin commit and again after the version bump. `ganda repo audit` passed 39, failed 0, skipped 2. `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` for `vscode-window-icon` because this worktree was missing it. That file stays untracked.
 
+### Review disposition
+
+One round, effort 2, one `general` reviewer. Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix. Disposition is **clean**. The reviewer re-ran these checks: `ganda nuget outdated` (all 21 up to date), `dotnet build` of all five `.githooks/*.cs` runfiles (they resolve `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` `3.0.0-beta.2`), `dev check-version` (3.0.0-beta.3 new), and `dev build` (0 warnings). The reviewer did not re-run `dev test`. The goal restatement matches the task, so there is no misread. Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, and `review/disposition.md`.
+
 ### How to validate
 
 Smoke: from this worktree, run `./tools/dev-cli/dev.cs check-version` and `git diff 8da7577^..0bdfcad --stat`.
 
 Expect: check-version prints source `3.0.0-beta.3`, latest NuGet `3.0.0-beta.2`, and that the source version is new. `8da7577` touches only `Directory.Packages.props`. `0bdfcad` touches `source/Directory.Build.props`, `readme.md`, and `documentation/release-notes/3.0.0-beta.3.md`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
