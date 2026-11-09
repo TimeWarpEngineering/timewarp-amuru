@@ -52,7 +52,7 @@ dotnet add package TimeWarp.Amuru
 dotnet add package TimeWarp.Amuru.Tools
 ```
 
-This readme documents the 2.0 API, first available in `2.0.0`. See [the 2.0 release notes](documentation/release-notes/2.0.0.md). The package version is `3.0.0-beta.2`. See [the 3.0.0-beta.2 release notes](documentation/release-notes/3.0.0-beta.2.md).
+This readme documents the 2.0 API, first available in `2.0.0`. See [the 2.0 release notes](documentation/release-notes/2.0.0.md). The package version is `3.0.0-beta.3`. See [the 3.0.0-beta.3 release notes](documentation/release-notes/3.0.0-beta.3.md).
 
 Or reference in your C# runfile:
 ```csharp
