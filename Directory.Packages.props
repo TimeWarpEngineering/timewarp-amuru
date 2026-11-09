@@ -7,13 +7,13 @@
     <!-- External packages -->
     <PackageVersion Include="CliWrap" Version="3.10.5" />
     <!-- MCP stdio validation server only. The product does not reference these. -->
-    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
     <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
     <PackageVersion Include="NuGet.Versioning" Version="7.9.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="1.0.0" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.15" />
-    <PackageVersion Include="TimeWarp.Ramani" Version="1.0.0-beta.23" />
+    <PackageVersion Include="TimeWarp.Ramani" Version="1.0.0-beta.24" />
     <PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.11" />
     <PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.11" />
     <PackageVersion Include="TimeWarp.Terminal" Version="1.0.2" />
@@ -25,9 +25,9 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="5.9.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" />
-    <PackageVersion Include="TimeWarp.SourceGenerators" Version="1.0.0-beta.11" />
+    <PackageVersion Include="TimeWarp.SourceGenerators" Version="1.0.0-beta.12" />
     <!-- Self pins: consumed by .githooks runfiles (#:package TimeWarp.Amuru[.Tools]) under CPM -->
-    <PackageVersion Include="TimeWarp.Amuru" Version="2.0.0" />
-    <PackageVersion Include="TimeWarp.Amuru.Tools" Version="2.0.0" />
+    <PackageVersion Include="TimeWarp.Amuru" Version="3.0.0-beta.2" />
+    <PackageVersion Include="TimeWarp.Amuru.Tools" Version="3.0.0-beta.2" />
   </ItemGroup>
 </Project>
