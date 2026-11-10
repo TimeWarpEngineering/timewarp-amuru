@@ -43,6 +43,10 @@ on:
         type: string
         default: ''
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -104,14 +108,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           # App token for the best-effort timewarp-software rebuild dispatch only.
           REBUILD_DISPATCH_TOKEN: ${{ steps.rebuild-token.outputs.token }}
+          # OIDC key from the login step. Empty unless that step ran.
+          NUGET_LOGIN_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          # workflow_dispatch publishes only when mode and confirm are both release.
+          BREAK_GLASS_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release' }}
         run: |
-          if [ "${{ github.event_name }}" == "release" ]; then
-            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
-          elif [ "${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release' }}" == "true" ]; then
-            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
-          else
+          if ($env:GITHUB_EVENT_NAME -eq 'release' -or $env:BREAK_GLASS_RELEASE -eq 'true') {
+            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key $env:NUGET_LOGIN_API_KEY
+          } else {
             dotnet run --file tools/dev-cli/dev.cs -- workflow
-          fi
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload Artifacts
         # Green master only: release mode promotes Packages-* from a push run at
@@ -136,27 +143,47 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_ARTIFACT: Packages-${{ github.run_number }}
         run: |
-          set -euo pipefail
-          tmp="$(mktemp)"
-          trap 'rm -f "$tmp"' EXIT
-          gh api --paginate \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
-            --jq '.artifacts[] | select((.name | startswith("Packages-")) and (.expired == false)) | [.created_at, (.id | tostring), .name] | @tsv' \
-            | LC_ALL=C sort -r > "$tmp"
-          if ! cut -f3 "$tmp" | grep -qxF "$EXPECTED_ARTIFACT"; then
-            echo "Just-uploaded artifact ${EXPECTED_ARTIFACT} is not listed yet; skipping prune (keep-last-2 runs on the next green master push)."
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrEmpty($env:GITHUB_REPOSITORY) -or [string]::IsNullOrEmpty($env:EXPECTED_ARTIFACT)) {
+            throw 'GITHUB_REPOSITORY and EXPECTED_ARTIFACT must be set.'
+          }
+          $raw = @(gh api --paginate `
+            -H 'Accept: application/vnd.github+json' `
+            "/repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100" `
+            --jq '.artifacts[] | select((.name | startswith("Packages-")) and (.expired == false)) | [.created_at, (.id | tostring), .name] | @tsv')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $sorted = [System.Collections.Generic.List[string]]::new()
+          foreach ($line in $raw) {
+            if (-not [string]::IsNullOrEmpty($line)) { $sorted.Add($line) }
+          }
+          $sorted.Sort([System.StringComparer]::Ordinal)
+          $sorted.Reverse()
+          $listed = $false
+          foreach ($line in $sorted) {
+            $fields = $line.Split("`t", 3)
+            if ($fields.Length -ge 3 -and $fields[2] -ceq $env:EXPECTED_ARTIFACT) {
+              $listed = $true
+              break
+            }
+          }
+          if (-not $listed) {
+            Write-Output "Just-uploaded artifact $env:EXPECTED_ARTIFACT is not listed yet; skipping prune (keep-last-2 runs on the next green master push)."
             exit 0
-          fi
-          keep=2
-          n=0
-          while IFS=$'\t' read -r created_at id name; do
-            [ -n "$id" ] || continue
-            n=$((n + 1))
-            if [ "$n" -le "$keep" ]; then
-              echo "Keeping ${name} (id=${id}, created=${created_at})"
+          }
+          $keep = 2
+          $n = 0
+          foreach ($line in $sorted) {
+            $fields = $line.Split("`t", 3)
+            if ($fields.Length -lt 3 -or [string]::IsNullOrEmpty($fields[1])) { continue }
+            $createdAt = $fields[0]
+            $id = $fields[1]
+            $name = $fields[2]
+            $n++
+            if ($n -le $keep) {
+              Write-Output "Keeping $name (id=$id, created=$createdAt)"
               continue
-            fi
-            echo "Deleting ${name} (id=${id}, created=${created_at})"
-            gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
-          done < "$tmp"
+            }
+            Write-Output "Deleting $name (id=$id, created=$createdAt)"
+            gh api --method DELETE "/repos/$env:GITHUB_REPOSITORY/actions/artifacts/$id"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }

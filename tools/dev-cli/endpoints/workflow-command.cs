@@ -64,7 +64,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
     "Performance",
     "CA1812",
     Justification = "Activated by the Nuru mediator")]
-  internal sealed class Handler : ICommandHandler<WorkflowCommand, Unit>
+  internal sealed class Handler : IRequestHandler<WorkflowCommand, Unit>
   {
     private const string ArtifactsSubPath = "artifacts/packages";
 
@@ -91,7 +91,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
       PackableProjectService = packableProjectService;
     }
 
-    public async Task<Unit> Handle(WorkflowCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(WorkflowCommand command, CancellationToken cancellationToken)
     {
       ArgumentNullException.ThrowIfNull(command);
 

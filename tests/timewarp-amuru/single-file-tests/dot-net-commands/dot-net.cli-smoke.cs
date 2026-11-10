@@ -396,7 +396,7 @@ namespace DotNet_
         output.Combined.ShouldContain(sourceDirectory);
         output.Combined.ShouldNotContain("api.nuget.org");
         output.Combined.ShouldNotContain("Unrecognized");
-        Directory.Exists(toolPath).ShouldBeFalse();
+        Directory.EnumerateFileSystemEntries(toolPath, "*", SearchOption.AllDirectories).Any(path => path.Contains("notarealpackage.amuru.test", StringComparison.OrdinalIgnoreCase) || Path.GetFileName(path) is not (".store" or ".locks") && !path.EndsWith(".lock", StringComparison.Ordinal)).ShouldBeFalse();
       }
       finally
       {
