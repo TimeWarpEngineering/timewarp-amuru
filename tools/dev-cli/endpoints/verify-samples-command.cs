@@ -13,7 +13,7 @@ namespace DevCli.Commands;
 [NuruRoute("verify-samples", Description = "Verify code samples compile")]
 public sealed class VerifySamplesCommand : ICommand<Unit>
 {
-  public sealed class Handler : ICommandHandler<VerifySamplesCommand, Unit>
+  public sealed class Handler : IRequestHandler<VerifySamplesCommand, Unit>
   {
     private readonly ITerminal Terminal;
 
@@ -22,7 +22,7 @@ public sealed class VerifySamplesCommand : ICommand<Unit>
       Terminal = terminal;
     }
 
-    public async Task<Unit> Handle(VerifySamplesCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(VerifySamplesCommand command, CancellationToken cancellationToken)
     {
       Terminal.WriteLine("Verifying samples...");
 

@@ -1,0 +1,160 @@
+{
+  "files": {
+    ".editorconfig": {
+      "CA1031": 3,
+      "CA1062": 1,
+      "CA1303": 3,
+      "CA2000": 1,
+      "CA2007": 1,
+      "ca1308": 1
+    },
+    ".githooks/post-checkout.cs": {
+      "CA2007": 1
+    },
+    ".githooks/post-commit.cs": {
+      "CA2007": 1
+    },
+    ".githooks/post-merge.cs": {
+      "CA2007": 1
+    },
+    ".githooks/pre-commit.cs": {
+      "CA1849": 2,
+      "CA2007": 1,
+      "RS0030": 2
+    },
+    ".githooks/pre-push.cs": {
+      "CA1849": 3,
+      "CA2007": 1,
+      "RS0030": 3
+    },
+    "Directory.Build.props": {
+      "CA1303": 1
+    },
+    "source/.editorconfig": {
+      "RS0026": 1,
+      "SM010": 1
+    },
+    "source/timewarp-amuru-tools/git-commands/git.clone-bare.cs": {
+      "CA1054": 1
+    },
+    "source/timewarp-amuru-tools/git-commands/git.worktree-remove.cs": {
+      "CA1031": 1
+    },
+    "source/timewarp-amuru-tools/nu-get/nuget-package-service.cs": {
+      "CA1031": 1,
+      "CA2000": 1,
+      "IDE0007": 1
+    },
+    "source/timewarp-amuru-tools/repo/repo-check-version-service.cs": {
+      "IDE0007": 2
+    },
+    "source/timewarp-amuru-tools/repo/repo-clean-service.cs": {
+      "CA1031": 2
+    },
+    "source/timewarp-amuru/app-context-extensions.cs": {
+      "CA1034": 1
+    },
+    "source/timewarp-amuru/core/command-result.cs": {
+      "CA1031": 2,
+      "RS0030": 1
+    },
+    "source/timewarp-amuru/core/command-result.timeout.cs": {
+      "CA1031": 4,
+      "RCS1075": 4
+    },
+    "source/timewarp-amuru/json-rpc/json-rpc-child-process.cs": {
+      "CA1001": 1,
+      "CA1031": 1,
+      "RS0030": 1
+    },
+    "source/timewarp-amuru/json-rpc/json-rpc-session-activities.cs": {
+      "CA1849": 2
+    },
+    "source/timewarp-amuru/native/file-system/commands/commands.get-content.cs": {
+      "CA1031": 1
+    },
+    "source/timewarp-amuru/native/file-system/commands/commands.remove-item.cs": {
+      "CA1031": 1
+    },
+    "source/timewarp-amuru/native/file-system/commands/commands.set-location.cs": {
+      "CA1031": 1
+    },
+    "source/timewarp-amuru/native/file-system/commands/commands.shared.cs": {
+      "CA1031": 2
+    },
+    "source/timewarp-amuru/native/file-system/direct/direct.get-location.cs": {
+      "CA1024": 1
+    },
+    "source/timewarp-amuru/native/file-system/direct/direct.test-path.cs": {
+      "CA1031": 2
+    },
+    "source/timewarp-amuru/native/path-resolver.cs": {
+      "CA1031": 1
+    },
+    "source/timewarp-amuru/native/text/commands.replace-in-files.cs": {
+      "CA1031": 3
+    },
+    "source/timewarp-amuru/native/text/commands.select-string.cs": {
+      "CA1031": 5
+    },
+    "source/timewarp-amuru/script-context.cs": {
+      "CA1031": 2
+    },
+    "tests/.editorconfig": {
+      "SM010": 1
+    },
+    "tests/timewarp-amuru/Directory.Build.props": {
+      "CA1052": 1,
+      "CA1515": 1,
+      "CA1707": 1,
+      "CA1812": 1,
+      "CA2252": 1,
+      "CS1998": 1,
+      "CS8652": 1
+    },
+    "tests/timewarp-amuru/multi-file-runners/Directory.Build.props": {
+      "CS2002": 1,
+      "IDE0065": 1,
+      "IDE0161": 1
+    },
+    "tests/timewarp-amuru/single-file-tests/repo-services/repo-check-version-service.cs": {
+      "IDE0007": 2
+    },
+    "tools/Directory.Build.props": {
+      "IDE0007": 1,
+      "NU1902": 1
+    },
+    "tools/dev-cli/Directory.Build.props": {
+      "CA1031": 1,
+      "CA1034": 1,
+      "CA1303": 1,
+      "CA1508": 1,
+      "CA1515": 1,
+      "CA1849": 1,
+      "CA2000": 1,
+      "CA2007": 1,
+      "CA2016": 1,
+      "CA5399": 1,
+      "IDE0005": 1,
+      "IDE0022": 1,
+      "IDE0046": 1,
+      "IDE0052": 1,
+      "IDE0055": 1,
+      "IDE0058": 1,
+      "IDE0065": 1,
+      "IDE0066": 1,
+      "IDE0078": 1,
+      "IDE0160": 1,
+      "IDE0211": 1,
+      "IDE0290": 1,
+      "IL2026": 1,
+      "IL2104": 1,
+      "IL3050": 1,
+      "IL3053": 1,
+      "RCS1046": 1
+    },
+    "tools/dev-cli/endpoints/workflow-command.cs": {
+      "CA1812": 3
+    }
+  }
+}

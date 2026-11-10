@@ -11,9 +11,9 @@ namespace DevCli.Endpoints;
 [NuruRoute("build", Description = "Build the TimeWarp.Amuru project")]
 public sealed class BuildCommand : ICommand<Unit>
 {
-  public sealed class Handler : ICommandHandler<BuildCommand, Unit>
+  public sealed class Handler : IRequestHandler<BuildCommand, Unit>
   {
-    public async Task<Unit> Handle(BuildCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(BuildCommand command, CancellationToken cancellationToken)
     {
       bool verbose = false;
       string verbosity = verbose ? "normal" : "minimal";

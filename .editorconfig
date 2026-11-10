@@ -336,3 +336,6 @@ dotnet_diagnostic.CA1062.severity = suggestion
 # (YYYY-MM-DDTHH-MM-SS_slug.md), which is intentionally not kebab-case.
 # public-api holds Roslyn-mandated PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt.
 kebab-path-names.prune = .agent, public-api
+# Test entry is the dev-cli runner (dotnet run of tests/timewarp-amuru/multi-file-runners/run-tests.cs),
+# not Microsoft.Testing.Platform, so the coverage flags cannot be threaded through. task 143
+ci-code-coverage.severity = off

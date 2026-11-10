@@ -11,9 +11,9 @@ namespace DevCli.Endpoints;
 [NuruRoute("test", Description = "Run the integration test suite")]
 public sealed class TestCommand : ICommand<Unit>
 {
-  public sealed class Handler : ICommandHandler<TestCommand, Unit>
+  public sealed class Handler : IRequestHandler<TestCommand, Unit>
   {
-    public async Task<Unit> Handle(TestCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Unit> Handle(TestCommand command, CancellationToken cancellationToken)
     {
       await TimeWarpTerminal.Default.WriteLineAsync("🧪 Running TimeWarp.Amuru Test Suite...");
 
