@@ -35,6 +35,8 @@ Acceptance: `ganda repo audit --fix` lands as-is, including the seeded `.timewar
 - Created: a875b3a1-947b-46fa-a5cb-29aeb3cc8391 (2026-11-10)
 - Implementation: 01a1c6a2-e428-7d33-aa6c-cbeee1b6df92 (2026-11-11)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1c6a2-e428-7d33-aa6c-cbeee1b6df92, max-turns 500, Done — 2026-11-10T18:29:55Z
+- Review oracle: claude-opus-5-5 (Claude Code headless, ganda task work), effort 2, roster general, turn cap 120 — round 1, disposition accepted-exceptions (2026-11-11)
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-10T18:32:43Z
 
 ## Results
 
@@ -46,11 +48,24 @@ Beta.12 removes `ICommandHandler`. The five dev-cli handlers implement `IRequest
 
 The pull-request CI run is not available from this walk. The host opens the PR.
 
+### Review disposition
+
+One round at effort 2, general reviewer only. Final counts: 0 bugs, 1 suggestion (wontfix), 0 nits. 0 open. Outcome: **accepted-exceptions**.
+
+- The pwsh rewrites keep the release, break-glass, and default branching and the keep-last-two prune behavior. All `run:` blocks parse under PowerShell 7.
+- The ci-code-coverage opt-out is the one this task sanctions. The `--fix` output is policy.
+- M1 (suggestion, wontfix): `dot-net.cli-smoke.cs:399` enumerates the tool-path directory without checking that it exists, so it depends on the SDK version. It cannot cause a false pass. Reopen if PR CI throws `DirectoryNotFoundException` there.
+- Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ### How to validate
 
 Smoke: from this worktree, run `ganda repo audit`, `./bin/dev build`, and `./bin/dev test`.
 
 Expect: audit exits 0 and prints `Failed: 0`. Build exits 0 with 0 warnings. Test exits 0 and prints `Passed: 838` and `Skipped: 1`. `Directory.Packages.props` pins `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` at `4.0.0-beta.12`. `.github/workflows/workflow.yml` sets `defaults: run: shell: pwsh`, and the Run CI Pipeline step passes `--mode release` only when `GITHUB_EVENT_NAME` is `release` or `BREAK_GLASS_RELEASE` is `true`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
