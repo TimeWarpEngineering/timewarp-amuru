@@ -37,6 +37,7 @@ Acceptance: `ganda repo audit --fix` lands as-is, including the seeded `.timewar
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1c6a2-e428-7d33-aa6c-cbeee1b6df92, max-turns 500, Done — 2026-11-10T18:29:55Z
 - Review oracle: claude-opus-5-5 (Claude Code headless, ganda task work), effort 2, roster general, turn cap 120 — round 1, disposition accepted-exceptions (2026-11-11)
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-10T18:32:43Z
+- Installed ganda changed during this walk: was 51719784 bytes 2b68168f4096b6ead5ba35c3ac18bdcb70e3e05a0c22f189da7b7369e773a185; now 51756808 bytes a18f3dc25f245e28614a218db4f6294c4e02bfabf5529c0b4a7a94f7b048c6ec
 
 ## Results
 
