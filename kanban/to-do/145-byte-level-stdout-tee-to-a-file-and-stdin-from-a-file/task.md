@@ -9,8 +9,9 @@ stdin. ganda needs both to stop wrapping agent launches in `bash -c '… | tee -
 
 Why Amuru cannot do this today:
 
-- Every streaming path is line based. `StreamStdoutAsync`, `StreamToFileAsync`
-  (`source/timewarp-amuru/core/command-result.cs`), and the echo-and-capture merge all use
+- Every streaming path is line based. `StreamStdoutAsync` and `StreamToFileAsync` on
+  `ShellBuilder` (`source/timewarp-amuru/core/shell-builder.cs`), their `CommandResult`
+  counterparts (`source/timewarp-amuru/core/command-result.cs`), and the echo-and-capture merge all use
   `PipeTarget.ToDelegate`, which delivers a line only after its newline. Grok ends its
   answer with no trailing newline, so the last line (the one ganda needs) never arrives
   while the process is alive. That is the reason ganda shells out to `tee` and polls the
