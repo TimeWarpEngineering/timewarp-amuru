@@ -142,3 +142,6 @@ grep prints "no product reference". To see a failure report, change the property
 `received.ShouldBe(arguments)` to compare against a mangled copy: the run fails with a shrunk
 case and a `CsCheck_Seed=...` replay line.
 
+## Session
+
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-15T15:52:18Z
