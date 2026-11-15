@@ -9,6 +9,9 @@
 // WithTimeout stores the limit on CommandOptions. There is no static default timeout.
 // AsJsonRpcClient owns stdin and stdout for a long-lived JSON-RPC child. Configured stdin is refused.
 // The per-request limit is CommandOptions.Timeout. The channel does not use CliWrap.
+// Standard input is either text or a file; the later call wins. File paths (stdin file and stdout tee)
+// are made absolute against the current directory when configured, not against WithWorkingDirectory.
+// AsJsonRpcClient also refuses a stdin file and a stdout tee: it owns both streams.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -22,6 +25,8 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   private readonly List<string> Arguments = new();
   private CommandOptions Options = new();
   private string? StandardInput;
+  private string? StandardInputFile;
+  private string? StandardOutputTeeFile;
 
   /// <summary>
   /// Initializes a new instance of the ShellBuilder class.
@@ -124,6 +129,56 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   public ShellBuilder WithStandardInput(string input)
   {
     StandardInput = input ?? throw new ArgumentNullException(nameof(input));
+    StandardInputFile = null;
+    return this;
+  }
+
+  /// <summary>
+  /// Uses a file as the command's standard input. The bytes are copied as they are, with no text decoding,
+  /// so a large file is streamed instead of held in memory. This replaces any earlier
+  /// <see cref="WithStandardInput(string)"/> text, and a later text call replaces this file.
+  /// </summary>
+  /// <remarks>
+  /// A relative path is resolved against the current directory when this method is called, not against
+  /// <see cref="WithWorkingDirectory"/>. The file is opened when the command runs; a missing file throws
+  /// <see cref="FileNotFoundException"/> then. Under <see cref="Testing.CommandMock"/>, a matched call records
+  /// the file's text, readable through <see cref="Testing.CommandMock.GetConfiguredStandardInput"/>.
+  /// </remarks>
+  /// <param name="filePath">Path of the file to read as standard input</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithStandardInputFile(string filePath)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+    StandardInputFile = Path.GetFullPath(filePath);
+    StandardInput = null;
+    return this;
+  }
+
+  /// <summary>
+  /// Copies the command's standard output to a file, byte for byte, as the bytes arrive.
+  /// The execution method still returns or streams stdout, stderr, and the exit code as it would without the tee.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// The file is created (or truncated) when the run starts. Each chunk the child writes is flushed to it at once,
+  /// with no line splitting, so an unterminated last line is in the file while the child is still running.
+  /// The file is shared for read, write, and delete, so another reader can open or tail it during the run.
+  /// A cancelled or timed-out run leaves the bytes written so far. Standard error is not written to the file.
+  /// </para>
+  /// <para>
+  /// A relative path is resolved against the current directory when this method is called, not against
+  /// <see cref="WithWorkingDirectory"/>. The directory must exist.
+  /// For a <see cref="Pipe(string, string[])"/> composition the tee records the last stage's stdout.
+  /// <see cref="TtyPassthroughAsync"/> refuses a tee, because the child inherits the terminal.
+  /// Under <see cref="Testing.CommandMock"/>, a matched call writes the setup's stdout text to the file.
+  /// </para>
+  /// </remarks>
+  /// <param name="filePath">Path of the file that receives a copy of standard output</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public ShellBuilder WithStandardOutputTee(string filePath)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+    StandardOutputTeeFile = Path.GetFullPath(filePath);
     return this;
   }
 
@@ -133,7 +188,13 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// <returns>A CommandResult for further processing</returns>
   public CommandResult Build()
   {
-    return CommandExtensions.Run(Executable, Arguments.ToArray(), Options, StandardInput);
+    return CommandExtensions.Run(
+      Executable,
+      Arguments.ToArray(),
+      Options,
+      StandardInput,
+      StandardInputFile,
+      StandardOutputTeeFile);
   }
 
   /// <summary>
@@ -152,7 +213,7 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// Executes the command with true TTY passthrough for TUI applications.
   /// Unlike PassthroughAsync which pipes Console streams, this method
   /// allows the child process to inherit the terminal's TTY characteristics.
-  /// Throws <see cref="InvalidOperationException"/> when standard input was configured.
+  /// Throws <see cref="InvalidOperationException"/> when standard input (text or file) or a stdout tee was configured.
   /// </summary>
   /// <param name="cancellationToken">Cancellation token for the operation</param>
   /// <returns>The execution result (output strings will be empty since output is inherited)</returns>
@@ -288,13 +349,23 @@ public class ShellBuilder : ICommandBuilder<ShellBuilder>
   /// The client writes requests to the child's standard input and reads responses from standard output.
   /// </summary>
   /// <returns>A builder for serializer settings and standard-error observation</returns>
-  /// <exception cref="InvalidOperationException">Standard input was configured with <see cref="WithStandardInput"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// Standard input was configured with <see cref="WithStandardInput"/> or <see cref="WithStandardInputFile"/>,
+  /// or a stdout tee was configured with <see cref="WithStandardOutputTee"/>.
+  /// </exception>
   public JsonRpcClientBuilder AsJsonRpcClient()
   {
-    if (StandardInput is not null)
+    if (StandardInput is not null || StandardInputFile is not null)
     {
       throw new InvalidOperationException(
-        "AsJsonRpcClient owns standard input; WithStandardInput cannot be combined with it."
+        "AsJsonRpcClient owns standard input; WithStandardInput and WithStandardInputFile cannot be combined with it."
+      );
+    }
+
+    if (StandardOutputTeeFile is not null)
+    {
+      throw new InvalidOperationException(
+        "AsJsonRpcClient owns standard output; WithStandardOutputTee cannot be combined with it."
       );
     }
 

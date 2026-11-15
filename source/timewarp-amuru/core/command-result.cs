@@ -22,6 +22,7 @@
 //   string is configured: redirecting stdin would clear isatty on that stream, and inheriting the
 //   console would drop the text with no error. CommandMock records the string on matched calls.
 //   The TTY refusal runs before mock matching, so both paths refuse instead of dropping the text.
+//   A configured stdin file and the stdout tee follow the same rules; see command-result.standard-streams.cs.
 //   TtyPassthroughAsync also throws for Pipe compositions: it starts one process, so the upstream
 //   stage would be dropped.
 // - CaptureAsync and RunAndCaptureAsync set CommandOutput.RunTime from CliWrap, matching PassthroughAsync and TtyPassthroughAsync. Mocks and Empty stay at zero.
@@ -169,57 +170,6 @@ public partial class CommandResult
   /// </summary>
   public CommandOutput? LastOutput { get; private set; }
 
-  private CommandResult(
-    Command? command,
-    string? configuredStandardInput,
-    bool isPipeline,
-    string? mockExecutable,
-    string[]? mockArguments,
-    TimeSpan? timeout,
-    TimeSpan timeoutGracePeriod,
-    CommandResultValidation validation)
-  {
-    InternalCommand = command;
-    ConfiguredStandardInput = configuredStandardInput;
-    IsPipeline = isPipeline;
-    MockExecutable = mockExecutable;
-    MockArguments = mockArguments;
-    Timeout = timeout;
-    TimeoutGracePeriod = timeoutGracePeriod;
-    Validation = validation;
-  }
-
-  internal CommandResult(Command? command)
-    : this(
-      command,
-      configuredStandardInput: null,
-      isPipeline: false,
-      mockExecutable: null,
-      mockArguments: null,
-      timeout: null,
-      timeoutGracePeriod: CommandOptions.DefaultTimeoutGracePeriod,
-      validation: CommandResultValidation.None)
-  {
-  }
-
-  internal CommandResult(
-    Command? command,
-    string executable,
-    string[] arguments,
-    string? configuredStandardInput,
-    CommandOptions options)
-    : this(
-      command,
-      configuredStandardInput,
-      isPipeline: false,
-      executable,
-      arguments,
-      options.Timeout,
-      options.TimeoutGracePeriod,
-      options.Validation ?? CommandResultValidation.None)
-  {
-  }
-
   /// <summary>
   /// Resolves the mock setup for this command, if mocking is enabled in the current context.
   /// Records the call on a match. In strict mode (the default), an unmatched command throws
@@ -251,7 +201,7 @@ public partial class CommandResult
 
     if (state.TryGetSetup(executable, arguments, out Testing.MockSetupData? setupData) && setupData != null)
     {
-      state.RecordCall(executable, arguments, ConfiguredStandardInput);
+      state.RecordCall(executable, arguments, StandardInputForMock());
       return setupData;
     }
 
@@ -499,12 +449,14 @@ public partial class CommandResult
     }
 
     cancellationToken.ThrowIfCancellationRequested();
+    CreateMockTeeFile();
 
     bool timesOut = setup.TimesOut
       || (Timeout is TimeSpan timeout && setup.Delay is TimeSpan delay && delay >= timeout);
     if (timesOut)
     {
       await WaitForMockTimeoutAsync(setup, cancellationToken).ConfigureAwait(false);
+      await WriteMockTeeAsync(setup).ConfigureAwait(false);
       return new MockExecution
       {
         Handled = true,
@@ -514,6 +466,7 @@ public partial class CommandResult
     }
 
     await ApplyMockPreludeAsync(setup, cancellationToken).ConfigureAwait(false);
+    await WriteMockTeeAsync(setup).ConfigureAwait(false);
     return new MockExecution
     {
       Handled = true,
@@ -592,7 +545,7 @@ public partial class CommandResult
     }
 
     var stopwatch = Stopwatch.StartNew();
-    IAsyncEnumerable<CommandEvent> events = InternalCommand!.ListenAsync(cancellationToken);
+    IAsyncEnumerable<CommandEvent> events = TeeCommand.ListenAsync(cancellationToken);
 
     // The caller token is already the ListenAsync argument. None avoids linking a second token.
     IAsyncEnumerator<CommandEvent> enumerator = events.GetAsyncEnumerator(CancellationToken.None);
@@ -702,11 +655,11 @@ public partial class CommandResult
     // Keep a configured string pipe (including empty) or the upstream pipe stage.
     // Replace stdin only when the caller owns it.
     Command interactiveCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToStream(stdOut))
+      .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToStream(stdOut)))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
     Stream? stdIn = null;
-    if (ConfiguredStandardInput is null && !IsPipeline)
+    if (!HasConfiguredStandardInput && !IsPipeline)
     {
       stdIn = TimeWarpTerminal.Default.OpenStandardInput();
       interactiveCommand = interactiveCommand.WithStandardInputPipe(PipeSource.FromStream(stdIn));
@@ -775,10 +728,7 @@ public partial class CommandResult
       return Remember(CommandOutput.Empty(NeverRanExitCode));
     }
 
-    if (ConfiguredStandardInput is not null)
-    {
-      throw new InvalidOperationException(TtyConfiguredStandardInputMessage);
-    }
+    ThrowIfTtyCannotUseStandardStreams();
 
     if (IsPipeline)
     {
@@ -901,7 +851,7 @@ public partial class CommandResult
     // - stderr goes to console (for interactive UI)
     // - stdin comes from pipeline or was already configured
     Command interactiveCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputBuilder))
+      .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToStringBuilder(outputBuilder)))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
     CliExecution execution;
@@ -1034,7 +984,9 @@ public partial class CommandResult
         mockArguments: null,
         sharedTimeout,
         sharedGrace,
-        sharedValidation);
+        sharedValidation,
+        StandardInputFile,
+        StandardOutputTeeFile);
     }
     catch
     {
@@ -1072,7 +1024,7 @@ public partial class CommandResult
 
     // Stream to terminal using CliWrap's pipe targets
     Command consoleCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line)))
+      .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line))))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
     CliExecution execution = await ExecuteCliAsync(consoleCommand, cancellationToken).ConfigureAwait(false);
@@ -1116,7 +1068,7 @@ public partial class CommandResult
     );
 
     Command captureCommand = InternalCommand
-      .WithStandardOutputPipe(stdOutTarget)
+      .WithStandardOutputPipe(WithTeeStandardOutput(stdOutTarget))
       .WithStandardErrorPipe(stdErrTarget);
 
     CliExecution execution = await ExecuteCliAsync(captureCommand, cancellationToken).ConfigureAwait(false);
@@ -1148,13 +1100,13 @@ public partial class CommandResult
     Lock outputLock = new();
 
     Command captureCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line =>
       {
         using (outputLock.EnterScope())
         {
           outputLines.Add(new OutputLine(line, false));
         }
-      }))
+      })))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
       {
         using (outputLock.EnterScope())
@@ -1318,13 +1270,13 @@ public partial class CommandResult
     Lock writeLock = new();
 
     Command fileCommand = InternalCommand
-      .WithStandardOutputPipe(PipeTarget.ToDelegate(line =>
+      .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line =>
       {
         using (writeLock.EnterScope())
         {
           writer.WriteLine(line);
         }
-      }))
+      })))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line =>
       {
         using (writeLock.EnterScope())

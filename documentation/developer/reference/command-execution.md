@@ -76,8 +76,34 @@ There is no size limit. The limit is process memory.
 | `StreamStdoutAsync`, `StreamStderrAsync`, `StreamCombinedAsync` | Constant memory per line. A line stays allocated only while the caller keeps it |
 | `RunAsync`, `PassthroughAsync` | Do not buffer the output. `RunAsync` writes each line to the terminal. `PassthroughAsync` copies the child's streams to the console |
 | `StreamToFileAsync` | Writes each line to the file and does not keep the text on `CommandOutput` |
+| `WithStandardOutputTee` (any mode) | Adds no memory. Copies stdout bytes to the file as they arrive |
 
 `CaptureAsync` records lines in arrival order, so stdout and stderr may interleave in `OutputLines`. `RunAndCaptureAsync`, and any `CommandOutput` built from separate stdout and stderr strings, orders all stdout lines before all stderr lines. Those two strings do not carry interleaving.
+
+## Standard input file and stdout tee
+
+`ShellBuilder.WithStandardInputFile(path)` uses a file as the child's standard input. The bytes are streamed as they are, with no text decoding, so a large prompt is not held in memory. It replaces any earlier `WithStandardInput(text)`, and a later text call replaces the file. It counts as configured standard input everywhere the text form does: `PassthroughAsync` keeps it, `TtyPassthroughAsync` and `AsJsonRpcClient` refuse it, and a pipeline keeps it as the first stage's stdin. The file is opened when the command runs, and a missing file throws `FileNotFoundException`.
+
+`ShellBuilder.WithStandardOutputTee(path)` copies the child's standard output to a file, byte for byte, as the bytes arrive. The execution method still returns or streams stdout, stderr, and the exit code as it would without the tee.
+
+- The file is created (or truncated) when the run starts. Each chunk the child writes is flushed at once, with no line splitting, so an unterminated last line is in the file while the child is still running. The line-based modes (`CaptureAsync`, `StreamStdoutAsync`, and the rest) deliver that last line only when the child exits.
+- The file is opened shared for read, write, and delete, so another reader can open or tail it during the run.
+- A cancelled or timed-out run leaves every byte written so far.
+- Standard error is not written to the file.
+- For a `Pipe` composition the tee records the last stage's stdout, which is the pipeline output.
+- `TtyPassthroughAsync` and `AsJsonRpcClient` refuse a tee.
+
+Both paths are made absolute against the current directory when the builder method is called, not against `WithWorkingDirectory`.
+
+Under `CommandMock`, a matched call records the stdin file's text (read through `CommandMock.GetConfiguredStandardInput`). The tee file is created when the setup matches, and the setup's stdout text is written after its delay. A mock cancelled during that delay leaves the file empty.
+
+```csharp
+CommandOutput output = await Shell.Builder("agent")
+  .WithArguments("--print")
+  .WithStandardInputFile(promptPath)       // the prompt can be any size
+  .WithStandardOutputTee(transcriptPath)   // another reader can tail this during the run
+  .CaptureAsync(cancellationToken);
+```
 
 ## JSON-RPC
 

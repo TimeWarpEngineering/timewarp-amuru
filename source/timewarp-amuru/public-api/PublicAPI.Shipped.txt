@@ -334,6 +334,8 @@ TimeWarp.Amuru.ShellBuilder.WithArguments(params string![]! arguments) -> TimeWa
 TimeWarp.Amuru.ShellBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithNoValidation() -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithStandardInputFile(string! filePath) -> TimeWarp.Amuru.ShellBuilder!
+TimeWarp.Amuru.ShellBuilder.WithStandardOutputTee(string! filePath) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.ShellBuilder!
 TimeWarp.Amuru.ShellBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.ShellBuilder!

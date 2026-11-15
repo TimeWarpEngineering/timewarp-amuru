@@ -86,6 +86,8 @@ await Shell.Builder("myapp")
   .WithWorkingDirectory("/path/to/dir")     // Set working directory
   .WithEnvironmentVariable("KEY", "value")  // Set env var
   .WithStandardInput("input text")          // Pipe string to stdin
+  .WithStandardInputFile("prompt.txt")      // Or stream a file to stdin (replaces the text form)
+  .WithStandardOutputTee("out.log")         // Copy stdout bytes to a file as they arrive
   .WithNoValidation()                       // Explicit default: non-zero exit is not thrown
   .WithTimeout(TimeSpan.FromSeconds(30))    // Per-command limit. Null means no timeout
   .RunAsync(cancellationToken);             // All methods accept CancellationToken

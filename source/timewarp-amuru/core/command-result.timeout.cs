@@ -44,12 +44,13 @@ public partial class CommandResult
         SingleReader = true
       }
     );
-    Command command = InternalCommand!
+    Command teeCommand = TeeCommand;
+    Command command = teeCommand
       .WithStandardOutputPipe
       (
         PipeTarget.Merge
         (
-          InternalCommand.StandardOutputPipe,
+          teeCommand.StandardOutputPipe,
           PipeTarget.ToDelegate
           (
             async (line, token) =>
@@ -64,7 +65,7 @@ public partial class CommandResult
       (
         PipeTarget.Merge
         (
-          InternalCommand.StandardErrorPipe,
+          teeCommand.StandardErrorPipe,
           PipeTarget.ToDelegate
           (
             async (line, token) =>
