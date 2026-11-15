@@ -41,6 +41,10 @@ Acceptance:
 - A `dev build` (Release, not publish) and a `dev self-install` / `DotNet.Publish` of a `PublishAot=true` runfile are distinguishable in SigNoz via `build.publish_aot` and `build.command`.
 - Existing command spans (`command.name`, status, `error.type`) stay as they are.
 
+## Review
+
+- Round 1: Done
+
 ## Notes
 
 - Why Amuru, not Nuru or each repo's `build-command.cs`: shared `TimeWarp.Nuru.DevCli` does not ship `build`/`test`/`publish`; those are per-repo copies. Hooking Amuru is the one-change path.
@@ -85,7 +89,21 @@ Expect:
 1. 14/14 pass.
 2. The `build` span shows `build.command=build`, `build.configuration=Release`, and `build.publish_aot=false`. The `self-install` span shows `build.command=publish` and `build.publish_aot=true`.
 
+### Review
+
+Round 1, effort 2, roster general. No findings. Disposition: clean.
+
+| Severity | open | fixed | wontfix |
+|----------|------|-------|---------|
+| bug | 0 | 0 | 0 |
+| suggestion | 0 | 0 | 0 |
+| nit | 0 | 0 | 0 |
+
+Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - 2026-11-15 implementer (claude-opus-5-5, ganda task work implement oracle): implemented the tags, switched this repo's `dev build` to Amuru, ran the gates, and verified the result in SigNoz.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 02682220-e8f1-4d06-a33c-35ceb04b6145, max-turns 500, Done — 2026-11-15T09:15:26Z
+- Reviewer: grok session 01a1de7d-96a3-75c1-860e-54e41630aa9c (2026-11-15), effort 2, roster general, round 1, disposition clean
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1de7d-96a3-75c1-860e-54e41630aa9c, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-15T09:24:22Z
