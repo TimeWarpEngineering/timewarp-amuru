@@ -4,7 +4,6 @@
 
 using TimeWarp.Amuru;
 using TimeWarp.Nuru;
-using static DevCli.ProcessHelpers;
 
 namespace DevCli.Endpoints;
 
@@ -35,7 +34,20 @@ public sealed class BuildCommand : ICommand<Unit>
         Environment.Exit(1);
       }
 
-      int exitCode = await RunProcessAsync("dotnet", $"build \"{solutionPath}\" -c Release --verbosity {verbosity}");
+      // DotNet.Build tags this command span with build.command and build.configuration (task 144).
+      CommandOutput output = await DotNet.Build(solutionPath)
+        .WithConfiguration("Release")
+        .WithVerbosity(verbosity)
+        .WithNoValidation()
+        .CaptureAsync(cancellationToken);
+
+      if (!string.IsNullOrEmpty(output.Stdout))
+        await TimeWarpTerminal.Default.WriteLineAsync(output.Stdout);
+
+      if (!string.IsNullOrEmpty(output.Stderr))
+        await TimeWarpTerminal.Default.WriteErrorLineAsync(output.Stderr);
+
+      int exitCode = output.ExitCode;
 
       if (exitCode != 0)
       {

@@ -393,6 +393,7 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
       arguments.Add($"--property:{property.Key}={property.Value}");
     }
 
+    DotNetBuildTelemetry.Tag("build", Configuration, Properties, Project, Options.WorkingDirectory);
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 

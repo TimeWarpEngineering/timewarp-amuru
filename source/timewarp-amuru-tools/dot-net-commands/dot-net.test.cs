@@ -434,7 +434,6 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
       arguments.Add(logger);
     }
 
-    // Add boolean flags
     if (NoRestore)
     {
       arguments.Add("--no-restore");
@@ -467,6 +466,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
       arguments.Add($"--property:{property.Key}={property.Value}");
     }
 
+    DotNetBuildTelemetry.Tag("test", Configuration, Properties, Project, Options.WorkingDirectory);
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 
