@@ -68,6 +68,12 @@ Acceptance:
 - Created: b3be0249-1852-425a-9e90-5a7e56049503 (2026-11-15)
 - Implemented: ganda task work, implement oracle (2026-11-15)
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 1f2f70cc-65f8-4a6c-a0be-04a5eafbfb27, max-turns 500, Done — 2026-11-15T14:00:44Z
+- Reviewer: grok, session 01a1df82-cbe2-7311-986d-67e45db0fcde (2026-11-15), effort 3, roster general, round 1, disposition clean
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1df82-cbe2-7311-986d-67e45db0fcde, max-turns 200, artifacts general.md, merged.md, disposition.md — 2026-11-15T14:18:00Z
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
@@ -151,3 +157,14 @@ the bytes written before the stop. `CaptureAsync_Should_CopyStdoutAndKeepResult`
 stderr out of the file and the capture unchanged. `BinaryOutput_Should_CopyBytesUnchanged`
 shows raw bytes (`00 FF 0D 0A 80`) unchanged. `LargeFile_Should_StreamEveryByte` streams
 300 KiB through stdin.
+
+### Review
+
+- Round 1. Effort 3. Roster: general. Session `01a1df82-cbe2-7311-986d-67e45db0fcde`.
+- Counts: bug 0 open / 0 fixed / 0 wontfix; suggestion 0; nit 0. Final open count 0.
+- Disposition: clean. No wontfix and no escalation.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
+## Learnings
+
+The original checklist includes a release so ganda can take the package, and the notes say ganda task 648 depends on this task's release. The Goal restatement ships the `3.0.0-beta.5` version bump and release notes, and leaves `dev release` until after merge. That follows the release workflow, which publishes from master. The rest of the restatement matches the task: a byte-level stdout tee, stdin from a file, the mock path, cancellation keeping bytes already written, stderr left out of the tee, and docs.
