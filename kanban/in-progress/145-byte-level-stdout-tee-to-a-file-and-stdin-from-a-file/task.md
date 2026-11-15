@@ -122,6 +122,13 @@ Gates (run once each, in order, after the last product edit):
   `.vscode/settings.json` was missing). `ganda repo audit --fix` fixed it, and the audit
   then reported "Repository passes all audit checks". That file is gitignored and changes
   no tracked file.
+- The first commit's post-commit attest refused on two checks the pre-commit audit did not
+  show. `runfile-executable` failed because the two new test runfiles lacked the exec bit.
+  `package-pin-currency` failed because the githook self-pins `TimeWarp.Amuru[.Tools]` were
+  `3.0.0-beta.3` and `3.0.0-beta.4` had been published that day. `ganda repo audit --fix`
+  set the exec bits and moved the pins to `3.0.0-beta.4`, recorded in the beta.5 release
+  note. Only the `.githooks` runfiles consume those pins, so build and test do not change.
+  The rerun `ganda repo audit` passed all checks.
 
 Follow-up: cut the `3.0.0-beta.5` release (`dev release`) after merge, on an explicit ask.
 ganda task 648 then takes the package.
