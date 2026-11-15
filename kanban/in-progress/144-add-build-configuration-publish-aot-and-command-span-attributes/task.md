@@ -88,3 +88,4 @@ Expect:
 ## Session
 
 - 2026-11-15 implementer (claude-opus-5-5, ganda task work implement oracle): implemented the tags, switched this repo's `dev build` to Amuru, ran the gates, and verified the result in SigNoz.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 02682220-e8f1-4d06-a33c-35ceb04b6145, max-turns 500, Done — 2026-11-15T09:15:26Z
