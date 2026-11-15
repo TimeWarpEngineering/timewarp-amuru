@@ -112,3 +112,16 @@ eight dev commands (build, clean, test, verify-samples, workflow, check-version,
 
 Release of 3.0.0-beta.4 is a separate step (`dev release` from master after the merge is green), not part
 of this task. The self pins can only follow a release, so this pattern repeats once per release.
+
+## CI red, round 2
+
+PR #140 CI run 43694972395 failed in Verify Samples. TimeWarp.SourceGenerators 1.0.0-beta.16 adds
+TWA0004 (every file needs a `#region Purpose` block) and the samples compile against it:
+
+- `samples/script-context-example.cs`
+- `samples/app-context-extensions-example.cs`
+- `samples/json-rpc/aot-json-rpc-example.cs`
+
+Add a Purpose region to each (a single `//` line inside the region is enough, per the diagnostic). Then
+run `./bin/dev verify-samples` locally and grep the whole repo for any other runfile or sample without
+a Purpose region so the next CI run does not find a fourth. Push and let the walk re-open the gate.
