@@ -67,6 +67,9 @@ Acceptance:
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-15T08:22:40Z
 - Review (2026-11-15): general, effort 2, round 1, disposition clean. Grok session `01a1de4d-53d4-7f01-8958-61359ae2d018`, max-turns 120.
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1de4d-53d4-7f01-8958-61359ae2d018, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-15T08:31:27Z
+- Implement round 2 (2026-11-15): CI run 43694972395 red in Verify Samples on TWA0004 (SourceGenerators beta.16). Wrapped the
+  existing header comment of each of the three samples in a `#region Purpose` block. `git ls-files '*.cs' | xargs grep -L '#region Purpose'`
+  now returns nothing, so no fourth file is waiting. `./bin/dev verify-samples`: all 3 samples compile.
 
 ## Results
 
@@ -88,6 +91,15 @@ Extra checks:
 - `dotnet build .githooks/<hook>.cs` for pre-commit, post-commit, pre-push, post-merge, post-checkout, prepare-commit-msg: all exit 0 on the 3.0.0-beta.3 self pins.
 - beta.4 nuspecs vs published beta.3 nuspecs: differ only in version, repository commit/branch, and dependency versions; file lists identical (nuget.org adds `.signature.p7s`).
 
+CI round 2 (TWA0004 in samples), gates re-run once each on the final tree:
+
+| Gate | Command | Result |
+|---|---|---|
+| verify-samples | `./bin/dev verify-samples` | green, 3 of 3 samples compile (CI step 3/4 that failed) |
+| build | `./bin/dev build` | green, 0 warnings, 0 errors |
+| test | `./bin/dev test` | green, 839 total: 838 passed, 1 skipped, 0 failed |
+| audit | `ganda repo audit` | exit 0, "Repository passes all audit checks." |
+
 Review: one round, effort 2, roster general. Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix. Disposition is **clean**. The goal restatement matches the task, so there is no misread. The `global.json` SDK follow is the standing NetAnalyzers coupling. No product gates were re-run. Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
 
 ### How to validate
@@ -98,10 +110,13 @@ Smoke:
 ganda nuget outdated
 ./bin/dev --capabilities | grep '"pattern"'
 dotnet build .githooks/pre-commit.cs
+./bin/dev verify-samples
+git ls-files '*.cs' | xargs grep -L '#region Purpose'
 ```
 
 Expect: build and test green (838 passed, 1 skipped); `ganda nuget outdated` prints "All packages are up to date!";
-eight dev commands (build, clean, test, verify-samples, workflow, check-version, release, self-install); hook compiles.
+eight dev commands (build, clean, test, verify-samples, workflow, check-version, release, self-install); hook compiles;
+verify-samples reports all 3 samples verified; the Purpose grep prints nothing.
 `artifacts/packages/TimeWarp.Amuru.Tools.3.0.0-beta.4.nupkg` nuspec depends on NuGet.Versioning 8.0.0 and TimeWarp.Amuru 3.0.0-beta.4.
 
 ## Review
