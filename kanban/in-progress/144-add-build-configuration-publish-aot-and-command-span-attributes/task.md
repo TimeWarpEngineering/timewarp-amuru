@@ -73,7 +73,7 @@ Existing `command.name` and status are unchanged.
 |------|---------|--------|
 | Build | `./bin/dev build` | PASS. The first run failed TWA0038, because `dot-net.publish.cs` and `dot-net.test.cs` were 2 lines over the ratchet. They were trimmed and the rerun passed. |
 | Test | `./bin/dev test` | PASS: 853 total, 852 passed, 1 skipped, 0 failed |
-| Audit | `ganda repo audit` | PASS with 1 advisory warning (`vscode-window-icon`: `.vscode/settings.json` missing). After `ganda repo audit --fix`, all checks pass. |
+| Audit | `ganda repo audit` | PASS with 1 advisory warning (`vscode-window-icon`: `.vscode/settings.json` missing). After `ganda repo audit --fix`, all checks pass. The first commit's attest then failed `runfile-executable`, because the new test runfile lacked +x. After `chmod +x`, the `ganda repo audit` rerun passed. |
 
 ### How to validate
 
