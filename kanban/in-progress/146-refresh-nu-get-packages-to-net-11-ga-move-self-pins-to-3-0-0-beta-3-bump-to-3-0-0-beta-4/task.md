@@ -64,6 +64,7 @@ Acceptance:
   - Jaribu beta.16: `TestSkipped(string)` became `TestSkipped(ITerminal, string)`; six call sites pass `TimeWarpTerminal.Default`.
   - NuGet.Versioning 8.0: no published release-note page found; package diff shows lib net8.0 -> net10.0 (net472 kept). Only `NuGetVersion.TryParse` + comparison used; compiles unchanged, nuget-package-service tests green.
   - Boy-scout: `ganda repo audit --fix` cleared two Warnings (memsearch-scaffold: Purpose regions in five githooks + new `prepare-commit-msg` hook; vscode-window-icon: ignored `.vscode/settings.json`).
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-15T08:22:40Z
 
 ## Results
 
