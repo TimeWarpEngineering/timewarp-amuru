@@ -65,6 +65,8 @@ Acceptance:
   - NuGet.Versioning 8.0: no published release-note page found; package diff shows lib net8.0 -> net10.0 (net472 kept). Only `NuGetVersion.TryParse` + comparison used; compiles unchanged, nuget-package-service tests green.
   - Boy-scout: `ganda repo audit --fix` cleared two Warnings (memsearch-scaffold: Purpose regions in five githooks + new `prepare-commit-msg` hook; vscode-window-icon: ignored `.vscode/settings.json`).
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-15T08:22:40Z
+- Review (2026-11-15): general, effort 2, round 1, disposition clean. Grok session `01a1de4d-53d4-7f01-8958-61359ae2d018`, max-turns 120.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1de4d-53d4-7f01-8958-61359ae2d018, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-15T08:31:27Z
 
 ## Results
 
@@ -86,6 +88,8 @@ Extra checks:
 - `dotnet build .githooks/<hook>.cs` for pre-commit, post-commit, pre-push, post-merge, post-checkout, prepare-commit-msg: all exit 0 on the 3.0.0-beta.3 self pins.
 - beta.4 nuspecs vs published beta.3 nuspecs: differ only in version, repository commit/branch, and dependency versions; file lists identical (nuget.org adds `.signature.p7s`).
 
+Review: one round, effort 2, roster general. Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix. Disposition is **clean**. The goal restatement matches the task, so there is no misread. The `global.json` SDK follow is the standing NetAnalyzers coupling. No product gates were re-run. Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ### How to validate
 
 Smoke:
@@ -99,6 +103,10 @@ dotnet build .githooks/pre-commit.cs
 Expect: build and test green (838 passed, 1 skipped); `ganda nuget outdated` prints "All packages are up to date!";
 eight dev commands (build, clean, test, verify-samples, workflow, check-version, release, self-install); hook compiles.
 `artifacts/packages/TimeWarp.Amuru.Tools.3.0.0-beta.4.nupkg` nuspec depends on NuGet.Versioning 8.0.0 and TimeWarp.Amuru 3.0.0-beta.4.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
