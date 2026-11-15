@@ -71,6 +71,9 @@ Acceptance:
   existing header comment of each of the three samples in a `#region Purpose` block. `git ls-files '*.cs' | xargs grep -L '#region Purpose'`
   now returns nothing, so no fourth file is waiting. `./bin/dev verify-samples`: all 3 samples compile.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 10165211-2163-4160-91fd-d414cb4b12ad, max-turns 500, Done — 2026-11-15T08:46:41Z
+- Review round 2 (2026-11-15): general, effort 2, disposition clean. Grok session `01a1de63-40f3-7291-8eab-4128b011ce9d`, max-turns 120.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1de63-40f3-7291-8eab-4128b011ce9d, max-turns 120, artifacts review/round-2/general.md, review/round-2/merged.md, disposition.md — 2026-11-15
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1de63-40f3-7291-8eab-4128b011ce9d, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-15T08:52:44Z
 
 ## Results
 
@@ -101,7 +104,7 @@ CI round 2 (TWA0004 in samples), gates re-run once each on the final tree:
 | test | `./bin/dev test` | green, 839 total: 838 passed, 1 skipped, 0 failed |
 | audit | `ganda repo audit` | exit 0, "Repository passes all audit checks." |
 
-Review: one round, effort 2, roster general. Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix. Disposition is **clean**. The goal restatement matches the task, so there is no misread. The `global.json` SDK follow is the standing NetAnalyzers coupling. No product gates were re-run. Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+Review: two rounds, effort 2, roster general. Round 1 raised nothing. Round 2 re-checked the pin refresh and the TWA0004 sample fix and raised nothing. Final counts: bug 0, suggestion 0, nit 0. Nothing is open, fixed, or wontfix. Disposition is **clean**. The goal restatement matches the task, so there is no misread. The `global.json` SDK follow is the standing NetAnalyzers coupling. No product gates were re-run. Artifacts: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ### How to validate
 
@@ -123,7 +126,7 @@ verify-samples reports all 3 samples verified; the Purpose grep prints nothing.
 ## Review
 
 - Round 1: Done
-
+- Round 2: Done
 ## Notes
 
 Release of 3.0.0-beta.4 is a separate step (`dev release` from master after the merge is green), not part
