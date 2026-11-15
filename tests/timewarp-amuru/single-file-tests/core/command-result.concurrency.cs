@@ -220,7 +220,7 @@ namespace CommandResult_
         return true;
       }
 
-      TimeWarp.Jaribu.TestHelpers.TestSkipped("Requires Linux");
+      TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, "Requires Linux");
       return false;
     }
   }
