@@ -17,10 +17,12 @@
     <!-- Recursive: a new sibling folder under single-file-tests is part of the aggregate run.
          The fake seam is compiled through #:include on the session test files. Listing it here
          as well warns CS2002. The MCP server is its own program. The client test builds and
-         runs that file. Compiling it here collides with the runner's top-level statements. -->
+         runs that file. Compiling it here collides with the runner's top-level statements.
+         The argv-echo child is the same case for the argument round-trip property. -->
     <Compile Include="../single-file-tests/**/*.cs" />
     <Compile Remove="../single-file-tests/json-rpc/json-rpc-session-machine.fake-seam.cs" />
     <Compile Remove="../single-file-tests/json-rpc/mcp-stdio-server/mcp-stdio-server.cs" />
+    <Compile Remove="../single-file-tests/core/argv-echo/argv-echo.cs" />
   </ItemGroup>
 
 </Project>

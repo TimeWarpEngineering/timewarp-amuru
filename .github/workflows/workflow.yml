@@ -112,6 +112,9 @@ jobs:
           NUGET_LOGIN_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           # workflow_dispatch publishes only when mode and confirm are both release.
           BREAK_GLASS_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release' }}
+          # CsCheck property tests run this seed as their first sample (task 128). A failure
+          # prints the shrunk case's own seed; set CsCheck_Seed to that value to replay it.
+          CsCheck_Seed: 012XdpNskFd2
         run: |
           if ($env:GITHUB_EVENT_NAME -eq 'release' -or $env:BREAK_GLASS_RELEASE -eq 'true') {
             dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key $env:NUGET_LOGIN_API_KEY

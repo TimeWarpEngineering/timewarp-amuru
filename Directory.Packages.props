@@ -10,6 +10,8 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="11.0.0" />
     <PackageVersion Include="ModelContextProtocol" Version="2.4.0" />
     <PackageVersion Include="NuGet.Versioning" Version="8.0.0" />
+    <!-- Test-only: property-based tests under tests/. Never referenced by product code. -->
+    <PackageVersion Include="CsCheck" Version="4.9.1" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="2.0.1-beta.1" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.16" />
