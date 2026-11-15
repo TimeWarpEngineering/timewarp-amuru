@@ -63,6 +63,10 @@ Acceptance:
 - [x] Pin CsCheck_Seed in CI; print seed on failure
 - [x] Record findings (bugs found / invariants not covered by existing tests) for the kill-criterion review
 
+## Review
+
+- Round 1: Done
+
 ## Notes
 
 Not launched. Filed 2026-10-13 at Steven's request ("sure lets try").
@@ -142,6 +146,16 @@ grep prints "no product reference". To see a failure report, change the property
 `received.ShouldBe(arguments)` to compare against a mangled copy: the run fails with a shrunk
 case and a `CsCheck_Seed=...` replay line.
 
+### Review
+
+- Round 1. Effort 2. Roster: general. Reviewer session Grok `01a1dfe8-ed25-78c2-8d66-58b55ef32a20`.
+- Counts: bug 0 open / 0 fixed / 0 wontfix; suggestion 0 / 0 / 0; nit 0 / 0 / 0. Final open count 0.
+- Disposition: clean. No wontfix. No escalation.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+- The implementer restatement matches the groomed child-process contract. No misread recorded.
+
 ## Session
 
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-15T15:52:18Z
+- Review oracle: Grok session `01a1dfe8-ed25-78c2-8d66-58b55ef32a20` (2026-11-15), effort 2, roster general, round 1, disposition clean
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1dfe8-ed25-78c2-8d66-58b55ef32a20, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-15T16:07:39Z
