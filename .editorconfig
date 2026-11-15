@@ -331,6 +331,40 @@ dotnet_diagnostic.CA1031.severity = none
 dotnet_diagnostic.CA1062.severity = suggestion
 
 #### ganda repo audit settings ####
+
+# TWA0038 (TimeWarp.SourceGenerators 1.0.0-beta.16): per-file line limit for the files in
+# .timewarp/line-cap-baseline.json, the shrink-only ratchet the source-file-line-cap audit already holds.
+# max_lines is the current count, so the build fails if one of these grows. Every other file keeps 500.
+# Splitting them is separate work, not part of a dependency refresh. task 146
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.new.cs]
+dotnet_diagnostic.TWA0038.max_lines = 890
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.nu-get.cs]
+dotnet_diagnostic.TWA0038.max_lines = 1801
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.publish.cs]
+dotnet_diagnostic.TWA0038.max_lines = 584
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.reference.cs]
+dotnet_diagnostic.TWA0038.max_lines = 515
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.run.cs]
+dotnet_diagnostic.TWA0038.max_lines = 525
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.sln.cs]
+dotnet_diagnostic.TWA0038.max_lines = 631
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.test.cs]
+dotnet_diagnostic.TWA0038.max_lines = 528
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.user-secrets.cs]
+dotnet_diagnostic.TWA0038.max_lines = 743
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.watch.cs]
+dotnet_diagnostic.TWA0038.max_lines = 661
+[source/timewarp-amuru-tools/dot-net-commands/dot-net.workload.cs]
+dotnet_diagnostic.TWA0038.max_lines = 1944
+[source/timewarp-amuru/core/command-result.cs]
+dotnet_diagnostic.TWA0038.max_lines = 1339
+[tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.cli-smoke.cs]
+dotnet_diagnostic.TWA0038.max_lines = 510
+[tests/timewarp-amuru/single-file-tests/native/text/direct.replace-in-files.cs]
+dotnet_diagnostic.TWA0038.max_lines = 533
+[tools/dev-cli/endpoints/workflow-command.cs]
+dotnet_diagnostic.TWA0038.max_lines = 867
+
 [ganda.audit]
 # .agent/workspace reports follow tw-analysis-report's mandated ISO-8601 prefix
 # (YYYY-MM-DDTHH-MM-SS_slug.md), which is intentionally not kebab-case.

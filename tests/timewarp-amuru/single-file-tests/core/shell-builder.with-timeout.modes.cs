@@ -162,7 +162,7 @@ namespace ShellBuilder_
     {
       if (!CanDeliverSigInt())
       {
-        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, "SIGINT is not delivered on this platform");
         return;
       }
 
@@ -181,7 +181,7 @@ namespace ShellBuilder_
     {
       if (!CanDeliverSigInt())
       {
-        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, "SIGINT is not delivered on this platform");
         return;
       }
 
@@ -259,7 +259,7 @@ namespace ShellBuilder_
     {
       if (!CanDeliverSigInt())
       {
-        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, "SIGINT is not delivered on this platform");
         return;
       }
 
@@ -280,7 +280,7 @@ namespace ShellBuilder_
     {
       if (!CanDeliverSigInt())
       {
-        TimeWarp.Jaribu.TestHelpers.TestSkipped("SIGINT is not delivered on this platform");
+        TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, "SIGINT is not delivered on this platform");
         return;
       }
 

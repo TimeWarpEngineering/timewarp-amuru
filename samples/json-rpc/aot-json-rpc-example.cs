@@ -4,8 +4,10 @@
 #:property EnablePreviewFeatures=true
 #:property IsAotCompatible=true
 
+#region Purpose
 // JSON-RPC 2.0 over a child process, with a source-generated serializer.
 // Pass "run" to start the Python fixture. A build or NativeAOT publish does not start a process.
+#endregion
 
 using System.Globalization;
 using System.Text.Json.Serialization;

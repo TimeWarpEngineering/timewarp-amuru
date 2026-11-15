@@ -8,7 +8,7 @@ This file provides guidance to agents when working with code in this repository.
 - **Release**: `dev release --dry-run` then `dev release` from a clean, synced master (tag + GitHub Release); the release event promotes the CI-built `Packages-*` artifact, never rebuilds — see `documentation/developer/guides/releasing.md`
 - **One version, lockstep**: All packages ship together at the single `<Version>` in `source/Directory.Build.props`. Never add a `<Version>` to a csproj. A project that must not ship sets `IsPackable=false` with a stated reason
 - **Single test file**: any file under `tests/timewarp-amuru/single-file-tests/` is a runnable .NET 11 file-based app — `dotnet run <file>.cs`
-- **SDK pin**: `global.json` pins SDK 11.0.100-rc.3 (`11.0.100-rc.3.26522.148`, `allowPrerelease: true`, `rollForward: latestFeature`). `Microsoft.CodeAnalysis.NetAnalyzers` is pinned to that same build. A different SDK band fails style analysis (IDE0055)
+- **SDK pin**: `global.json` pins SDK 11.0.100 (.NET 11 GA, `allowPrerelease: false`, `rollForward: latestFeature`). `Microsoft.CodeAnalysis.NetAnalyzers` is pinned to that same build. A different SDK band fails style analysis (IDE0055)
 - **Local development**: Use `#:package TimeWarp.Amuru@*-*` and `#:property RestoreNoCache true` in scripts for fresh package downloads
 
 ## Package Layout

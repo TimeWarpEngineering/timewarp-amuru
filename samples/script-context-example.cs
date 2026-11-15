@@ -3,7 +3,9 @@
 #:property LangVersion=preview
 #:property EnablePreviewFeatures=true
 
-// Example demonstrating ScriptContext usage
+#region Purpose
+// Example demonstrating ScriptContext usage.
+#endregion
 
 using TimeWarp.Amuru;
 using TimeWarp.Terminal;

@@ -3,7 +3,9 @@
 #:property LangVersion=preview
 #:property EnablePreviewFeatures=true
 
-// Example demonstrating AppContext extensions for .NET 11 file-based apps
+#region Purpose
+// Example demonstrating AppContext extensions for .NET 11 file-based apps.
+#endregion
 
 using TimeWarp.Amuru;
 using TimeWarp.Terminal;
