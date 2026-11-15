@@ -462,7 +462,6 @@ public class DotNetPublishBuilder : ICommandBuilder<DotNetPublishBuilder>
       arguments.Add(source);
     }
 
-    // Add boolean flags
     if (NoRestore)
     {
       arguments.Add("--no-restore");
@@ -525,6 +524,7 @@ public class DotNetPublishBuilder : ICommandBuilder<DotNetPublishBuilder>
       arguments.Add($"--property:{property.Key}={property.Value}");
     }
 
+    DotNetBuildTelemetry.Tag("publish", Configuration, Properties, Project, Options.WorkingDirectory);
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 

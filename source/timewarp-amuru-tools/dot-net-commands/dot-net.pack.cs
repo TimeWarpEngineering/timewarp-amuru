@@ -406,6 +406,7 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
       arguments.Add($"--property:{property.Key}={property.Value}");
     }
 
+    DotNetBuildTelemetry.Tag("pack", Configuration, Properties, Project, Options.WorkingDirectory);
     return Shell.Run("dotnet", arguments.ToArray(), Options);
   }
 

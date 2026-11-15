@@ -4,7 +4,17 @@
 
 Every route, including the DevCli routes (`clean`, `check-version`, `release`, `self-install`), gets one `TimeWarp.Nuru.Behavior` command span and a duration metric. This repo has no `ActivitySource` of its own.
 
-`dotnet build` and `dotnet test` are not instrumented. The GitHub Actions workflows in this repo do not set a collector or an endpoint.
+The `dotnet` processes themselves are not instrumented. When a route calls `DotNet.Build()`, `DotNet.Publish()`, `DotNet.Pack()`, or `DotNet.Test()` from TimeWarp.Amuru.Tools, Amuru adds three tags to `Activity.Current` (the command span). No other argv, path, or property value is exported:
+
+| Tag | Value |
+|-----|-------|
+| `build.command` | `build`, `publish`, `pack`, or `test` |
+| `build.configuration` | The configuration passed with `WithConfiguration` or a `Configuration` property. Absent when none is passed. |
+| `build.publish_aot` | `true` for a Native AOT publish: a `PublishAot` property, a `.cs` runfile (the SDK default) without `#:property PublishAot=false`, or a project file with `<PublishAot>true</PublishAot>`. `false` otherwise. |
+
+`dev build` goes through `DotNet.Build()`, and `dev self-install` publishes `dev.cs` through `DotNet.Publish()`, so the two are told apart by `build.command` and `build.publish_aot`. `dev test` runs the test runfile with `dotnet run` and carries no `build.*` tags.
+
+The GitHub Actions workflows in this repo do not set a collector or an endpoint.
 
 ## Environment
 
