@@ -97,6 +97,8 @@ Not launched. Filed 2026-10-13 at Steven's request ("sure lets try").
   the test also prints the pinned seed before rethrowing.
 - Audit boy-scout: `ganda repo audit --fix` set the VS Code window-icon config in
   `.vscode/settings.json` (gitignored, so nothing to commit).
+- The first commit's post-commit attest failed `runfile-executable`: the two new shebang runfiles
+  were committed without the executable bit. Fixed with `chmod +x` in a follow-up commit.
 
 ### Findings (for the kill-criterion review)
 
