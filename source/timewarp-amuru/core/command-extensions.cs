@@ -15,6 +15,8 @@
 // - Optional standardInput is attached whenever the caller passes a string, including empty.
 //   Null means "do not replace stdin". Empty means immediate EOF, so a command that was given
 //   no items does not fall through to the terminal.
+// - standardInputFile, when set, replaces the string form and is attached as PipeSource.FromFile.
+//   The stdout tee file is not a CliWrap setting; it is carried on CommandResult and applied per execution mode.
 #endregion
 
 #region Responsibilities
@@ -50,7 +52,9 @@ internal static class CommandExtensions
     string executable,
     string[]? arguments,
     CommandOptions commandOptions,
-    string? standardInput = null
+    string? standardInput = null,
+    string? standardInputFile = null,
+    string? standardOutputTeeFile = null
   )
   {
     // Input validation
@@ -94,12 +98,24 @@ internal static class CommandExtensions
     // Apply configuration options
     cliCommand = commandOptions.ApplyTo(cliCommand);
 
-    // Apply standard input if provided
-    if (standardInput is not null)
+    // Apply standard input if provided. A file takes the place of the string form.
+    if (standardInputFile is not null)
+    {
+      standardInput = null;
+      cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromFile(standardInputFile));
+    }
+    else if (standardInput is not null)
     {
       cliCommand = cliCommand.WithStandardInputPipe(PipeSource.FromString(standardInput));
     }
 
-    return new CommandResult(cliCommand, mockExecutable, mockArguments, standardInput, commandOptions);
+    return new CommandResult(
+      cliCommand,
+      mockExecutable,
+      mockArguments,
+      standardInput,
+      commandOptions,
+      standardInputFile,
+      standardOutputTeeFile);
   }
 }

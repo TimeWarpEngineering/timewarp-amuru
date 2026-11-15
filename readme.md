@@ -175,7 +175,8 @@ string selectedFile = await Fzf.Builder()
 - **Shell-Like Error Handling**: non-zero exit codes are values, not exceptions; strict validation is one opt-in call away
 - **Built-In Command Mocking**: `CommandMock` with strict-by-default matching — tests can never silently run real commands
 - **Pipeline Support**: Chain commands with Unix-like pipe semantics
-- **Standard Input Support**: Provide stdin to commands with `.WithStandardInput()`
+- **Standard Input Support**: Provide stdin to commands with `.WithStandardInput()` (text) or `.WithStandardInputFile()` (a file, streamed)
+- **Stdout Tee**: `.WithStandardOutputTee(path)` copies stdout to a file byte for byte as it arrives, while the normal capture still works
 - **NO CACHING Philosophy**: Like shells, commands run fresh every time
 - **Cancellation Support**: Full CancellationToken support throughout
 - **Per-command timeout**: a child that exits during the grace period keeps its own exit code; if the grace period elapses, `WithTimeout` reports `TimedOut` and exit 124. A descendant that holds a pipe is cut off at the armed deadline with the child's code. A caller cancellation token still cancels
