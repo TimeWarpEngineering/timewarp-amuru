@@ -12,6 +12,15 @@ Sibling pilot: Nuru task 497 (fuzz route parsing with random argv), https://gith
 - Akili (Intelligence) evaluation: `/workspace/ideas/2026-10-13-cscheck-eval.md` (box). Verified CsCheck works in a Jaribu runfile.
 - CsCheck: https://github.com/AnthonyLloyd/CsCheck (Apache-2.0, forkable if needed).
 
+## Where the quoting lives (groom 2026-11-15)
+
+Amuru has no argument quoting layer of its own. `ShellBuilder.WithArguments(params string[])`
+(`source/timewarp-amuru/core/shell-builder.cs`) hands the array to CliWrap, whose `ArgumentsBuilder`
+does the per-platform escaping. The property therefore tests Amuru's contract on top of CliWrap:
+pass random strings through `WithArguments`, run a child that echoes its argv one per line (a small
+runfile under `tests/`), and assert the child saw the same strings. If task 119 later swaps CliWrap
+for the .NET 11 process APIs, this test is the guard that the swap keeps the contract.
+
 ## Rules
 
 - Pin **CsCheck 4.9.1** (no need to wait for 5.0; tests do not need AOT).
@@ -34,7 +43,7 @@ If both pilots (this one and the sibling) find nothing and the generators are co
 - [ ] Add CsCheck 4.9.1 to the test project/runfile only
 - [ ] Generators for random argument lists, including edge characters
 - [ ] Round-trip property: quote via Amuru, parse back, assert equality
-- [ ] Run on Windows, Linux and macOS in CI
+- [ ] Run on Linux in CI (the only runner today); run the Windows path locally and record the result in Results. Add a Windows runner only if the pilot finds a platform-specific bug
 - [ ] Pin CsCheck_Seed in CI; print seed on failure
 - [ ] Record findings (bugs found / invariants not covered by existing tests) for the kill-criterion review
 
