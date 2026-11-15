@@ -1,4 +1,46 @@
-# Marketing for the TimeWarp.Amuru 2.0.0 release
+# Marketing for the TimeWarp.Amuru 3.0.0 release (retargeted from 2.0.0)
+
+## Retarget (Steven, 2026-11-15)
+
+The 2.0.0 launch pack below was drafted on 2026-10-14 and never posted. 2.0.0 is a month old and
+3.0.0 is in beta (`3.0.0-beta.5` on master). This task now targets the **3.0.0 GA** launch. The
+2.0.0 drafts on this branch (`documentation/posts/blogs/`, `blips/`, `assets/`) are the base: the
+grep/sed and timeout stories still describe shipped behaviour and carry over. Everything 2.0-specific
+in them is rewritten when 3.0.0 GA ships.
+
+**Paused until 3.0.0 GA is released.** Nothing posts before then, and nothing posts without Steven's
+OK. The in-progress column is a limitation of the board (no edge from in-progress to backlog); treat
+this as backlog.
+
+### 3.0 highlights to fold in (from `documentation/release-notes/3.0.0-beta.*.md`, confirm at GA)
+
+- net11.0 only; .NET 11 GA SDK. Breaking: net10.0 consumers cannot upgrade.
+- Public JSON-RPC client over stdio: `AsJsonRpcClient()`, `JsonRpcClient.SendAsync` / `NotifyAsync`,
+  typed `JsonRpcException`; the child session is a TimeWarp.Ramani state machine. NativeAOT clean.
+- Timeout contract fix: a child that exits during the grace period keeps its own exit code,
+  `TimedOut` false; only a grace-period kill is exit 124; unhandled SIGINT is 130.
+- Byte-level `WithStandardOutputTee(path)` and `WithStandardInputFile(path)`; unterminated last line
+  visible while the child runs (the ganda `bash -c | tee` replacement).
+- Build span attributes `build.command`, `build.configuration`, `build.publish_aot` on the ambient
+  Activity from `DotNet.Build/Publish/Pack/Test`.
+- Dependency refresh incl. NuGet.Versioning 8.0 in Tools.
+
+Headline candidates: "TimeWarp.Amuru 3.0: shell scripting in C# on .NET 11, with a JSON-RPC client for
+your child processes" or keep the 2.0 line "Shell scripting in C#, without shelling out" with a 3.0 tag.
+
+### Checklist for the retarget (replaces the 2.0 checklist outcome)
+
+- [ ] 3.0.0 GA released and on nuget.org (`dev release` after the GA bump merges)
+- [ ] Rewrite blog, X blip + reply, Nostr blip, follow-up for 3.0 using the highlights above; re-run
+      every sample against nuget.org 3.0.0
+- [ ] Regenerate the 1200x675 card for 3.0
+- [ ] Address the five open round-1 review findings (M1 to M5 under Results) in the rewrite
+- [ ] NuGet readme gaps listed under Notes fixed in the 3.0 GA bump PR or filed as their own task
+- [ ] Steven's OK, then post in the order under Timing
+
+---
+
+## Original 2.0.0 task (historical, kept for the drafts and review trail)
 
 ## Description
 
