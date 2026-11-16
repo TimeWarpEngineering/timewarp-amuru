@@ -53,8 +53,12 @@ keeping the two newest (`retention-days: 7` is the backstop). This is the CI-tes
 artifact a later release promotes; nothing is published yet.
 
 Every `master` push runs CI (the `push` trigger has no paths filter) so that the
-commit `dev release` tags always has a run to promote from. Pull requests keep the
-paths filter.
+commit `dev release` tags always has a run to promote from. The `pull_request`
+trigger has no paths filter either, so every pull request reports `CI`. On a pull
+request, `dev workflow` first calls `PullRequestBuildClassifier` (from
+`TimeWarp.Nuru.DevCli`). It skips build and test, and exits 0, only when every
+changed path is a declared non-build path (kanban, docs, ...). Extra build paths
+for this repo are declared in `.timewarp/dev.jsonc` under `pullRequestBuild.buildPaths`.
 
 ### 2. Cut the release with `dev release`
 
