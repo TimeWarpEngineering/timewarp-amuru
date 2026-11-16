@@ -11,21 +11,11 @@ on:
     branches:
       - master
       - 'feature/**'
-    paths:
-      - 'source/**'
-      - 'samples/**'
-      - 'tests/**'
-      - 'tools/**'
-      - '.github/workflows/**'
-      - 'Directory.Build.props'
-      - 'Directory.Packages.props'
-      - 'msbuild/**'
-      - 'nuget.config'
-      - 'global.json'
-      - 'BannedSymbols.txt'
-      - '.editorconfig'
-      - 'source/.editorconfig'
-      - 'timewarp-amuru.slnx'
+    # No paths filter on pull_request (org CI standard, ganda 655): every pull
+    # request reports CI, so ganda pr merge never needs --allow-no-ci. dev workflow
+    # calls PullRequestBuildClassifier (TimeWarp.Nuru.DevCli) and skips build and
+    # test when the pull request changes only non-build paths (kanban, docs, ...).
+    # Extra build paths live in .timewarp/dev.jsonc under pullRequestBuild.
   release:
     types: [published]
   workflow_dispatch:

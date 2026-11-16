@@ -9,7 +9,15 @@
 // explicit --mode release that workflow.yml wires behind a confirm input).
 //
 // Modes:
-//   pr/merge:  clean -> build -> verify-samples -> test
+//   pr/merge:  classify -> clean -> build -> verify-samples -> test
+//              Classify is PullRequestBuildClassifier (TimeWarp.Nuru.DevCli,
+//              timewarp-nuru 595). On a pull request whose diff touches only
+//              non-build paths (kanban, documentation, ...) it prints its message
+//              and the run exits 0 without building. Push, dispatch, and a local
+//              run always build. workflow.yml has no paths filter on pull_request,
+//              so every pull request reports CI. This repo's additions to the rule
+//              (packed readme.md and assets/logo.png, samples/) live in
+//              .timewarp/dev.jsonc under pullRequestBuild; the rule is not copied here.
 //   release:   tag-gate -> check-version -> locate-run -> download-artifact -> verify -> push
 //              (no rebuild — promotes the exact .nupkg set that the green master push
 //              CI run already built, tested and uploaded for this commit; the org
@@ -52,7 +60,7 @@ using System.Globalization;
 using DevCli.Endpoints;
 
 [NuruRoute("workflow", Description = "Run full CI/CD pipeline")]
-public sealed class WorkflowCommand : ICommand<Unit>
+public sealed partial class WorkflowCommand : ICommand<Unit>
 {
   [Option("mode", "m", Description = "CI mode: pr, merge, or release (auto-detected from GITHUB_EVENT_NAME if not specified)")]
   public string? Mode { get; set; }
@@ -64,7 +72,7 @@ public sealed class WorkflowCommand : ICommand<Unit>
     "Performance",
     "CA1812",
     Justification = "Activated by the Nuru mediator")]
-  internal sealed class Handler : IRequestHandler<WorkflowCommand, Unit>
+  internal sealed partial class Handler : IRequestHandler<WorkflowCommand, Unit>
   {
     private const string ArtifactsSubPath = "artifacts/packages";
 
@@ -127,6 +135,22 @@ public sealed class WorkflowCommand : ICommand<Unit>
 
     private async Task RunPrWorkflowAsync(CancellationToken ct)
     {
+      string? repoRoot = Git.FindRoot();
+      if (repoRoot is null)
+      {
+        Terminal.WriteErrorLine("Could not find the git repository root.");
+        Environment.ExitCode = 1;
+        return;
+      }
+
+      PullRequestBuildDecision decision = await PullRequestBuildClassifier.DecideAsync(repoRoot, ct);
+      Terminal.WriteLine(decision.Message);
+      if (!decision.RequiresBuild)
+      {
+        Environment.ExitCode = 0;
+        return;
+      }
+
       Terminal.WriteLine("Pipeline: clean -> build -> verify-samples -> test");
       Terminal.WriteLine("");
 
@@ -811,57 +835,5 @@ public sealed class WorkflowCommand : ICommand<Unit>
       Terminal.WriteErrorLine("===============================================================================");
       return true;
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // outcome types — distinct verdicts are never collapsed into one message
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // A packable project at its evaluated version (always the props version once the
-    // lockstep gate passes); FileName is what the CI artifact must contain and what
-    // gets pushed.
-    private sealed record ReleasePackage(string PackageId, string Version)
-    {
-      public string FileName => $"{PackageId}.{Version}.nupkg";
-    }
-
-    private enum AncestorCheckStatus
-    {
-      Ancestor,
-      NotAncestor,
-      MasterUnresolvable,
-      GitError
-    }
-
-    private sealed record AncestorCheckOutcome(AncestorCheckStatus Status, string? Detail);
-
-    private enum TagPinStatus
-    {
-      NoTag,
-      Match,
-      Mismatch,
-      GitError
-    }
-
-    private sealed record TagPinOutcome(TagPinStatus Status, string? TagCommit, string? HeadCommit, string? Detail);
-
-    private enum LocateRunStatus
-    {
-      Found,
-      GhUnavailable,
-      GhFailed,
-      NoMatchingRun
-    }
-
-    private sealed record LocateRunOutcome(LocateRunStatus Status, string HeadSha, IReadOnlyList<CiRunSummary> CandidateRuns, string? Detail);
-
-    private enum DownloadArtifactStatus
-    {
-      Downloaded,
-      Exhausted
-    }
-
-    private sealed record DownloadArtifactOutcome(DownloadArtifactStatus Status, CiRunSummary? Run, string? ArtifactName, IReadOnlyList<ExpiredArtifactEncounter> ExpiredEncounters);
-
-    private sealed record ExpiredArtifactEncounter(long RunId, string Event, IReadOnlyList<string> ArtifactNames);
   }
 }
