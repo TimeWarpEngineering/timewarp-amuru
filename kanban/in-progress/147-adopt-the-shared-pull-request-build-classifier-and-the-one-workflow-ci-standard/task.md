@@ -47,7 +47,7 @@ Acceptance:
 - [x] `dev workflow` calls the shared classifier on pull requests; skip exits 0 with its message
 - [x] No `paths` filter on `pull_request`; `push` has no filter (existing why comment kept)
 - [x] Extra build roots (if any) declared through config
-- [ ] `ganda repo audit` clean
+- [x] `ganda repo audit` clean
 - [ ] This task's pull request shows a `CI` run (record the URL in Results)
 
 ## Results
@@ -64,6 +64,8 @@ Acceptance:
   for the release promotion. That is why this repo does not filter `push` the way the task text suggested.
 - `.timewarp/dev.jsonc` (new): `pullRequestBuild.buildPaths` = `readme.md` and `assets/logo.png` (both packed into
   the nupkgs) and `samples/**` (compiled by verify-samples). The classifier rule is not copied locally.
+- Boy-scout fix: the post-commit attest failed `package-pin-currency` because the self pins `TimeWarp.Amuru` and
+  `TimeWarp.Amuru.Tools` were at 3.0.0-beta.4 (only the `.githooks` runfiles use them). Both are now 3.0.0-beta.5.
 - `ganda repo audit --fix` at the start changed nothing. It reported only `workflow-file` and
   `dev-workflow-classifier`, which this task fixes.
 
@@ -73,7 +75,7 @@ Acceptance:
 |------|---------|--------|
 | Build | `./bin/dev build` | pass (0 warnings, 0 errors) |
 | Test | `./bin/dev test` | pass: 879 total, 878 passed, 1 skipped |
-| Audit | `ganda repo audit` | AUDIT_RESULT |
+| Audit | `ganda repo audit` | pass: all checks, including `workflow-file` and `dev-workflow-classifier` |
 
 ### How to validate
 
