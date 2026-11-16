@@ -114,12 +114,12 @@ The host's open-pr node opens that PR, so its URL goes here after that node runs
 
 ### Review
 
-Round 1 (effort 2, roster general) is open. Counts: bug 2 open, suggestion 0, nit 0. Disposition is not written; M1 and M2 are open. Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+Round 1 (effort 2, roster general) raised M1 and M2, both bugs. Round 2 (effort 1, roster general) reviewed the fix delta in `692634b`. Both are fixed. No new findings. Counts: bug 0 open, 2 fixed, 0 wontfix; suggestion 0; nit 0. Disposition: clean. Paths: `review/review-framework.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Review
 
-- Round 1: Blocked — open M1, M2
-
+- Round 1: open M1, M2 (fixed in round 2)
+- Round 2: Done
 ## Notes
 
 
@@ -136,3 +136,4 @@ plain `ganda pr merge` (no `--allow-no-ci`).
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 7ebb37dc-78d0-4e0d-868c-d4eb848e9094, max-turns 500, Done — 2026-11-16T18:28:59Z
 - Review oracle: round 1 by reviewer-grok (grok, vendor xai, model grok-4.7), session 01a1e59e-bed5-7411-81e2-eaa624aaa5eb, max-turns 120, effort 2, roster general — 2026-11-17
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1e59e-bed5-7411-81e2-eaa624aaa5eb, max-turns 120, artifacts general.md, merged.md — 2026-11-16T18:38:12Z
+- Review oracle: round 2 by reviewer-grok (grok, vendor xai, model grok-4.7), session 01a1e5ac-0896-72f0-a8e2-8d6fd5ffa751, max-turns 80, effort 1, roster general, artifacts review/round-2/general.md, review/round-2/merged.md, review/disposition.md — 2026-11-17
