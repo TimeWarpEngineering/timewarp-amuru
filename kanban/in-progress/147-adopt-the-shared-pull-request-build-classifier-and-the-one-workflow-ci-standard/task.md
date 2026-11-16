@@ -24,15 +24,75 @@ Survey 2026-11-16 for this repo: has a `pull_request` paths filter; `dev workflo
 6. No local copy of the classification rule remains in `tools/dev-cli/`.
 7. `ganda repo audit` passes, including both CI-standard checks from ganda 655.
 
+## Goal (implementer restatement)
+
+Every pull request into this repo must report a `CI` check, including kanban-only and docs-only ones, so
+`ganda pr merge` never needs `--allow-no-ci`. To get there, `workflow.yml` drops its `pull_request` paths filter.
+`dev workflow` then decides in C# whether to build. It does this with the shared
+`PullRequestBuildClassifier.DecideAsync` from `TimeWarp.Nuru.DevCli` 4.0.0-beta.15, not with a local copy of the rule.
+
+Acceptance:
+- `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` are pinned at 4.0.0-beta.15.
+- The pr/merge path of `dev workflow` calls the classifier first. On skip it prints the message and exits 0.
+  The release path is unchanged.
+- `pull_request` has no `paths` filter. `push` keeps its existing comment and has no filter, as before.
+- Paths that must build but that the default rule calls non-build go in `.timewarp/dev.jsonc` `pullRequestBuild.buildPaths`.
+  These are `readme.md` and `assets/logo.png` (both packed) and `samples` (built by verify-samples).
+- `ganda repo audit` passes, including `workflow-file` and `dev-workflow-classifier`.
+
 ## Checklist
 
-- [ ] `ganda repo audit --fix` run and committed
-- [ ] DevCli pin at 4.0.0-beta.15
-- [ ] `dev workflow` calls the shared classifier on pull requests; skip exits 0 with its message
-- [ ] No `paths` filter on `pull_request`; `push` filter kept with a why comment
-- [ ] Extra build roots (if any) declared through config
+- [x] `ganda repo audit --fix` run and committed (no changes; only the two CI-standard checks failed)
+- [x] DevCli pin at 4.0.0-beta.15
+- [x] `dev workflow` calls the shared classifier on pull requests; skip exits 0 with its message
+- [x] No `paths` filter on `pull_request`; `push` has no filter (existing why comment kept)
+- [x] Extra build roots (if any) declared through config
 - [ ] `ganda repo audit` clean
 - [ ] This task's pull request shows a `CI` run (record the URL in Results)
+
+## Results
+
+- `Directory.Packages.props`: `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` 4.0.0-beta.14 → 4.0.0-beta.15.
+- `tools/dev-cli/endpoints/workflow-command.cs`: the pr/merge path first calls
+  `PullRequestBuildClassifier.DecideAsync(repoRoot, ct)` and prints its message. On skip it returns with exit 0.
+  The release path is unchanged. The Design region documents the classifier step.
+- Line cap: adding the classifier call took the file past its 867-line baseline (TWA0038). The release-path
+  outcome types (records and enums) moved to `workflow-command.outcomes.cs`, and `WorkflowCommand` and `Handler`
+  became `partial`. The main file is now 839 lines. No behaviour changed.
+- `.github/workflows/workflow.yml`: the `pull_request` `paths` list is gone and a comment explains why.
+  `push` had no filter before and still has none. Its comment says every master commit needs a Packages-* artifact
+  for the release promotion. That is why this repo does not filter `push` the way the task text suggested.
+- `.timewarp/dev.jsonc` (new): `pullRequestBuild.buildPaths` = `readme.md` and `assets/logo.png` (both packed into
+  the nupkgs) and `samples/**` (compiled by verify-samples). The classifier rule is not copied locally.
+- `ganda repo audit --fix` at the start changed nothing. It reported only `workflow-file` and
+  `dev-workflow-classifier`, which this task fixes.
+
+### Gates
+
+| Gate | Command | Result |
+|------|---------|--------|
+| Build | `./bin/dev build` | pass (0 warnings, 0 errors) |
+| Test | `./bin/dev test` | pass: 879 total, 878 passed, 1 skipped |
+| Audit | `ganda repo audit` | AUDIT_RESULT |
+
+### How to validate
+
+Smoke (skip path, kanban-only diff):
+
+```bash
+printf '{"pull_request":{"base":{"sha":"%s"},"head":{"sha":"%s"}}}' $(git rev-parse e9200fe) $(git rev-parse 9ff24c1) > /tmp/ev.json
+GITHUB_EVENT_NAME=pull_request GITHUB_EVENT_PATH=/tmp/ev.json ./bin/dev workflow; echo "exit=$?"
+```
+
+Expect: `Pull request changes only declared non-build paths. Skipping build and test. ... (1 changed paths)` and `exit=0`.
+
+Smoke (build path): use base `8b95c33^1` and head `8b95c33` in the same command.
+Expect: `Build path changed: .github/workflows/workflow.yml. Full build.` followed by the clean → build → verify-samples → test pipeline.
+
+Run locally, `./bin/dev workflow` prints `No GITHUB_EVENT_NAME (local run). Full build.` and then builds.
+
+CI: this task's pull request should show a `CI` run that builds, because it changes `tools/` and `.github/workflows`.
+The host's open-pr node opens that PR, so its URL goes here after that node runs.
 
 ## Notes
 

@@ -16,8 +16,8 @@
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="2.0.1-beta.1" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.16" />
     <PackageVersion Include="TimeWarp.Ramani" Version="1.0.0-beta.24" />
-    <PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.14" />
-    <PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.14" />
+    <PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.15" />
+    <PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.15" />
     <PackageVersion Include="TimeWarp.Terminal" Version="2.0.0-beta.2" />
     <!-- Analyzers -->
     <PackageVersion Include="Roslynator.Analyzers" Version="5.0.1" />
