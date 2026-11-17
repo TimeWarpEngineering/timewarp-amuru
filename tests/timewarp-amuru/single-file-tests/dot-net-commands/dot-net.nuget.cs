@@ -8,7 +8,8 @@
 // Naming convention: SUT_Action_Given_Should_Result
 // SUT: DotNet (the static class providing command builders)
 // Action: NuGet (the method being tested)
-// Tests verify command string generation for NuGet push, delete, sources, and locals
+// Tests verify command string generation for NuGet push, delete, verify, sources, and locals
+// The push api key test starts its own Activity and checks no tag or event on it carries either key (task 151).
 #endregion
 
 #if !JARIBU_MULTI
@@ -183,5 +184,89 @@ namespace DotNet_
 
       await Task.CompletedTask;
     }
+
+    public static async Task Verify_Should_BuildVerifyCommand()
+    {
+      string command = DotNet.NuGet()
+        .Verify("package.nupkg")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet nuget verify package.nupkg");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task VerifyWithAllOptions_Should_KeepFingerprintOrder()
+    {
+      string command = DotNet.NuGet()
+        .Verify("packages/*.nupkg")
+        .WithVerbosity("detailed")
+        .WithConfigFile("nuget.config")
+        .WithCertificateFingerprint("BBBB")
+        .WithCertificateFingerprint("AAAA")
+        .WithAll()
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet nuget verify packages/*.nupkg --all --certificate-fingerprint BBBB --certificate-fingerprint AAAA --configfile nuget.config --verbosity detailed");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task VerifyWithParentWorkingDirectory_Should_NotAppearInCommandString()
+    {
+      string command = DotNet.NuGet()
+        .WithWorkingDirectory("/tmp")
+        .WithEnvironmentVariable("NUGET_ENV", "test")
+        .Verify("package.nupkg")
+        .WithNoValidation()
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet nuget verify package.nupkg");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task PushApiKeys_Should_NotAppearInAnyActivityTag()
+    {
+      using Activity activity = new("nuget-push-telemetry-test");
+      activity.Start();
+
+      CommandResult result = DotNet.NuGet()
+        .Push("package.nupkg")
+        .WithSource("https://api.nuget.org/v3/index.json")
+        .WithApiKey(PushApiKey)
+        .WithSymbolApiKey(SymbolApiKey)
+        .Build();
+
+      // The key is on the command line, so the guard is not vacuous: Build() saw it.
+      result.ToCommandString().ShouldContain(PushApiKey);
+
+      foreach (KeyValuePair<string, object?> tag in activity.TagObjects)
+      {
+        string text = tag.Key + "=" + (tag.Value?.ToString() ?? string.Empty);
+        text.ShouldNotContain(PushApiKey);
+        text.ShouldNotContain(SymbolApiKey);
+      }
+
+      foreach (ActivityEvent activityEvent in activity.Events)
+      {
+        foreach (KeyValuePair<string, object?> tag in activityEvent.Tags)
+        {
+          string text = tag.Key + "=" + (tag.Value?.ToString() ?? string.Empty);
+          text.ShouldNotContain(PushApiKey);
+          text.ShouldNotContain(SymbolApiKey);
+        }
+      }
+
+      activity.DisplayName.ShouldNotContain(PushApiKey);
+
+      await Task.CompletedTask;
+    }
+
+    private const string PushApiKey = "oy2-push-key-must-not-leak";
+    private const string SymbolApiKey = "oy2-symbol-key-must-not-leak";
   }
 }

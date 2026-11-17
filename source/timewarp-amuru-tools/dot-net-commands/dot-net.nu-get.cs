@@ -53,7 +53,7 @@ public static partial class DotNet
 /// <summary>
 /// Fluent builder for configuring 'dotnet nuget' commands.
 /// </summary>
-public class DotNetNuGetBuilder
+public partial class DotNetNuGetBuilder
 {
   private CommandOptions Options = new();
 

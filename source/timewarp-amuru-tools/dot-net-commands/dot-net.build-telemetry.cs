@@ -1,6 +1,6 @@
 #region Purpose
 // Tags the ambient Activity with build.command, build.configuration, and build.publish_aot
-// when a DotNet build, publish, pack, or test builder runs. Task 144.
+// when a DotNet build, publish, pack, test, or msbuild builder runs. Task 144; msbuild task 151.
 #endregion
 
 #region Design
@@ -37,7 +37,7 @@ internal static class DotNetBuildTelemetry
   /// <summary>
   /// Tags the current activity for a build-family command.
   /// </summary>
-  /// <param name="command">One of build, publish, pack, or test.</param>
+  /// <param name="command">One of build, publish, pack, test, or msbuild.</param>
   /// <param name="configuration">The configuration passed with WithConfiguration, if any.</param>
   /// <param name="properties">The MSBuild properties passed to the builder.</param>
   /// <param name="project">The project argument, if any.</param>
