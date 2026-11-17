@@ -95,6 +95,8 @@ Acceptance criteria:
   published 2026-11-17) and `runfile-executable` (new test runfile lacked +x). `ganda repo audit --fix` fixed both;
   build and test reran green.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 3a66e76a-b33f-4dca-854a-60aedc886c76, max-turns 500, Done — 2026-11-17T19:36:39Z
+- Reviewer: grok session 01a1eb03-0dd8-7a53-806d-4a05467179d7 (2026-11-18). Round 1, effort 2, roster general only.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1eb03-0dd8-7a53-806d-4a05467179d7, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-17T19:47:01Z
 
 ## Results
 
@@ -159,7 +161,20 @@ Not covered by a test: the JSON-RPC child path (same helper, needs a JSON-RPC se
 - timewarp-ganda: drop the `TRACEPARENT` hand-off in `dotnet-invocation-trace.cs`.
 - Optional SigNoz guard query (see Out of scope).
 
+### Review
+
+Round 1, effort 2, roster general only. Counts: bug 0 open / 0 fixed / 0 wontfix, suggestion 0, nit 0. Disposition: clean. No wontfix and no escalation. The restatement matches the task (start time is the choice the task asks to record).
+
+- Framework: `kanban/in-progress/149-propagate-traceparent-to-child-processes-from-activity-current/review/review-framework.md`
+- Round: `kanban/in-progress/149-propagate-traceparent-to-child-processes-from-activity-current/review/round-1/general.md`
+- Merged findings: `kanban/in-progress/149-propagate-traceparent-to-child-processes-from-activity-current/review/round-1/merged.md`
+- Disposition: `kanban/in-progress/149-propagate-traceparent-to-child-processes-from-activity-current/review/disposition.md`
+
 ## Notes`
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
