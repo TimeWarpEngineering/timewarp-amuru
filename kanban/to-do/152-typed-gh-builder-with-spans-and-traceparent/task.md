@@ -45,14 +45,18 @@ files, timewarp-nuru 4, the rest one or two each). Subcommands seen:
 - Tests: Jaribu runfiles asserting the argument string per builder, that the span name and
   tags are set, and that the token never appears in tags. No live GitHub calls.
 - Readme section and version bump.
-- Add `gh` to the task 150 analyzer table once this lands (AMURU0001 error for the verbs
-  covered here), in the same change or a one-line follow-up.
+- Add `gh` to the task 150 analyzer table (AMURU0001 error for the verbs covered here) in the
+  same change. Task 150 is merged before this task starts.
 
 ## Out of scope
 
 - Moving the 51 call sites. Each repo does that on its Amuru bump under its own task.
 - A GitHub REST client that bypasses `gh`. The point is to wrap the CLI the repos already rely
   on for auth.
+
+## Depends on
+
+- 150
 
 ## Checklist
 
@@ -67,6 +71,7 @@ files, timewarp-nuru 4, the rest one or two each). Subcommands seen:
 ## Session
 
 - Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session
+- Groomed: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-18), prose dependency on 150 made a Depends on id
 
 ## Notes
 
