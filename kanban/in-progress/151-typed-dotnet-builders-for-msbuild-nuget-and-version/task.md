@@ -45,19 +45,117 @@ already ships `DotNet.NuGet()` with `Push`, `Delete`, `Locals`, `Why`, and the s
 - Builders for `gh`, `ganda`, or `herdr`.
 - Moving the call sites in other repos; each repo does that under its own task when it bumps.
 
+## Goal (implementer restatement)
+
+Close the two real typed-builder gaps the org still reaches through a raw `Shell.Builder("dotnet")`:
+`dotnet msbuild` and `dotnet nuget verify`, so task 150's analyzer has no msbuild/nuget entry in its
+known-gap list.
+
+Acceptance:
+
+- `DotNet.MsBuild()` / `DotNet.MsBuild(project)` in new `dot-net.ms-build.cs`: project/solution
+  positional, repeatable `-t:` targets (call order kept), repeatable `-p:` properties (insertion
+  order kept), `-getProperty:`, `-getItem:`, `-getTargetResult:`, `-verbosity:`, `-restore`,
+  `-nologo`, `-bl:<path>`, plus `WithWorkingDirectory`, `WithEnvironmentVariable`,
+  `WithNoValidation`, `WithZeroExitCodeValidation`, `RunAsync`/`CaptureAsync` etc. It calls
+  `DotNetBuildTelemetry.Tag` like `dotnet build` and runs through `Shell.Run(..., Options)`, so
+  build tags and TRACEPARENT propagation apply.
+- `DotNet.NuGet().Verify(packagePath)`: `--all`, repeatable `--certificate-fingerprint`,
+  `--verbosity`, `--configfile`, same sub-builder shape as the other nuget sub-builders.
+- A test proves `Push().WithApiKey(...).WithSymbolApiKey(...)` puts neither key into any
+  `Activity.Current` tag (fix if it leaks).
+- No `DotNet.Version()` / `DotNet.Info()`.
+- Public API (Unshipped) and `dot-net.md` updated; Jaribu tests assert argument strings;
+  package version bumped (3.0.0-beta.6 -> 3.0.0-beta.7).
+
 ## Checklist
 
-- [ ] DotNet.MsBuild()
-- [ ] DotNet.NuGet().Verify()
-- [ ] Push api key absent from telemetry tags (test)
-- [ ] Public API files and dot-net.md
-- [ ] Tests
-- [ ] Version bump
+- [x] DotNet.MsBuild()
+- [x] DotNet.NuGet().Verify()
+- [x] Push api key absent from telemetry tags (test)
+- [x] Public API files and dot-net.md
+- [x] Tests
+- [x] Version bump
 
 ## Session
 
 - Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session
 - Groomed: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-18), scope cut to the builders that do not exist yet
+
+- Implemented: implement oracle (2026-11-18). `dot-net.nu-get.cs` sat at its TWA0038 line limit
+  (1801), so `DotNetNuGetBuilder` became `partial` and `Verify()` plus `DotNetNuGetVerifyBuilder`
+  live in `dot-net.nu-get.verify.cs`. The push api key test found no leak: no nuget sub-builder
+  tags `Activity.Current`, and the strict-exit exception message carries no argv.
+- Audit: one advisory warning (`vscode-window-icon`, ignored `.vscode/settings.json` missing in
+  this worktree) fixed with `ganda repo audit --fix`; nothing tracked changed.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 403bd4f0-1397-412c-b3ef-37e513e541ea, max-turns 500, Done — 2026-11-17T20:33:56Z
+- Reviewer: Grok session 01a1eb37-7c5c-7982-9c80-73c40fc854a1 (2026-11-18), round 1, effort 3, roster general
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1eb37-7c5c-7982-9c80-73c40fc854a1, max-turns 200, artifacts general.md, merged.md, disposition.md — 2026-11-17T20:42:39Z
+
+## Results
+
+Files:
+
+- `source/timewarp-amuru-tools/dot-net-commands/dot-net.ms-build.cs` (new): `DotNet.MsBuild()`,
+  `DotNet.MsBuild(project)`, `DotNetMsBuildBuilder` (`WithTarget`, `WithProperty`,
+  `WithGetProperty`, `WithGetItem`, `WithGetTargetResult`, `WithVerbosity`, `WithRestore`,
+  `WithNoLogo`, `WithBinaryLog()` / `WithBinaryLog(path)`, shared options, run modes). Calls
+  `DotNetBuildTelemetry.Tag("msbuild", ...)` and `Shell.Run("dotnet", ..., Options)`.
+- `source/timewarp-amuru-tools/dot-net-commands/dot-net.nu-get.verify.cs` (new):
+  `DotNetNuGetBuilder.Verify(packagePath)` and `DotNetNuGetVerifyBuilder` (`WithAll`,
+  `WithCertificateFingerprint` repeatable, `WithVerbosity`, `WithConfigFile`).
+- `dot-net.nu-get.cs`: `DotNetNuGetBuilder` is now `partial` (no other change).
+- `dot-net.build-telemetry.cs`: comments list msbuild as a tagged command.
+- `public-api/PublicAPI.Unshipped.txt`, `dot-net.md`, `documentation/release-notes/3.0.0-beta.7.md`.
+- `source/Directory.Build.props`: 3.0.0-beta.6 -> 3.0.0-beta.7.
+- Tests: new `tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.ms-build.cs`
+  (12 tests: argv for every switch, repeatable `-t:` / `-p:` / `-get*` order, property replace in
+  place, msbuild span tags, no paths or property values in tags); `dot-net.nuget.cs` gains 4
+  tests (verify argv, fingerprint order, parent options, push api key and symbol api key absent
+  from every Activity tag, event tag, and display name).
+
+Gates:
+
+- `./bin/dev build` — pass (first run failed TWA0038 on `dot-net.nu-get.cs`; fixed by the
+  partial-file split; rerun pass).
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.ms-build.cs` — pass, 12/12.
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.nuget.cs` — pass, 16/16.
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.build-telemetry.cs` — pass, 14/14 (covers the edited telemetry file).
+- `ganda repo audit` — pass, 1 advisory (`vscode-window-icon`) then fixed with `--fix`; clean.
+
+### How to validate
+
+Smoke:
+
+```bash
+./bin/dev build
+dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.ms-build.cs
+dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.nuget.cs
+```
+
+Expect: build succeeds; ms-build runfile reports 12 passed, nuget runfile 16 passed. For example
+`DotNet.MsBuild("app.csproj").WithTarget("Clean").WithTarget("Build").Build().ToCommandString()`
+is `dotnet msbuild app.csproj -t:Clean -t:Build`, and
+`DotNet.NuGet().Verify("p.nupkg").WithAll().Build().ToCommandString()` is
+`dotnet nuget verify p.nupkg --all`.
+
+### Review
+
+Round 1, effort 3, roster general (Grok session 01a1eb37-7c5c-7982-9c80-73c40fc854a1, 2026-11-18).
+
+| Severity | open | fixed | wontfix |
+|----------|------|-------|---------|
+| bug | 0 | 0 | 0 |
+| suggestion | 0 | 0 | 0 |
+| nit | 0 | 0 | 0 |
+
+Disposition: clean. No findings. The goal restatement matches the task; no misread under Learnings.
+
+Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
