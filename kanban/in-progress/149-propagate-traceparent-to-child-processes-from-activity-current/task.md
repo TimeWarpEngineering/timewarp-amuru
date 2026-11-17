@@ -94,6 +94,7 @@ Acceptance criteria:
   Commit-hook attest then failed on `package-pin-currency` (TimeWarp.SourceGenerators 1.0.0-beta.16 → 1.0.0-beta.17,
   published 2026-11-17) and `runfile-executable` (new test runfile lacked +x). `ganda repo audit --fix` fixed both;
   build and test reran green.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 3a66e76a-b33f-4dca-854a-60aedc886c76, max-turns 500, Done — 2026-11-17T19:36:39Z
 
 ## Results
 
