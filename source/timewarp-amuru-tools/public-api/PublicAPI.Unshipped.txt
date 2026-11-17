@@ -1,1 +1,42 @@
 #nullable enable
+static TimeWarp.Amuru.DotNet.MsBuild() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+static TimeWarp.Amuru.DotNet.MsBuild(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder
+TimeWarp.Amuru.DotNetMsBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetMsBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.DotNetMsBuildBuilder() -> void
+TimeWarp.Amuru.DotNetMsBuildBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithBinaryLog() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithBinaryLog(string! path) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetItem(string! itemType) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetProperty(string! name) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetTargetResult(string! target) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithRestore() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithTarget(string! target) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Verify(string! packagePath) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.DotNetNuGetVerifyBuilder(string! packagePath, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithAll() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithCertificateFingerprint(string! fingerprint) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!

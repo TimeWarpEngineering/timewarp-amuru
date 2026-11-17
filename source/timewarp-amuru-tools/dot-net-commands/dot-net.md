@@ -22,7 +22,7 @@ string[] lines = output.GetLines();
 bool succeeded = output.Success;
 ```
 
-`RunAndCaptureAsync` is on the build, clean, and pack builders, and on `DotNet.WithVersion()` / `WithListSdks()` / `WithInfo()` (`DotNetBuilder`). Test, Run, Publish, Restore, ListPackages, AddPackage, and RemovePackage expose `RunAsync` and `CaptureAsync` only.
+`RunAndCaptureAsync` is on the build, msbuild, clean, and pack builders, and on `DotNet.WithVersion()` / `WithListSdks()` / `WithInfo()` (`DotNetBuilder`). Test, Run, Publish, Restore, ListPackages, AddPackage, and RemovePackage expose `RunAsync` and `CaptureAsync` only.
 
 ## Commands
 
@@ -57,6 +57,25 @@ await DotNet.Build("MyApp.csproj")
   .WithProperty("Version", "1.0.0")
   .WithNoRestore()
   .RunAsync();
+```
+
+### `DotNet.MsBuild()`
+
+`MsBuild()` and `MsBuild(string project)` both exist. `WithTarget`, `WithProperty`, `WithGetProperty`, `WithGetItem`, and `WithGetTargetResult` are repeatable and emit `-t:`, `-p:`, `-getProperty:`, `-getItem:`, and `-getTargetResult:` in call order. Setting a property name again replaces its value in place. The builder tags the current span like `DotNet.Build()`, with `build.command` set to `msbuild`.
+
+```csharp
+await DotNet.MsBuild("MyApp.csproj")
+  .WithTarget("Clean")
+  .WithTarget("Build")
+  .WithProperty("Configuration", "Release")
+  .WithRestore()
+  .WithNoLogo()
+  .WithBinaryLog("artifacts/build.binlog")
+  .RunAsync();
+
+CommandOutput version = await DotNet.MsBuild("MyApp.csproj")
+  .WithGetProperty("Version")
+  .CaptureAsync();
 ```
 
 ### `DotNet.Test()`
@@ -173,6 +192,27 @@ await DotNet.RemovePackage("Microsoft.Extensions.Logging")
   .RunAsync();
 ```
 
+### `DotNet.NuGet()`
+
+Sub-builders: `Push`, `Delete`, `Verify`, `Locals`, `Why`, `ListSources`, `AddSource`, `RemoveSource`, `UpdateSource`, `EnableSource`, and `DisableSource`. No nuget sub-builder tags the current span, so a push or delete api key never reaches telemetry.
+
+```csharp
+await DotNet.NuGet()
+  .Push("artifacts/packages/MyLibrary.1.0.0.nupkg")
+  .WithSource("https://api.nuget.org/v3/index.json")
+  .WithApiKey(apiKey)
+  .WithSkipDuplicate()
+  .RunAsync();
+
+CommandOutput verified = await DotNet.NuGet()
+  .Verify("artifacts/packages/MyLibrary.1.0.0.nupkg")
+  .WithAll()
+  .WithCertificateFingerprint("3F9001EA83C560D712C24CF213C3D312CB3BFF51EE89435D3430BD06B5D0EECE")
+  .CaptureAsync();
+
+await DotNet.NuGet().Locals().Clear(NuGetCacheType.All).RunAsync();
+```
+
 ## Shared builder members
 
 `WithWorkingDirectory`, `WithEnvironmentVariable`, `WithNoValidation`, and `WithZeroExitCodeValidation` exist on every builder in this reference.
@@ -245,6 +285,7 @@ Option meanings match the `dotnet` CLI:
 
 - [dotnet run](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-run)
 - [dotnet build](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-build)
+- [dotnet msbuild](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-msbuild)
 - [dotnet test](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-test)
 - [dotnet clean](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-clean)
 - [dotnet restore](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore)
@@ -253,3 +294,5 @@ Option meanings match the `dotnet` CLI:
 - [dotnet list package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-list-package)
 - [dotnet add package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package)
 - [dotnet remove package](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-remove-package)
+- [dotnet nuget push](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-push)
+- [dotnet nuget verify](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-verify)
