@@ -25,7 +25,8 @@ Org-wide count on 2026-11-18 across the master worktrees under
 
 dotnet verbs used through `Shell.Builder`: run 21, build 13, tool 10, fixie 10, test 6, new 6,
 publish 5, msbuild 5, nuget 3, user-secrets 1, restore 1, pack 1, clean 1, add 1, `--version` 1.
-`msbuild`, `nuget`, and `--version` have no typed builder; task 151 adds them. `fixie` is a
+`nuget` (`DotNet.NuGet()`) and `--version` (`DotNet.WithVersion()`) already have typed builders.
+`msbuild` and `nuget verify` do not; task 151 adds them and runs before this task. `fixie` is a
 third-party tool, out of scope.
 
 ## Requirements
@@ -33,6 +34,11 @@ third-party tool, out of scope.
 - New project `source/timewarp-amuru-analyzers` (netstandard2.0, `Microsoft.CodeAnalysis.CSharp`),
   packed into `TimeWarp.Amuru` under `analyzers/dotnet/cs`, with `AnalyzerReleases.Shipped.md` /
   `Unshipped.md`. Copy the layout from timewarp-jaribu `source/timewarp-jaribu-analyzers`.
+- The analyzer ships in `TimeWarp.Amuru` because `Shell` lives there. The `DotNet.*` and `Git.*`
+  builders live in `TimeWarp.Amuru.Tools`, so every message names that package, for example
+  `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of Shell.Builder("dotnet") with "run"`. A
+  consumer that references only `TimeWarp.Amuru` adds the Tools package to fix the diagnostic.
+  The analyzer does not check whether Tools is referenced.
 - Trigger: an invocation of `Shell.Builder(...)` or `Shell.Run(...)` (any overload that takes the
   executable name) whose first argument is a string literal or a constant. A non-constant
   executable is not reported.
@@ -44,7 +50,8 @@ third-party tool, out of scope.
   - `AMURU0002` (default **warning**): the executable is `dotnet` and the verb has no typed
     builder. Message names the verb and says to file a task in timewarp-amuru for a typed
     builder. The known-gap verb list ships in the analyzer so it is reviewable and shrinks as
-    builders land.
+    builders land. With task 151 merged, `msbuild` and `nuget` are not on it. `--version` and
+    `--info` map to `DotNet.WithVersion()` / `DotNet.WithInfo()` under `AMURU0001`.
   - `AMURU0003` (default **info**): the executable is `git` and the invocation matches a
     typed `Git.*` helper that exists. Git stays info because 772 call sites and a thin builder
     set would make a warning pure noise; ganda alone has 203. Raise later per repo via
@@ -70,6 +77,10 @@ third-party tool, out of scope.
   cannot be taken silently.
 - Typed builders for `gh`, `ganda`, and `herdr`. Separate decision; nothing to point at yet.
 
+## Depends on
+
+- 151
+
 ## Checklist
 
 - [ ] Analyzer project packed under analyzers/dotnet/cs
@@ -84,6 +95,7 @@ third-party tool, out of scope.
 ## Session
 
 - Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session
+- Groomed: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-18), existing nuget/version builders, Tools package in messages, depends on 151
 
 ## Notes
 
@@ -92,4 +104,5 @@ Origin: task 149. The ganda `dev test` command launches the Jaribu suite with
 Steve: "This should never be, we should always be using the .NET command. That's the whole
 point in having it in Amuru."
 
-Related: 151 (typed builders for msbuild, nuget, version) closes the AMURU0002 gaps found above.
+Related: 151 (`DotNet.MsBuild()` and `DotNet.NuGet().Verify()`) closes the AMURU0002 gaps found
+above and lands first.
