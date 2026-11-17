@@ -328,6 +328,18 @@ CommandOutput output = await Shell.Builder("long-running-command")
 // A child that exits during the grace period keeps its own exit code and TimedOut stays false.
 ```
 
+### Trace Context Propagation
+When `Activity.Current` is set at the moment a command starts, Amuru sets `TRACEPARENT` (and `TRACESTATE` when the activity has one) on the child process, so the child's spans join your trace. Every launch path does this, including pipelines, `TtyPassthroughAsync`, and `AsJsonRpcClient`. There is nothing to call. With no current activity, the child keeps whatever `TRACEPARENT` your process inherited.
+
+A value you set wins. To opt a child out, remove the variables:
+
+```csharp
+await Shell.Builder("tool")
+    .WithEnvironmentVariable("TRACEPARENT", null)
+    .WithEnvironmentVariable("TRACESTATE", null)
+    .RunAsync();
+```
+
 ## Testing and Mocking
 
 ### CommandMock (Recommended)

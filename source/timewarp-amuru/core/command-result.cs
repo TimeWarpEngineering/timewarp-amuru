@@ -28,6 +28,8 @@
 // - CaptureAsync and RunAndCaptureAsync set CommandOutput.RunTime from CliWrap, matching PassthroughAsync and TtyPassthroughAsync. Mocks and Empty stay at zero.
 // - SelectAsync lets CommandExecutionException (zero-exit-code validation) and cancellation propagate; only unexpected runtime failures degrade to empty. TtyPassthroughAsync remains the documented validation exemption.
 // - Streaming methods use CliWrap event streams for low-buffer processing.
+// - Every launch hands the child TRACEPARENT/TRACESTATE from Activity.Current, resolved at start time.
+//   See command-result.trace-context.cs. Caller-set values (including null removal) win.
 // - Pipe composes commands by building the next stage and using CliWrap's pipe operator.
 //   The options overload applies working directory, environment, and validation to that stage.
 //   Upstream configured stdin stays the pipeline stdin.
@@ -545,7 +547,7 @@ public partial class CommandResult
     }
 
     var stopwatch = Stopwatch.StartNew();
-    IAsyncEnumerable<CommandEvent> events = TeeCommand.ListenAsync(cancellationToken);
+    IAsyncEnumerable<CommandEvent> events = StartTeeCommand().ListenAsync(cancellationToken);
 
     // The caller token is already the ListenAsync argument. None avoids linking a second token.
     IAsyncEnumerator<CommandEvent> enumerator = events.GetAsyncEnumerator(CancellationToken.None);
@@ -654,7 +656,7 @@ public partial class CommandResult
 
     // Keep a configured string pipe (including empty) or the upstream pipe stage.
     // Replace stdin only when the caller owns it.
-    Command interactiveCommand = InternalCommand
+    Command interactiveCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToStream(stdOut)))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
@@ -761,21 +763,8 @@ public partial class CommandResult
       }
     };
 
-    // Apply environment variables if configured
-    if (InternalCommand.EnvironmentVariables.Count > 0)
-    {
-      foreach (KeyValuePair<string, string?> envVar in InternalCommand.EnvironmentVariables)
-      {
-        if (envVar.Value != null)
-        {
-          process.StartInfo.EnvironmentVariables[envVar.Key] = envVar.Value;
-        }
-        else
-        {
-          process.StartInfo.EnvironmentVariables.Remove(envVar.Key);
-        }
-      }
-    }
+    // Caller variables, then the current span unless the caller set or removed it (start time).
+    FillTtyEnvironment(process.StartInfo.EnvironmentVariables);
 
     process.Start();
 #pragma warning restore RS0030
@@ -850,7 +839,7 @@ public partial class CommandResult
     // - stdout is captured (for the result)
     // - stderr goes to console (for interactive UI)
     // - stdin comes from pipeline or was already configured
-    Command interactiveCommand = InternalCommand
+    Command interactiveCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToStringBuilder(outputBuilder)))
       .WithStandardErrorPipe(PipeTarget.ToStream(stdErr));
 
@@ -986,7 +975,8 @@ public partial class CommandResult
         sharedGrace,
         sharedValidation,
         StandardInputFile,
-        StandardOutputTeeFile);
+        StandardOutputTeeFile,
+        StagesForPipe(nextCommandResult.InternalCommand));
     }
     catch
     {
@@ -1023,7 +1013,7 @@ public partial class CommandResult
     }
 
     // Stream to terminal using CliWrap's pipe targets
-    Command consoleCommand = InternalCommand
+    Command consoleCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteLine(line))))
       .WithStandardErrorPipe(PipeTarget.ToDelegate(line => TimeWarpTerminal.Default.WriteErrorLine(line)));
 
@@ -1067,7 +1057,7 @@ public partial class CommandResult
       PipeTarget.ToStringBuilder(stdErrBuilder)
     );
 
-    Command captureCommand = InternalCommand
+    Command captureCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(stdOutTarget))
       .WithStandardErrorPipe(stdErrTarget);
 
@@ -1099,7 +1089,7 @@ public partial class CommandResult
     List<OutputLine> outputLines = [];
     Lock outputLock = new();
 
-    Command captureCommand = InternalCommand
+    Command captureCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line =>
       {
         using (outputLock.EnterScope())
@@ -1269,7 +1259,7 @@ public partial class CommandResult
     // Serialize line writes under a lock instead; interleaving granularity is one line.
     Lock writeLock = new();
 
-    Command fileCommand = InternalCommand
+    Command fileCommand = StartCommand()
       .WithStandardOutputPipe(WithTeeStandardOutput(PipeTarget.ToDelegate(line =>
       {
         using (writeLock.EnterScope())

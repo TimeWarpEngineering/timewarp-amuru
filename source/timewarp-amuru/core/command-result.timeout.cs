@@ -44,7 +44,7 @@ public partial class CommandResult
         SingleReader = true
       }
     );
-    Command teeCommand = TeeCommand;
+    Command teeCommand = StartTeeCommand();
     Command command = teeCommand
       .WithStandardOutputPipe
       (
