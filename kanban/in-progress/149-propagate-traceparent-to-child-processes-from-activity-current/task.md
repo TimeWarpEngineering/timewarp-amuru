@@ -91,6 +91,9 @@ Acceptance criteria:
 
 - Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session; see `- 2026-11-18 implement oracle (claude-opus-5-5): start-time propagation in all launch paths, tests, docs, bump to 3.0.0-beta.6.
   Boy-scout: `ganda repo audit --fix` created the git-ignored `.vscode/settings.json` (vscode-window-icon warning); no tracked change.
+  Commit-hook attest then failed on `package-pin-currency` (TimeWarp.SourceGenerators 1.0.0-beta.16 → 1.0.0-beta.17,
+  published 2026-11-17) and `runfile-executable` (new test runfile lacked +x). `ganda repo audit --fix` fixed both;
+  build and test reran green.
 
 ## Results
 
@@ -128,7 +131,9 @@ Acceptance criteria:
 |---|---|---|
 | Build | `./bin/dev build` | Pass (0 warnings, 0 errors) |
 | Test | `./bin/dev test` | Pass: 890 total, 889 passed, 1 skipped (pre-existing); `TraceContext_Given_` 11/11 |
-| Audit | `ganda repo audit` | First run: pass with 1 advisory warning (vscode-window-icon). After `ganda repo audit --fix`: "Repository passes all audit checks." |
+| Audit | `ganda repo audit` | First run: pass with 1 advisory warning (vscode-window-icon). Commit hook then flagged package-pin-currency + runfile-executable; after `ganda repo audit --fix`: "Repository passes all audit checks." |
+| Build (rerun after pin bump) | `./bin/dev build` | Pass (0 warnings, 0 errors) |
+| Test (rerun after pin bump) | `./bin/dev test` | Pass: 890 total, 889 passed, 1 skipped |
 
 ### How to validate
 
