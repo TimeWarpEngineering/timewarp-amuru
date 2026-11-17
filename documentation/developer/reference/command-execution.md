@@ -105,6 +105,19 @@ CommandOutput output = await Shell.Builder("agent")
   .CaptureAsync(cancellationToken);
 ```
 
+## Trace context
+
+Amuru hands the caller's span to every child process. When `Activity.Current` has a non-default trace id and span id at the moment the command starts, the child environment gets:
+
+- `TRACEPARENT` = `00-{traceId}-{spanId}-{flags}`. Flags are `01` when `ActivityTraceFlags.Recorded` is set, else `00`.
+- `TRACESTATE` = `Activity.TraceStateString`, only when it is non-empty.
+
+The value is resolved at start time, not when the builder or `CommandResult` is built. A `CommandResult` built before a span opens still hands the child the span that is current when `RunAsync`, `CaptureAsync`, or another execution method runs. Every stage of a `Pipe` composition gets it. `TtyPassthroughAsync` and `AsJsonRpcClient` get it too.
+
+With no current activity the environment is left alone, so a `TRACEPARENT` inherited from ganda or CI still reaches the child.
+
+A variable set through `WithEnvironmentVariable` or `WithEnvironmentVariables` wins. A `null` value removes the variable, which opts the child out. Amuru never logs the header values.
+
 ## JSON-RPC
 
 `ShellBuilder.AsJsonRpcClient()` uses the same `WithTimeout` value as the per-request limit and the same `WithTimeoutGracePeriod` for shutdown. The JSON-RPC stream is the child's standard output. Standard error is observed separately and is not merged. See [How to call a JSON-RPC child](../how-to-guides/how-to-use-json-rpc.md).

@@ -58,18 +58,102 @@ repo audit is needed afterwards because there is no helper call left to forget.
   parent is a `test` span should be 100 percent. This is the behavioral guard that replaces a
   repo audit.
 
+## Goal (implementer restatement)
+
+When code running inside an `Activity` starts a child process through Amuru, the child should
+join that trace without the caller doing anything. Amuru writes `TRACEPARENT` (W3C
+`00-{traceId}-{spanId}-{flags}`) and, when the activity has one, `TRACESTATE` into the child's
+environment, for every launch path (CliWrap paths and the raw-process TTY passthrough path).
+
+Acceptance criteria:
+
+- Child sees `TRACEPARENT` built from `Activity.Current` at the moment the command starts (not
+  when the builder or `CommandResult` was built). Flags are `01` when recorded, else `00`.
+- `TRACESTATE` is set only when `Activity.Current.TraceStateString` is non-empty.
+- No current activity (or default trace/span id): the environment is untouched, so an inherited
+  `TRACEPARENT` still flows through.
+- A caller value set with `WithEnvironmentVariable(s)` wins, including `null` (remove), which opts
+  the child out.
+- The header value is never logged.
+- Covered by Jaribu runfile tests; TTY passthrough covered where testable.
+- Readme/XML doc paragraph on automatic propagation and opt-out; version bumped to the next beta.
+
 ## Checklist
 
-- [ ] Propagation in `CommandOptions.ApplyTo`
-- [ ] Propagation in the TTY passthrough path
-- [ ] Explicit caller value and explicit null win
-- [ ] Tests listed above
-- [ ] Doc paragraph on automatic propagation and opt-out
-- [ ] Version bump
+- [x] Propagation in the normal launch path (at start time in `CommandResult`, not in `CommandOptions.ApplyTo`; see Results)
+- [x] Propagation in the TTY passthrough path
+- [x] Explicit caller value and explicit null win
+- [x] Tests listed above
+- [x] Doc paragraph on automatic propagation and opt-out
+- [x] Version bump
 
 ## Session
 
-- Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session; see `## Notes`
+- Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session; see `- 2026-11-18 implement oracle (claude-opus-5-5): start-time propagation in all launch paths, tests, docs, bump to 3.0.0-beta.6.
+  Boy-scout: `ganda repo audit --fix` created the git-ignored `.vscode/settings.json` (vscode-window-icon warning); no tracked change.
+
+## Results
+
+### What changed
+
+- New `source/timewarp-amuru/core/trace-context-propagation.cs`: internal `TraceContextPropagation`
+  (`Capture` reads `Activity.Current`; `VariablesToAdd` / `Apply` add `TRACEPARENT` and, when non-empty,
+  `TRACESTATE`, skipping any key the caller set, null included; key match ignores case on Windows).
+- New partial `source/timewarp-amuru/core/command-result.trace-context.cs`: `StartCommand()` applies the
+  context to `InternalCommand` inside each execution mode, right before the CliWrap call; `FillTtyEnvironment`
+  for `TtyPassthroughAsync`. Pipe compositions now carry `PipeStages` so every stage (not only the first)
+  gets the variables; `StartCommand` rebuilds the same left fold `PipeCore` builds.
+- Every `InternalCommand.With...` execution site and the tee/listen paths (`StartTeeCommand`) now start from
+  `StartCommand()`. The JSON-RPC child (`json-rpc-child-process.cs`) gets the same variables.
+- Docs: readme "Trace Context Propagation" section, `documentation/developer/reference/command-execution.md`
+  "Trace context", `CommandOptions.EnvironmentVariables` XML remarks, release note `3.0.0-beta.6.md`.
+- Version `3.0.0-beta.5` → `3.0.0-beta.6` in `source/Directory.Build.props`. No public API change.
+
+### Design choices
+
+- **Start time, not construction time.** The value is resolved when `RunAsync`/`CaptureAsync`/etc. starts the
+  process. A `CommandResult` built before a span opens hands the child the span active at execution
+  (test `ResultBuiltBeforeSpan_Should_UseSpanActiveAtStart`). That is why it is not in `CommandOptions.ApplyTo`
+  (which runs at `Build()`): `ApplyTo` keeps the CliWrap command's environment equal to the caller's explicit
+  set, which is how an explicit value or null removal is recognized.
+- No current activity (or default trace/span id) leaves the environment alone; an inherited `TRACEPARENT`
+  flows through.
+- `TRACESTATE` is only written when non-empty; an inherited `TRACESTATE` is not removed when the activity has none.
+- Header values are never logged.
+- Mocked commands start no process, so nothing is propagated there.
+
+### Gates
+
+| Gate | Command | Result |
+|---|---|---|
+| Build | `./bin/dev build` | Pass (0 warnings, 0 errors) |
+| Test | `./bin/dev test` | Pass: 890 total, 889 passed, 1 skipped (pre-existing); `TraceContext_Given_` 11/11 |
+| Audit | `ganda repo audit` | First run: pass with 1 advisory warning (vscode-window-icon). After `ganda repo audit --fix`: "Repository passes all audit checks." |
+
+### How to validate
+
+Smoke:
+
+```bash
+./bin/dev build
+(cd tests/timewarp-amuru/single-file-tests/core && dotnet run shell-builder.trace-context.cs)
+```
+
+Expect: 11 tests pass — child `TRACEPARENT` equals `00-{traceId}-{spanId}-01` of the current activity (`-00`
+when not recorded); no activity leaves `TRACEPARENT`/`TRACESTATE` equal to the inherited values; explicit
+caller values win; explicit null leaves both `<unset>`; `TRACESTATE` set only when non-empty; a result built
+before the span opens uses the span active at start; the downstream `Pipe` stage gets it; `TtyPassthroughAsync`
+writes the activity's values (and honors explicit null).
+
+Not covered by a test: the JSON-RPC child path (same helper, needs a JSON-RPC server child).
+
+### Follow-ups (other repos, after merge and release)
+
+- timewarp-jaribu: delete `TraceParentPropagation` and its call sites once on Amuru 3.0.0-beta.6.
+- timewarp-ganda: drop the `TRACEPARENT` hand-off in `dotnet-invocation-trace.cs`.
+- Optional SigNoz guard query (see Out of scope).
+
+## Notes`
 
 ## Notes
 

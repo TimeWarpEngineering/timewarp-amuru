@@ -12,6 +12,7 @@
 // KillOnParentExit is set where that property exists. Stop sends SIGTERM on Unix, then
 // SafeProcessHandle.WaitForExitOrKillOnCancellationAsync when the grace period or the caller token fires.
 // ProcessExitStatus records an exit code or a terminating signal.
+// The child gets TRACEPARENT/TRACESTATE from Activity.Current at start, unless the caller set them.
 // ProcessStartInfo is banned for callers. This file is the same kind of boundary as TTY passthrough.
 #endregion
 
@@ -429,6 +430,12 @@ internal sealed partial class JsonRpcChildProcess : IJsonRpcProcessSeam
           startInfo.Environment[pair.Key] = pair.Value;
         }
       }
+    }
+
+    foreach (KeyValuePair<string, string> traceVariable in
+      TraceContextPropagation.VariablesToAdd(EnvironmentVariables, TraceContextPropagation.Capture()))
+    {
+      startInfo.Environment[traceVariable.Key] = traceVariable.Value;
     }
 
     Process process = new() { StartInfo = startInfo };

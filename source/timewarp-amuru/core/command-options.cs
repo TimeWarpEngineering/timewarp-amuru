@@ -10,6 +10,9 @@
 // - Validation defaults to None: non-zero exit codes are reported via ExitCode/Success, never thrown.
 //   ApplyTo always applies the resolved validation so CliWrap's own default (ZeroExitCode) can't leak in.
 // - Environment variables are merged with parent process environment
+// - ApplyTo does not add TRACEPARENT/TRACESTATE. CommandResult adds them from Activity.Current when the command
+//   starts (command-result.trace-context.cs), so a builder made before a span opens still joins that span.
+//   Keeping them out of the CliWrap command is how an explicit caller value or null removal is recognized.
 // - With* methods copy EnvironmentVariables, Timeout, and TimeoutGracePeriod rather than aliasing them
 // - Timeout is null when unset. There is no process-wide default. TimeoutGracePeriod defaults to 5 seconds
 //   and is the wait between the graceful signal and the force kill. CliWrap applies neither; CommandResult does.
@@ -39,6 +42,12 @@ public class CommandOptions
   /// Gets additional environment variables for the command execution.
   /// These are added to the inherited environment variables from the parent process.
   /// </summary>
+  /// <remarks>
+  /// When <see cref="Activity.Current"/> is set at the moment the command starts, Amuru also sets
+  /// <c>TRACEPARENT</c> (and <c>TRACESTATE</c> when the activity has one) on the child so its spans join the
+  /// caller's trace. A key set here wins. Set <c>TRACEPARENT</c> to null to opt a child out.
+  /// With no current activity the inherited environment is left as is.
+  /// </remarks>
   public Dictionary<string, string?>? EnvironmentVariables { get; init; }
 
   /// <summary>

@@ -11,7 +11,7 @@
 //   A file that does not exist throws FileNotFoundException when the command runs.
 // - StandardOutputTeeFile is not attached when the command is built. Each execution mode puts a tee target
 //   in front of its own stdout target (WithTeeStandardOutput). The listen paths merge InternalCommand's
-//   stdout pipe, so they go through TeeCommand. CliWrap's AggregatePipeTarget hands each chunk to its targets
+//   stdout pipe, so they go through StartTeeCommand. CliWrap's AggregatePipeTarget hands each chunk to its targets
 //   one at a time. The tee is first, so it gets a chunk before a line target that waits for a newline or a
 //   slow stream reader.
 // - The tee copies raw bytes. It does not decode or split lines, so an unterminated last line is in the file
@@ -54,9 +54,11 @@ public partial class CommandResult
     TimeSpan timeoutGracePeriod,
     CommandResultValidation validation,
     string? standardInputFile,
-    string? standardOutputTeeFile)
+    string? standardOutputTeeFile,
+    IReadOnlyList<Command>? pipeStages = null)
   {
     InternalCommand = command;
+    PipeStages = pipeStages;
     ConfiguredStandardInput = configuredStandardInput;
     IsPipeline = isPipeline;
     MockExecutable = mockExecutable;
@@ -120,12 +122,15 @@ public partial class CommandResult
       : PipeTarget.Merge(CreateTeeTarget(StandardOutputTeeFile), target);
 
   /// <summary>
-  /// InternalCommand with the tee in front of its own stdout pipe, for the CliWrap listen paths.
+  /// The start command with the tee in front of its own stdout pipe, for the CliWrap listen paths.
   /// </summary>
-  private Command TeeCommand =>
-    StandardOutputTeeFile is null
-      ? InternalCommand!
-      : InternalCommand!.WithStandardOutputPipe(WithTeeStandardOutput(InternalCommand.StandardOutputPipe));
+  private Command StartTeeCommand()
+  {
+    Command command = StartCommand();
+    return StandardOutputTeeFile is null
+      ? command
+      : command.WithStandardOutputPipe(WithTeeStandardOutput(command.StandardOutputPipe));
+  }
 
   private void ThrowIfTtyCannotUseStandardStreams()
   {
