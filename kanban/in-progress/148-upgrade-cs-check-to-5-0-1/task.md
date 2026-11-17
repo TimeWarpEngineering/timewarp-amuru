@@ -46,6 +46,8 @@ Acceptance:
 
 - Created: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-17)
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session b6be8b1d-bef4-40f2-9b80-6b5757925221, max-turns 500, Done — 2026-11-17T10:27:07Z
+- Review oracle: grok, session 01a1e90b-ef78-7ed0-a718-53de22f825da, effort 1, roster general, round 1, clean (2026-11-17)
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1e90b-ef78-7ed0-a718-53de22f825da, max-turns 80, artifacts general.md, merged.md, disposition.md — 2026-11-17T10:32:21Z
 
 ## Results
 
@@ -78,6 +80,16 @@ Acceptance:
 
 Smoke: `CsCheck_Seed=012XdpNskFd2 dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-arguments.round-trip.cs`, then `ganda nuget outdated`.
 Expect: 4/4 pass, including "Random Arguments_ Should_ Reach Child Unchanged" with "Passed 100 iterations."; the runfile's `obj/project.assets.json` resolves `CsCheck/5.0.1`; `ganda nuget outdated` prints "All packages are up to date!".
+
+### Review
+
+- Round 1, effort 1, roster general. Disposition: clean. Final open count: 0.
+- Counts: bug 0 open / 0 fixed / 0 wontfix; suggestion 0 / 0 / 0; nit 0 / 0 / 0. No wontfix and no escalation.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
