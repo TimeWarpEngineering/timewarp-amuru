@@ -88,6 +88,7 @@ Acceptance:
   tags `Activity.Current`, and the strict-exit exception message carries no argv.
 - Audit: one advisory warning (`vscode-window-icon`, ignored `.vscode/settings.json` missing in
   this worktree) fixed with `ganda repo audit --fix`; nothing tracked changed.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 403bd4f0-1397-412c-b3ef-37e513e541ea, max-turns 500, Done — 2026-11-17T20:33:56Z
 
 ## Results
 
