@@ -103,6 +103,7 @@ Acceptance:
 - Review round 1 (2026-11-18, ganda task work review oracle, Grok), session `01a1ecec-1be6-70a3-8bba-e4d8e1927074`, effort 3, roster general. Open finding M1 (suggestion). No misread.
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ecec-1be6-70a3-8bba-e4d8e1927074, max-turns 200, artifacts general.md, merged.md — 2026-11-18T04:43:33Z
 - Fix pass round 1 → 2 (2026-11-18, ganda task work implement-fix-2 oracle, Claude Opus 5.5): M1 fixed.
+- Review round 2 (2026-11-18, ganda task work review-2 oracle, Grok), session `01a1ecfa-efce-7a63-9496-75e0434fdbd3`, effort 1, roster general. M1 re-verified fixed. No new findings. No misread. Disposition clean.
 
 ## Results
 
@@ -187,12 +188,17 @@ calls export `gh <verb> <sub-verb>` spans under the command span. The `dev.cs` D
 `tools/dev-cli/telemetry.md` now name the `TimeWarp.Amuru.Gh` source and its tags instead of
 "no ActivitySource". No bugs, no nits, no misread.
 
-Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+Round 2 (effort 1, roster general) re-reviewed `2ff6e19` (dev CLI registration and the two
+docs). M1 stays fixed. No new findings. Final counts: bug 0, suggestion 1 fixed, nit 0.
+Open 0. Disposition **clean**. The goal restatement matches the task.
+
+Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`,
+`review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Review
 
-- Round 1: Blocked — open M1
-
+- Round 1: Blocked — open M1 (fixed on the next pass)
+- Round 2: Done
 ## Notes
 
 Related: 149 (TRACEPARENT from Amuru), 150 (analyzer), 151 (missing dotnet builders).

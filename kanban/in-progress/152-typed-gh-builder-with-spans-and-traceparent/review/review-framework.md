@@ -10,11 +10,17 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 4310
-- Effort: 3
+- Lines changed: 115
+- Effort: 1
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 200 (--max-turns; cursor uncapped)
+- Turn cap: 80 (--max-turns; cursor uncapped)
+
+## Round 2
+
+**Date:** 2026-11-18
+**Diff scope:** commit `2ff6e19` since round-1 base `751b122`. Product files: `tools/dev-cli/dev.cs`, `tools/dev-cli/telemetry.md`. The Budget block above is this round (115 lines, effort 1, general, turn cap 80). The header Effort line remains the round-1 record.
+**Session IDs:** 01a1ecfa-efce-7a63-9496-75e0434fdbd3 (Grok review-2 oracle)
 
 ## Ground rules
 
