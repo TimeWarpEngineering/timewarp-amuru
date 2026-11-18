@@ -8,7 +8,8 @@
 // Naming convention: SUT_Action_Given_Should_Result
 // SUT: DotNet (the static class providing command builders)
 // Action: Build (the method being tested)
-// Tests verify command string generation for various configuration options
+// Tests verify command string generation for various configuration options.
+// WithTimeout is an execution limit, so the command string stays unchanged and a mock proves the limit.
 #endregion
 
 #if !JARIBU_MULTI
@@ -138,6 +139,71 @@ namespace DotNet_
       commandString.ShouldBe("dotnet build nonexistent.csproj --configuration Debug --no-restore");
 
       await Task.CompletedTask;
+    }
+
+    public static async Task WithArtifactsPath_Should_IncludeArtifactsPath()
+    {
+      string command = DotNet.Build()
+        .WithProject("test.csproj")
+        .WithArtifactsPath("artifacts/owned")
+        .WithNoLogo()
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet build test.csproj --artifacts-path artifacts/owned --nologo");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithArtifactsPathBlank_Should_Throw()
+    {
+      DotNetBuildBuilder builder = DotNet.Build();
+
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(""));
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(" "));
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeout_Should_LeaveTheCommandStringUnchanged()
+    {
+      string command = DotNet.Build()
+        .WithTimeout(TimeSpan.FromSeconds(30))
+        .WithTimeoutGracePeriod(TimeSpan.FromSeconds(1))
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet build");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeoutInvalid_Should_Throw()
+    {
+      Should.Throw<ArgumentOutOfRangeException>(() => DotNet.Build().WithTimeout(TimeSpan.Zero));
+      Should.Throw<ArgumentOutOfRangeException>(() => DotNet.Build().WithTimeoutGracePeriod(TimeSpan.FromMilliseconds(-1)));
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeout_Should_StopASlowBuild()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("dotnet", "build", "app.csproj")
+          .Delays(TimeSpan.FromSeconds(5))
+          .Returns("built");
+
+        CommandOutput output = await DotNet.Build()
+          .WithProject("app.csproj")
+          .WithTimeout(TimeSpan.FromMilliseconds(200))
+          .WithTimeoutGracePeriod(TimeSpan.Zero)
+          .Build()
+          .CaptureAsync();
+
+        output.TimedOut.ShouldBeTrue();
+        output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      }
     }
   }
 }

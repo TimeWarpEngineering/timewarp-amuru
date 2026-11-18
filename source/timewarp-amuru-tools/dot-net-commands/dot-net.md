@@ -38,10 +38,16 @@ await DotNet.Run()
   .RunAsync();
 
 await DotNet.Run()
-  .WithEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development")
+  .WithFile("app.cs")
+  .WithNoCache()
+  .WithNoLogo()
+  .WithArtifactsPath("artifacts")
+  .WithTimeout(TimeSpan.FromMinutes(10))
   .WithArguments("--verbose", "--port", "8080")
   .RunAsync();
 ```
+
+`WithNoCache` adds `--no-cache` (always build). `WithNoLogo` adds `--nologo` before program arguments. `dotnet run` forwards that token to the program. `WithArtifactsPath`, `WithTimeout`, and `WithTimeoutGracePeriod` match the build builder.
 
 ### `DotNet.Build()`
 
@@ -56,8 +62,12 @@ await DotNet.Build("MyApp.csproj")
   .WithRuntime("win-x64")
   .WithProperty("Version", "1.0.0")
   .WithNoRestore()
+  .WithArtifactsPath("artifacts")
+  .WithTimeout(TimeSpan.FromMinutes(10))
   .RunAsync();
 ```
+
+`WithArtifactsPath` adds `--artifacts-path`. `WithTimeout` and `WithTimeoutGracePeriod` limit the process. They are not command-line tokens.
 
 ### `DotNet.MsBuild()`
 
@@ -89,8 +99,12 @@ CommandOutput testOutput = await DotNet.Test()
   .WithFilter("Category=Unit")
   .WithLogger("trx;LogFileName=TestResults.trx")
   .WithBlame()
+  .WithArguments("--coverage", "--coverage-output-format", "cobertura", "--coverage-output", "coverage.cobertura.xml")
+  .WithTimeout(TimeSpan.FromMinutes(20))
   .CaptureAsync();
 ```
+
+`WithArguments` appends tokens after the typed options and does not insert `--`. Use it for Microsoft.Testing.Platform extension options. `WithArtifactsPath`, `WithTimeout`, and `WithTimeoutGracePeriod` match the build builder.
 
 ### `DotNet.Clean()`
 
@@ -134,8 +148,11 @@ await DotNet.Publish("MyApp.csproj")
   .WithSingleFile()
   .WithTrimmed()
   .WithOutput("./publish")
+  .WithArtifactsPath("artifacts")
   .RunAsync();
 ```
+
+`WithArtifactsPath` adds `--artifacts-path`.
 
 ### `DotNet.Pack()`
 
@@ -145,12 +162,15 @@ await DotNet.Pack().RunAsync();
 await DotNet.Pack("MyLibrary.csproj")
   .WithConfiguration("Release")
   .WithOutput("./packages")
+  .WithArtifactsPath("artifacts")
   .WithVersionSuffix("beta")
   .IncludeSymbols()
   .IncludeSource()
   .WithServiceable()
   .RunAsync();
 ```
+
+`WithArtifactsPath` adds `--artifacts-path`.
 
 ### `DotNet.ListPackages()`
 

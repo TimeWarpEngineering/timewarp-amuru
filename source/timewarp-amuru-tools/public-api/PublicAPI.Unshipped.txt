@@ -25,6 +25,9 @@ static TimeWarp.Amuru.GhPullRequest.operator ==(TimeWarp.Amuru.GhPullRequest? le
 static TimeWarp.Amuru.GhWorkflowRun.JsonFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static TimeWarp.Amuru.GhWorkflowRun.operator !=(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
 static TimeWarp.Amuru.GhWorkflowRun.operator ==(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
+TimeWarp.Amuru.DotNetBuildBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder
 TimeWarp.Amuru.DotNetMsBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
 TimeWarp.Amuru.DotNetMsBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
@@ -64,6 +67,17 @@ TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithConfigFile(string! configFile) -> Ti
 TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
 TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
 TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithArguments(params string![]? arguments) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetTestBuilder!
 TimeWarp.Amuru.Gh
 TimeWarp.Amuru.GhActor
 TimeWarp.Amuru.GhActor.<Clone>$() -> TimeWarp.Amuru.GhActor!

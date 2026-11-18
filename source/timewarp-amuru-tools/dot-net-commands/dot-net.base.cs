@@ -129,8 +129,9 @@ public class DotNetBuilder : ICommandBuilder<DotNetBuilder>
 
   /// <summary>
   /// Sets the maximum time this dotnet command may run. The caller's cancellation token still applies.
-  /// Other dotnet builders do not declare <c>WithTimeout</c>. A child constructed from a
-  /// <see cref="CommandOptions"/> snapshot keeps a timeout already stored on that snapshot.
+  /// <see cref="DotNetBuildBuilder"/>, <see cref="DotNetRunBuilder"/>, and <see cref="DotNetTestBuilder"/>
+  /// declare the same methods. Other leaf builders do not.
+  /// A child constructed from a <see cref="CommandOptions"/> snapshot keeps a timeout already stored on that snapshot.
   /// </summary>
   /// <param name="timeout">Positive duration</param>
   /// <returns>The builder instance for method chaining</returns>
