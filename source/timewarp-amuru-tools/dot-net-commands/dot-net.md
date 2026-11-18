@@ -62,12 +62,14 @@ await DotNet.Build("MyApp.csproj")
   .WithRuntime("win-x64")
   .WithProperty("Version", "1.0.0")
   .WithNoRestore()
+  .WithNoLogo()
+  .WithVerbosity("minimal")
   .WithArtifactsPath("artifacts")
   .WithTimeout(TimeSpan.FromMinutes(10))
   .RunAsync();
 ```
 
-`WithArtifactsPath` adds `--artifacts-path`. `WithTimeout` and `WithTimeoutGracePeriod` limit the process. They are not command-line tokens.
+`WithArtifactsPath` adds `--artifacts-path`. `WithNoLogo` adds `--nologo`. `WithTimeout` and `WithTimeoutGracePeriod` limit the process. They are not command-line tokens.
 
 ### `DotNet.MsBuild()`
 

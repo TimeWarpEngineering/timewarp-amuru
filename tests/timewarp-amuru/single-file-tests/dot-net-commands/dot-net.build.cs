@@ -10,6 +10,7 @@
 // Action: Build (the method being tested)
 // Tests verify command string generation for various configuration options.
 // WithTimeout is an execution limit, so the command string stays unchanged and a mock proves the limit.
+// WithNoLogo emits --nologo. The runfile-coverage shape combines it with --artifacts-path and --verbosity.
 #endregion
 
 #if !JARIBU_MULTI
@@ -151,6 +152,20 @@ namespace DotNet_
         .ToCommandString();
 
       command.ShouldBe("dotnet build test.csproj --artifacts-path artifacts/owned --nologo");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task RunfileCoverageShape_Should_IncludeArtifactsPathNoLogoAndVerbosity()
+    {
+      string command = DotNet.Build("entry.cs")
+        .WithArtifactsPath("artifacts/owned")
+        .WithNoLogo()
+        .WithVerbosity("minimal")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet build entry.cs --artifacts-path artifacts/owned --verbosity minimal --nologo");
 
       await Task.CompletedTask;
     }
