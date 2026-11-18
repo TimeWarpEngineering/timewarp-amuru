@@ -103,6 +103,13 @@ Acceptance:
   with a comment.
 - Readme section (ids, defaults, suppression) and a version bump.
 
+Round 2 fix pass (M2, M3, M4): AMURU0003 must name a Git helper only for the argv that helper
+builds. `GetDefaultBranchAsync` matches `symbolic-ref refs/remotes/origin/HEAD --short` only.
+`SetUpstreamAsync` needs the third argument to be `<remote>/<fourth>` with a non-empty remote
+(constant pair, or an interpolation ending `/{x}` where the fourth argument is that same `x`).
+`GetCommitsAheadAsync` needs a two-dot `..HEAD` range, never `...HEAD`. Each finding's
+counterexamples get a no-report test case; the existing true positives keep reporting.
+
 ## Checklist
 
 - [x] Analyzer project packed under analyzers/dotnet/cs
@@ -123,6 +130,8 @@ Acceptance:
 - Review oracle: Grok, effort 3, roster general, round 1, 2026-11-18. Open finding M1. Disposition not written.
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ec92-02b0-76a0-af9f-6e71341180db, max-turns 200, artifacts general.md, merged.md — 2026-11-18T03:06:15Z
 - Fix pass for round 1 (implement-fix-2 oracle, Claude Opus 5.5, 2026-11-18): M1 fixed. AMURU0003 now matches whole git argument shapes.
+- Review round 2: reviewer-grok (grok, vendor xai, model grok-4.7), session 01a1eca3-78dc-71d0-9c94-9992104206d8, effort 2, roster general, max-turns 120. M1 stays fixed. Open findings M2, M3, M4. Disposition not written. Artifacts `review/round-2/general.md`, `review/round-2/merged.md`.
+- Fix pass for round 2 (implement-fix-3 oracle, Claude Opus 5.5, 2026-11-18): M2, M3, M4 fixed in `git-helper-table.cs` and `shell-builder-analyzer.cs`.
 
 ## Results
 
@@ -221,6 +230,16 @@ Fix pass (round 1 M1):
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` → 23/23 passed (edited; 3 new git cases)
 - `ganda repo audit` → exit 0, all checks pass
 
+Fix pass (round 2 M2, M3, M4):
+
+- M2: `GetDefaultBranchAsync` row keeps one shape, `symbolic-ref refs/remotes/origin/HEAD --short` (label updated).
+- M3: `GitHelperRow` takes an optional argument check. `SetUpstreamAsync` requires the third argument to be `<remote>/<fourth>` with a non-empty remote: two constants, or an interpolation ending in a literal `/` and a final hole naming the same local, parameter, field or property as the fourth argument (`ShellArgument.Reference` / `ShellArgument.SlashTail`, read by the analyzer).
+- M4: `ArgumentSlot.Shaped` takes an excluded suffix; `GetCommitsAheadAsync` uses `..HEAD` excluding `...HEAD`.
+- Tests: new `GitNearHelperShapes_Should_NotReport` (both M2 shapes, M3 constant and interpolated counterexamples, M4 constant and interpolated three-dot). `GitHelperShapes_Should_EachNameTheirHelper` gained the constant `origin/main main`, `$"origin/{branch}" branch`, and `main..HEAD` true positives (folded there to stay under the 500-line TWA0038 cap).
+- `./bin/dev build` → ✅ Build completed successfully, 0 warnings, 0 errors
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` → 24/24 passed (edited; first run hit TWA0038 at 503 lines, folded the positive cases into the existing shapes test, rerun green)
+- `ganda repo audit` → exit 0, all checks pass
+
 ### How to validate
 
 Smoke:
@@ -233,7 +252,7 @@ dotnet build tools/dev-cli/dev.cs
 ```
 
 Expect: build succeeds. The nupkg lists `analyzers/dotnet/cs/timewarp-amuru-analyzers.dll`. The
-analyzer test reports 23 passed, 0 failed. The dev-cli build exits 0 with no AMURU0001 error.
+analyzer test reports 24 passed, 0 failed. The dev-cli build exits 0 with no AMURU0001 error.
 Adding `Shell.Builder("dotnet").WithArguments("run")` to any dev-cli or test file fails the
 build with `error AMURU0001: Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of
 Shell.Builder("dotnet") with "run"`.
@@ -242,9 +261,12 @@ Shell.Builder("dotnet") with "run"`.
 
 Round 1 (effort 3, roster general): one bug, M1: AMURU0003 named Git helpers for command lines those helpers do not run. See `review/round-1/merged.md`. Fixed in the fix pass above; gates rerun (build, analyzer runfile 23/23, audit).
 
+Round 2 (effort 2, roster general): re-checked the fix delta. M1's listed counterexamples stay silent. Three open bugs remain on the new matcher: M2 `GetDefaultBranchAsync` matches two shapes the helper does not run, M3 `SetUpstreamAsync` does not require `{remote}/{branchName}` plus that same branch, M4 `GetCommitsAheadAsync` matches a three-dot `main...HEAD` range. See `review/round-2/merged.md`. Disposition not written. Gates were not re-run; the fix-pass record above covers this delta.
+
 ## Review
 
-- Round 1: M1 fixed in the fix pass (2026-11-18); round 2 to confirm
+- Round 1: M1 fixed in the fix pass (2026-11-18). Round 2 confirmed the listed counterexamples stay silent.
+- Round 2: M2, M3, M4 fixed in the round 2 fix pass (2026-11-18); round 3 to confirm.
 
 ## Notes
 

@@ -185,7 +185,8 @@ namespace ShellBuilderAnalyzer_
         .ShouldBe("""Use Git.WorktreeAddAsync() (TimeWarp.Amuru.Tools) instead of Shell.Builder("git") with "worktree add <path> <branch>" """.TrimEnd());
     }
 
-    // One call per Git helper, in the shape that helper runs (git.*.cs in TimeWarp.Amuru.Tools).
+    // One call per Git helper, in the shape that helper runs (git.*.cs in TimeWarp.Amuru.Tools),
+    // then constant forms of the SetUpstreamAsync and GetCommitsAheadAsync argv (review round 2).
     public static async Task GitHelperShapes_Should_EachNameTheirHelper()
     {
       ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
@@ -203,6 +204,9 @@ namespace ShellBuilderAnalyzer_
         Shell.Builder("git").WithArguments("worktree", "list", "--porcelain").Build();
         Shell.Builder("git").WithArguments("worktree", "remove", "--force", path).Build();
         Shell.Run("git", ["fetch", "origin"], new CommandOptions());
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", "origin/main", "main").Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", $"origin/{branch}", branch).Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", "main..HEAD").Build();
         """,
         """static string remote = "origin"; static string branch = "main"; static string path = "../wt";""");
 
@@ -211,6 +215,7 @@ namespace ShellBuilderAnalyzer_
         "SetUpstreamAsync", "CloneBareAsync", "ConfigureFetchRefspecAsync", "FetchAsync", "SetRemoteHeadAutoAsync",
         "GetCommitsAheadAsync", "BranchExistsAsync", "GetDefaultBranchAsync", "WorktreeAddAsync",
         "WorktreeAddNewBranchAsync", "WorktreeListPorcelainAsync", "WorktreeRemoveAsync", "FetchAsync",
+        "SetUpstreamAsync", "SetUpstreamAsync", "GetCommitsAheadAsync",
       ];
       diagnostics.Length.ShouldBe(expected.Length, string.Join(Environment.NewLine, diagnostics));
       diagnostics.ShouldAllBe(diagnostic => diagnostic.Id == "AMURU0003");
@@ -250,6 +255,28 @@ namespace ShellBuilderAnalyzer_
         Shell.Builder("git").WithArguments("fetch", "--", "origin").Build();
         """,
         """static string name = "main";""");
+
+      diagnostics.ShouldBeEmpty(string.Join(Environment.NewLine, diagnostics));
+    }
+
+    // Review round 2, M2-M4: argv shapes close to a helper's that the helper does not run.
+    public static async Task GitNearHelperShapes_Should_NotReport()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        Shell.Builder("git").WithArguments("symbolic-ref", "refs/remotes/origin/HEAD").Build();
+        Shell.Builder("git").WithArguments("symbolic-ref", "--short", "refs/remotes/origin/HEAD").Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", "origin/main", "feature").Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", "origin", "main").Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", "/main", "main").Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", $"{remote}/{branch}", other).Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", $"/{branch}", branch).Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", $"{remote}-{branch}", branch).Build();
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", remote, branch).Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", "main...HEAD").Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", $"{branch}...HEAD").Build();
+        """,
+        """static string remote = "origin"; static string branch = "main"; static string other = "dev";""");
 
       diagnostics.ShouldBeEmpty(string.Join(Environment.NewLine, diagnostics));
     }

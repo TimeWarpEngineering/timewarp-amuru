@@ -16,7 +16,9 @@ using Microsoft.CodeAnalysis.Operations;
 //
 // The arguments come from every WithArguments call on the same fluent chain, in order
 // (ShellBuilder.WithArguments appends), or from the arguments array (Shell.Run). Each element is a
-// ShellArgument: a constant, or a non-constant with its known literal start and end. A spread or
+// ShellArgument: a constant, or a non-constant with its known literal start and end (plus its
+// variable name when it is a plain reference, and the final hole's name for `{head}/{name}`, which
+// SetUpstreamAsync's row compares). A spread or
 // an array that is not written out ends the read. The list is complete only when nothing can add
 // to it later: every array was written out and, for Shell.Builder, the chain ends in a call that
 // does not return ShellBuilder (Build(), CaptureAsync(), ...). A builder stored in a variable and
@@ -293,7 +295,42 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
     string? text = ConstantString(element);
     return text is not null
       ? ShellArgument.Constant(text)
-      : ShellArgument.Computed(KnownPrefix(element), KnownSuffix(element));
+      : ShellArgument.Computed(KnownPrefix(element), KnownSuffix(element), ReferenceName(element), SlashTail(element));
+  }
+
+  // The name of a plain local, parameter, field or property reference, otherwise null. Two
+  // arguments with the same name read the same value.
+  private static string? ReferenceName(IOperation? operation) =>
+    Unwrap(operation) switch
+    {
+      ILocalReferenceOperation local => local.Syntax.ToString(),
+      IParameterReferenceOperation parameter => parameter.Syntax.ToString(),
+      IFieldReferenceOperation field => field.Syntax.ToString(),
+      IPropertyReferenceOperation { Arguments.Length: 0 } property => property.Syntax.ToString(),
+      _ => null,
+    };
+
+  // For an interpolation {head}/{name} with a non-empty head and no alignment or format on the
+  // final hole: the final hole's reference name. Otherwise null.
+  private static string? SlashTail(IOperation? operation)
+  {
+    if (Unwrap(operation) is not IInterpolatedStringOperation interpolated || interpolated.Parts.Length < 2)
+    {
+      return null;
+    }
+
+    int count = interpolated.Parts.Length;
+    if (interpolated.Parts[count - 1] is not IInterpolationOperation { Alignment: null, FormatString: null } last ||
+      interpolated.Parts[count - 2] is not IInterpolatedStringTextOperation separator)
+    {
+      return null;
+    }
+
+    string? text = ConstantString(separator.Text);
+    bool headPresent = count > 2 || text?.Length > 1;
+    return text is not null && text.EndsWith("/", StringComparison.Ordinal) && headPresent
+      ? ReferenceName(last.Expression)
+      : null;
   }
 
   // The literal text a string expression starts with: the first part of an interpolated string, or
