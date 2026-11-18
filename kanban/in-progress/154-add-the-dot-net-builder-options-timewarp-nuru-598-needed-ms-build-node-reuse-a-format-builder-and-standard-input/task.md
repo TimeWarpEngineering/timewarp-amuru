@@ -47,6 +47,8 @@ builder lacks an option. They run on a fallback today:
 - `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` window title for `vscode-window-icon`. That file stays untracked.
 - The first commit's attest hook failed `runfile-executable` on the two new runfiles. Both are now executable, matching the other dotnet runfiles.
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ed7f-49c5-7ff2-85b5-5f708b1d31ae, max-turns 500, Done — 2026-11-18T07:29:46Z
+- Review oracle: tw-implementation-review, Claude Opus 5.5 (claude-opus-5-5), effort 2, roster general, turn cap 120. Round 1 clean, 0 findings — 2026-11-18
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 07b5ee0d-5add-45e8-9699-630323e9e236, max-turns 120, artifacts general.md, merged.md, disposition.md — 2026-11-18T07:31:32Z
 
 ## Results
 
@@ -59,6 +61,14 @@ builder lacks an option. They run on a fallback today:
 `format` left `TypedBuilderTable.DotNetGapVerbs`. `Shell.Builder("dotnet")` with a `format` argument is AMURU0001 and names `DotNet.Format()`. The known-gap example in the analyzer test is now `exec`.
 
 The new members are in `PublicAPI.Unshipped.txt`. The package version stays `3.0.0-beta.9`. This walk does not publish the package, so the release checklist item stays open. Nuru's three fallbacks stay where they are until a release that contains these members.
+
+### Review
+
+- Rounds: 1. Effort 2, roster: general (review oracle, Claude Opus 5.5).
+- Final counts: bug 0, suggestion 0, nit 0. None open, fixed, or wontfix.
+- Disposition: **clean**.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+- The reviewer ran no gates. It reviewed the diff from `e6ad360` to `fb34a5e` and the recorded results above.
 
 ### How to validate
 
@@ -78,6 +88,10 @@ Expect: 7 passed. The nuru check case prints `dotnet format timewarp-nuru.slnx -
 - Post-commit `ganda repo attest` on `53afb14` — failed `runfile-executable`: `dot-net.format.cs` and `dot-net.standard-input.cs` were mode `100644`. Both are now `100755`. The follow-up commit's hook attests.
 - Fix pass `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.format.cs` — exit 0, 7 passed.
 - Fix pass `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.standard-input.cs` — exit 0, 6 passed.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
