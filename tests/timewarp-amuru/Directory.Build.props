@@ -13,6 +13,12 @@
   <ItemGroup>
     <ProjectReference Include="$(SourceDirectory)timewarp-amuru/timewarp-amuru.csproj" />
     <ProjectReference Include="$(SourceDirectory)timewarp-amuru-tools/timewarp-amuru-tools.csproj" />
+    <!-- The Amuru analyzer (AMURU0001-0003, task 150). A package consumer gets it from
+         TimeWarp.Amuru's analyzers/dotnet/cs; a ProjectReference to the core does not carry it. -->
+    <ProjectReference
+      Include="$(SourceDirectory)timewarp-amuru-analyzers/timewarp-amuru-analyzers.csproj"
+      ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" />
     <PackageReference Include="TimeWarp.Jaribu" />
     <PackageReference Include="TimeWarp.Terminal" />
     <PackageReference Include="CliWrap" />

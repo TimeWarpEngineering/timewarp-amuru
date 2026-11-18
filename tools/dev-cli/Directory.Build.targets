@@ -7,4 +7,33 @@
   <ItemGroup>
     <Compile Remove="$(NuGetPackageRoot)timewarp.nuru.devcli/**/content/any/endpoints/clean-command.cs" />
   </ItemGroup>
+
+  <!--
+    AMURU0001 in TimeWarp.Nuru.DevCli content (task 150). The package's
+    services/packable-project-service.cs runs Shell.Builder("dotnet") with "msbuild" and is
+    compiled here from the NuGet cache, where no repo .editorconfig or pragma can reach it.
+    The fix belongs in timewarp-nuru (move that call to DotNet.MsBuild(), task 151's builder,
+    once an Amuru release carries it). Until then a generated global analyzer config lowers
+    AMURU0001 to suggestion for that one package file only. Repo files keep the error.
+    Remove this target when the DevCli package no longer calls Shell.Builder("dotnet").
+  -->
+  <Target Name="ScopeAmuruAnalyzerForDevCliContent" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <_DevCliRawDotNetContent
+        Include="@(Compile->'%(FullPath)')"
+        Condition="'%(Filename)' == 'packable-project-service' And $([System.String]::Copy('%(FullPath)').Replace('\','/').Contains('/timewarp.nuru.devcli/'))" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_DevCliAmuruGlobalConfig>$(IntermediateOutputPath)amuru-devcli-content.globalconfig</_DevCliAmuruGlobalConfig>
+    </PropertyGroup>
+    <WriteLinesToFile
+      Condition="'@(_DevCliRawDotNetContent)' != ''"
+      File="$(_DevCliAmuruGlobalConfig)"
+      Lines="is_global = true;@(_DevCliRawDotNetContent->'[%(Identity)]%0Adotnet_diagnostic.AMURU0001.severity = suggestion')"
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true" />
+    <ItemGroup Condition="'@(_DevCliRawDotNetContent)' != ''">
+      <EditorConfigFiles Include="$(_DevCliAmuruGlobalConfig)" />
+    </ItemGroup>
+  </Target>
 </Project>

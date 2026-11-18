@@ -693,18 +693,19 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
 
         Terminal.WriteLine($"Pushing {package.FileName}...");
 
-        List<string> args = ["nuget", "push", nupkgPath, "--source", "https://api.nuget.org/v3/index.json", "--skip-duplicate"];
+        // nupkgPath is absolute (under repoRoot), so the push needs no working directory.
+        DotNetNuGetPushBuilder push = DotNet.NuGet()
+          .Push(nupkgPath)
+          .WithSource("https://api.nuget.org/v3/index.json")
+          .WithSkipDuplicate()
+          .WithNoValidation();
 
         if (!string.IsNullOrEmpty(apiKey))
         {
-          args.AddRange(["--api-key", apiKey]);
+          push = push.WithApiKey(apiKey);
         }
 
-        int exitCode = await Shell.Builder("dotnet")
-          .WithArguments([.. args])
-          .WithWorkingDirectory(repoRoot)
-          .WithNoValidation()
-          .RunAsync();
+        int exitCode = await push.RunAsync();
 
         if (exitCode != 0)
         {
@@ -769,8 +770,9 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
     // rather than assumed away.
     private static async Task<string?> ResolveProjectVersionAsync(string repoRoot, string projectPath, CancellationToken ct)
     {
-      CommandOutput result = await Shell.Builder("dotnet")
-        .WithArguments("msbuild", projectPath, "-getProperty:Version", "-nologo")
+      CommandOutput result = await DotNet.MsBuild(projectPath)
+        .WithGetProperty("Version")
+        .WithNoLogo()
         .WithWorkingDirectory(repoRoot)
         .WithNoValidation()
         .CaptureAsync(ct);

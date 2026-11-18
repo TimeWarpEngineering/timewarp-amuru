@@ -57,7 +57,12 @@ public sealed class VerifySamplesCommand : ICommand<Unit>
         string relativePath = Path.GetRelativePath(repoRoot, sampleFile);
         Terminal.WriteLine($"  Compiling: {relativePath}");
 
-        int exitCode = await RunProcessAsync("dotnet", $"build \"{sampleFile}\" -c Release --verbosity minimal");
+        CommandOutput output = await DotNet.Build(sampleFile)
+          .WithConfiguration("Release")
+          .WithVerbosity("minimal")
+          .WithNoValidation()
+          .CaptureAsync(cancellationToken);
+        int exitCode = await WriteOutputAsync(output);
 
         if (exitCode != 0)
         {

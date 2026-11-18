@@ -340,6 +340,40 @@ await Shell.Builder("tool")
     .RunAsync();
 ```
 
+## Analyzers
+
+`TimeWarp.Amuru` ships a Roslyn analyzer (`analyzers/dotnet/cs`), so every consumer gets these
+diagnostics at compile time. They fire on `Shell.Builder(...)` and `Shell.Run(...)` when the
+executable is a string literal or a constant. A computed executable is not reported.
+
+| Id | Default | Reports |
+|----|---------|---------|
+| `AMURU0001` | error | `dotnet` with a verb that has a typed builder, for example `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of Shell.Builder("dotnet") with "run"`. When the verb cannot be read, the message names the `DotNet.*` builders. |
+| `AMURU0002` | warning | `dotnet` with a verb that has no typed builder yet. File a task in timewarp-amuru for one. For a local tool (`dotnet fixie`), the message also points at `DotNet.Tool().Run(...)`. |
+| `AMURU0003` | info | `git` with a call that an existing `Git.*` helper performs, for example `git worktree add`. |
+
+The typed builders live in `TimeWarp.Amuru.Tools`. A project that references only
+`TimeWarp.Amuru` adds that package to fix the diagnostic. The verb-to-builder table is
+`TypedBuilderTable` in `source/timewarp-amuru-analyzers`; a test fails when it drifts from the
+public `DotNet` surface.
+
+Change a severity per repository in `.editorconfig`:
+
+```ini
+[*.cs]
+# Make the git hint a warning in this repo.
+dotnet_diagnostic.AMURU0003.severity = warning
+```
+
+Where a raw shell is the point, suppress the one call and say why:
+
+```csharp
+// The nested dotnet run is the tool's own command line; DotNet.Tool() does not cover it yet.
+#pragma warning disable AMURU0001
+await Shell.Builder("dotnet").WithArguments("tool", "run", "x", "--", "dotnet", "run").RunAsync();
+#pragma warning restore AMURU0001
+```
+
 ## Testing and Mocking
 
 ### CommandMock (Recommended)

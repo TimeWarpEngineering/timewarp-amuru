@@ -1,20 +1,20 @@
 #region Purpose
-// Helper methods for running external processes asynchronously
-// Provides simple wrappers around Shell.Builder for common dev-cli operations
+// Writes a captured command's output to the terminal for dev-cli commands.
+#endregion
+
+#region Design
+// dev test and dev verify-samples run dotnet through the typed DotNet builders (task 150), capture
+// the output, and print it here. The old RunProcessAsync took an executable name and a
+// space-split argument string, which hid Shell.Builder("dotnet") from the Amuru analyzer.
 #endregion
 
 namespace DevCli;
 
 public static class ProcessHelpers
 {
-  public static async Task<int> RunProcessAsync(string fileName, string arguments)
+  public static async Task<int> WriteOutputAsync(CommandOutput output)
   {
-    string[] args = ParseArguments(arguments);
-
-    CommandOutput output = await Shell.Builder(fileName)
-      .WithArguments(args)
-      .WithNoValidation()
-      .CaptureAsync();
+    ArgumentNullException.ThrowIfNull(output);
 
     if (!string.IsNullOrEmpty(output.Stdout))
       await TimeWarpTerminal.Default.WriteLineAsync(output.Stdout);
@@ -23,44 +23,5 @@ public static class ProcessHelpers
       await TimeWarpTerminal.Default.WriteErrorLineAsync(output.Stderr);
 
     return output.ExitCode;
-  }
-
-  private static string[] ParseArguments(string arguments)
-  {
-    if (string.IsNullOrWhiteSpace(arguments))
-      return [];
-
-    List<string> result = new();
-    StringBuilder current = new();
-    bool inQuotes = false;
-
-    for (int i = 0; i < arguments.Length; i++)
-    {
-      char c = arguments[i];
-
-      if (c == '"')
-      {
-        inQuotes = !inQuotes;
-        continue;
-      }
-
-      if (c == ' ' && !inQuotes)
-      {
-        if (current.Length > 0)
-        {
-          result.Add(current.ToString());
-          current.Clear();
-        }
-
-        continue;
-      }
-
-      current.Append(c);
-    }
-
-    if (current.Length > 0)
-      result.Add(current.ToString());
-
-    return result.ToArray();
   }
 }

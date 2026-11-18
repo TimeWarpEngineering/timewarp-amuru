@@ -39,7 +39,12 @@ public sealed class TestCommand : ICommand<Unit>
       try
       {
         Directory.SetCurrentDirectory(testsDir);
-        int exitCode = await RunProcessAsync("dotnet", $"run {runTestsPath}");
+        // DotNet.Run carries the dotnet command span and TRACEPARENT into the suite (task 150).
+        CommandOutput output = await DotNet.Run()
+          .WithFile(runTestsPath)
+          .WithNoValidation()
+          .CaptureAsync(cancellationToken);
+        int exitCode = await WriteOutputAsync(output);
 
         if (exitCode != 0)
         {

@@ -81,21 +81,124 @@ third-party tool, out of scope.
 
 - 151
 
+## Goal (implementer restatement)
+
+Ship a Roslyn analyzer inside the `TimeWarp.Amuru` package that flags `Shell.Builder(...)` and
+`Shell.Run(...)` when the executable is a compile-time constant `dotnet` or `git` and a typed
+Amuru builder exists, so consumers move to `DotNet.*` / `Git.*` (TimeWarp.Amuru.Tools).
+
+Acceptance:
+- `source/timewarp-amuru-analyzers` (netstandard2.0) with release-tracking files, packed into the
+  `TimeWarp.Amuru` nupkg under `analyzers/dotnet/cs`.
+- AMURU0001 (error): `dotnet` + a verb with a typed builder, or an unreadable verb (generic message).
+- AMURU0002 (warning): `dotnet` + a verb with no typed builder (known-gap list in the analyzer).
+- AMURU0003 (info): `git` + a call that matches an existing `Git.*` helper.
+- Messages name the replacement and the TimeWarp.Amuru.Tools package. Non-constant executables
+  are not reported.
+- One verb table, asserted by a test against the public `DotNet` surface (both directions), and
+  the git helper names asserted against `Git`.
+- Jaribu runfile tests: literal, const, verb with/without builder, non-constant, `Shell.Run`, git
+  info, editorconfig severity override.
+- Amuru's tests and dev CLI build under the analyzer; deliberate raw shells are pragma-suppressed
+  with a comment.
+- Readme section (ids, defaults, suppression) and a version bump.
+
 ## Checklist
 
-- [ ] Analyzer project packed under analyzers/dotnet/cs
-- [ ] AMURU0001 dotnet verb with builder (error)
-- [ ] AMURU0002 dotnet verb without builder (warning)
-- [ ] AMURU0003 git with existing helper (info)
-- [ ] Verb table asserted against the public DotNet surface
-- [ ] Tests
-- [ ] Amuru itself compiles clean, exceptions explained
-- [ ] Readme and version bump
+- [x] Analyzer project packed under analyzers/dotnet/cs
+- [x] AMURU0001 dotnet verb with builder (error)
+- [x] AMURU0002 dotnet verb without builder (warning)
+- [x] AMURU0003 git with existing helper (info)
+- [x] Verb table asserted against the public DotNet surface
+- [x] Tests
+- [x] Amuru itself compiles clean, exceptions explained
+- [x] Readme and version bump
 
 ## Session
 
 - Created: 533fd3ed-9595-4328-8934-d2075db5b31f (2026-11-18), from a timewarp-jaribu session
 - Groomed: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-18), existing nuget/version builders, Tools package in messages, depends on 151
+- Implemented: ganda task work implement oracle (2026-11-18), Claude Opus 5.5
+
+## Results
+
+What shipped:
+
+- `source/timewarp-amuru-analyzers` (netstandard2.0, `Microsoft.CodeAnalysis.CSharp` 5.12.0, same
+  pin as timewarp-jaribu-analyzers) with `AnalyzerReleases.Shipped.md` / `Unshipped.md`.
+  `timewarp-amuru.csproj` builds it through an `Analyzer` ProjectReference and the
+  `PackAmuruAnalyzer` target packs `analyzers/dotnet/cs/timewarp-amuru-analyzers.dll` into
+  `TimeWarp.Amuru.3.0.0-beta.8.nupkg` (checked with `unzip -l`). Added to `timewarp-amuru.slnx`.
+- `ShellBuilderAnalyzer`: an operation analyzer on `TimeWarp.Amuru.Shell.Builder` / `Shell.Run`
+  with a constant executable. It reads the leading constant arguments of the first chained
+  `WithArguments` call, or of the `Shell.Run` arguments array (`new[]`, `new string[]`, a
+  collection expression).
+  - AMURU0001 (error): table row → `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of
+    Shell.Builder("dotnet") with "run"`. When there are no readable arguments, or the verb is
+    known but its subcommand is not → `Use the DotNet.* builders (TimeWarp.Amuru.Tools) instead
+    of Shell.Builder("dotnet")`. A `*.cs` first argument → `DotNet.Run().WithFile()`.
+  - AMURU0002 (warning): known-gap SDK verb (`format`, `exec`, `vstest`, ... in
+    `TypedBuilderTable.DotNetGapVerbs`) → "file a task in timewarp-amuru for a DotNet builder".
+    An unknown verb (a local tool such as `fixie`) also gets AMURU0002, and the message points
+    at `DotNet.Tool().Run("fixie")`. `msbuild` and `nuget` are table rows (task 151).
+  - AMURU0003 (info): git table rows (worktree add/list/remove, fetch, clone --bare,
+    remote set-head/get-url, branch --set-upstream-to, show-ref --verify, rev-list --count,
+    rev-parse --show-toplevel, symbolic-ref, config remote.origin.fetch).
+- `TypedBuilderTable` is the one table. The `VerbTable_Given_` tests reflect over `DotNet` and
+  `Git`. They fail when a public static DotNet builder has no row (only `DotNet.Builder()` is
+  exempt), when a row names a missing method, or when a gap verb overlaps a row.
+- The analyzer runs on Amuru's own code: the core project, `tests/timewarp-amuru` (Directory.Build.props) and
+  `tools/dev-cli` (Directory.Build.props). Raw `dotnet` calls moved to typed builders instead of
+  pragmas. Those calls were: dev-cli release `nuget push` → `DotNet.NuGet().Push()`, version
+  probe `msbuild -getProperty` → `DotNet.MsBuild().WithGetProperty()`, `dev test` →
+  `DotNet.Run().WithFile()` (task 149's origin), `dev verify-samples` → `DotNet.Build()`, and
+  the two test child builds (argv-echo, mcp-stdio-server) → `DotNet.Build()`. `RunProcessAsync`
+  became `WriteOutputAsync`. No `#pragma warning disable AMURU*` was needed in this repo.
+- One exception outside the repo: `TimeWarp.Nuru.DevCli` 4.0.0-beta.15 compiles
+  `content/any/services/packable-project-service.cs` from the NuGet cache, and that file calls
+  `Shell.Builder("dotnet")` with `msbuild`. No pragma or repo `.editorconfig` can reach it.
+  `tools/dev-cli/Directory.Build.targets` (`ScopeAmuruAnalyzerForDevCliContent`) generates a
+  global analyzer config that lowers AMURU0001 to suggestion for that one package file only.
+  The comment there says to remove the target once DevCli moves to `DotNet.MsBuild()`.
+- Readme `## Analyzers` section (ids, defaults, editorconfig and pragma suppression; the
+  diagnostics' help link points at it). AGENTS.md package-layout line. Version
+  3.0.0-beta.7 → 3.0.0-beta.8.
+
+Audit (boy-scout): the first `ganda repo audit` failed `analyzer-suppressions`. The pragma test case's
+sample source contained a literal `#pragma warning disable AMURU0001` string. That text is now
+built from a `PragmaWarning` constant, with a comment. `vscode-window-icon` (warning) was fixed by
+`ganda repo audit --fix`, which created the git-ignored `.vscode/settings.json`.
+
+Follow-up (not filed from this walk): a timewarp-nuru task to move TimeWarp.Nuru.DevCli
+`PackableProjectService.EvaluateWithMsBuildAsync` to `DotNet.MsBuild()` once an Amuru release
+carries task 151. Every repo that uses DevCli hits AMURU0001 on its next Amuru bump until then.
+
+### Gates
+
+- `./bin/dev build` → ✅ Build completed successfully (after the version bump; nupkg contains the analyzer)
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` → 20/20 passed (new)
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/core/shell-builder.with-arguments.round-trip.cs` → 4/4 passed (edited; rerun with the temp argv-echo build deleted so `DotNet.Build()` ran)
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/json-rpc/json-rpc-client.send-async.cs` → 20/20 passed (edited; rerun with the temp mcp-stdio-server build deleted)
+- `dotnet build tools/dev-cli/dev.cs` → exit 0 under the analyzer (dev-cli has no test file)
+- `dotnet build tests/timewarp-amuru/multi-file-runners/run-tests.cs` → exit 0 (compile only; CI runs the suite)
+- `ganda repo audit` → failed analyzer-suppressions (fixed above) → `ganda repo audit --fix` → exit 0
+
+### How to validate
+
+Smoke:
+
+```bash
+./bin/dev build
+unzip -l artifacts/packages/TimeWarp.Amuru.3.0.0-beta.8.nupkg | grep analyzers
+dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs
+dotnet build tools/dev-cli/dev.cs
+```
+
+Expect: build succeeds. The nupkg lists `analyzers/dotnet/cs/timewarp-amuru-analyzers.dll`. The
+analyzer test reports 20 passed, 0 failed. The dev-cli build exits 0 with no AMURU0001 error.
+Adding `Shell.Builder("dotnet").WithArguments("run")` to any dev-cli or test file fails the
+build with `error AMURU0001: Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of
+Shell.Builder("dotnet") with "run"`.
 
 ## Notes
 
