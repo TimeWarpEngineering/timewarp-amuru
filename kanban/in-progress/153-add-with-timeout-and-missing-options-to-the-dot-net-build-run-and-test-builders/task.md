@@ -51,6 +51,7 @@ instead, because the typed builders are missing options those calls need:
 - Review round 1: review oracle (claude, model claude-opus-5-5), effort 3, roster general, turn cap 200 — 2026-11-18. 1 open suggestion (M1); fix pass requested.
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session a9cedddd-d43c-4462-8a7f-7306a5f8ddc3, max-turns 200, artifacts general.md, merged.md — 2026-11-18T06:54:39Z
 - Fix pass: implement-fix-2 (grok-4.7) — 2026-11-18. M1's `WithNoLogo` was already on `DotNetBuildBuilder`. Documented it and locked the runfile-coverage command string. Bumped the Nuru pins so `package-pin-currency` passes.
+- Review round 2: review oracle (claude, model claude-opus-5-5), effort 1, roster general, turn cap 80 — 2026-11-18. M1 fixed, no new findings; disposition clean. Artifacts `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Results
 
@@ -98,11 +99,17 @@ Expect: 14 passed. The runfile-coverage case prints `dotnet build entry.cs --art
 ### Review
 
 - Round 1 (effort 3, roster general): 0 bug, 1 suggestion, 0 nit. M1 asked for `DotNetBuildBuilder.WithNoLogo()`. That method is already on the shipped builder. The fix pass documents it and adds the runfile-coverage command-string test. Round 2 dispositions M1.
-- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+- Round 2 (effort 1, roster general, delta `7431589..2bfa8b0`): M1 fixed, no new findings. Final counts: 0 bug, 1 suggestion (fixed), 0 nit, 0 open, 0 wontfix.
+- Disposition: **clean** (2 rounds, final open 0).
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Review
 
-- Round 1: fix pass applied for M1; round 2 pending
+- Round 1: fix pass applied for M1
+- Round 2: Done
+## Learnings
+
+- Round 1 M1 rested on a false premise: `DotNetBuildBuilder.WithNoLogo()` was already shipped (`public-api/PublicAPI.Shipped.txt:222`). Before asking for a member, a reviewer checks the full builder file and `PublicAPI.Shipped.txt`, not only the options partial in the diff. why: task 153 review round 2, 2026-11-18
 
 ## Notes
 
