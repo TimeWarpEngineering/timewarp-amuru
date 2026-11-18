@@ -97,22 +97,24 @@ namespace ShellBuilderAnalyzer_
         """
         Shell.Builder("dotnet").WithArguments("msbuild", "app.csproj", "-getProperty:Version").Build();
         Shell.Builder("dotnet").WithArguments("nuget", "verify", "a.nupkg").Build();
+        Shell.Builder("dotnet").WithArguments("format", "app.slnx", "--verify-no-changes").Build();
         """);
 
-      diagnostics.Length.ShouldBe(2);
+      diagnostics.Length.ShouldBe(3);
       diagnostics.ShouldAllBe(diagnostic => diagnostic.Id == "AMURU0001");
       diagnostics[0].GetMessage(CultureInfo.InvariantCulture).ShouldContain("DotNet.MsBuild()");
       diagnostics[1].GetMessage(CultureInfo.InvariantCulture).ShouldContain("DotNet.NuGet()");
+      diagnostics[2].GetMessage(CultureInfo.InvariantCulture).ShouldContain("DotNet.Format()");
     }
 
     public static async Task KnownGapVerb_Should_WarnAndAskForATask()
     {
-      Diagnostic diagnostic = (await AnalyzeAsync("""Shell.Builder("dotnet").WithArguments("format", "--verify-no-changes").Build();""")).ShouldHaveSingleItem();
+      Diagnostic diagnostic = (await AnalyzeAsync("""Shell.Builder("dotnet").WithArguments("exec", "app.dll").Build();""")).ShouldHaveSingleItem();
 
       diagnostic.Id.ShouldBe("AMURU0002");
       diagnostic.Severity.ShouldBe(DiagnosticSeverity.Warning);
       diagnostic.GetMessage(CultureInfo.InvariantCulture)
-        .ShouldBe("""Shell.Builder("dotnet") with "format" has no typed builder: file a task in timewarp-amuru for a DotNet builder""");
+        .ShouldBe("""Shell.Builder("dotnet") with "exec" has no typed builder: file a task in timewarp-amuru for a DotNet builder""");
     }
 
     public static async Task UnknownVerb_Should_WarnAndPointAtToolRun()

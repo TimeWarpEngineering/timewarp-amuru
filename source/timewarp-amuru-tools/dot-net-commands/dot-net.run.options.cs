@@ -4,6 +4,7 @@
 
 #region Design
 // Lives beside dot-net.run.cs as a partial of DotNetRunBuilder because that file is at its line limit (TWA0038).
+// WithStandardInput writes the StandardInput field declared on the other partial.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -167,6 +168,20 @@ public partial class DotNetRunBuilder
   public DotNetRunBuilder WithTimeoutGracePeriod(TimeSpan gracePeriod)
   {
     Options = Options.WithTimeoutGracePeriod(gracePeriod);
+    return this;
+  }
+
+  /// <summary>
+  /// Pipes text to the child process. An empty string closes standard input immediately.
+  /// The text is not a command-line argument.
+  /// </summary>
+  /// <param name="input">The text to write. Empty is immediate EOF.</param>
+  /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="input"/> is null.</exception>
+  public DotNetRunBuilder WithStandardInput(string input)
+  {
+    ArgumentNullException.ThrowIfNull(input);
+    StandardInput = input;
     return this;
   }
 }

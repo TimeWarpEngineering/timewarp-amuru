@@ -8,6 +8,8 @@
 // --artifacts-path is the artifacts directory. --no-cache skips up-to-date checks and always builds.
 // --nologo is emitted before program arguments. dotnet run forwards that token to the program.
 // WithTimeout and WithTimeoutGracePeriod set CommandOptions. They are not command-line tokens.
+// WithStandardInput is passed to Shell.Run. It is not a command-line token.
+// Null is rejected. An empty string is immediate EOF.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -57,6 +59,7 @@ public partial class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   private readonly Dictionary<string, string> Properties = [];
   private readonly Dictionary<string, string> EnvironmentVariables = [];
   private string[]? ProgramArguments;
+  private string? StandardInput;
   private CommandOptions Options = new();
 
   /// <summary>
@@ -384,7 +387,7 @@ public partial class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
       arguments.AddRange(ProgramArguments);
     }
 
-    return Shell.Run("dotnet", arguments.ToArray(), Options);
+    return Shell.Run("dotnet", arguments.ToArray(), Options, StandardInput);
   }
 
   /// <summary>

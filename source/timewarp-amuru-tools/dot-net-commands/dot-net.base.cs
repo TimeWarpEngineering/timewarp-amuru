@@ -5,6 +5,8 @@
 #region Design
 // WithListSdks, WithListRuntimes, WithVersion, and WithInfo return a DotNetBuilder
 // that already holds that flag. WithArguments appends further tokens; it does not replace them.
+// WithStandardInput is passed to Shell.Run. It is not a command-line token.
+// Null is rejected. An empty string is immediate EOF.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -67,6 +69,7 @@ public class DotNetBuilder : ICommandBuilder<DotNetBuilder>
 {
   private readonly List<string> Arguments = new();
   private CommandOptions Options = new();
+  private string? StandardInput;
 
   /// <summary>
   /// Adds arguments to the command.
@@ -155,12 +158,26 @@ public class DotNetBuilder : ICommandBuilder<DotNetBuilder>
   }
 
   /// <summary>
+  /// Pipes text to the child process. An empty string closes standard input immediately.
+  /// The text is not a command-line argument.
+  /// </summary>
+  /// <param name="input">The text to write. Empty is immediate EOF.</param>
+  /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="input"/> is null.</exception>
+  public DotNetBuilder WithStandardInput(string input)
+  {
+    ArgumentNullException.ThrowIfNull(input);
+    StandardInput = input;
+    return this;
+  }
+
+  /// <summary>
   /// Builds the command and returns a CommandResult.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
   public CommandResult Build()
   {
-    return Shell.Run("dotnet", Arguments.ToArray(), Options);
+    return Shell.Run("dotnet", Arguments.ToArray(), Options, StandardInput);
   }
 
   /// <summary>
