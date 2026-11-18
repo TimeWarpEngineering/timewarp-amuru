@@ -2,15 +2,16 @@
 
 ## Goal (implementer restatement)
 
-Jaribu's typed `dotnet` calls need options the Build, Run, and Test builders do not expose, so those calls fall back to a raw argument list. This task adds the missing options on the 3.0 prerelease line.
+Jaribu's typed `dotnet` calls fall back to a raw argument list when Build, Run, or Test cannot express the options those calls pass. This task adds the missing options on the 3.0 prerelease line. The fix pass makes the headline build shape (`--artifacts-path`, `--nologo`, `--verbosity`) a documented typed call.
 
 Acceptance criteria:
 
-- `DotNetBuildBuilder`, `DotNetRunBuilder`, and `DotNetTestBuilder` each expose `WithTimeout` and `WithTimeoutGracePeriod`, and those limits reach command execution the same way they do on `DotNetBuilder`.
-- `WithArtifactsPath` emits `--artifacts-path` on Build. Run, Test, Publish, and Pack get it too, because those verbs accept the same flag.
-- `DotNetTestBuilder` can append extra tokens, including Microsoft.Testing.Platform options such as `--coverage`, without a typed method for each one.
-- `DotNetRunBuilder` can emit `--no-cache` and `--nologo`, which the same Jaribu calls pass today.
-- The new members are recorded in `PublicAPI.Unshipped.txt` so the next 3.0.0 beta can ship them. This walk does not publish the package.
+- Build, Run, and Test expose `WithTimeout` and `WithTimeoutGracePeriod`, and those limits reach command execution the same way they do on `DotNetBuilder`.
+- Build, Run, Test, Publish, and Pack expose `WithArtifactsPath` and emit `--artifacts-path`.
+- Test can append extra tokens, including Microsoft.Testing.Platform options such as `--coverage`, without a typed method for each one.
+- Run can emit `--no-cache` and `--nologo`.
+- Build emits `--nologo` through `WithNoLogo`, so `dotnet build <entry> --artifacts-path <dir> --nologo --verbosity minimal` is a typed call. That member is already in the shipped public API. The reference documents it, and a command-string test locks the flag set.
+- Members added on this branch are listed in `PublicAPI.Unshipped.txt`. This walk does not publish the package.
 
 ## Description
 
@@ -39,6 +40,7 @@ instead, because the typed builders are missing options those calls need:
 - [x] WithTimeout on Build/Run/Test
 - [x] WithArtifactsPath on Build
 - [x] Extra-argument pass-through on Test
+- [x] Build `WithNoLogo` documented for the runfile-coverage shape (member already shipped)
 - [ ] Released
 
 ## Session
@@ -46,12 +48,17 @@ instead, because the typed builders are missing options those calls need:
 - Created: 1894826 (2026-11-18)
 - Implementation: 01a1ed52-de76-7240-9b2c-3a2dd9f90697 (2026-11-18)
 - Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ed52-de76-7240-9b2c-3a2dd9f90697, max-turns 500, Done — 2026-11-18T06:52:32Z
+- Review round 1: review oracle (claude, model claude-opus-5-5), effort 3, roster general, turn cap 200 — 2026-11-18. 1 open suggestion (M1); fix pass requested.
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session a9cedddd-d43c-4462-8a7f-7306a5f8ddc3, max-turns 200, artifacts general.md, merged.md — 2026-11-18T06:54:39Z
+- Fix pass: implement-fix-2 (grok-4.7) — 2026-11-18. M1's `WithNoLogo` was already on `DotNetBuildBuilder`. Documented it and locked the runfile-coverage command string. Bumped the Nuru pins so `package-pin-currency` passes.
 
 ## Results
 
 Build, Run, and Test take `WithTimeout` and `WithTimeoutGracePeriod`. Those methods set `CommandOptions`, so the limit is enforced at execution and does not appear in the command string. Build, Run, Test, Publish, and Pack take `WithArtifactsPath` and emit `--artifacts-path`. Test `WithArguments` appends tokens in call order, including Microsoft.Testing.Platform options such as `--coverage`, and does not insert `--`. Run takes `WithNoCache` and `WithNoLogo`. `--nologo` is not a `dotnet run` option on SDK 11.0.100; the builder emits it before program arguments, and `dotnet run` forwards that token to the program.
 
 The new members are in `PublicAPI.Unshipped.txt`. The package version stays `3.0.0-beta.9`. This walk does not publish the package, so Released stays open. Jaribu's call sites stay on their current builders until a follow-up moves them.
+
+Fix pass for review M1: `DotNetBuildBuilder.WithNoLogo()` was already shipped and already emits `--nologo` (`PublicAPI.Shipped.txt`). A second `PublicAPI.Unshipped.txt` entry would duplicate that listing, so none was added. `dot-net.md` now names `WithNoLogo` on `DotNet.Build()`. The builder emits `--verbosity` before `--nologo`, so the runfile-coverage shape is `dotnet build entry.cs --artifacts-path artifacts/owned --verbosity minimal --nologo`. `Directory.Packages.props` pins `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` at `4.0.0-beta.16` because `package-pin-currency` failed on `4.0.0-beta.15`.
 
 The new methods pushed `dot-net.build.cs`, `dot-net.run.cs`, `dot-net.test.cs`, and `dot-net.publish.cs` over the TWA0038 line cap. Their option setters moved to `dot-net.build.options.cs`, `dot-net.run.options.cs`, `dot-net.test.options.cs`, and `dot-net.publish.options.cs`. Those four files are under 500 lines, so their entries left `.timewarp/line-cap-baseline.json` and `.editorconfig`.
 
@@ -75,6 +82,27 @@ Expect: 16 passed. The coverage case prints `dotnet test tests.csproj --configur
 - `ganda repo audit` — exit 0, Passed 43, Failed 1 advisory (`vscode-window-icon`).
 - `ganda repo audit --fix` — wrote the ignored `.vscode/settings.json`; the audit it ran passed, Passed 44, Failed 0.
 - `ganda repo audit` — rerun after the `.githooks` pin bump to `3.0.0-beta.9`: exit 0, Passed 44, Failed 0.
+
+### How to validate (fix pass)
+
+Smoke: `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.build.cs`
+
+Expect: 14 passed. The runfile-coverage case prints `dotnet build entry.cs --artifacts-path artifacts/owned --verbosity minimal --nologo`.
+
+- `./bin/dev build` — succeeded, 0 warnings, 0 errors.
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.build.cs` — exit 0, 14 passed. Standalone runfile (`#if !JARIBU_MULTI`).
+- `ganda repo audit` — first run exit 1, `package-pin-currency`: `TimeWarp.Nuru` and `TimeWarp.Nuru.DevCli` `4.0.0-beta.15` behind `4.0.0-beta.16`.
+- `dotnet run --file tools/dev-cli/dev.cs -- --help` — compiled against the bumped pins and printed help.
+- `ganda repo audit` — rerun after the Nuru pin bump: exit 0, Passed 44, Failed 0.
+
+### Review
+
+- Round 1 (effort 3, roster general): 0 bug, 1 suggestion, 0 nit. M1 asked for `DotNetBuildBuilder.WithNoLogo()`. That method is already on the shipped builder. The fix pass documents it and adds the runfile-coverage command-string test. Round 2 dispositions M1.
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+
+## Review
+
+- Round 1: fix pass applied for M1; round 2 pending
 
 ## Notes
 
