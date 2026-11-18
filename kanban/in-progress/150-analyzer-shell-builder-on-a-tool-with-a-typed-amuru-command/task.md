@@ -132,6 +132,7 @@ counterexamples get a no-report test case; the existing true positives keep repo
 - Fix pass for round 1 (implement-fix-2 oracle, Claude Opus 5.5, 2026-11-18): M1 fixed. AMURU0003 now matches whole git argument shapes.
 - Review round 2: reviewer-grok (grok, vendor xai, model grok-4.7), session 01a1eca3-78dc-71d0-9c94-9992104206d8, effort 2, roster general, max-turns 120. M1 stays fixed. Open findings M2, M3, M4. Disposition not written. Artifacts `review/round-2/general.md`, `review/round-2/merged.md`.
 - Fix pass for round 2 (implement-fix-3 oracle, Claude Opus 5.5, 2026-11-18): M2, M3, M4 fixed in `git-helper-table.cs` and `shell-builder-analyzer.cs`.
+- Review round 3: reviewer-grok (grok, vendor xai, model grok-4.7), session 01a1ecaf-97d5-7060-86a3-7dd884443dd5, effort 2, roster general, max-turns 120. M2, M3, and M4 stay fixed. No new findings. Disposition clean (4 bug fixed, 0 open). Artifacts `review/round-3/general.md`, `review/round-3/merged.md`, `review/disposition.md`.
 
 ## Results
 
@@ -261,13 +262,15 @@ Shell.Builder("dotnet") with "run"`.
 
 Round 1 (effort 3, roster general): one bug, M1: AMURU0003 named Git helpers for command lines those helpers do not run. See `review/round-1/merged.md`. Fixed in the fix pass above; gates rerun (build, analyzer runfile 23/23, audit).
 
-Round 2 (effort 2, roster general): re-checked the fix delta. M1's listed counterexamples stay silent. Three open bugs remain on the new matcher: M2 `GetDefaultBranchAsync` matches two shapes the helper does not run, M3 `SetUpstreamAsync` does not require `{remote}/{branchName}` plus that same branch, M4 `GetCommitsAheadAsync` matches a three-dot `main...HEAD` range. See `review/round-2/merged.md`. Disposition not written. Gates were not re-run; the fix-pass record above covers this delta.
+Round 2 (effort 2, roster general): re-checked the M1 fix. M1's listed counterexamples stay silent. Three bugs on the new matcher: M2 `GetDefaultBranchAsync` matched two shapes the helper does not run, M3 `SetUpstreamAsync` did not require `{remote}/{branchName}` plus that same branch, M4 `GetCommitsAheadAsync` matched a three-dot `main...HEAD` range. See `review/round-2/merged.md`. Fixed in the round 2 fix pass above.
+
+Round 3 (effort 2, roster general): re-checked `e4e9b37`. M2, M3, and M4 stay fixed. No new findings. Disposition: clean. Final counts: 4 bug fixed, 0 open, 0 wontfix. Gates were not re-run; the round 2 fix-pass record covers this delta. Artifacts: `review/review-framework.md`, `review/round-3/merged.md`, `review/disposition.md`.
 
 ## Review
 
 - Round 1: M1 fixed in the fix pass (2026-11-18). Round 2 confirmed the listed counterexamples stay silent.
-- Round 2: M2, M3, M4 fixed in the round 2 fix pass (2026-11-18); round 3 to confirm.
-
+- Round 2: M2, M3, M4 fixed in the round 2 fix pass (2026-11-18).
+- Round 3: Done
 ## Notes
 
 Origin: task 149. The ganda `dev test` command launches the Jaribu suite with
