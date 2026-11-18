@@ -56,6 +56,8 @@ The new methods pushed `dot-net.build.cs`, `dot-net.run.cs`, `dot-net.test.cs`, 
 
 `ganda repo audit` reported one advisory, `vscode-window-icon`, because `.vscode/settings.json` was missing. `ganda repo audit --fix` wrote that ignored file and set `window.title` to include `timewarp-amuru`. The audit inside that command then passed: 44 passed, 0 failed. The Windows taskbar icon was not applied; this machine has no Windows-side ganda.
 
+The commit hook's `ganda repo attest` then refused to sign: the `.githooks` runfiles take `TimeWarp.Amuru` and `TimeWarp.Amuru.Tools` from `Directory.Packages.props`, and those pins were `3.0.0-beta.5` while nuget has `3.0.0-beta.9`. Both pins are now `3.0.0-beta.9`. The package version of this repo stays `3.0.0-beta.9`.
+
 ### How to validate
 
 Smoke: `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.test.cs`
@@ -71,6 +73,7 @@ Expect: 16 passed. The coverage case prints `dotnet test tests.csproj --configur
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.timeout.cs` — exit 0, 2 passed.
 - `ganda repo audit` — exit 0, Passed 43, Failed 1 advisory (`vscode-window-icon`).
 - `ganda repo audit --fix` — wrote the ignored `.vscode/settings.json`; the audit it ran passed, Passed 44, Failed 0.
+- `ganda repo audit` — rerun after the `.githooks` pin bump to `3.0.0-beta.9`: exit 0, Passed 44, Failed 0.
 
 ## Notes
 
