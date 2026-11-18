@@ -9,30 +9,37 @@
   </ItemGroup>
 
   <!--
-    AMURU0001 in TimeWarp.Nuru.DevCli content (task 150). The package's
-    services/packable-project-service.cs runs Shell.Builder("dotnet") with "msbuild" and is
-    compiled here from the NuGet cache, where no repo .editorconfig or pragma can reach it.
-    The fix belongs in timewarp-nuru (move that call to DotNet.MsBuild(), task 151's builder,
-    once an Amuru release carries it). Until then a generated global analyzer config lowers
-    AMURU0001 to suggestion for that one package file only. Repo files keep the error.
-    Remove this target when the DevCli package no longer calls Shell.Builder("dotnet").
+    AMURU0001 in TimeWarp.Nuru.DevCli content (task 150, gh files task 152). These package files
+    are compiled here from the NuGet cache, where no repo .editorconfig or pragma can reach them:
+      services/packable-project-service.cs   Shell.Builder("dotnet") with "msbuild" (task 150)
+      services/github-packages-credential.cs Shell.Builder("gh") with "auth token" (task 152)
+      endpoints/release-command.cs           Shell.Builder("gh") with "auth status" (task 152)
+      endpoints/release-command.guards.cs    Shell.Builder("gh") with "run list" and "api" (task 152)
+    The fix belongs in timewarp-nuru: move those calls to DotNet.MsBuild() and the Gh builders
+    once an Amuru release carries them. Until then a generated global analyzer config lowers
+    AMURU0001 to suggestion for those package files only. Repo files keep the error.
+    Drop a file from _DevCliRawShellFiles when the DevCli package no longer has a raw call there,
+    and remove this target when the list is empty.
   -->
   <Target Name="ScopeAmuruAnalyzerForDevCliContent" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <_DevCliRawShellFiles>;packable-project-service;github-packages-credential;release-command;release-command.guards;</_DevCliRawShellFiles>
+    </PropertyGroup>
     <ItemGroup>
-      <_DevCliRawDotNetContent
+      <_DevCliRawShellContent
         Include="@(Compile->'%(FullPath)')"
-        Condition="'%(Filename)' == 'packable-project-service' And $([System.String]::Copy('%(FullPath)').Replace('\','/').Contains('/timewarp.nuru.devcli/'))" />
+        Condition="$(_DevCliRawShellFiles.Contains(';%(Filename);')) And $([System.String]::Copy('%(FullPath)').Replace('\','/').Contains('/timewarp.nuru.devcli/'))" />
     </ItemGroup>
     <PropertyGroup>
       <_DevCliAmuruGlobalConfig>$(IntermediateOutputPath)amuru-devcli-content.globalconfig</_DevCliAmuruGlobalConfig>
     </PropertyGroup>
     <WriteLinesToFile
-      Condition="'@(_DevCliRawDotNetContent)' != ''"
+      Condition="'@(_DevCliRawShellContent)' != ''"
       File="$(_DevCliAmuruGlobalConfig)"
-      Lines="is_global = true;@(_DevCliRawDotNetContent->'[%(Identity)]%0Adotnet_diagnostic.AMURU0001.severity = suggestion')"
+      Lines="is_global = true;@(_DevCliRawShellContent->'[%(Identity)]%0Adotnet_diagnostic.AMURU0001.severity = suggestion')"
       Overwrite="true"
       WriteOnlyWhenDifferent="true" />
-    <ItemGroup Condition="'@(_DevCliRawDotNetContent)' != ''">
+    <ItemGroup Condition="'@(_DevCliRawShellContent)' != ''">
       <EditorConfigFiles Include="$(_DevCliAmuruGlobalConfig)" />
     </ItemGroup>
   </Target>

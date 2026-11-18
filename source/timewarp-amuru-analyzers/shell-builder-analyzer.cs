@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 #region Purpose
-// Reports Shell.Builder and Shell.Run calls on dotnet or git where a typed Amuru builder exists.
+// Reports Shell.Builder and Shell.Run calls on dotnet, gh, or git where a typed Amuru builder exists.
 #endregion
 
 #region Design
@@ -28,18 +28,20 @@ using Microsoft.CodeAnalysis.Operations;
 // does not, or no readable verb at all, gives the generic AMURU0001 message. A known-gap SDK verb or
 // an unknown verb (most likely a local tool) gives AMURU0002. A `.cs` first argument is a
 // file-based app run and maps to DotNet.Run().WithFile().
+// gh (task 152): only a GhRows match reports, as AMURU0001 naming the Gh builder. A gh command no
+// row covers, or one whose first two arguments are not constants, is left alone.
 // git: only a complete argument list that has exactly the shape a Git helper runs reports, as
 // AMURU0003 (info). Every other git call is left alone (GitHelperTable).
 #endregion
 
 /// <summary>
-/// Points raw <c>Shell.Builder("dotnet")</c> and <c>Shell.Builder("git")</c> calls at the typed
+/// Points raw <c>Shell.Builder("dotnet")</c>, <c>Shell.Builder("gh")</c>, and <c>Shell.Builder("git")</c> calls at the typed
 /// builders in TimeWarp.Amuru.Tools.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
 {
-  /// <summary>dotnet verb with a typed builder.</summary>
+  /// <summary>dotnet or gh verb with a typed builder.</summary>
   public const string DotNetBuilderId = "AMURU0001";
 
   /// <summary>dotnet verb with no typed builder yet.</summary>
@@ -55,12 +57,12 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
 
   private static readonly DiagnosticDescriptor DotNetBuilderRule = new(
     DotNetBuilderId,
-    "Use the typed DotNet builder",
+    "Use the typed DotNet or Gh builder",
     "Use {0} (" + ToolsPackage + ") instead of {1}{2}",
     Category,
     DiagnosticSeverity.Error,
     isEnabledByDefault: true,
-    description: "The typed DotNet builders carry telemetry tags, TRACEPARENT propagation, and argument validation. A raw Shell call on dotnet bypasses all of it.",
+    description: "The typed DotNet and Gh builders carry telemetry (build tags, gh spans), TRACEPARENT propagation, and argument validation. A raw Shell call on dotnet or gh bypasses all of it.",
     helpLinkUri: HelpLink);
 
   private static readonly DiagnosticDescriptor DotNetGapRule = new(
@@ -125,6 +127,19 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
     if (string.Equals(tool, "dotnet", StringComparison.OrdinalIgnoreCase))
     {
       ReportDotNet(context, invocation, call, LeadingConstants(arguments));
+    }
+    else if (string.Equals(tool, "gh", StringComparison.OrdinalIgnoreCase))
+    {
+      TypedBuilderRow? row = TypedBuilderTable.FindAtSecond(TypedBuilderTable.GhRows, LeadingConstants(arguments));
+      if (row is not null)
+      {
+        context.ReportDiagnostic(Diagnostic.Create(
+          DotNetBuilderRule,
+          invocation.Syntax.GetLocation(),
+          row.Replacement,
+          call,
+          $" with \"{Describe(row)}\""));
+      }
     }
     else if (string.Equals(tool, "git", StringComparison.OrdinalIgnoreCase) && complete)
     {

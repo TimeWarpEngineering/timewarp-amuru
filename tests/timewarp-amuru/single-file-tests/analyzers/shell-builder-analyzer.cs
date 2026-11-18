@@ -4,7 +4,7 @@
 
 #region Purpose
 // Proves AMURU0001-0003: which Shell.Builder and Shell.Run calls report, at what severity, with
-// what message, and that the verb table matches the public DotNet and Git surface.
+// what message. typed-builder-table.cs checks the verb tables against the public surface.
 #endregion
 
 #region Design
@@ -14,8 +14,6 @@
 // by that API, so the pragma case expects none.
 // The editorconfig case parses a real .editorconfig with AnalyzerConfigSet and feeds its tree
 // options to the compilation, which is how the compiler applies severity overrides.
-// The surface cases reflect over DotNet and Git (TimeWarp.Amuru.Tools). A new DotNet builder with
-// no table row fails here, and so does a row whose method was removed.
 #endregion
 
 #if !JARIBU_MULTI
@@ -25,7 +23,6 @@ return await RunAllTests();
 namespace ShellBuilderAnalyzer_
 {
   using System.Collections.Immutable;
-  using System.Diagnostics.CodeAnalysis;
   using System.Globalization;
   using Microsoft.CodeAnalysis;
   using Microsoft.CodeAnalysis.CSharp;
@@ -137,9 +134,71 @@ namespace ShellBuilderAnalyzer_
 
     public static async Task OtherExecutable_Should_NotReport()
     {
-      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync("""Shell.Builder("gh").WithArguments("pr", "list").Build();""");
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync("""Shell.Builder("docker").WithArguments("ps").Build();""");
 
       diagnostics.ShouldBeEmpty();
+    }
+
+    public static async Task GhCoveredVerbs_Should_ReportTheGhBuilder()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        Shell.Builder("gh").WithArguments("run", "list", "--limit", "5").Build();
+        Shell.Builder("gh").WithArguments("api", "repos/o/r/dispatches").Build();
+        Shell.Run("gh", ["auth", "token"], new CommandOptions());
+        Shell.Builder("gh.exe").WithArguments("pr", "view", "42").Build();
+        """);
+
+      diagnostics.Length.ShouldBe(4);
+      diagnostics.ShouldAllBe(d => d.Id == "AMURU0001" && d.Severity == DiagnosticSeverity.Error);
+      diagnostics[0].GetMessage(CultureInfo.InvariantCulture)
+        .ShouldBe("""Use Gh.Run().List() (TimeWarp.Amuru.Tools) instead of Shell.Builder("gh") with "run list" """.TrimEnd());
+      diagnostics[1].GetMessage(CultureInfo.InvariantCulture).ShouldContain("""Use Gh.Api() (TimeWarp.Amuru.Tools) instead of Shell.Builder("gh") with "api" """.TrimEnd());
+      diagnostics[2].GetMessage(CultureInfo.InvariantCulture).ShouldContain("Use Gh.Auth().Token()");
+      diagnostics[3].GetMessage(CultureInfo.InvariantCulture).ShouldContain("Use Gh.Pr().View()");
+    }
+
+    // One call per GhRows shape. A new row needs a line here and a builder on Gh.
+    public static async Task GhRowShapes_Should_EachNameTheirBuilder()
+    {
+      string body = string.Join(
+        Environment.NewLine,
+        TypedBuilderTable.GhRows.Select(row => row.SubVerb is null
+          ? $$"""Shell.Builder("gh").WithArguments("{{row.Verb}}", "x").Build();"""
+          : $$"""Shell.Builder("gh").WithArguments("{{row.Verb}}", "{{row.SubVerb}}").Build();"""));
+
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(body);
+
+      diagnostics.Length.ShouldBe(TypedBuilderTable.GhRows.Length);
+      for (int index = 0; index < diagnostics.Length; index++)
+      {
+        diagnostics[index].GetMessage(CultureInfo.InvariantCulture).ShouldStartWith($"Use {TypedBuilderTable.GhRows[index].Replacement} ");
+      }
+    }
+
+    public static async Task GhUncoveredOrUnreadable_Should_NotReport()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        Shell.Builder("gh").WithArguments("run", "view", "1", "--log").Build();
+        Shell.Builder("gh").WithArguments("repo", "view").Build();
+        Shell.Builder("gh").WithArguments("auth", "login").Build();
+        Shell.Builder("gh").Build();
+        Shell.Builder("gh").WithArguments(Verb(), "list").Build();
+        Shell.Builder("gh").WithArguments("run", Verb()).Build();
+        """,
+        """static string Verb() => "run";""");
+
+      diagnostics.ShouldBeEmpty();
+    }
+
+    // The gh sub-verb is the second argument; "list" later in the line is a value.
+    public static async Task GhSubVerbLaterInTheLine_Should_MatchOnlyTheSecondArgument()
+    {
+      Diagnostic diagnostic = (await AnalyzeAsync(
+        """Shell.Builder("gh").WithArguments("issue", "create", "--title", "list").Build();""")).ShouldHaveSingleItem();
+
+      diagnostic.GetMessage(CultureInfo.InvariantCulture).ShouldContain("Use Gh.Issue().Create()");
     }
 
     public static async Task ShellRunWithArrayLiterals_Should_ReportTheVerb()
@@ -420,70 +479,5 @@ namespace ShellBuilderAnalyzer_
         return false;
       }
     }
-  }
-
-  [TestTag("Analyzers")]
-  public class VerbTable_Given_
-  {
-    [ModuleInitializer]
-    internal static void Register() => RegisterTests<VerbTable_Given_>();
-
-    // DotNet.Builder() is the raw entry point for arguments no typed builder covers. It has no verb.
-    private static readonly string[] EntryPoints = ["Builder"];
-
-    public static async Task EveryDotNetBuilder_Should_HaveATableRow()
-    {
-      HashSet<string> rowMethods = [.. TypedBuilderTable.DotNetRows.SelectMany(row => row.Methods)];
-
-      string[] missing = [.. PublicStaticMethodNames(typeof(DotNet))
-        .Where(name => !EntryPoints.Contains(name) && !rowMethods.Contains(name))];
-
-      missing.ShouldBeEmpty($"DotNet builders with no row in TypedBuilderTable.DotNetRows: {string.Join(", ", missing)}");
-      await Task.CompletedTask;
-    }
-
-    public static async Task EveryDotNetRow_Should_NameAnExistingBuilder()
-    {
-      HashSet<string> builders = [.. PublicStaticMethodNames(typeof(DotNet))];
-
-      string[] stale = [.. TypedBuilderTable.DotNetRows
-        .SelectMany(row => row.Methods)
-        .Where(method => !builders.Contains(method))
-        .Distinct()];
-
-      stale.ShouldBeEmpty($"TypedBuilderTable.DotNetRows names missing DotNet methods: {string.Join(", ", stale)}");
-      await Task.CompletedTask;
-    }
-
-    public static async Task EveryGitRow_Should_NameAnExistingHelper()
-    {
-      HashSet<string> helpers = [.. PublicStaticMethodNames(typeof(Git))];
-
-      string[] stale = [.. GitHelperTable.Rows
-        .Select(row => row.Method)
-        .Where(method => !helpers.Contains(method))
-        .Distinct()];
-
-      stale.ShouldBeEmpty($"GitHelperTable.Rows names missing Git methods: {string.Join(", ", stale)}");
-      await Task.CompletedTask;
-    }
-
-    public static async Task GapVerbs_Should_NotOverlapTheBuilderRows()
-    {
-      string[] overlap = [.. TypedBuilderTable.DotNetGapVerbs
-        .Where(verb => TypedBuilderTable.HasVerb(TypedBuilderTable.DotNetRows, verb))];
-
-      overlap.ShouldBeEmpty();
-      TypedBuilderTable.IsDotNetGap("msbuild").ShouldBeFalse();
-      TypedBuilderTable.IsDotNetGap("nuget").ShouldBeFalse();
-      await Task.CompletedTask;
-    }
-
-    private static IEnumerable<string> PublicStaticMethodNames(
-      [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)] Type type) =>
-      type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-        .Where(method => !method.IsSpecialName)
-        .Select(method => method.Name)
-        .Distinct();
   }
 }

@@ -13,8 +13,10 @@
 // exports one command span per route, including the DevCli routes. The OTLP
 // endpoint stays unset here: a non-literal OtlpEndpoint is ignored, and an
 // unset OTEL_EXPORTER_OTLP_ENDPOINT exports nothing. ServiceName is the
-// literal timewarp-amuru-dev. OTEL_SERVICE_NAME overrides it. This repo has
-// no ActivitySource of its own, so none is registered. IncomingTraceContext
+// literal timewarp-amuru-dev. OTEL_SERVICE_NAME overrides it. The workflow
+// routes call gh through the Gh builder, which opens a span per call on the
+// TimeWarp.Amuru.Gh ActivitySource; Gh.ActivitySourceName is registered so
+// those spans export (the generator reads the const). IncomingTraceContext
 // restores TRACEPARENT before RunAsync because TelemetryBehavior parents its
 // span to Activity.Current.
 //
@@ -28,7 +30,11 @@ using TimeWarp.Nuru;
 NuruApp app = NuruApp.CreateBuilder()
   .WithName("dev")
   .WithDescription("Development CLI for timewarp-amuru")
-  .UseTelemetry(options => options.ServiceName = "timewarp-amuru-dev")
+  .UseTelemetry(options =>
+  {
+    options.ServiceName = "timewarp-amuru-dev";
+    options.ActivitySources.Add(Gh.ActivitySourceName);
+  })
   .ConfigureServices(services =>
   {
     services.AddSingleton<IRepoCleanService, RepoCleanService>();
