@@ -168,6 +168,11 @@ Audit (boy-scout): the first `ganda repo audit` failed `analyzer-suppressions`. 
 sample source contained a literal `#pragma warning disable AMURU0001` string. That text is now
 built from a `PragmaWarning` constant, with a comment. `vscode-window-icon` (warning) was fixed by
 `ganda repo audit --fix`, which created the git-ignored `.vscode/settings.json`.
+The first commit's post-commit attest then failed two checks that run on the committed tree:
+`runfile-executable` (the new analyzer test had no exec bit) and `package-pin-currency`
+(TimeWarp.Jaribu 1.0.0-beta.17 was published 2026-11-18). `ganda repo audit --fix` set the bit and
+bumped Jaribu 1.0.0-beta.16 → 1.0.0-beta.17. The aggregate runner compile and the three test files
+below were rerun on beta.17.
 
 Follow-up (not filed from this walk): a timewarp-nuru task to move TimeWarp.Nuru.DevCli
 `PackableProjectService.EvaluateWithMsBuildAsync` to `DotNet.MsBuild()` once an Amuru release
@@ -182,6 +187,7 @@ carries task 151. Every repo that uses DevCli hits AMURU0001 on its next Amuru b
 - `dotnet build tools/dev-cli/dev.cs` → exit 0 under the analyzer (dev-cli has no test file)
 - `dotnet build tests/timewarp-amuru/multi-file-runners/run-tests.cs` → exit 0 (compile only; CI runs the suite)
 - `ganda repo audit` → failed analyzer-suppressions (fixed above) → `ganda repo audit --fix` → exit 0
+- post-commit attest → failed runfile-executable + package-pin-currency → `ganda repo audit --fix` → exit 0; test files above rerun on Jaribu beta.17 with the same counts, aggregate compile exit 0
 
 ### How to validate
 
