@@ -99,6 +99,7 @@ Acceptance:
 - Implemented (2026-11-18, ganda task work implement oracle, Claude Opus 5.5)
 - Boy-scout: `ganda repo audit` reported one advisory (`vscode-window-icon`, `.vscode/settings.json`
   missing). `ganda repo audit --fix` wrote the ignored local file; no tracked change. Rerun passed.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-18T04:30:50Z
 
 ## Results
 
