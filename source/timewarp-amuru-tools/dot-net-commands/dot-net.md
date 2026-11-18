@@ -47,7 +47,7 @@ await DotNet.Run()
   .RunAsync();
 ```
 
-`WithNoCache` adds `--no-cache` (always build). `WithNoLogo` adds `--nologo` before program arguments. `dotnet run` forwards that token to the program. `WithArtifactsPath`, `WithTimeout`, and `WithTimeoutGracePeriod` match the build builder.
+`WithNoCache` adds `--no-cache` (always build). `WithNoLogo` adds `--nologo` before program arguments. `dotnet run` forwards that token to the program. `WithArtifactsPath`, `WithTimeout`, and `WithTimeoutGracePeriod` match the build builder. `WithStandardInput` pipes text to the child. An empty string is immediate EOF. The text is not a command-line token. `DotNet.Builder()` has the same method.
 
 ### `DotNet.Build()`
 
@@ -88,6 +88,26 @@ await DotNet.MsBuild("MyApp.csproj")
 CommandOutput version = await DotNet.MsBuild("MyApp.csproj")
   .WithGetProperty("Version")
   .CaptureAsync();
+
+CommandOutput packable = await DotNet.MsBuild("MyApp.csproj")
+  .WithNoLogo()
+  .WithNodeReuse(false)
+  .WithGetProperty("IsPackable,PackageId")
+  .CaptureAsync();
+```
+
+`WithNodeReuse(false)` emits `-nodeReuse:false`. `WithNodeReuse(true)` emits `-nodeReuse:true`. Omitting it leaves the switch off the command line.
+
+### `DotNet.Format()`
+
+`Format()` and `Format(string projectOrSolution)` both exist. `WithExclude` is repeatable and emits `--exclude` in call order. `WithVerifyNoChanges` emits `--verify-no-changes`.
+
+```csharp
+await DotNet.Format("MyApp.slnx")
+  .WithSeverity("warn")
+  .WithExclude("**/benchmarks/**")
+  .WithVerifyNoChanges()
+  .RunAsync();
 ```
 
 ### `DotNet.Test()`

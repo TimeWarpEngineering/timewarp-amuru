@@ -131,6 +131,7 @@ namespace TypedBuilderTable_
       overlap.ShouldBeEmpty();
       TypedBuilderTable.IsDotNetGap("msbuild").ShouldBeFalse();
       TypedBuilderTable.IsDotNetGap("nuget").ShouldBeFalse();
+      TypedBuilderTable.IsDotNetGap("format").ShouldBeFalse();
       await Task.CompletedTask;
     }
 

@@ -9,6 +9,8 @@ override TimeWarp.Amuru.GhPullRequest.ToString() -> string!
 override TimeWarp.Amuru.GhWorkflowRun.Equals(object? obj) -> bool
 override TimeWarp.Amuru.GhWorkflowRun.GetHashCode() -> int
 override TimeWarp.Amuru.GhWorkflowRun.ToString() -> string!
+static TimeWarp.Amuru.DotNet.Format() -> TimeWarp.Amuru.DotNetFormatBuilder!
+static TimeWarp.Amuru.DotNet.Format(string! projectOrSolution) -> TimeWarp.Amuru.DotNetFormatBuilder!
 static TimeWarp.Amuru.DotNet.MsBuild() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 static TimeWarp.Amuru.DotNet.MsBuild(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 static TimeWarp.Amuru.Gh.Api(string! endpoint) -> TimeWarp.Amuru.GhApiBuilder!
@@ -25,9 +27,27 @@ static TimeWarp.Amuru.GhPullRequest.operator ==(TimeWarp.Amuru.GhPullRequest? le
 static TimeWarp.Amuru.GhWorkflowRun.JsonFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
 static TimeWarp.Amuru.GhWorkflowRun.operator !=(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
 static TimeWarp.Amuru.GhWorkflowRun.operator ==(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
+TimeWarp.Amuru.DotNetBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.DotNetBuilder!
 TimeWarp.Amuru.DotNetBuildBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetBuildBuilder!
 TimeWarp.Amuru.DotNetBuildBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetBuildBuilder!
 TimeWarp.Amuru.DotNetBuildBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder
+TimeWarp.Amuru.DotNetFormatBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetFormatBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.DotNetFormatBuilder() -> void
+TimeWarp.Amuru.DotNetFormatBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetFormatBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetFormatBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithExclude(string! path) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithProject(string! projectOrSolution) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithSeverity(string! severity) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithVerifyNoChanges() -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetFormatBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder
 TimeWarp.Amuru.DotNetMsBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
 TimeWarp.Amuru.DotNetMsBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
@@ -45,6 +65,7 @@ TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetProperty(string! name) -> TimeWarp.Am
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetTargetResult(string! target) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNodeReuse(bool reuse) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
 TimeWarp.Amuru.DotNetMsBuildBuilder.WithRestore() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
@@ -72,6 +93,7 @@ TimeWarp.Amuru.DotNetPublishBuilder.WithArtifactsPath(string! artifactsPath) -> 
 TimeWarp.Amuru.DotNetRunBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetRunBuilder!
 TimeWarp.Amuru.DotNetRunBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetRunBuilder!
 TimeWarp.Amuru.DotNetRunBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.DotNetRunBuilder!
 TimeWarp.Amuru.DotNetRunBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetRunBuilder!
 TimeWarp.Amuru.DotNetRunBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetRunBuilder!
 TimeWarp.Amuru.DotNetTestBuilder.WithArguments(params string![]? arguments) -> TimeWarp.Amuru.DotNetTestBuilder!

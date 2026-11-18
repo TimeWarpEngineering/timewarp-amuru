@@ -7,6 +7,8 @@
 // argument, emitted in the order the caller added it, so -t:Clean -t:Build runs Clean first.
 // Setting a property name twice replaces the value and keeps its first position (MSBuild's last
 // -p: would win anyway; one entry keeps the argv short).
+// WithNodeReuse emits -nodeReuse:true or -nodeReuse:false. Omitting it leaves the switch off
+// the command line, so MSBuild keeps its own default.
 // Telemetry is the same call dotnet build makes, with command word "msbuild": the configuration
 // comes from a Configuration property, and build.publish_aot is false.
 #endregion
@@ -54,6 +56,7 @@ public class DotNetMsBuildBuilder : ICommandBuilder<DotNetMsBuildBuilder>
   private bool BinaryLog;
   private bool Restore;
   private bool NoLogo;
+  private bool? NodeReuse;
   private CommandOptions Options = new();
 
   /// <summary>
@@ -167,6 +170,18 @@ public class DotNetMsBuildBuilder : ICommandBuilder<DotNetMsBuildBuilder>
   public DotNetMsBuildBuilder WithNoLogo()
   {
     NoLogo = true;
+    return this;
+  }
+
+  /// <summary>
+  /// Enables or disables MSBuild node reuse. Emits <c>-nodeReuse:true</c> or <c>-nodeReuse:false</c>.
+  /// Omitting the call leaves the switch off the command line.
+  /// </summary>
+  /// <param name="reuse">True to reuse MSBuild nodes, false to start a fresh node</param>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetMsBuildBuilder WithNodeReuse(bool reuse)
+  {
+    NodeReuse = reuse;
     return this;
   }
 
@@ -289,6 +304,11 @@ public class DotNetMsBuildBuilder : ICommandBuilder<DotNetMsBuildBuilder>
     if (NoLogo)
     {
       arguments.Add("-nologo");
+    }
+
+    if (NodeReuse is bool reuse)
+    {
+      arguments.Add(reuse ? "-nodeReuse:true" : "-nodeReuse:false");
     }
 
     if (BinaryLog)

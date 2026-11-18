@@ -116,6 +116,42 @@ namespace DotNet_
       await Task.CompletedTask;
     }
 
+    public static async Task NodeReuseFalse_Should_EmitTheSwitch()
+    {
+      string command = DotNet.MsBuild("app.csproj")
+        .WithNoLogo()
+        .WithNodeReuse(false)
+        .WithGetProperty("IsPackable,PackageId")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet msbuild app.csproj -getProperty:IsPackable,PackageId -nologo -nodeReuse:false");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task NodeReuseTrue_Should_EmitTheSwitch()
+    {
+      string command = DotNet.MsBuild().WithNodeReuse(true).Build().ToCommandString();
+
+      command.ShouldBe("dotnet msbuild -nodeReuse:true");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task NodeReuseTwice_Should_KeepTheLastValue()
+    {
+      string command = DotNet.MsBuild()
+        .WithNodeReuse(true)
+        .WithNodeReuse(false)
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet msbuild -nodeReuse:false");
+
+      await Task.CompletedTask;
+    }
+
     public static async Task BinaryLogWithoutPath_Should_EmitBareSwitch()
     {
       string command = DotNet.MsBuild().WithBinaryLog().Build().ToCommandString();
