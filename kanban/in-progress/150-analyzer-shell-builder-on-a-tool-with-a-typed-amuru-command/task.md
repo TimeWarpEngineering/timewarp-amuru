@@ -120,6 +120,9 @@ Acceptance:
 - Groomed: 93a23df6-1180-44ac-9a03-f537cd480249 (2026-11-18), existing nuget/version builders, Tools package in messages, depends on 151
 - Implemented: ganda task work implement oracle (2026-11-18), Claude Opus 5.5
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 939359cc-7424-4d0f-980c-364b061ae12d, max-turns 500, Done — 2026-11-18T02:52:25Z
+- Review oracle: Grok, effort 3, roster general, round 1, 2026-11-18. Open finding M1. Disposition not written.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ec92-02b0-76a0-af9f-6e71341180db, max-turns 200, artifacts general.md, merged.md — 2026-11-18T03:06:15Z
+- Fix pass for round 1 (implement-fix-2 oracle, Claude Opus 5.5, 2026-11-18): M1 fixed. AMURU0003 now matches whole git argument shapes.
 
 ## Results
 
@@ -142,9 +145,8 @@ What shipped:
     `TypedBuilderTable.DotNetGapVerbs`) → "file a task in timewarp-amuru for a DotNet builder".
     An unknown verb (a local tool such as `fixie`) also gets AMURU0002, and the message points
     at `DotNet.Tool().Run("fixie")`. `msbuild` and `nuget` are table rows (task 151).
-  - AMURU0003 (info): git table rows (worktree add/list/remove, fetch, clone --bare,
-    remote set-head/get-url, branch --set-upstream-to, show-ref --verify, rev-list --count,
-    rev-parse --show-toplevel, symbolic-ref, config remote.origin.fetch).
+  - AMURU0003 (info): a git call with the exact argument shape of a `Git.*` helper
+    (`GitHelperTable`; reworked in the round 1 fix pass below).
 - `TypedBuilderTable` is the one table. The `VerbTable_Given_` tests reflect over `DotNet` and
   `Git`. They fail when a public static DotNet builder has no row (only `DotNet.Builder()` is
   exempt), when a row names a missing method, or when a gap verb overlaps a row.
@@ -175,6 +177,29 @@ The first commit's post-commit attest then failed two checks that run on the com
 bumped Jaribu 1.0.0-beta.16 → 1.0.0-beta.17. The aggregate runner compile and the three test files
 below were rerun on beta.17.
 
+Fix pass, review round 1 M1 (AMURU0003 named helpers for operations they do not run):
+
+- git rows moved out of `TypedBuilderTable` into `GitHelperTable` (`source/timewarp-amuru-analyzers/git-helper-table.cs`).
+  Each row lists the full argument shapes its helper runs. A call matches only when it has exactly
+  that many arguments and each fits its slot: `Literal` (that constant), `Value` (a constant or
+  non-constant that does not start with `-`), `Shaped(prefix, suffix)` (known literal start and
+  end, for `refs/heads/{branch}` and `{branch}..HEAD`). One helper per row; `worktree add` and
+  `worktree add -b` are separate rows.
+- Dropped rows: `rev-parse --show-toplevel` (`Git.FindRoot()` is a directory walk, no git) and
+  `remote get-url origin` (`Git.GetRepositoryNameAsync()` returns a name, not the URL).
+- The analyzer now reads every argument, not only the leading constants: every chained
+  `WithArguments` call is appended (it appends at run time), interpolated strings and `+`
+  concatenations keep their literal start and end, and a spread, an array variable, or a chain that
+  still yields a `ShellBuilder` (kept for later) marks the list incomplete. git reports only on a
+  complete list. dotnet still reads the leading constants, so its behavior is unchanged except that
+  a second chained `WithArguments` now extends the read instead of being ignored.
+- The diagnostic label is the helper's command line, for example
+  `with "worktree add <path> <branch>"`. Readme AMURU0003 row says exact match.
+- Tests: `GitHelperShapes_Should_EachNameTheirHelper` (a true positive per row, plus `Shell.Run`,
+  and asserts every row is covered), `GitOtherOperations_Should_NotReport` (every M1
+  counterexample), `GitIncompleteArguments_Should_NotReport` (spread, array variable, kept builder,
+  extra chained `WithArguments`). `GitWithHelper_Should_ReportInfo` message updated.
+
 Follow-up (not filed from this walk): a timewarp-nuru task to move TimeWarp.Nuru.DevCli
 `PackableProjectService.EvaluateWithMsBuildAsync` to `DotNet.MsBuild()` once an Amuru release
 carries task 151. Every repo that uses DevCli hits AMURU0001 on its next Amuru bump until then.
@@ -190,6 +215,12 @@ carries task 151. Every repo that uses DevCli hits AMURU0001 on its next Amuru b
 - `ganda repo audit` → failed analyzer-suppressions (fixed above) → `ganda repo audit --fix` → exit 0
 - post-commit attest → failed runfile-executable + package-pin-currency → `ganda repo audit --fix` → exit 0; test files above rerun on Jaribu beta.17 with the same counts, aggregate compile exit 0
 
+Fix pass (round 1 M1):
+
+- `./bin/dev build` → ✅ Build completed successfully, 0 warnings
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` → 23/23 passed (edited; 3 new git cases)
+- `ganda repo audit` → exit 0, all checks pass
+
 ### How to validate
 
 Smoke:
@@ -202,10 +233,18 @@ dotnet build tools/dev-cli/dev.cs
 ```
 
 Expect: build succeeds. The nupkg lists `analyzers/dotnet/cs/timewarp-amuru-analyzers.dll`. The
-analyzer test reports 20 passed, 0 failed. The dev-cli build exits 0 with no AMURU0001 error.
+analyzer test reports 23 passed, 0 failed. The dev-cli build exits 0 with no AMURU0001 error.
 Adding `Shell.Builder("dotnet").WithArguments("run")` to any dev-cli or test file fails the
 build with `error AMURU0001: Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of
 Shell.Builder("dotnet") with "run"`.
+
+### Review
+
+Round 1 (effort 3, roster general): one bug, M1: AMURU0003 named Git helpers for command lines those helpers do not run. See `review/round-1/merged.md`. Fixed in the fix pass above; gates rerun (build, analyzer runfile 23/23, audit).
+
+## Review
+
+- Round 1: M1 fixed in the fix pass (2026-11-18); round 2 to confirm
 
 ## Notes
 
@@ -216,3 +255,7 @@ point in having it in Amuru."
 
 Related: 151 (`DotNet.MsBuild()` and `DotNet.NuGet().Verify()`) closes the AMURU0002 gaps found
 above and lands first.
+
+## Learnings
+
+Misread: the opening sentence of `## Goal (implementer restatement)` says the analyzer flags a constant `dotnet` or `git` executable only when a typed builder exists. The task also requires AMURU0002 when the dotnet verb has no typed builder, and AMURU0001 when the verb cannot be read. The acceptance list under that same restatement includes both, and the implementation includes both. The lead sentence is the mismatch.

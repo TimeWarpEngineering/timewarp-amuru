@@ -350,7 +350,7 @@ executable is a string literal or a constant. A computed executable is not repor
 |----|---------|---------|
 | `AMURU0001` | error | `dotnet` with a verb that has a typed builder, for example `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of Shell.Builder("dotnet") with "run"`. When the verb cannot be read, the message names the `DotNet.*` builders. |
 | `AMURU0002` | warning | `dotnet` with a verb that has no typed builder yet. File a task in timewarp-amuru for one. For a local tool (`dotnet fixie`), the message also points at `DotNet.Tool().Run(...)`. |
-| `AMURU0003` | info | `git` with a call that an existing `Git.*` helper performs, for example `git worktree add`. |
+| `AMURU0003` | info | `git` with the exact command line an existing `Git.*` helper runs, for example `git worktree add <path> <branch>` → `Git.WorktreeAddAsync()`. Another flag, ref, remote, or extra argument is a different operation and is not reported, and neither is a call whose arguments the analyzer cannot see in full (a spread, an array variable, a builder stored for later). |
 
 The typed builders live in `TimeWarp.Amuru.Tools`. A project that references only
 `TimeWarp.Amuru` adds that package to fix the diagnostic. The verb-to-builder table is

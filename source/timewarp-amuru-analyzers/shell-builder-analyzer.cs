@@ -14,16 +14,20 @@ using Microsoft.CodeAnalysis.Operations;
 // argument is a compile-time constant. A non-constant executable is never reported: the analyzer
 // cannot know what runs.
 //
-// The arguments come from the first WithArguments call on the same fluent chain (Shell.Builder) or
-// from the arguments array (Shell.Run). Only the leading constant elements are read; the first
-// non-constant element or spread ends the read. A builder stored in a variable and given arguments
-// later reads as "no arguments", which gives the generic AMURU0001 message.
+// The arguments come from every WithArguments call on the same fluent chain, in order
+// (ShellBuilder.WithArguments appends), or from the arguments array (Shell.Run). Each element is a
+// ShellArgument: a constant, or a non-constant with its known literal start and end. A spread or
+// an array that is not written out ends the read. The list is complete only when nothing can add
+// to it later: every array was written out and, for Shell.Builder, the chain ends in a call that
+// does not return ShellBuilder (Build(), CaptureAsync(), ...). A builder stored in a variable and
+// given arguments later reads as incomplete, so dotnet gets the generic AMURU0001 message.
 //
-// dotnet: a table row gives AMURU0001 naming the builder. A verb the table knows with a sub-verb it
+// dotnet reads only the leading constants. A table row gives AMURU0001 naming the builder. A verb the table knows with a sub-verb it
 // does not, or no readable verb at all, gives the generic AMURU0001 message. A known-gap SDK verb or
 // an unknown verb (most likely a local tool) gives AMURU0002. A `.cs` first argument is a
 // file-based app run and maps to DotNet.Run().WithFile().
-// git: only a table row reports, as AMURU0003 (info). Every other git call is left alone.
+// git: only a complete argument list that has exactly the shape a Git helper runs reports, as
+// AMURU0003 (info). Every other git call is left alone (GitHelperTable).
 #endregion
 
 /// <summary>
@@ -110,18 +114,19 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
     }
 
     string call = $"Shell.{method.Name}(\"{executable}\")";
-    List<string> arguments = method.Name == "Run"
-      ? ReadConstants(ArgumentFor(invocation, 1))
-      : ReadConstants(FindWithArguments(invocation));
+    List<ShellArgument> arguments = [];
+    bool complete = method.Name == "Run"
+      ? AppendArguments(ArgumentFor(invocation, 1), arguments)
+      : ReadChain(invocation, arguments);
 
     string tool = ToolName(executable);
     if (string.Equals(tool, "dotnet", StringComparison.OrdinalIgnoreCase))
     {
-      ReportDotNet(context, invocation, call, arguments);
+      ReportDotNet(context, invocation, call, LeadingConstants(arguments));
     }
-    else if (string.Equals(tool, "git", StringComparison.OrdinalIgnoreCase))
+    else if (string.Equals(tool, "git", StringComparison.OrdinalIgnoreCase) && complete)
     {
-      TypedBuilderRow? row = TypedBuilderTable.Find(TypedBuilderTable.GitRows, arguments);
+      GitHelperRow? row = GitHelperTable.Find(arguments);
       if (row is not null)
       {
         context.ReportDiagnostic(Diagnostic.Create(
@@ -129,7 +134,7 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
           invocation.Syntax.GetLocation(),
           row.Replacement,
           call,
-          Describe(row)));
+          row.Label));
       }
     }
   }
@@ -215,54 +220,119 @@ public sealed class ShellBuilderAnalyzer : DiagnosticAnalyzer
     return null;
   }
 
-  // Walks up the fluent chain from Shell.Builder(...) to the first ShellBuilder.WithArguments call.
-  private static IOperation? FindWithArguments(IInvocationOperation builder)
+  // Walks up the fluent chain from Shell.Builder(...) and appends the arguments of every
+  // ShellBuilder.WithArguments call. Returns true when the list is complete.
+  private static bool ReadChain(IInvocationOperation builder, List<ShellArgument> arguments)
   {
+    bool complete = true;
     IOperation current = builder;
     while (current.Parent is IInvocationOperation next && ReferenceEquals(Unwrap(next.Instance), current))
     {
-      if (next.TargetMethod.Name == "WithArguments" && next.TargetMethod.ContainingType.Name == "ShellBuilder")
+      if (complete && next.TargetMethod.Name == "WithArguments" && next.TargetMethod.ContainingType.Name == "ShellBuilder")
       {
-        return ArgumentFor(next, 0);
+        complete = AppendArguments(ArgumentFor(next, 0), arguments);
       }
 
       current = next;
     }
 
-    return null;
+    // A chain that still yields a ShellBuilder can be given more arguments later.
+    return complete && current.Type?.Name != "ShellBuilder";
   }
 
-  private static List<string> ReadConstants(IOperation? value)
+  // Appends the elements of a written-out array. Returns false when the array is not written out
+  // or holds a spread, which leaves the argument list incomplete.
+  private static bool AppendArguments(IOperation? value, List<ShellArgument> arguments)
   {
     IOperation? unwrapped = Unwrap(value);
+    ImmutableArray<IOperation> elements;
     if (unwrapped is IArrayCreationOperation { Initializer: { } initializer })
     {
-      return LeadingConstants(initializer.ElementValues);
+      elements = initializer.ElementValues;
     }
-
-    if (unwrapped is ICollectionExpressionOperation collection)
+    else if (unwrapped is ICollectionExpressionOperation collection)
     {
-      return LeadingConstants(collection.Elements);
+      elements = collection.Elements;
+    }
+    else
+    {
+      return false;
     }
 
-    return [];
-  }
-
-  private static List<string> LeadingConstants(ImmutableArray<IOperation> elements)
-  {
-    List<string> result = [];
     foreach (IOperation element in elements)
     {
-      string? text = ConstantString(element);
-      if (text is null)
+      if (element is ISpreadOperation)
+      {
+        return false;
+      }
+
+      arguments.Add(ReadArgument(element));
+    }
+
+    return true;
+  }
+
+  private static List<string> LeadingConstants(List<ShellArgument> arguments)
+  {
+    List<string> result = [];
+    foreach (ShellArgument argument in arguments)
+    {
+      if (argument.Text is null)
       {
         break;
       }
 
-      result.Add(text);
+      result.Add(argument.Text);
     }
 
     return result;
+  }
+
+  private static ShellArgument ReadArgument(IOperation element)
+  {
+    string? text = ConstantString(element);
+    return text is not null
+      ? ShellArgument.Constant(text)
+      : ShellArgument.Computed(KnownPrefix(element), KnownSuffix(element));
+  }
+
+  // The literal text a string expression starts with: the first part of an interpolated string, or
+  // the left operand of a concatenation. Empty when not known.
+  private static string KnownPrefix(IOperation? operation)
+  {
+    IOperation? unwrapped = Unwrap(operation);
+    string? text = ConstantString(unwrapped);
+    if (text is not null)
+    {
+      return text;
+    }
+
+    return unwrapped switch
+    {
+      IInterpolatedStringOperation interpolated when interpolated.Parts.Length > 0 &&
+        interpolated.Parts[0] is IInterpolatedStringTextOperation first => ConstantString(first.Text) ?? string.Empty,
+      IBinaryOperation { OperatorKind: BinaryOperatorKind.Add } binary => KnownPrefix(binary.LeftOperand),
+      _ => string.Empty,
+    };
+  }
+
+  // The literal text a string expression ends with. Empty when not known.
+  private static string KnownSuffix(IOperation? operation)
+  {
+    IOperation? unwrapped = Unwrap(operation);
+    string? text = ConstantString(unwrapped);
+    if (text is not null)
+    {
+      return text;
+    }
+
+    return unwrapped switch
+    {
+      IInterpolatedStringOperation interpolated when interpolated.Parts.Length > 0 &&
+        interpolated.Parts[interpolated.Parts.Length - 1] is IInterpolatedStringTextOperation last => ConstantString(last.Text) ?? string.Empty,
+      IBinaryOperation { OperatorKind: BinaryOperatorKind.Add } binary => KnownSuffix(binary.RightOperand),
+      _ => string.Empty,
+    };
   }
 
   private static string? ConstantString(IOperation? operation)

@@ -3,7 +3,8 @@ namespace TimeWarp.Amuru.Analyzers;
 using System.Collections.Immutable;
 
 #region Purpose
-// The one place that maps a dotnet or git command line to the typed Amuru builder that replaces it.
+// The one place that maps a dotnet command line to the typed DotNet builder that replaces it.
+// git rows live in git-helper-table.cs, which matches whole argument shapes.
 #endregion
 
 #region Design
@@ -33,7 +34,7 @@ public sealed class TypedBuilderRow
   /// <param name="verb">The first argument, for example <c>run</c> or <c>--version</c>.</param>
   /// <param name="subVerb">A later argument that must also appear, or null.</param>
   /// <param name="replacement">The replacement as shown in the diagnostic, for example <c>DotNet.Run()</c>.</param>
-  /// <param name="methods">The public static method names on DotNet or Git that the replacement names.</param>
+  /// <param name="methods">The public static method names on DotNet that the replacement names.</param>
   public TypedBuilderRow(string verb, string? subVerb, string replacement, params string[] methods)
   {
     Verb = verb;
@@ -51,12 +52,12 @@ public sealed class TypedBuilderRow
   /// <summary>The replacement text used in the diagnostic message.</summary>
   public string Replacement { get; }
 
-  /// <summary>The method names on DotNet or Git that the replacement names.</summary>
+  /// <summary>The method names on DotNet that the replacement names.</summary>
   public ImmutableArray<string> Methods { get; }
 }
 
 /// <summary>
-/// Verb-to-builder tables for <c>dotnet</c> and <c>git</c>.
+/// Verb-to-builder table for <c>dotnet</c>.
 /// </summary>
 public static class TypedBuilderTable
 {
@@ -125,26 +126,6 @@ public static class TypedBuilderTable
     "store",
     "user-jwts",
     "vstest",
-  ];
-
-  /// <summary>
-  /// git command lines that an existing <c>Git</c> helper in TimeWarp.Amuru.Tools performs.
-  /// </summary>
-  public static ImmutableArray<TypedBuilderRow> GitRows { get; } =
-  [
-    new("branch", "--set-upstream-to", "Git.SetUpstreamAsync()", "SetUpstreamAsync"),
-    new("clone", "--bare", "Git.CloneBareAsync()", "CloneBareAsync"),
-    new("config", "remote.origin.fetch", "Git.ConfigureFetchRefspecAsync()", "ConfigureFetchRefspecAsync"),
-    new("fetch", null, "Git.FetchAsync()", "FetchAsync"),
-    new("remote", "get-url", "Git.GetRepositoryNameAsync()", "GetRepositoryNameAsync"),
-    new("remote", "set-head", "Git.SetRemoteHeadAutoAsync()", "SetRemoteHeadAutoAsync"),
-    new("rev-list", "--count", "Git.GetCommitsAheadAsync()", "GetCommitsAheadAsync"),
-    new("rev-parse", "--show-toplevel", "Git.FindRoot()", "FindRoot"),
-    new("show-ref", "--verify", "Git.BranchExistsAsync()", "BranchExistsAsync"),
-    new("symbolic-ref", "refs/remotes/origin/HEAD", "Git.GetDefaultBranchAsync()", "GetDefaultBranchAsync"),
-    new("worktree", "add", "Git.WorktreeAddAsync() or Git.WorktreeAddNewBranchAsync()", "WorktreeAddAsync", "WorktreeAddNewBranchAsync"),
-    new("worktree", "list", "Git.WorktreeListPorcelainAsync()", "WorktreeListPorcelainAsync"),
-    new("worktree", "remove", "Git.WorktreeRemoveAsync()", "WorktreeRemoveAsync"),
   ];
 
   /// <summary>

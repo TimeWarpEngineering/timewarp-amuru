@@ -182,7 +182,93 @@ namespace ShellBuilderAnalyzer_
       diagnostic.Id.ShouldBe("AMURU0003");
       diagnostic.Severity.ShouldBe(DiagnosticSeverity.Info);
       diagnostic.GetMessage(CultureInfo.InvariantCulture)
-        .ShouldBe("""Use Git.WorktreeAddAsync() or Git.WorktreeAddNewBranchAsync() (TimeWarp.Amuru.Tools) instead of Shell.Builder("git") with "worktree add" """.TrimEnd());
+        .ShouldBe("""Use Git.WorktreeAddAsync() (TimeWarp.Amuru.Tools) instead of Shell.Builder("git") with "worktree add <path> <branch>" """.TrimEnd());
+    }
+
+    // One call per Git helper, in the shape that helper runs (git.*.cs in TimeWarp.Amuru.Tools).
+    public static async Task GitHelperShapes_Should_EachNameTheirHelper()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        Shell.Builder("git").WithArguments("branch", "--set-upstream-to", $"{remote}/{branch}", branch).Build();
+        Shell.Builder("git").WithArguments("clone", "--bare", "https://x/y.git", path).Build();
+        Shell.Builder("git").WithArguments("config", "remote.origin.fetch", "+refs/heads/*:refs/remotes/origin/*").Build();
+        Shell.Builder("git").WithArguments("fetch", remote).Build();
+        Shell.Builder("git").WithArguments("remote", "set-head", "origin", "--auto").Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", $"{branch}..HEAD").Build();
+        Shell.Builder("git").WithArguments("show-ref", "--verify", "--quiet", "refs/heads/" + branch).Build();
+        Shell.Builder("git").WithArguments("symbolic-ref", "refs/remotes/origin/HEAD", "--short").Build();
+        Shell.Builder("git").WithArguments("worktree", "add", path, branch).Build();
+        Shell.Builder("git").WithArguments("worktree", "add", "-b", branch, path, "origin/main").Build();
+        Shell.Builder("git").WithArguments("worktree", "list", "--porcelain").Build();
+        Shell.Builder("git").WithArguments("worktree", "remove", "--force", path).Build();
+        Shell.Run("git", ["fetch", "origin"], new CommandOptions());
+        """,
+        """static string remote = "origin"; static string branch = "main"; static string path = "../wt";""");
+
+      string[] expected =
+      [
+        "SetUpstreamAsync", "CloneBareAsync", "ConfigureFetchRefspecAsync", "FetchAsync", "SetRemoteHeadAutoAsync",
+        "GetCommitsAheadAsync", "BranchExistsAsync", "GetDefaultBranchAsync", "WorktreeAddAsync",
+        "WorktreeAddNewBranchAsync", "WorktreeListPorcelainAsync", "WorktreeRemoveAsync", "FetchAsync",
+      ];
+      diagnostics.Length.ShouldBe(expected.Length, string.Join(Environment.NewLine, diagnostics));
+      diagnostics.ShouldAllBe(diagnostic => diagnostic.Id == "AMURU0003");
+      for (int index = 0; index < expected.Length; index++)
+      {
+        diagnostics[index].GetMessage(CultureInfo.InvariantCulture).ShouldStartWith($"Use Git.{expected[index]}() ");
+      }
+
+      GitHelperTable.Rows.Select(row => row.Method).ShouldBe(expected.Distinct(), ignoreOrder: true);
+    }
+
+    // Review round 1, M1: each line is a git call whose operation the named helper does not run.
+    public static async Task GitOtherOperations_Should_NotReport()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        Shell.Builder("git").WithArguments("show-ref", "--verify", "refs/tags/v1").Build();
+        Shell.Builder("git").WithArguments("show-ref", "--verify", "--quiet", "refs/tags/v1").Build();
+        Shell.Builder("git").WithArguments("show-ref", "--verify", "--quiet", name).Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", "HEAD").Build();
+        Shell.Builder("git").WithArguments("rev-list", "--count", name).Build();
+        Shell.Builder("git").WithArguments("remote", "get-url", "upstream").Build();
+        Shell.Builder("git").WithArguments("remote", "get-url", "origin").Build();
+        Shell.Builder("git").WithArguments("remote", "set-head", "origin", "main").Build();
+        Shell.Builder("git").WithArguments("remote", "set-head", "upstream", "--auto").Build();
+        Shell.Builder("git").WithArguments("config", "remote.origin.fetch").Build();
+        Shell.Builder("git").WithArguments("config", "remote.origin.fetch", "+refs/heads/main:refs/remotes/origin/main").Build();
+        Shell.Builder("git").WithArguments("fetch", "--all").Build();
+        Shell.Builder("git").WithArguments("fetch", "origin", "main").Build();
+        Shell.Builder("git").WithArguments("fetch").Build();
+        Shell.Builder("git").WithArguments("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main").Build();
+        Shell.Builder("git").WithArguments("rev-parse", "--show-toplevel").Build();
+        Shell.Builder("git").WithArguments("worktree", "add", "--detach", "../wt").Build();
+        Shell.Builder("git").WithArguments("worktree", "add", "-b", "new").Build();
+        Shell.Builder("git").WithArguments("worktree", "list").Build();
+        Shell.Builder("git").WithArguments("worktree", "remove", "../wt", "--force").Build();
+        Shell.Builder("git").WithArguments("fetch", "--", "origin").Build();
+        """,
+        """static string name = "main";""");
+
+      diagnostics.ShouldBeEmpty(string.Join(Environment.NewLine, diagnostics));
+    }
+
+    // Arguments the analyzer cannot see in full: a spread, an array variable, a builder kept for
+    // later, or a later WithArguments that extends the call.
+    public static async Task GitIncompleteArguments_Should_NotReport()
+    {
+      ImmutableArray<Diagnostic> diagnostics = await AnalyzeAsync(
+        """
+        string[] extra = ["main"];
+        Shell.Builder("git").WithArguments(["fetch", .. extra]).Build();
+        Shell.Run("git", extra, new CommandOptions());
+        ShellBuilder kept = Shell.Builder("git").WithArguments("fetch", "origin");
+        kept.WithArguments("main").Build();
+        Shell.Builder("git").WithArguments("fetch", "origin").WithArguments("main").Build();
+        """);
+
+      diagnostics.ShouldBeEmpty(string.Join(Environment.NewLine, diagnostics));
     }
 
     public static async Task EditorConfigSeverity_Should_OverrideTheDefaults()
@@ -346,12 +432,12 @@ namespace ShellBuilderAnalyzer_
     {
       HashSet<string> helpers = [.. PublicStaticMethodNames(typeof(Git))];
 
-      string[] stale = [.. TypedBuilderTable.GitRows
-        .SelectMany(row => row.Methods)
+      string[] stale = [.. GitHelperTable.Rows
+        .Select(row => row.Method)
         .Where(method => !helpers.Contains(method))
         .Distinct()];
 
-      stale.ShouldBeEmpty($"TypedBuilderTable.GitRows names missing Git methods: {string.Join(", ", stale)}");
+      stale.ShouldBeEmpty($"GitHelperTable.Rows names missing Git methods: {string.Join(", ", stale)}");
       await Task.CompletedTask;
     }
 
