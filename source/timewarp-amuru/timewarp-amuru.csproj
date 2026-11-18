@@ -40,4 +40,29 @@
     <None Include="$(RepositoryRoot)readme.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
+  <!-- AMURU0001-0003 (task 150). The analyzer ships in this package because Shell lives here.
+       The ProjectReference orders the build and runs the analyzer on this project; the target
+       packs the dll under analyzers/dotnet/cs so every consumer gets it. Same layout as
+       timewarp-jaribu's timewarp-jaribu-analyzers. -->
+  <ItemGroup Label="Shell builder analyzer">
+    <ProjectReference
+      Include="../timewarp-amuru-analyzers/timewarp-amuru-analyzers.csproj"
+      ReferenceOutputAssembly="false"
+      OutputItemType="Analyzer" />
+  </ItemGroup>
+
+  <Target Name="PackAmuruAnalyzer" BeforeTargets="_GetPackageFiles">
+    <MSBuild
+      Projects="$(MSBuildThisFileDirectory)../timewarp-amuru-analyzers/timewarp-amuru-analyzers.csproj"
+      Targets="Build"
+      Properties="Configuration=$(Configuration)" />
+    <ItemGroup>
+      <None
+        Include="$(MSBuildThisFileDirectory)../timewarp-amuru-analyzers/bin/$(Configuration)/netstandard2.0/timewarp-amuru-analyzers.dll"
+        Pack="true"
+        PackagePath="analyzers/dotnet/cs"
+        Visible="false" />
+    </ItemGroup>
+  </Target>
+
 </Project>

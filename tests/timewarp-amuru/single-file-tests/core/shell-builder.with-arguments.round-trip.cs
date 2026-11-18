@@ -188,8 +188,11 @@ namespace ShellBuilder_
       }
 
       Directory.CreateDirectory(outDir);
-      CommandOutput output = await Shell.Builder("dotnet")
-        .WithArguments("build", source, "-o", outDir, "-c", "Release", "--nologo", "-v", "q")
+      CommandOutput output = await DotNet.Build(source)
+        .WithOutput(outDir)
+        .WithConfiguration("Release")
+        .WithNoLogo()
+        .WithVerbosity("q")
         .WithNoValidation()
         .CaptureAsync();
       if (output.ExitCode != 0)

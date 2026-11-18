@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/source/">
     <Project Path="source/timewarp-amuru/timewarp-amuru.csproj" />
+    <Project Path="source/timewarp-amuru-analyzers/timewarp-amuru-analyzers.csproj" />
     <Project Path="source/timewarp-amuru-tools/timewarp-amuru-tools.csproj" />
   </Folder>
 </Solution>

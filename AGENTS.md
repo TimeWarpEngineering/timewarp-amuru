@@ -13,6 +13,7 @@ This file provides guidance to agents when working with code in this repository.
 
 ## Package Layout
 - `source/timewarp-amuru/` — **TimeWarp.Amuru** (core): Shell/ShellBuilder/CommandResult/CommandOutput, CommandMock testing, native file-system and text ops (`SelectString`, `ReplaceInFiles`), ScriptContext. XML docs (CS1591), CA2007 (ConfigureAwait), and AOT analyzers enforced
+- `source/timewarp-amuru-analyzers/` — Roslyn analyzer (netstandard2.0, not its own package) packed into **TimeWarp.Amuru** under `analyzers/dotnet/cs`: AMURU0001 (error, dotnet verb with a typed builder), AMURU0002 (warning, dotnet verb with no builder), AMURU0003 (info, git call with a `Git.*` helper). `TypedBuilderTable` is the one verb-to-builder table; `tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` fails when it drifts from the public `DotNet`/`Git` surface. Tests and `tools/dev-cli` run the analyzer through an `Analyzer` ProjectReference. A new `DotNet` builder needs a table row
 - `source/timewarp-amuru-tools/` — **TimeWarp.Amuru.Tools**: DotNet/Git/Fzf fluent builders + repo/nu-get services. Ships at the same `<Version>` as core (inherited from `source/Directory.Build.props`); no per-csproj version
 
 ## Public API surface
