@@ -100,6 +100,9 @@ Acceptance:
 - Boy-scout: `ganda repo audit` reported one advisory (`vscode-window-icon`, `.vscode/settings.json`
   missing). `ganda repo audit --fix` wrote the ignored local file; no tracked change. Rerun passed.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-18T04:30:50Z
+- Review round 1 (2026-11-18, ganda task work review oracle, Grok), session `01a1ecec-1be6-70a3-8bba-e4d8e1927074`, effort 3, roster general. Open finding M1 (suggestion). No misread.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ecec-1be6-70a3-8bba-e4d8e1927074, max-turns 200, artifacts general.md, merged.md — 2026-11-18T04:43:33Z
+- Fix pass round 1 → 2 (2026-11-18, ganda task work implement-fix-2 oracle, Claude Opus 5.5): M1 fixed.
 
 ## Results
 
@@ -148,6 +151,16 @@ Acceptance:
 - `dotnet run --file tools/dev-cli/dev.cs -- self-install` (dev-cli changed) — pass (AOT publish)
 - `ganda repo audit` — pass with 1 advisory (`vscode-window-icon`); `--fix` applied; rerun — pass
 
+Fix pass (review round 1, M1):
+
+- `./bin/dev build` — pass (0 warnings, 0 errors)
+- `dotnet run --file tools/dev-cli/dev.cs -- self-install` (dev-cli changed) — pass (AOT publish)
+- Generator check (one-off, `EmitCompilerGeneratedFiles`): `NuruGenerated.g.cs` has
+  `AddSource("TimeWarp.Amuru.Gh")` after `AddSource("TimeWarp.Nuru.Behavior")`; no NURU_T001
+- Test files: none added or edited; no test file covers `tools/dev-cli/dev.cs` (grep for
+  `dev-cli` / `timewarp-amuru-dev` under `tests/` finds nothing)
+- `ganda repo audit` — pass (all checks)
+
 ### How to validate
 
 Smoke:
@@ -164,6 +177,21 @@ Expect: build 0 errors; `gh.telemetry.cs` 11/11 passed, including
 (`gh.api.endpoint` = `repos/o/r/dispatches`); analyzer 24/24 passed, including
 `GhCoveredVerbs_Should_ReportTheGhBuilder` (`Use Gh.Run().List() (TimeWarp.Amuru.Tools) instead
 of Shell.Builder("gh") with "run list"`).
+
+### Review
+
+Round 1 (effort 3, roster general): one suggestion, M1, fixed. `tools/dev-cli/dev.cs` now calls
+`options.ActivitySources.Add(Gh.ActivitySourceName)` in `UseTelemetry` (Nuru 4.0.0-beta.15 reads
+the const at compile time; `ActivitySources` landed in beta.10), so the `workflow` routes' gh
+calls export `gh <verb> <sub-verb>` spans under the command span. The `dev.cs` Design region and
+`tools/dev-cli/telemetry.md` now name the `TimeWarp.Amuru.Gh` source and its tags instead of
+"no ActivitySource". No bugs, no nits, no misread.
+
+Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`.
+
+## Review
+
+- Round 1: Blocked — open M1
 
 ## Notes
 

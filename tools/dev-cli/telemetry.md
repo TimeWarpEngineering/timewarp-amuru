@@ -2,7 +2,9 @@
 
 `dev` calls `UseTelemetry()` with the service name `timewarp-amuru-dev`. The OTLP endpoint is not set in code. A run exports traces, metrics, and logs only when the endpoint variable below is set. An unset variable exports nothing.
 
-Every route, including the DevCli routes (`clean`, `check-version`, `release`, `self-install`), gets one `TimeWarp.Nuru.Behavior` command span and a duration metric. This repo has no `ActivitySource` of its own.
+Every route, including the DevCli routes (`clean`, `check-version`, `release`, `self-install`), gets one `TimeWarp.Nuru.Behavior` command span and a duration metric.
+
+`dev` also registers the `TimeWarp.Amuru.Gh` `ActivitySource` (`Gh.ActivitySourceName`). The `workflow` routes call `gh` through the typed `Gh` builder, and each call is a `gh <verb> <sub-verb>` child span of the command span, tagged `gh.command`, `gh.repo` when set, `gh.api.endpoint` (path only) for `gh api`, `gh.exit_code`, and `gh.elapsed_ms`. No token, request body, or field value is tagged. See `source/timewarp-amuru-tools/gh-commands/gh.md`.
 
 The `dotnet` processes themselves are not instrumented. When a route calls `DotNet.Build()`, `DotNet.Publish()`, `DotNet.Pack()`, or `DotNet.Test()` from TimeWarp.Amuru.Tools, Amuru adds three tags to `Activity.Current` (the command span). No other argv, path, or property value is exported:
 
