@@ -46,6 +46,7 @@ builder lacks an option. They run on a fallback today:
 - Implementation: 01a1ed7f-49c5-7ff2-85b5-5f708b1d31ae (2026-11-18)
 - `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` window title for `vscode-window-icon`. That file stays untracked.
 - The first commit's attest hook failed `runfile-executable` on the two new runfiles. Both are now executable, matching the other dotnet runfiles.
+- Implement oracle: implemented by implementer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1ed7f-49c5-7ff2-85b5-5f708b1d31ae, max-turns 500, Done — 2026-11-18T07:29:46Z
 
 ## Results
 
