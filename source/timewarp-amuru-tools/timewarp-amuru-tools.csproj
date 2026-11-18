@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <PackageId>TimeWarp.Amuru.Tools</PackageId>
-    <Description>Fluent builders for common CLI tools (dotnet, git, fzf) plus TimeWarp repo services, built on TimeWarp.Amuru</Description>
-    <PackageTags>cli;scripting;fluent;dotnet;git;fzf;amuru</PackageTags>
+    <Description>Fluent builders for common CLI tools (dotnet, gh, git, fzf) plus TimeWarp repo services, built on TimeWarp.Amuru</Description>
+    <PackageTags>cli;scripting;fluent;dotnet;gh;github;git;fzf;amuru</PackageTags>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

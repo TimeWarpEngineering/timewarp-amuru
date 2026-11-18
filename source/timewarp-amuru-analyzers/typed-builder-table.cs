@@ -3,15 +3,15 @@ namespace TimeWarp.Amuru.Analyzers;
 using System.Collections.Immutable;
 
 #region Purpose
-// The one place that maps a dotnet command line to the typed DotNet builder that replaces it.
-// git rows live in git-helper-table.cs, which matches whole argument shapes.
+// The one place that maps a dotnet or gh command line to the typed DotNet or Gh builder that
+// replaces it. git rows live in git-helper-table.cs, which matches whole argument shapes.
 #endregion
 
 #region Design
 // The analyzer cannot reference TimeWarp.Amuru.Tools (netstandard2.0, and a dependency cycle), so
-// the rows name builders as text. The analyzer test reflects over the public DotNet and Git types:
-// every public static DotNet builder method needs a row, and every row's method must exist. That
-// test is what keeps this table from drifting from the library.
+// the rows name builders as text. The analyzer test reflects over the public DotNet, Gh, and Git
+// types: every public static DotNet or Gh builder method needs a row, and every row's method must
+// exist. That test is what keeps this table from drifting from the library.
 //
 // A row matches when the first readable argument equals Verb and, when SubVerb is set, SubVerb
 // appears among the later readable arguments before "--". SubVerb is searched, not read at a fixed
@@ -21,6 +21,11 @@ using System.Collections.Immutable;
 // DotNetGapVerbs are dotnet SDK verbs with no typed builder yet. They raise AMURU0002 and shrink as
 // builders land. A verb in neither list is most likely a local tool (`dotnet fixie`, `dotnet ef`),
 // which also raises AMURU0002 with a pointer at DotNet.Tool().Run().
+//
+// GhRows (task 152) are read with FindAtSecond: gh takes `<verb> <sub-verb>` as its first two
+// arguments, so the sub-verb must be the second argument, not any later one (`issue create --title
+// list` is not `issue list`). A gh verb or sub-verb with no row is not reported: Gh covers only the
+// verbs the org calls, and there is no gap list for gh.
 #endregion
 
 /// <summary>
@@ -57,7 +62,7 @@ public sealed class TypedBuilderRow
 }
 
 /// <summary>
-/// Verb-to-builder table for <c>dotnet</c>.
+/// Verb-to-builder tables for <c>dotnet</c> and <c>gh</c>.
 /// </summary>
 public static class TypedBuilderTable
 {
@@ -103,6 +108,26 @@ public static class TypedBuilderTable
     new("--list-runtimes", null, "DotNet.WithListRuntimes()", "WithListRuntimes"),
     new("--list-sdks", null, "DotNet.WithListSdks()", "WithListSdks"),
     new("--version", null, "DotNet.WithVersion()", "WithVersion"),
+  ];
+
+  /// <summary>
+  /// gh command shapes that have a typed builder on <c>Gh</c> in TimeWarp.Amuru.Tools.
+  /// </summary>
+  public static ImmutableArray<TypedBuilderRow> GhRows { get; } =
+  [
+    new("api", null, "Gh.Api()", "Api"),
+    new("auth", "status", "Gh.Auth().Status()", "Auth"),
+    new("auth", "token", "Gh.Auth().Token()", "Auth"),
+    new("issue", "create", "Gh.Issue().Create()", "Issue"),
+    new("issue", "list", "Gh.Issue().List()", "Issue"),
+    new("pr", "checks", "Gh.Pr().Checks()", "Pr"),
+    new("pr", "create", "Gh.Pr().Create()", "Pr"),
+    new("pr", "merge", "Gh.Pr().Merge()", "Pr"),
+    new("pr", "view", "Gh.Pr().View()", "Pr"),
+    new("release", "create", "Gh.Release().Create()", "Release"),
+    new("release", "list", "Gh.Release().List()", "Release"),
+    new("run", "download", "Gh.Run().Download()", "Run"),
+    new("run", "list", "Gh.Run().List()", "Run"),
   ];
 
   /// <summary>
@@ -161,6 +186,38 @@ public static class TypedBuilderTable
     }
 
     return verbOnly;
+  }
+
+  /// <summary>
+  /// Finds the row whose verb is the first argument and whose sub-verb, when set, is the second.
+  /// Used for gh, where the sub-verb has a fixed position.
+  /// </summary>
+  /// <param name="rows">The table to search.</param>
+  /// <param name="arguments">The leading arguments that are compile-time constants, in order.</param>
+  /// <returns>The matching row, or null.</returns>
+  public static TypedBuilderRow? FindAtSecond(ImmutableArray<TypedBuilderRow> rows, IReadOnlyList<string> arguments)
+  {
+    if (arguments is null || arguments.Count == 0)
+    {
+      return null;
+    }
+
+    string verb = arguments[0];
+    string? second = arguments.Count > 1 ? arguments[1] : null;
+    foreach (TypedBuilderRow row in rows)
+    {
+      if (!string.Equals(row.Verb, verb, StringComparison.Ordinal))
+      {
+        continue;
+      }
+
+      if (row.SubVerb is null || string.Equals(row.SubVerb, second, StringComparison.Ordinal))
+      {
+        return row;
+      }
+    }
+
+    return null;
   }
 
   /// <summary>

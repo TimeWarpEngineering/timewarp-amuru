@@ -5,6 +5,6 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-AMURU0001 | Usage | Error | ShellBuilderAnalyzer, dotnet verb with a typed DotNet builder
+AMURU0001 | Usage | Error | ShellBuilderAnalyzer, dotnet or gh verb with a typed DotNet or Gh builder
 AMURU0002 | Usage | Warning | ShellBuilderAnalyzer, dotnet verb with no typed builder yet
 AMURU0003 | Usage | Info | ShellBuilderAnalyzer, git call with a typed Git helper

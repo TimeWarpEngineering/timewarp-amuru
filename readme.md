@@ -48,7 +48,7 @@ If you find this project useful, please give it a star. Thanks!
 # Core library: process execution, mocking, native file and text operations
 dotnet add package TimeWarp.Amuru
 
-# Optional: fluent builders for dotnet/git/fzf plus repo services
+# Optional: fluent builders for dotnet/gh/git/fzf plus repo services
 dotnet add package TimeWarp.Amuru.Tools
 ```
 
@@ -158,6 +158,13 @@ GitWorktreeListResult listed = await Git.WorktreeListPorcelainAsync("/my/repo");
 IReadOnlyList<WorktreeEntry> worktrees = listed.Success
     ? Git.ParseWorktreeList(listed.Porcelain ?? "")
     : [];
+
+// GitHub CLI with a span per call (see "GitHub CLI Spans")
+GhRunListResult runs = await Gh.Run().List()
+    .WithRepo("TimeWarpEngineering/timewarp-amuru")
+    .WithWorkflow("workflow.yml")
+    .WithLimit(5)
+    .ListRunsAsync();
 
 // Interactive selection with Fzf
 string selectedFile = await Fzf.Builder()
@@ -340,6 +347,30 @@ await Shell.Builder("tool")
     .RunAsync();
 ```
 
+### GitHub CLI Spans
+`gh` emits no OpenTelemetry of its own. The `Gh` builders in `TimeWarp.Amuru.Tools` open one span per execution (`RunAsync`, `CaptureAsync`, `RunAndCaptureAsync`, `PassthroughAsync`, and the typed methods) on the `ActivitySource` named `Gh.ActivitySourceName` (`TimeWarp.Amuru.Gh`). Subscribe to it, for example in Nuru's `UseTelemetry` activity sources, and each `gh` call shows up as a child of your span, with `TRACEPARENT` naming it.
+
+| Builder | Command |
+|---------|---------|
+| `Gh.Run().List()` / `.Download(runId)` | `gh run list` / `gh run download` |
+| `Gh.Api(endpoint)` | `gh api` |
+| `Gh.Auth().Token()` / `.Status()` | `gh auth token` / `gh auth status` |
+| `Gh.Issue().List()` / `.Create()` | `gh issue list` / `gh issue create` |
+| `Gh.Pr().View()` / `.Checks()` / `.Create()` / `.Merge()` | `gh pr view` / `checks` / `create` / `merge` |
+| `Gh.Release().List()` / `.Create(tag)` | `gh release list` / `gh release create` |
+
+`WithRepo`, `WithJson`, `WithJq`, and `WithLimit` are on the builders whose `gh` command takes them. `WithArgument` appends a flag a builder does not model.
+
+The span is named `gh <verb> <sub-verb>` (`gh run list`, `gh api`) and carries `gh.command`, `gh.repo` (when `WithRepo` is set), `gh.api.endpoint` (the path only, no query string or host), `gh.exit_code`, and `gh.elapsed_ms`. A non-zero exit sets Error status. Arguments, field values, bodies, stdout (the `auth token` output), and exception text never reach the span. `Build()` returns the `CommandResult` without a span.
+
+```csharp
+GhAuthStatus auth = await Gh.Auth().Status().GetStatusAsync();   // SignedIn, Host, Login
+GhPullRequestViewResult pr = await Gh.Pr().View("42").ViewPullRequestAsync();
+CommandOutput artifacts = await Gh.Api("repos/{owner}/{repo}/actions/runs/123/artifacts").CaptureAsync();
+```
+
+`ListRunsAsync`, `ViewPullRequestAsync`, and `GetStatusAsync` return typed results; every other call returns the raw `CommandOutput`.
+
 ## Analyzers
 
 `TimeWarp.Amuru` ships a Roslyn analyzer (`analyzers/dotnet/cs`), so every consumer gets these
@@ -348,14 +379,14 @@ executable is a string literal or a constant. A computed executable is not repor
 
 | Id | Default | Reports |
 |----|---------|---------|
-| `AMURU0001` | error | `dotnet` with a verb that has a typed builder, for example `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of Shell.Builder("dotnet") with "run"`. When the verb cannot be read, the message names the `DotNet.*` builders. |
+| `AMURU0001` | error | `dotnet` with a verb that has a typed builder, for example `Use DotNet.Run() (TimeWarp.Amuru.Tools) instead of Shell.Builder("dotnet") with "run"`. When the verb cannot be read, the message names the `DotNet.*` builders. Also `gh` with a command a `Gh` builder covers (`gh run list` → `Gh.Run().List()`); the sub-verb must be the second argument, and other `gh` commands are not reported. |
 | `AMURU0002` | warning | `dotnet` with a verb that has no typed builder yet. File a task in timewarp-amuru for one. For a local tool (`dotnet fixie`), the message also points at `DotNet.Tool().Run(...)`. |
 | `AMURU0003` | info | `git` with the exact command line an existing `Git.*` helper runs, for example `git worktree add <path> <branch>` → `Git.WorktreeAddAsync()`. Another flag, ref, remote, or extra argument is a different operation and is not reported, and neither is a call whose arguments the analyzer cannot see in full (a spread, an array variable, a builder stored for later). |
 
 The typed builders live in `TimeWarp.Amuru.Tools`. A project that references only
 `TimeWarp.Amuru` adds that package to fix the diagnostic. The verb-to-builder table is
 `TypedBuilderTable` in `source/timewarp-amuru-analyzers`; a test fails when it drifts from the
-public `DotNet` surface.
+public `DotNet` or `Gh` surface.
 
 Change a severity per repository in `.editorconfig`:
 

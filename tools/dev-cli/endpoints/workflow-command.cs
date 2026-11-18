@@ -586,8 +586,11 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
       CommandOutput runListResult;
       try
       {
-        runListResult = await Shell.Builder("gh")
-          .WithArguments("run", "list", "--workflow", "workflow.yml", "--commit", headSha, "--status", "success", "--json", "databaseId,event,headSha,createdAt")
+        runListResult = await Gh.Run().List()
+          .WithWorkflow("workflow.yml")
+          .WithCommit(headSha)
+          .WithStatus("success")
+          .WithJson("databaseId", "event", "headSha", "createdAt")
           .WithNoValidation()
           .CaptureAsync(CancellationToken.None);
       }
@@ -622,8 +625,7 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
 
       foreach (CiRunSummary run in candidateRuns)
       {
-        CommandOutput artifactsResult = await Shell.Builder("gh")
-          .WithArguments("api", $"repos/{{owner}}/{{repo}}/actions/runs/{run.DatabaseId}/artifacts")
+        CommandOutput artifactsResult = await Gh.Api($"repos/{{owner}}/{{repo}}/actions/runs/{run.DatabaseId}/artifacts")
           .WithNoValidation()
           .CaptureAsync(CancellationToken.None);
 
@@ -657,8 +659,9 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
 
         Terminal.WriteLine($"Downloading artifact '{artifact.Name}' from run {run.DatabaseId} ({run.Event})...");
 
-        int exitCode = await Shell.Builder("gh")
-          .WithArguments("run", "download", run.DatabaseId.ToString(CultureInfo.InvariantCulture), "--name", artifact.Name, "--dir", artifactsDir)
+        int exitCode = await Gh.Run().Download(run.DatabaseId.ToString(CultureInfo.InvariantCulture))
+          .WithName(artifact.Name)
+          .WithDirectory(artifactsDir)
           .WithWorkingDirectory(repoRoot)
           .WithNoValidation()
           .RunAsync();
@@ -729,13 +732,10 @@ public sealed partial class WorkflowCommand : ICommand<Unit>
 
       string? rebuildToken = Environment.GetEnvironmentVariable("REBUILD_DISPATCH_TOKEN");
 
-      ShellBuilder dispatch = Shell.Builder("gh")
-        .WithArguments(
-          "api",
-          "repos/TimeWarpEngineering/timewarp-software/dispatches",
-          "-f", "event_type=rebuild",
-          "-f", "client_payload[package]=TimeWarp.Amuru",
-          "-f", $"client_payload[version]={coreVersion}")
+      GhApiBuilder dispatch = Gh.Api("repos/TimeWarpEngineering/timewarp-software/dispatches")
+        .WithRawField("event_type", "rebuild")
+        .WithRawField("client_payload[package]", "TimeWarp.Amuru")
+        .WithRawField("client_payload[version]", coreVersion)
         .WithWorkingDirectory(repoRoot)
         .WithNoValidation();
 
