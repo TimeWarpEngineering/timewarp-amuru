@@ -150,7 +150,9 @@ await DotNet.Publish("MyProject.csproj")
   .RunAsync();
 
 // Other subcommands: DotNet.Clean(), DotNet.Restore(), DotNet.Run(),
-// DotNet.Test(), DotNet.Watch(), DotNet.Pack(), DotNet.New()
+// DotNet.Test(), DotNet.Watch(), DotNet.Pack(), DotNet.New(),
+// DotNet.Format(), DotNet.MsBuild()
+// why: task 154, those two builders are on the public surface
 
 // Query dotnet info
 CommandOutput sdks = await DotNet.WithListSdks().CaptureAsync();

@@ -6,7 +6,7 @@
 
 #region Design
 // Naming convention: SUT_Action_Given_Should_Result
-// Leaf builders do not grow a WithTimeout method in this task. The base builder does.
+// This file proves the base builder. Build, Run, and Test prove their own WithTimeout methods.
 // dotnet --version is a fast success path, so TimedOut stays false.
 #endregion
 

@@ -4,6 +4,7 @@
 
 #region Design
 // dotnet pack has no --framework switch (MSB1001). Terminal logger is one argument, --tl:<mode>.
+// --artifacts-path is the artifacts directory, distinct from --output.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -42,6 +43,7 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
   private string? Configuration;
   private string? Runtime;
   private string? OutputPath;
+  private string? ArtifactsPath;
   private string? Verbosity;
   private string? TerminalLogger;
   private string? VersionSuffix;
@@ -99,6 +101,19 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
   public DotNetPackBuilder WithOutput(string outputPath)
   {
     OutputPath = outputPath;
+    return this;
+  }
+
+  /// <summary>
+  /// Places pack output under the artifacts directory, in a subfolder per project.
+  /// </summary>
+  /// <param name="artifactsPath">The artifacts directory</param>
+  /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="artifactsPath"/> is null or whitespace.</exception>
+  public DotNetPackBuilder WithArtifactsPath(string artifactsPath)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(artifactsPath);
+    ArtifactsPath = artifactsPath;
     return this;
   }
 
@@ -325,6 +340,12 @@ public class DotNetPackBuilder : ICommandBuilder<DotNetPackBuilder>
     {
       arguments.Add("--output");
       arguments.Add(OutputPath);
+    }
+
+    if (!string.IsNullOrWhiteSpace(ArtifactsPath))
+    {
+      arguments.Add("--artifacts-path");
+      arguments.Add(ArtifactsPath);
     }
 
     // Add verbosity if specified

@@ -4,6 +4,8 @@
 
 #region Design
 // Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
+// --artifacts-path is the artifacts directory, distinct from --output.
+// WithTimeout and WithTimeoutGracePeriod set CommandOptions. They are not command-line tokens.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -36,7 +38,7 @@ public static partial class DotNet
 /// <summary>
 /// Fluent builder for configuring 'dotnet build' commands.
 /// </summary>
-public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
+public partial class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
 {
   private string? Project;
   private string? Configuration;
@@ -45,6 +47,7 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
   private string? Architecture;
   private string? OperatingSystem;
   private string? OutputPath;
+  private string? ArtifactsPath;
   private string? Verbosity;
   private string? TerminalLogger;
   private bool NoRestore;
@@ -130,6 +133,19 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
   public DotNetBuildBuilder WithOutput(string outputPath)
   {
     OutputPath = outputPath;
+    return this;
+  }
+
+  /// <summary>
+  /// Places build output under the artifacts directory, in a subfolder per project.
+  /// </summary>
+  /// <param name="artifactsPath">The artifacts directory</param>
+  /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="artifactsPath"/> is null or whitespace.</exception>
+  public DotNetBuildBuilder WithArtifactsPath(string artifactsPath)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(artifactsPath);
+    ArtifactsPath = artifactsPath;
     return this;
   }
 
@@ -244,50 +260,6 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
   }
 
   /// <summary>
-  /// Specifies the working directory for the command.
-  /// </summary>
-  /// <param name="directory">The working directory path</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetBuildBuilder WithWorkingDirectory(string directory)
-  {
-    Options = Options.WithWorkingDirectory(directory);
-    return this;
-  }
-
-  /// <summary>
-  /// Adds an environment variable for the command execution.
-  /// </summary>
-  /// <param name="key">The environment variable name</param>
-  /// <param name="value">The environment variable value</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetBuildBuilder WithEnvironmentVariable(string key, string? value)
-  {
-    Options = Options.WithEnvironmentVariable(key, value);
-    return this;
-  }
-
-  /// <summary>
-  /// Disables command result validation, allowing the build to exit with non-zero codes without throwing exceptions.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetBuildBuilder WithNoValidation()
-  {
-    Options = Options.WithNoValidation();
-    return this;
-  }
-
-  /// <summary>
-  /// Enables strict validation: a non-zero exit code causes the execution to throw
-  /// instead of reporting the failure via the result's exit code.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetBuildBuilder WithZeroExitCodeValidation()
-  {
-    Options = Options.WithZeroExitCodeValidation();
-    return this;
-  }
-
-  /// <summary>
   /// Builds the command arguments and executes the dotnet build command.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
@@ -341,6 +313,12 @@ public class DotNetBuildBuilder : ICommandBuilder<DotNetBuildBuilder>
     {
       arguments.Add("--output");
       arguments.Add(OutputPath);
+    }
+
+    if (!string.IsNullOrWhiteSpace(ArtifactsPath))
+    {
+      arguments.Add("--artifacts-path");
+      arguments.Add(ArtifactsPath);
     }
 
     // Add verbosity if specified

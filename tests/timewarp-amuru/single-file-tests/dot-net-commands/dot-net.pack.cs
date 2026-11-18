@@ -143,5 +143,28 @@ namespace DotNet_
 
       await Task.CompletedTask;
     }
+
+    public static async Task WithArtifactsPath_Should_IncludeArtifactsPath()
+    {
+      string command = DotNet.Pack()
+        .WithProject("test.csproj")
+        .WithArtifactsPath("artifacts/owned")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet pack test.csproj --artifacts-path artifacts/owned");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithArtifactsPathBlank_Should_Throw()
+    {
+      DotNetPackBuilder builder = DotNet.Pack();
+
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(""));
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(" "));
+
+      await Task.CompletedTask;
+    }
   }
 }

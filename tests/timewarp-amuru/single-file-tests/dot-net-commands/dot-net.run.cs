@@ -8,7 +8,8 @@
 // Naming convention: SUT_Action_Given_Should_Result
 // SUT: DotNet (the static class providing command builders)
 // Action: Run (the method being tested)
-// Tests verify command string generation for various configuration options
+// Tests verify command string generation for various configuration options.
+// WithTimeout is an execution limit, so the command string stays unchanged and a mock proves the limit.
 #endregion
 
 #if !JARIBU_MULTI
@@ -140,6 +141,73 @@ namespace DotNet_
       command.ShouldBe("dotnet run --project nonexistent.csproj --configuration Debug --no-restore");
 
       await Task.CompletedTask;
+    }
+
+    public static async Task WithNoCacheNoLogoAndArtifactsPath_Should_IncludeFlags()
+    {
+      string command = DotNet.Run()
+        .WithFile("app.cs")
+        .WithNoCache()
+        .WithNoLogo()
+        .WithArtifactsPath("artifacts/owned")
+        .WithArguments("--repo", "src")
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet run --file app.cs --no-cache --nologo --artifacts-path artifacts/owned -- --repo src");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithArtifactsPathBlank_Should_Throw()
+    {
+      DotNetRunBuilder builder = DotNet.Run();
+
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(""));
+      Should.Throw<ArgumentException>(() => builder.WithArtifactsPath(" "));
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeout_Should_LeaveTheCommandStringUnchanged()
+    {
+      string command = DotNet.Run()
+        .WithTimeout(TimeSpan.FromMinutes(10))
+        .WithTimeoutGracePeriod(TimeSpan.Zero)
+        .Build()
+        .ToCommandString();
+
+      command.ShouldBe("dotnet run");
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeoutInvalid_Should_Throw()
+    {
+      Should.Throw<ArgumentOutOfRangeException>(() => DotNet.Run().WithTimeout(TimeSpan.Zero));
+      Should.Throw<ArgumentOutOfRangeException>(() => DotNet.Run().WithTimeoutGracePeriod(TimeSpan.FromMilliseconds(-1)));
+
+      await Task.CompletedTask;
+    }
+
+    public static async Task WithTimeout_Should_StopASlowRun()
+    {
+      using (CommandMock.Enable())
+      {
+        CommandMock.Setup("dotnet", "run", "--file", "app.cs")
+          .Delays(TimeSpan.FromSeconds(5))
+          .Returns("ran");
+
+        CommandOutput output = await DotNet.Run()
+          .WithFile("app.cs")
+          .WithTimeout(TimeSpan.FromMilliseconds(200))
+          .WithTimeoutGracePeriod(TimeSpan.Zero)
+          .Build()
+          .CaptureAsync();
+
+        output.TimedOut.ShouldBeTrue();
+        output.ExitCode.ShouldBe(CommandResult.TimeoutExitCode);
+      }
     }
   }
 }

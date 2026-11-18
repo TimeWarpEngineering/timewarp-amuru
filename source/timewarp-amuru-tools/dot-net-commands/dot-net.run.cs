@@ -5,6 +5,11 @@
 #region Design
 // --project and --file are mutually exclusive. The builder throws before it emits both.
 // Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
+// --artifacts-path is the artifacts directory. --no-cache skips up-to-date checks and always builds.
+// --nologo is emitted before program arguments. dotnet run forwards that token to the program.
+// WithTimeout and WithTimeoutGracePeriod set CommandOptions. They are not command-line tokens.
+// WithStandardInput is passed to Shell.Run. It is not a command-line token.
+// Null is rejected. An empty string is immediate EOF.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -27,7 +32,7 @@ public static partial class DotNet
 /// <summary>
 /// Fluent builder for configuring 'dotnet run' commands.
 /// </summary>
-public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
+public partial class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
 {
   private const string ProjectAndFileExclusiveMessage =
     "WithProject and WithFile cannot be used together. dotnet run rejects --project and --file on the same command.";
@@ -40,9 +45,12 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   private string? Architecture;
   private string? OperatingSystem;
   private string? LaunchProfile;
+  private string? ArtifactsPath;
   private bool NoRestore;
   private bool NoBuild;
   private bool NoDependencies;
+  private bool NoCache;
+  private bool NoLogo;
   private bool NoLaunchProfile;
   private bool Force;
   private bool Interactive;
@@ -51,6 +59,7 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   private readonly Dictionary<string, string> Properties = [];
   private readonly Dictionary<string, string> EnvironmentVariables = [];
   private string[]? ProgramArguments;
+  private string? StandardInput;
   private CommandOptions Options = new();
 
   /// <summary>
@@ -151,6 +160,27 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   }
 
   /// <summary>
+  /// Skips up-to-date checks and always builds the program before running.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetRunBuilder WithNoCache()
+  {
+    NoCache = true;
+    return this;
+  }
+
+  /// <summary>
+  /// Adds <c>--nologo</c> before program arguments.
+  /// <c>dotnet run</c> forwards that token to the program.
+  /// </summary>
+  /// <returns>The builder instance for method chaining</returns>
+  public DotNetRunBuilder WithNoLogo()
+  {
+    NoLogo = true;
+    return this;
+  }
+
+  /// <summary>
   /// Sets the verbosity level of the command.
   /// </summary>
   /// <param name="verbosity">The verbosity level (quiet, minimal, normal, detailed, diagnostic)</param>
@@ -192,129 +222,6 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
   public DotNetRunBuilder WithEnvironmentVariable(string key, string? value)
   {
     Options = Options.WithEnvironmentVariable(key, value);
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the target architecture (shorthand for runtime identifier).
-  /// </summary>
-  /// <param name="architecture">The target architecture (e.g., "x64", "arm64")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithArchitecture(string architecture)
-  {
-    Architecture = architecture;
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the target operating system.
-  /// </summary>
-  /// <param name="operatingSystem">The target OS (e.g., "win", "linux", "osx")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithOperatingSystem(string operatingSystem)
-  {
-    OperatingSystem = operatingSystem;
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the launch profile from launchSettings.json.
-  /// </summary>
-  /// <param name="profileName">The name of the launch profile to use</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithLaunchProfile(string profileName)
-  {
-    LaunchProfile = profileName;
-    return this;
-  }
-
-  /// <summary>
-  /// Doesn't use launchSettings.json when running the application.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithNoLaunchProfile()
-  {
-    NoLaunchProfile = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Forces all dependencies to be resolved even if the last restore was successful.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithForce()
-  {
-    Force = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Allows the command to pause for user input or action.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithInteractive()
-  {
-    Interactive = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Sets the terminal logger for build output.
-  /// </summary>
-  /// <param name="mode">The terminal logger mode ("auto", "on", "off")</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithTerminalLogger(string mode)
-  {
-    TerminalLogger = mode;
-    return this;
-  }
-
-  /// <summary>
-  /// Sets an MSBuild property.
-  /// </summary>
-  /// <param name="name">The property name</param>
-  /// <param name="value">The property value</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithProperty(string name, string value)
-  {
-    Properties[name] = value;
-    return this;
-  }
-
-  /// <summary>
-  /// Sets multiple MSBuild properties.
-  /// </summary>
-  /// <param name="properties">Dictionary of property names and values</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithProperties(Dictionary<string, string> properties)
-  {
-    ArgumentNullException.ThrowIfNull(properties);
-    foreach (KeyValuePair<string, string> kvp in properties)
-    {
-      Properties[kvp.Key] = kvp.Value;
-    }
-    
-    return this;
-  }
-
-  /// <summary>
-  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithNoValidation()
-  {
-    Options = Options.WithNoValidation();
-    return this;
-  }
-
-  /// <summary>
-  /// Enables strict validation: a non-zero exit code causes the execution to throw
-  /// instead of reporting the failure via the result's exit code.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetRunBuilder WithZeroExitCodeValidation()
-  {
-    Options = Options.WithZeroExitCodeValidation();
     return this;
   }
 
@@ -429,6 +336,22 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
       arguments.Add("--no-dependencies");
     }
 
+    if (NoCache)
+    {
+      arguments.Add("--no-cache");
+    }
+
+    if (NoLogo)
+    {
+      arguments.Add("--nologo");
+    }
+
+    if (!string.IsNullOrWhiteSpace(ArtifactsPath))
+    {
+      arguments.Add("--artifacts-path");
+      arguments.Add(ArtifactsPath);
+    }
+
     if (NoLaunchProfile)
     {
       arguments.Add("--no-launch-profile");
@@ -464,7 +387,7 @@ public class DotNetRunBuilder : ICommandBuilder<DotNetRunBuilder>
       arguments.AddRange(ProgramArguments);
     }
 
-    return Shell.Run("dotnet", arguments.ToArray(), Options);
+    return Shell.Run("dotnet", arguments.ToArray(), Options, StandardInput);
   }
 
   /// <summary>
