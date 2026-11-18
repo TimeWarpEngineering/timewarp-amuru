@@ -45,6 +45,7 @@ builder lacks an option. They run on a fallback today:
 - Created: 1966318 (2026-11-18), filed from timewarp-nuru 598
 - Implementation: 01a1ed7f-49c5-7ff2-85b5-5f708b1d31ae (2026-11-18)
 - `ganda repo audit --fix` wrote the gitignored `.vscode/settings.json` window title for `vscode-window-icon`. That file stays untracked.
+- The first commit's attest hook failed `runfile-executable` on the two new runfiles. Both are now executable, matching the other dotnet runfiles.
 
 ## Results
 
@@ -73,6 +74,9 @@ Expect: 7 passed. The nuru check case prints `dotnet format timewarp-nuru.slnx -
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/analyzers/shell-builder-analyzer.cs` — exit 0, 24 passed. Standalone runfile (`#if !JARIBU_MULTI`).
 - `ganda repo audit` — exit 0, Passed 43, Failed 1 advisory (`vscode-window-icon`: `.vscode/settings.json` missing).
 - `ganda repo audit --fix` — wrote the gitignored `.vscode/settings.json` and set `window.title` to include `timewarp-amuru`. The audit inside that command passed: Passed 44, Failed 0. The Windows taskbar icon was not applied; this machine has no Windows-side ganda.
+- Post-commit `ganda repo attest` on `53afb14` — failed `runfile-executable`: `dot-net.format.cs` and `dot-net.standard-input.cs` were mode `100644`. Both are now `100755`. The follow-up commit's hook attests.
+- Fix pass `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.format.cs` — exit 0, 7 passed.
+- Fix pass `dotnet run --file tests/timewarp-amuru/single-file-tests/dot-net-commands/dot-net.standard-input.cs` — exit 0, 6 passed.
 
 ## Notes
 
