@@ -5,6 +5,9 @@
 #region Design
 // --collect requires a data collector name, so WithCollect takes that name.
 // Terminal logger is one argument, --tl:<mode>. A separate mode token is parsed as the project path (MSB1009).
+// WithArguments appends tokens verbatim for options with no typed method, including Microsoft.Testing.Platform extension options. It does not insert --.
+// --artifacts-path is the artifacts directory, distinct from --output.
+// WithTimeout and WithTimeoutGracePeriod set CommandOptions. They are not command-line tokens.
 #endregion
 
 namespace TimeWarp.Amuru;
@@ -27,7 +30,7 @@ public static partial class DotNet
 /// <summary>
 /// Fluent builder for configuring 'dotnet test' commands.
 /// </summary>
-public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
+public partial class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
 {
   private string? Project;
   private string? Configuration;
@@ -36,6 +39,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   private string? Architecture;
   private string? OperatingSystem;
   private string? OutputPath;
+  private string? ArtifactsPath;
   private string? Verbosity;
   private string? TerminalLogger;
   private string? Filter;
@@ -48,6 +52,7 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   private bool Blame;
   private string? Collect;
   private List<string> Loggers = new();
+  private readonly List<string> ExtraArguments = [];
   private Dictionary<string, string> Properties = new();
   private CommandOptions Options = new();
 
@@ -125,6 +130,19 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   public DotNetTestBuilder WithOutput(string outputPath)
   {
     OutputPath = outputPath;
+    return this;
+  }
+
+  /// <summary>
+  /// Places test output under the artifacts directory, in a subfolder per project.
+  /// </summary>
+  /// <param name="artifactsPath">The artifacts directory</param>
+  /// <returns>The builder instance for method chaining</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="artifactsPath"/> is null or whitespace.</exception>
+  public DotNetTestBuilder WithArtifactsPath(string artifactsPath)
+  {
+    ArgumentException.ThrowIfNullOrWhiteSpace(artifactsPath);
+    ArtifactsPath = artifactsPath;
     return this;
   }
 
@@ -236,101 +254,6 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
   }
 
   /// <summary>
-  /// Runs the tests in blame mode, which is helpful for diagnosing test host crashes.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithBlame()
-  {
-    Blame = true;
-    return this;
-  }
-
-  /// <summary>
-  /// Collects data with the named data collector.
-  /// </summary>
-  /// <param name="dataCollector">The data collector friendly name, for example "XPlat Code Coverage".</param>
-  /// <returns>The builder instance for method chaining</returns>
-  /// <exception cref="ArgumentException">Thrown when <paramref name="dataCollector"/> is null or whitespace.</exception>
-  public DotNetTestBuilder WithCollect(string dataCollector)
-  {
-    ArgumentException.ThrowIfNullOrWhiteSpace(dataCollector);
-    Collect = dataCollector;
-    return this;
-  }
-
-  /// <summary>
-  /// Sets an MSBuild property.
-  /// </summary>
-  /// <param name="name">The property name</param>
-  /// <param name="value">The property value</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithProperty(string name, string value)
-  {
-    Properties[name] = value;
-    return this;
-  }
-
-  /// <summary>
-  /// Sets multiple MSBuild properties.
-  /// </summary>
-  /// <param name="properties">Dictionary of property names and values</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithProperties(Dictionary<string, string> properties)
-  {
-    ArgumentNullException.ThrowIfNull(properties);
-    foreach (KeyValuePair<string, string> kvp in properties)
-    {
-      Properties[kvp.Key] = kvp.Value;
-    }
-    
-    return this;
-  }
-
-  /// <summary>
-  /// Specifies the working directory for the command.
-  /// </summary>
-  /// <param name="directory">The working directory path</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithWorkingDirectory(string directory)
-  {
-    Options = Options.WithWorkingDirectory(directory);
-    return this;
-  }
-
-  /// <summary>
-  /// Adds an environment variable for the command execution.
-  /// </summary>
-  /// <param name="key">The environment variable name</param>
-  /// <param name="value">The environment variable value</param>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithEnvironmentVariable(string key, string? value)
-  {
-    Options = Options.WithEnvironmentVariable(key, value);
-    return this;
-  }
-
-  /// <summary>
-  /// Disables command validation, allowing the command to complete without throwing exceptions on non-zero exit codes.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithNoValidation()
-  {
-    Options = Options.WithNoValidation();
-    return this;
-  }
-
-  /// <summary>
-  /// Enables strict validation: a non-zero exit code causes the execution to throw
-  /// instead of reporting the failure via the result's exit code.
-  /// </summary>
-  /// <returns>The builder instance for method chaining</returns>
-  public DotNetTestBuilder WithZeroExitCodeValidation()
-  {
-    Options = Options.WithZeroExitCodeValidation();
-    return this;
-  }
-
-  /// <summary>
   /// Builds the command arguments and executes the dotnet test command.
   /// </summary>
   /// <returns>A CommandResult for further processing</returns>
@@ -384,6 +307,12 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
     {
       arguments.Add("--output");
       arguments.Add(OutputPath);
+    }
+
+    if (!string.IsNullOrWhiteSpace(ArtifactsPath))
+    {
+      arguments.Add("--artifacts-path");
+      arguments.Add(ArtifactsPath);
     }
 
     // Add verbosity if specified
@@ -465,6 +394,8 @@ public class DotNetTestBuilder : ICommandBuilder<DotNetTestBuilder>
     {
       arguments.Add($"--property:{property.Key}={property.Value}");
     }
+
+    arguments.AddRange(ExtraArguments);
 
     DotNetBuildTelemetry.Tag("test", Configuration, Properties, Project, Options.WorkingDirectory);
     return Shell.Run("dotnet", arguments.ToArray(), Options);

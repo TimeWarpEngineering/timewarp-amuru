@@ -340,16 +340,10 @@ dotnet_diagnostic.CA1062.severity = suggestion
 dotnet_diagnostic.TWA0038.max_lines = 890
 [source/timewarp-amuru-tools/dot-net-commands/dot-net.nu-get.cs]
 dotnet_diagnostic.TWA0038.max_lines = 1801
-[source/timewarp-amuru-tools/dot-net-commands/dot-net.publish.cs]
-dotnet_diagnostic.TWA0038.max_lines = 584
 [source/timewarp-amuru-tools/dot-net-commands/dot-net.reference.cs]
 dotnet_diagnostic.TWA0038.max_lines = 515
-[source/timewarp-amuru-tools/dot-net-commands/dot-net.run.cs]
-dotnet_diagnostic.TWA0038.max_lines = 525
 [source/timewarp-amuru-tools/dot-net-commands/dot-net.sln.cs]
 dotnet_diagnostic.TWA0038.max_lines = 631
-[source/timewarp-amuru-tools/dot-net-commands/dot-net.test.cs]
-dotnet_diagnostic.TWA0038.max_lines = 528
 [source/timewarp-amuru-tools/dot-net-commands/dot-net.user-secrets.cs]
 dotnet_diagnostic.TWA0038.max_lines = 743
 [source/timewarp-amuru-tools/dot-net-commands/dot-net.watch.cs]
