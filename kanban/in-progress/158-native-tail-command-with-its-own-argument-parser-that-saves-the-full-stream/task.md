@@ -115,6 +115,7 @@ Done means the checklist is implemented, the round-1 findings, the round-2 write
 - Review oracle round 2: claude (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120. Scope: fix commit 7d50f96. Outcome: M2–M6 fixed, M1 still open for the write-failure path, fix pass requested (2026-11-28).
 - Review oracle round 3: claude (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120. Scope: fix commits 0e6183c and 3223388. Outcome: M1 fixed. New M7 (bug) is open: the full-disk test fails instead of skipping where unprivileged namespaces are unavailable. Fix pass requested (2026-11-28).
 - Fix pass after round 3: implement-fix-4. The full-disk test probes a private tmpfs and skips when that probe cannot run (2026-11-28).
+- Review oracle round 4: claude (claude-opus-5-5), body tw-implementation-review, effort 1, roster general, turn cap 80. Scope: fix commits 3e88f7a and e08614a. Outcome: M7 fixed, no new findings, disposition clean (2026-11-28).
 
 ## Review
 
@@ -124,7 +125,7 @@ Done means the checklist is implemented, the round-1 findings, the round-2 write
 - Fix pass after round 2: the saved copy's close swallows a failed flush, then the partial file is deleted. A later operand still runs.
 - Round 3: Blocked — open M7
 - Fix pass after round 3: the full-disk test probes `unshare --user --map-root-user --mount` plus a tmpfs mount. A missing `unshare`, or a probe that does not exit 0, prints one skip line and returns. The suite does not fail for that host.
-
+- Round 4: Done
 ## Notes
 
 - `head` is out of scope. Draining the stream instead of exiting early changes `pipefail`
@@ -166,3 +167,7 @@ Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This 
   - Counts: bug 1 open (M7) and 1 fixed (M1), suggestion 3 fixed, nit 2 fixed.
   - Disposition is not written. It waits for an M7 fix and round 4.
 - Fix pass after round 3 closes M7. `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` probes `unshare --user --map-root-user --mount` with a tmpfs mount before it runs the child. A missing `unshare`, a non-zero probe, a probe timeout, or a launch failure prints one skip line through `TestSkipped` and returns. The full tmpfs child still runs when the probe exits 0. Disposition waits for round 4.
+- Round 4 (effort 1, general) reviewed fix commits 3e88f7a and e08614a. Files: `review/round-4/general.md` and `review/round-4/merged.md`. M7 is fixed and there are no new findings.
+  - Final counts: bug 2 fixed (M1, M7), suggestion 3 fixed (M2–M4), nit 2 fixed (M5, M6). 0 open and 0 wontfix.
+  - Disposition: **clean**, in `review/disposition.md`. Rounds: 4. Roster: general (claude-opus-5-5) in every round. Effort by round: 3, 2, 2, 1.
+  - Residual note, not a finding: where unprivileged namespaces are blocked, which likely includes the `ubuntu-latest` CI runner, the full-disk close-path test skips. That path then has test coverage only on hosts that allow namespaces.
