@@ -455,6 +455,7 @@ Round 2 is clean. M1–M6 are fixed. No new findings.
   (it reused the recorded pass for the unchanged tree and re-ran the checks that read kanban/).
 - Reviewer round 2: general (cursor, vendor xai, model grok-4.7), session not reported, effort 2, roster general, turn cap uncapped (review budget 120), round 2 clean — 2026-11-27
 - Review oracle round 2: review by reviewer-cursor (cursor, vendor xai, model grok-4.7), session not reported, max-turns uncapped (no --max-turns flag; bound 120), artifacts `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md` — 2026-11-27
+- Installed ganda changed during this walk: was 59106328 bytes d178ae0840bcec24bbaed8d84039953055b58b7d00646f41996d514dbc0b35e6; now 59118936 bytes b2e7ca2a128c645cc027df2d49d38b5ad0fc6f18e43b6ef5d809c2af5c55a33e
 
 ## Learnings
 
