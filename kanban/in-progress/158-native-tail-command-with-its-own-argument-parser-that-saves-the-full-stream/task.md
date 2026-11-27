@@ -144,6 +144,7 @@ Expect: `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` passes. On a full 
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.full-store.cs` — passed, 1 test
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.cs` — passed, 12 tests
 - `ganda repo audit` — passed, 43 passed, 0 failed, 0 warnings
+- The product commit's post-commit `ganda repo attest` failed with `Text file busy` on `bin/dev`. This note commits so the hook runs again.
 
 Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This fix pass did not re-run `tail-parser.parse.cs`, `commands.tail.cs`, `commands.tail.follow.cs`, or `commands.tail.compare.cs`.
 
