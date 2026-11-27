@@ -102,7 +102,9 @@ A pipe whose byte or line window is too large to keep in memory spills to a temp
 
 A count that does not fit, including a decimal past `ulong.MaxValue` and a `b` suffix whose product does not fit, saturates. It is not rejected as an invalid number.
 
-Done means the checklist is implemented, the round-1 findings and the round-2 write-failure residual are covered by tests, the user docs match, and `./bin/dev build`, each touched test runfile, and `ganda repo audit` pass.
+The full-disk check is Linux-only. It runs the real save only after a probe makes a private tmpfs with `unshare --user --map-root-user --mount` and `mount -t tmpfs`. When `unshare` is missing, or that probe fails, the test prints one skip line and returns. A host that cannot create a user or mount namespace, including a stock Ubuntu runner that restricts unprivileged user namespaces, does not fail the suite. When the probe passes, a full save folder still prints the slice, removes the partial copy, and reads a later operand, for both `Commands.Tail` and `Direct.Tail`.
+
+Done means the checklist is implemented, the round-1 findings, the round-2 write-failure residual, and the round-3 namespace skip are covered, the user docs match, and `./bin/dev build`, each touched test runfile, and `ganda repo audit` pass.
 
 ## Session
 
@@ -111,6 +113,8 @@ Done means the checklist is implemented, the round-1 findings and the round-2 wr
 - Review oracle round 1: claude (claude-opus-5-5), body tw-implementation-review, effort 3, roster general, turn cap 200. The outcome was 6 open findings and a fix pass requested (2026-11-27).
 - Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 51eb38e5-ceaa-46bc-b869-4e401ae9fa11, max-turns 200, artifacts general.md, merged.md — 2026-11-27T16:33:40Z
 - Review oracle round 2: claude (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120. Scope: fix commit 7d50f96. Outcome: M2–M6 fixed, M1 still open for the write-failure path, fix pass requested (2026-11-28).
+- Review oracle round 3: claude (claude-opus-5-5), body tw-implementation-review, effort 2, roster general, turn cap 120. Scope: fix commits 0e6183c and 3223388. Outcome: M1 fixed. New M7 (bug) is open: the full-disk test fails instead of skipping where unprivileged namespaces are unavailable. Fix pass requested (2026-11-28).
+- Fix pass after round 3: implement-fix-4. The full-disk test probes a private tmpfs and skips when that probe cannot run (2026-11-28).
 
 ## Review
 
@@ -118,6 +122,9 @@ Done means the checklist is implemented, the round-1 findings and the round-2 wr
 - Fix pass after round 1: M1–M6 are implemented on this branch.
 - Round 2: Blocked — open M1
 - Fix pass after round 2: the saved copy's close swallows a failed flush, then the partial file is deleted. A later operand still runs.
+- Round 3: Blocked — open M7
+- Fix pass after round 3: the full-disk test probes `unshare --user --map-root-user --mount` plus a tmpfs mount. A missing `unshare`, or a probe that does not exit 0, prints one skip line and returns. The suite does not fail for that host.
+
 ## Notes
 
 - `head` is out of scope. Draining the stream instead of exiting early changes `pipefail`
@@ -138,15 +145,13 @@ Comparison on this machine is uutils tail 0.10.0. The equality tests skip live `
 
 Smoke: `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.full-store.cs`
 
-Expect: `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` passes. On a full tmpfs the slice is `20` and a newline, then `keep` and a newline, the exit code is 0, stderr is empty, and no `tail-*` file remains. The same holds for `Direct.Tail`, and the file operand after stdin is still read.
+Expect: `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` passes. On a full tmpfs the slice is `20` and a newline, then `keep` and a newline, the exit code is 0, stderr is empty, and no `tail-*` file remains. The same holds for `Direct.Tail`, and the file operand after stdin is still read. When `unshare` is missing, or `unshare --user --map-root-user --mount` cannot mount a tmpfs, the test prints one skip line (`unshare is not installed`, or `unprivileged user and mount namespaces are not available`) and passes without running that child.
 
 - `./bin/dev build` — passed, 0 warnings, 0 errors
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.full-store.cs` — passed, 1 test
-- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.cs` — passed, 12 tests
 - `ganda repo audit` — passed, 43 passed, 0 failed, 0 warnings
-- The product commit's post-commit `ganda repo attest` failed with `Text file busy` on `bin/dev`. This note commits so the hook runs again.
 
-Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This fix pass did not re-run `tail-parser.parse.cs`, `commands.tail.cs`, `commands.tail.follow.cs`, or `commands.tail.compare.cs`.
+Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This fix pass edited only `commands.tail.save.full-store.cs`. It did not re-run `commands.tail.save.cs`, `tail-parser.parse.cs`, `commands.tail.cs`, `commands.tail.follow.cs`, or `commands.tail.compare.cs`. A PATH that shadows `unshare` with a script that exits 1 prints the namespace skip and passes. A PATH with no `unshare` prints the missing-binary skip and passes.
 
 ### Review
 
@@ -155,3 +160,8 @@ Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This 
 - The fix pass implements M1–M6. Disposition is still pending. Round 2 re-reviews this branch. `review/disposition.md` is not written yet.
 - Round 2 (effort 2, general) reviewed fix commit 7d50f96. Files: `review/round-2/general.md` and `review/round-2/merged.md`. Counts: 1 bug open (M1), 3 suggestions fixed (M2–M4), 2 nits fixed (M5, M6).
 - Fix pass after round 2 closes M1's write-failure path. `CopyStream.Dispose` swallows `IOException` and `UnauthorizedAccessException`, so a second flush during close does not escape `finally`. The partial file is deleted and a later operand still runs. `commands.tail.save.full-store.cs` drives that path on a full tmpfs for `Commands.Tail` and `Direct.Tail`. Disposition waits for round 3.
+- Round 3 (effort 2, general) reviewed fix commits 0e6183c and 3223388. Files: `review/round-3/general.md` and `review/round-3/merged.md`. M1 is fixed.
+  - New M7 (bug, open): `commands.tail.save.full-store.cs` runs `unshare --user --map-root-user --mount` on every Linux host and asserts exit 0. It fails instead of skipping where unprivileged user or mount namespaces are unavailable. That includes the Ubuntu 24.04 `ubuntu-latest` CI runner (AppArmor restriction) and containers.
+  - Counts: bug 1 open (M7) and 1 fixed (M1), suggestion 3 fixed, nit 2 fixed.
+  - Disposition is not written. It waits for an M7 fix and round 4.
+- Fix pass after round 3 closes M7. `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` probes `unshare --user --map-root-user --mount` with a tmpfs mount before it runs the child. A missing `unshare`, a non-zero probe, a probe timeout, or a launch failure prints one skip line through `TestSkipped` and returns. The full tmpfs child still runs when the probe exits 0. Disposition waits for round 4.

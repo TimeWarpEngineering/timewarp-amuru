@@ -8,6 +8,9 @@
 // The copy is a buffered FileStream. A full disk accepts the create, buffers the
 // write, then throws from Flush and again from Dispose. The child runs inside a
 // user and mount namespace so the tiny tmpfs is not this process's disk.
+// The parent probes that namespace with unshare and a tmpfs mount first. A missing
+// unshare, or a probe that does not exit 0, prints one skip line and returns.
+// A host that blocks unprivileged user or mount namespaces does not fail the run.
 #endregion
 
 #if !JARIBU_MULTI
@@ -42,6 +45,13 @@ public class FullStore_Given_
   {
     if (!OperatingSystem.IsLinux())
     {
+      return;
+    }
+
+    string? skip = await PrivateTmpfsSkipReason();
+    if (skip is not null)
+    {
+      TimeWarp.Jaribu.TestHelpers.TestSkipped(TimeWarpTerminal.Default, skip);
       return;
     }
 
@@ -150,6 +160,40 @@ public class FullStore_Given_
     }
 
     return stream.ToArray();
+  }
+
+  private const string PrivateTmpfsProbeScript =
+    "d=$(mktemp -d) || exit 1; mount -t tmpfs -o size=8192 tmpfs \"$d\"; status=$?; umount \"$d\" 2>/dev/null; rm -rf \"$d\"; exit $status";
+
+  private const string NamespaceSkip = "unprivileged user and mount namespaces are not available";
+
+  private static async Task<string?> PrivateTmpfsSkipReason()
+  {
+    if (PathResolver.ResolveExecutable("unshare") is null)
+    {
+      return "unshare is not installed";
+    }
+
+    try
+    {
+      CommandOutput probe = await Shell.Builder("unshare")
+        .WithArguments("--user", "--map-root-user", "--mount", "sh", "-c", PrivateTmpfsProbeScript)
+        .WithNoValidation()
+        .WithTimeout(TimeSpan.FromSeconds(30))
+        .CaptureAsync();
+      if (probe.ExitCode == 0 && !probe.TimedOut)
+      {
+        return null;
+      }
+    }
+    catch (Exception exception) when (exception is System.ComponentModel.Win32Exception
+      or IOException
+      or CliWrap.Exceptions.CliWrapException)
+    {
+      return NamespaceSkip;
+    }
+
+    return NamespaceSkip;
   }
 
   private static string NewDirectory()
