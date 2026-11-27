@@ -10,7 +10,7 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 654
+- Lines changed: 530
 - Effort: 2
 - TCB hits: none
 - Roster axes: general
@@ -26,3 +26,12 @@
 - Exception: one targeted command may check one suspected bug; the finding names the command and the reason. A full build, full test run, or audit is never that command
 - A missing or thin recorded result is a finding, not a reason to run the gates
 - Prior rounds are immutable; new work goes in `round-(N+1)/`
+
+## Round 2
+
+**Date:** 2026-11-27
+**Diff scope:** `1240328..2587ab9` (fix pass for M1–M6): `research/proto-tail.sh`, `research/slice-forms-scan.py`, `research/rerun-after-cut-scan.py`, `research/readme.md`, and the Q1/Q3/Q5/Q8/Q9 numbers in `task.md`. Round 1 files were not rewritten.
+**Plan / brief:** Re-verify M1–M6 on that delta. Scan the fix for new defects.
+**Effort:** 2
+**Reviewer roster:** general
+**Session IDs:** reviewer session not reported (grok-4.7). The budget line above (530) is this delta.

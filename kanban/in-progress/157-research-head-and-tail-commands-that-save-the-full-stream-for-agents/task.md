@@ -429,6 +429,15 @@ Fix-pass gate results:
   exit 0, numbers as in Q8 and Q9.
 - `ganda repo audit`: recorded under `## Session`.
 
+### Review disposition
+
+Round 2 is clean. M1–M6 are fixed. No new findings.
+
+- Rounds: 2. Roster: general. Effort: 2. Turn cap: uncapped in this session (review budget 120).
+- Final counts: bug 0 open, 4 fixed, 0 wontfix. Suggestion 0. Nit 0 open, 2 fixed, 0 wontfix.
+- Disposition: clean (`review/disposition.md`).
+- Paths: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Created: f616d67d-0c1e-4d2d-afe5-e4a3068beb00 (2026-11-19), from a timewarp-ganda session
@@ -444,6 +453,8 @@ Fix-pass gate results:
   re-ran them with `--until 2026-11-27`, replaced the Q1, Q3, Q5, Q8, and Q9 numbers.
   `./bin/dev build` exit 0. Final `ganda repo audit`: exit 0, 10 passed, 0 failed, 1 skipped
   (it reused the recorded pass for the unchanged tree and re-ran the checks that read kanban/).
+- Reviewer round 2: general (cursor, vendor xai, model grok-4.7), session not reported, effort 2, roster general, turn cap uncapped (review budget 120), round 2 clean — 2026-11-27
+- Review oracle round 2: review by reviewer-cursor (cursor, vendor xai, model grok-4.7), session not reported, max-turns uncapped (no --max-turns flag; bound 120), artifacts `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md` — 2026-11-27
 
 ## Learnings
 
@@ -452,7 +463,7 @@ The restatement adds "No product code changes." The task asks for the recommenda
 ## Review
 
 - Round 1: Blocked — open M1, M2, M3, M4, M5, M6
-
+- Round 2: Done
 ## Notes
 
 - A PATH shim is the only way to catch `| tail`. The pipe is made by the shell, so the
