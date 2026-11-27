@@ -6,7 +6,8 @@
 // Thin renames so scripts can `global using static` bash names.
 // Rm keeps separate recursive/force bools for 1.0 compatibility; a flags enum is deferred.
 // New verbs (Cp/Mv/Mkdir/Touch/Test/Find/Stat) wrap the 1.1 FileSystem operations.
-// Grep and Sed wrap Text.SelectString and Text.ReplaceInFiles. Awk stays out: no caller.
+// Grep and Sed wrap Text.SelectString and Text.ReplaceInFiles. Tail wraps Text.Tail.
+// Awk stays out: no caller.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Aliases;
@@ -225,6 +226,30 @@ public static class Bash
     Text.ReplaceInFilesOptions? options = null,
     CancellationToken cancellationToken = default) =>
     Text.Direct.ReplaceInFiles(pattern, replacement, path, options, cancellationToken);
+
+  /// <summary>
+  /// Prints the tail of files or stdin (Commands version — exact stdout bytes).
+  /// </summary>
+  public static Text.TailOutput Tail(params string[] arguments) =>
+    Text.Commands.Tail(arguments);
+
+  /// <summary>
+  /// Prints the tail of <paramref name="paths"/> (Commands version — exact stdout bytes).
+  /// </summary>
+  public static Text.TailOutput Tail(Text.TailOptions options, params string[] paths) =>
+    Text.Commands.Tail(options, paths);
+
+  /// <summary>
+  /// Writes the tail to caller-supplied streams (Direct version).
+  /// </summary>
+  public static Text.TailRunResult TailDirect(
+    Text.TailOptions options,
+    IReadOnlyList<string> paths,
+    Stream standardInput,
+    Stream standardOutput,
+    Stream standardError,
+    CancellationToken cancellationToken = default) =>
+    Text.Direct.Tail(options, paths, standardInput, standardOutput, standardError, cancellationToken);
 
   // public static CommandOutput Awk(string script, string input) =>
   //   Text.Commands.ProcessText(script, input);
