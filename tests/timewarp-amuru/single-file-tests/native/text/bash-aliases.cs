@@ -1,7 +1,7 @@
 #!/usr/bin/env -S dotnet --
 
 #region Purpose
-// Bash.Grep, GrepDirect, Sed, and SedDirect forward to the native text commands.
+// Bash.Grep, GrepDirect, Sed, SedDirect, Tail, and TailDirect forward to the native text commands.
 #endregion
 
 #region Design
@@ -15,6 +15,7 @@ return await RunAllTests();
 
 namespace TextBash_
 {
+using System.Text;
 
 [TestTag("Native")]
 public class Aliases_Given_
@@ -95,6 +96,72 @@ public class Aliases_Given_
       results.Count.ShouldBe(1);
       results[0].Changed.ShouldBeTrue();
       (await File.ReadAllTextAsync(path)).ShouldBe("beta\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task Tail_Should_ReturnTheSlice()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "a\nb\nc\n");
+      TimeWarp.Amuru.Native.Text.TailOutput result = Tail("-n", "1", path);
+
+      result.ExitCode.ShouldBe(0);
+      result.StdoutText.ShouldBe("c\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task TailOptions_Should_UseTheAlias()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "a\nb\nc\n");
+      TimeWarp.Amuru.Native.Text.TailOptions options = new()
+      {
+        Measure = TimeWarp.Amuru.Native.Text.TailMeasure.LastBytes(2)
+      };
+      TimeWarp.Amuru.Native.Text.TailOutput result = Tail(options, path);
+
+      result.StdoutText.ShouldBe("c\n");
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task TailDirect_Should_WriteTheSlice()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string path = await WriteAsync(directory, "notes.txt", "a\nb\nc\n");
+      using MemoryStream stdout = new();
+      using MemoryStream stderr = new();
+      TimeWarp.Amuru.Native.Text.TailOptions options = new()
+      {
+        Measure = TimeWarp.Amuru.Native.Text.TailMeasure.LastLines(1)
+      };
+      TimeWarp.Amuru.Native.Text.TailRunResult result = TailDirect(
+        options,
+        [path],
+        Stream.Null,
+        stdout,
+        stderr);
+
+      result.ExitCode.ShouldBe(0);
+      Encoding.UTF8.GetString(stdout.ToArray()).ShouldBe("c\n");
+      stderr.Length.ShouldBe(0);
     }
     finally
     {

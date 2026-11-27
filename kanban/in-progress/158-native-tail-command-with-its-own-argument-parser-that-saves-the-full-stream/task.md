@@ -75,16 +75,30 @@ truncation. No `-F` rotation handling, no `--pid`, no `-s`. Those are errors tha
 
 ## Checklist
 
-- [ ] Options record and parser, with a test per accepted form above
-- [ ] Line slice and byte slice from a stream and from a file
-- [ ] Multiple files, headers, `-q`, `-v`, `-z`
-- [ ] Stream save, the stderr note, cap, and cleanup
-- [ ] Polling `-f`
-- [ ] Comparison tests: for each accepted form, stdout and exit code equal the system `tail`
+- [x] Options record and parser, with a test per accepted form above
+- [x] Line slice and byte slice from a stream and from a file
+- [x] Multiple files, headers, `-q`, `-v`, `-z`
+- [x] Stream save, the stderr note, cap, and cleanup
+- [x] Polling `-f`
+- [x] Comparison tests: for each accepted form, stdout and exit code equal the system `tail`
       on the same input (skip a form the system `tail` on that OS does not have)
-- [ ] `x=$(seq 100 | tail -1)` style capture gets only the slice
-- [ ] Bash alias in `native/aliases/bash.cs` if the other native commands have one
-- [ ] User documentation for the command and the options record
+- [x] `x=$(seq 100 | tail -1)` style capture gets only the slice
+- [x] Bash alias in `native/aliases/bash.cs` if the other native commands have one
+- [x] User documentation for the command and the options record
+
+## Goal (implementer restatement)
+
+Amuru grows a native `Tail` next to `SelectString` and `ReplaceInFiles`. It is a real tail, not a call to the system binary: the same bytes and exit codes on Linux, macOS, and Windows, and a C# caller can pass a typed options value instead of argv.
+
+The parser accepts the forms agents actually type (`-40`, `-n 20`, `-n+5`, `--lines=10`, `-c 1K`, `-q`, `-v`, `-z`, `-f`, bundled shorts, files before or after options, `--`). A repeated option keeps the last value. `--help` and `--version` come back as flags and are not printed here. An unknown option, and `-F`, `--pid`, and `-s`, fail with text that names what is wrong. Nothing falls through to another `tail`.
+
+Slicing works on bytes. A final line with no newline still counts. A file is read from the end, not loaded whole. Several files get `==> name <==` headers; `-q` and `-v` turn those off or on. A missing or unreadable file uses an exit code and a message an agent would recognize from GNU tail.
+
+When the input is a pipe and the request is "last N lines", the whole stream is saved under `<temp>/tw-agent-streams/<user>/` while the slice is printed. If lines were dropped, stderr gets one line pointing at that file. If nothing was dropped, the file is removed and stderr stays quiet. stdout stays the same bytes as system tail. The save stops at 64 MiB and says so. Files older than 24 hours are removed, and that sweep runs at most once an hour. The save is a flag on the options, so an in-process caller can turn it off.
+
+`-f` polls one or more files, prints bytes that appear, and notices truncation. It does not follow renames, a pid, or a custom sleep from argv.
+
+Done means the checklist below is implemented, user docs describe the command and the options type, the bash alias exists, and the build, the new test files, and `ganda repo audit` pass.
 
 ## Session
 
@@ -99,3 +113,26 @@ truncation. No `-F` rotation handling, no `--pid`, no `-s`. Those are errors tha
 - timewarp-ganda 731 needs this in a released Amuru package. Cutting that release waits for
   Steve's ask.
 - Research and numbers: `kanban/done/157-research-head-and-tail-commands-that-save-the-full-stream-for-agents/task.md`.
+
+## Results
+
+Native `Tail` lives under `source/timewarp-amuru/native/text/`. `TailParser` owns the argv grammar. `Commands.Tail` returns the stdout bytes. `Direct.Tail` writes caller streams. A non-seekable last-N-lines read saves the pipe under `<temp>/tw-agent-streams/<user>/` and, when lines were cut, writes one stderr line with that path. `-f` polls. `-F`, `--pid`, and `-s` are errors. `Commands.Tail` does not open the process standard input; the caller passes the stream. A bare `-N` or `+N` is digits only. A `+` token that is not a count is a file name. No package version bump.
+
+Comparison on this machine is uutils tail 0.10.0. The equality tests skip live `-f` on a file, `--pid`, `-s`, `-F`, `--help`, `--version`, and bare `+0`. uutils prints nothing for `+0` and the whole file for `-n +0`. Tail follows `-n +0`.
+
+### How to validate
+
+Smoke: `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.cs`
+
+Expect: the pipe-capture test passes. Stdout is `100` and a newline, and does not contain the note. Stderr contains `tail: showed last 1 of 100 lines; full output:` and the saved name matches `tail-<utc>-<pid>-<suffix>`.
+
+- `./bin/dev build` — passed, 0 warnings, 0 errors
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/tail-parser.parse.cs` — passed, 48 tests
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.cs` — passed, 19 tests
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.cs` — passed, 10 tests
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.follow.cs` — passed, 5 tests
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.compare.cs` — passed, 8 tests
+- `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/bash-aliases.cs` — passed, 7 tests
+- `ganda repo audit` — passed, 42 passed, 0 failed, 1 warning (`vscode-window-icon`, already present)
+
+Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`).

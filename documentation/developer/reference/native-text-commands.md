@@ -1,6 +1,6 @@
 # Native text commands
 
-`SelectString` and `ReplaceInFiles` live in `TimeWarp.Amuru.Native.Text`. They follow the file-system split: `Direct` returns typed results and throws, `Commands` returns `CommandOutput` and does not throw. Bash aliases are `Grep` / `GrepDirect` and `Sed` / `SedDirect`.
+`SelectString`, `ReplaceInFiles`, and `Tail` live in `TimeWarp.Amuru.Native.Text`. Select and replace follow the file-system split: `Direct` returns typed results and throws, `Commands` returns `CommandOutput` and does not throw. `Tail` is a byte filter, so both layers keep the raw bytes: `Commands.Tail` returns `TailOutput` and `Direct.Tail` writes the caller's streams. Bash aliases are `Grep` / `GrepDirect`, `Sed` / `SedDirect`, and `Tail` / `TailDirect`.
 
 Input is one path, a sequence of paths, or a directory plus a glob. A sequence is checked before any work starts: a null or blank entry makes `Direct` throw `ArgumentException` and makes `Commands` return an error exit code, and no file is read or written. Globs go through `FindItem` and `FindCriteria`. A name-only glob matches the file name. A glob that contains a slash or `**` matches the relative path. `Include` and `Exclude` on the options are extra filters of the same kind.
 
@@ -29,3 +29,54 @@ Decoding is strict. A file that is not valid text in its detected encoding (for 
 The write is atomic: a temp file in the same directory, then a move over the original. The temp file is removed if the move fails. A symlink is followed to its final target, like `sed --follow-symlinks`: the target is rewritten (temp file in the target's directory) and the link stays a link. With `Backup`, the `.bak` goes beside the link path that was passed in (`link.bak`), not beside the target, and it is a regular file holding the target's old contents. A hard link is split, because the move replaces the directory entry. Only the Unix mode is copied to the new file; owner, ACLs, and extended attributes are not.
 
 `Commands.ReplaceInFiles` writes `path: N replacement(s)` for each changed file, including a dry run. Exit code 0 means the walk finished, even when nothing matched. Exit code 1 means a regex or I/O error. A missing input path, an unreadable directory, or a file that cannot be read or decoded is written to stderr as `ReplaceInFiles: <path>: <reason>`. The walk continues, and stdout still lists every file already changed.
+
+## Tail
+
+`Tail` is a byte-for-byte `tail`. It does not call the system binary. The same slice is produced on Linux, macOS, and Windows. `TailParser.Parse` turns an argument vector into a `TailOptions` value and the file operands. An in-process caller builds `TailOptions` directly and skips the parser. `Commands.Tail` and `Direct.Tail` do not open the process standard input. Pass the stream when an operand reads stdin.
+
+`TailOptions.Measure` is a `TailMeasure`: a unit (lines or bytes), a count, and whether the count starts at the beginning. The default is the last 10 lines. `Headers` is `Auto` (a header only when there is more than one operand), `Never` (`-q`), or `Always` (`-v`). `ZeroTerminated` uses NUL as the line delimiter (`-z`). `Follow` polls files (`-f`). `SaveStream` defaults to on.
+
+### Argument forms
+
+The parser accepts:
+
+- `-N`, `-n N`, `-nN`, `--lines N`, `--lines=N` for the last N lines. A bare `-N` or `+N` is digits only
+- no arguments, which reads stdin and keeps the last 10 lines
+- `-n +N`, `--lines=+N`, and a bare `+N` to start at line N (1-based). `+0` starts at the first line. A `+` token that is not a count, such as `+1a`, is a file name
+- `-c N`, `-cN`, `--bytes N`, `--bytes=N`, and `-c +N` for bytes. A leading `-` on the number means from the end
+- size suffixes: `b` is 512, `K` / `KiB` is 1024, `KB` is 1000, and the same pattern for M, G, T, P, E, Z, and Y. A count that overflows saturates
+- `-q` / `--quiet` / `--silent`, `-v` / `--verbose`, `-z` / `--zero-terminated`
+- `-f` / `--follow` / `--follow=descriptor`
+- bundled short flags, such as `-fn 20` and `-qn 5`
+- file operands before or after options. `-` is stdin. `--` ends options
+- a repeated option keeps the last value
+
+`--help` and `--version` set `TailOptions.Help` and `TailOptions.Version` and stop the parse. Tail does not print help or a version string.
+
+An unknown option is an error that lists the supported forms. `-F`, `--follow=name`, `--pid`, and `-s` / `--sleep-interval` are errors that name the missing behavior. Nothing falls through to another `tail`.
+
+### Slice
+
+The slice is bytes. A final line with no newline counts as a line. Binary input is copied unchanged. For a last-N request on a seekable file, Tail seeks from the end and does not read the file whole. A from-start request reads forward and does not buffer the skipped prefix.
+
+Several operands print headers of the form `==> name <==`. A blank line separates a header from the previous operand. Stdin is named `standard input`. `-q` suppresses headers. `-v` prints them even for one operand. With no flag, headers appear only when there is more than one operand.
+
+A missing file writes `tail: cannot open '<path>' for reading: No such file or directory` and continues. Permission denied and a directory use the same shape an agent expects from GNU tail. The exit code is 1 when any operand fails, and 0 otherwise.
+
+`TailOutput.Stdout` and `Stderr` are the exact bytes. `StdoutText` is the UTF-8 view of those bytes.
+
+### Saved stdin
+
+When stdin cannot be seeked (a pipe), the request is the last N lines, `SaveStream` is on, and follow is off, Tail copies the pipe into `<temp>/tw-agent-streams/<user>/` while it builds the slice. The file name carries a UTC stamp, the process id, and a random suffix. On Unix the directory is mode `0700` and the file is mode `0600`.
+
+If lines were dropped, stderr gains one line:
+
+```text
+tail: showed last N of M lines; full output: <path>
+```
+
+stdout stays the slice alone, so a capture of stdout does not include the note. If nothing was dropped, the file is deleted and stderr is unchanged. The copy stops at `SaveLimit` (64 MiB unless the caller sets another positive limit) and the note then ends with `(stopped at 64 MiB)`. Files in that folder last written more than 24 hours ago are deleted, and that check runs at most once an hour. `StreamDirectory` overrides the folder.
+
+### Follow
+
+`-f` prints the initial slice, then polls each regular file until the cancellation token fires. Bytes appended after the slice are written. When a file shrinks, stderr gets `tail: <path>: file truncated` and the new contents are written from the start. The poll interval is `FollowInterval` (one second unless the caller changes it). The command line cannot set it. A pipe is read until it closes and is not polled. Follow of a file requires a cancellation token. Rotation (`-F`), `--pid`, and `-s` are rejected by the parser.

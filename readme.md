@@ -190,7 +190,7 @@ string selectedFile = await Fzf.Builder()
 - **Cross-Platform**: Works on Windows, Linux, and macOS (including `.cs` script execution on Windows via the dotnet host)
 - **Interactive Commands**: `PassthroughAsync()` for stream-based tools, `TtyPassthroughAsync()` for TUI apps (vim, nano), `SelectAsync()` for selection tools
 - **.NET 11 Script Support**: AppContext extensions and ScriptContext for file-based apps
-- **Native text**: `SelectString` (grep) and `ReplaceInFiles` (in-place replace) under `TimeWarp.Amuru.Native.Text`, with `Grep` / `Sed` bash aliases. See [Native text commands](documentation/developer/reference/native-text-commands.md)
+- **Native text**: `SelectString` (grep), `ReplaceInFiles` (in-place replace), and `Tail` under `TimeWarp.Amuru.Native.Text`, with `Grep` / `Sed` / `Tail` bash aliases. See [Native text commands](documentation/developer/reference/native-text-commands.md)
 
 ## Output Handling
 
@@ -479,7 +479,7 @@ See our [Architectural Decision Records](documentation/conceptual/architectural-
 ## Documentation
 
 - **[Documentation overview](documentation/overview.md)** - Entry point to conceptual, developer, and user docs
-- **[Native text commands](documentation/developer/reference/native-text-commands.md)** - `SelectString` and `ReplaceInFiles`
+- **[Native text commands](documentation/developer/reference/native-text-commands.md)** - `SelectString`, `ReplaceInFiles`, and `Tail`
 - **[Migration Guide](analysis/migration-guide.md)** - Guide for migrating from older versions
 - **[command-extensions.cs](source/timewarp-amuru/core/command-extensions.cs)** - Collocated command construction design documentation
 - **[command-result.cs](source/timewarp-amuru/core/command-result.cs)** - Collocated command execution design documentation
