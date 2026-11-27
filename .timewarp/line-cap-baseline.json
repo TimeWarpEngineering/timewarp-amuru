@@ -1,5 +1,10 @@
 {
   "files": {
+    ".agent/workspace/2025-12-11T16-45-00_issue-39-tty-passthrough-analysis.md": 526,
+    "documentation/conceptual/architectural-layers.md": 976,
+    "documentation/developer/progressive-enhancement-pattern.md": 1414,
+    "documentation/user/installation.md": 593,
+    "readme.md": 509,
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.new.cs": 890,
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.nu-get.cs": 1801,
     "source/timewarp-amuru-tools/dot-net-commands/dot-net.reference.cs": 515,
