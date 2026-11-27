@@ -10,6 +10,8 @@
 // Cleanup runs at most once an hour and deletes tail-* files last written more than 24 hours ago.
 // The stamp is touched before the scan so overlapping processes do not both sweep.
 // A failure to create, tighten, stamp, or open the file returns no stream. The caller slices without a copy.
+// The copy is a FileStream whose close swallows a failed flush. A full disk flushes again
+// on close, and that throw would skip deleting the partial file.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -60,7 +62,7 @@ internal static class TailStore
         file.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
       }
 
-      stream = new FileStream(path, file);
+      stream = new CopyStream(path, file);
       return true;
     }
     catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -179,6 +181,25 @@ internal static class TailStore
     File.SetUnixFileMode(
       path,
       UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+  }
+
+  private sealed class CopyStream : FileStream
+  {
+    public CopyStream(string path, FileStreamOptions options)
+      : base(path, options)
+    {
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+      try
+      {
+        base.Dispose(disposing);
+      }
+      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      {
+      }
+    }
   }
 
   private static void TightenFile(string path)

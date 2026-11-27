@@ -9,7 +9,9 @@
 // The save runs only for a non-seekable stdin last-N-lines read. Seekable stdin is a
 // redirect of a file that already exists, so it is sliced from the end and not copied.
 // The save is best effort. A failure to create the store or to write the copy leaves
-// stdout and the exit code alone, and a partial file is removed.
+// stdout and the exit code alone, and a partial file is removed. The copy stream
+// swallows a close that flushes again after that failed write, so this finally still
+// deletes the partial file and later operands are not skipped.
 // Follow polls regular files. When headers are on and the next bytes come from a
 // different file, that file's header is written first. A pipe is read until it closes.
 // -F is not implemented, so a replaced path is not reopened.
@@ -214,6 +216,7 @@ internal static class TailEngine
     }
     finally
     {
+      // CopyStream swallows a failed flush on close so the delete below still runs.
       capture?.Dispose();
       saved?.Dispose();
       if (save && !keep && path is not null)

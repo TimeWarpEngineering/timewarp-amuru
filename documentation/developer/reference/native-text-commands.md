@@ -67,7 +67,7 @@ A missing file writes `tail: cannot open '<path>' for reading: No such file or d
 
 ### Saved stdin
 
-When stdin cannot be seeked (a pipe), the request is the last N lines, `SaveStream` is on, and follow is off, Tail copies the pipe into `<temp>/tw-agent-streams/<user>/` while it builds the slice. The file name carries a UTC stamp, the process id, and a random suffix. On Unix, when this process creates the shared parent `<temp>/tw-agent-streams`, that directory is mode `01777` so each user can create a folder under it. The per-user folder is mode `0700` and the file is mode `0600`. Creating the folder, setting those modes, writing the cleanup stamp, and writing the copy are best effort. When one of them fails, Tail still prints the slice, deletes a partial copy, and writes no note.
+When stdin cannot be seeked (a pipe), the request is the last N lines, `SaveStream` is on, and follow is off, Tail copies the pipe into `<temp>/tw-agent-streams/<user>/` while it builds the slice. The file name carries a UTC stamp, the process id, and a random suffix. On Unix, when this process creates the shared parent `<temp>/tw-agent-streams`, that directory is mode `01777` so each user can create a folder under it. The per-user folder is mode `0700` and the file is mode `0600`. Creating the folder, setting those modes, writing the cleanup stamp, and writing the copy are best effort. When one of them fails, Tail still prints the slice, deletes a partial copy, and writes no note. Closing the copy is part of that path: a flush during close does not become an error and does not skip later operands.
 
 If lines were dropped, stderr gains one line:
 
