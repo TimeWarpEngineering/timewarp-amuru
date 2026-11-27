@@ -99,10 +99,10 @@ throwaway prototype are under `research/` in this folder (`research/readme.md`).
 - Put it on PATH through the agent `BASH_ENV` that ganda already sets for every harness child.
   It never reaches Steven's terminal or CI.
 - Drop `head`. Replacing it changes pipeline behaviour (upstream keeps running, `pipefail`
-  status changes), and the re-run data is mostly about `tail` (88 of 106 cases).
+  status changes), and the re-run data is mostly about `tail` (139 of 169 cases).
 
-Why build anything: re-runs after a cut are real but small. They cost about 85 minutes of
-re-run time in 80 days, 92 of the 106 cases in November. Task 683 already removes the
+Why build anything: re-runs after a cut are real but small. They cost about 119 minutes of
+re-run time in 79 days, 148 of the 169 cases in November. Task 683 already removes the
 `ganda repo audit` share. The tail shim is cheap, has no measurable startup cost, and keeps
 stdout byte-identical by construction. So it pays for itself, but only in this small form.
 
@@ -130,14 +130,16 @@ Task titles:
 
 ### Evidence base
 
-- Claude transcripts: 3,831 `.jsonl` files under `$CLAUDE_CONFIG_DIR/projects`, 2026-09-09 to
-  2026-11-27 (about 80 days). Headless walk workers run Claude in print mode and write their
-  transcripts there too, so walks are included. There are 72,326 unique Bash calls, deduped
-  by tool-use id (the raw files repeat about 30% of them). 42,070 calls (58%) use `head` or
-  `tail`.
-- Walk oracle logs: `~/.timewarp/ganda/walks` has only 20 `oracle-*.log` files. The workers'
-  commands are in the Claude transcripts above, so they were not counted again. Grok and
-  OpenCode transcripts were not scanned.
+- Claude transcripts: the `.jsonl` files under `$CLAUDE_CONFIG_DIR/projects`, Bash calls from
+  2026-09-09 to 2026-11-26 (79 days). Both scripts take `--until 2026-11-27`, so later
+  transcripts do not move the numbers. Headless walk workers run Claude in print mode and
+  write their transcripts there too, so walks are included. There are 71,281 unique Bash
+  calls, deduped by tool-use id (the raw files repeat about 30% of them). 41,466 calls (58%)
+  use `head` or `tail`.
+- Walk oracle logs: `find ~/.timewarp/ganda/walks -name 'oracle-*.log' | wc -l` printed 522 on
+  2026-11-27. These files hold the oracle result JSON plus `ORACLE_EXIT`, not the workers'
+  Bash commands. Those commands are in the Claude transcripts above, so they were not counted
+  again. Grok and OpenCode transcripts were not scanned.
 - On this machine `/usr/bin/head` and `/usr/bin/tail` are **uutils coreutils 0.10.0** (Rust),
   not GNU. The "real tool" differs from machine to machine, which is one more reason never to
   reimplement the slice.
@@ -145,11 +147,16 @@ Task titles:
 ### Q1. Does stdout stay identical?
 
 Yes, by construction, if the shim prints the slice by running the real `tail -n N` on the
-saved file. Checked with `research/proto-tail.sh`:
+saved file. Checked with `research/proto-tail.sh` symlinked onto `PATH` as `tail`, with
+`TMPDIR` set to an empty folder:
 
 - `x=$(seq 100 | tail -1)` gives `100`. The note is on stderr, so a capture does not see it.
-- If nothing was cut (`seq 3 | tail -5`), there is no file and no note.
+  One `stream.*` file stays in `TMPDIR`.
+- If nothing was cut (`seq 3 | tail -5`), the prototype prints all three lines, writes no
+  note, and removes its `stream.*` file before it exits. `TMPDIR` is empty afterwards.
 - File arguments (`tail -3 in.txt`) go to the real binary unchanged.
+- A last line with no newline (`printf 'a\nb\nc' | tail -2`) is counted as a line, as the
+  real `tail` does (the prototype counts with `awk`, not `wc -l`).
 
 What breaks is any place where the shim's own stderr is merged into captured stdout:
 
@@ -158,16 +165,17 @@ What breaks is any place where the shim's own stderr is merged into captured std
 - `cmd | tail -2 > out.txt 2>&1`: the note lands in the file.
 - A caller that treats any stderr as failure.
 
-In the transcripts this is rare. 5 commands put `2>&1` on the slice itself, 4 wrap the slice
-in a group and then use `2>&1`, and 1 capture has `2>&1` inside. Out of 39,535 commands with a
-piped slice, 2,107 capture a slice with `$( … )`, and all of those are unaffected. `cmd 2>&1 |
+In the transcripts this is rare (`slice-forms-scan.py`, the `Q1 …` counters, head and tail
+together). 13 calls put `2>&1` on the slice itself, 1 wraps the slice in a group or subshell
+and then uses `2>&1`, and 1 capture has `2>&1` inside. Out of 38,956 calls with a piped slice,
+2,088 capture a slice with `$( … )`. Only that one capture with `2>&1` inside is affected. `cmd 2>&1 |
 tail -40` (the common agent form) is fine: that `2>&1` is on `cmd`. The harness merges stdout
 and stderr in the tool result, so the agent sees the note.
 
 `pipefail`: the real `head` makes upstream die with SIGPIPE. With `set -o pipefail`,
 `yes | head -1` and `git log | head -1` (ganda, 8,680 commits) both return 141. A head that
 drains changes that to 0. The real `tail` reads to the end anyway, so a tail shim does not
-change it. 65 commands set `pipefail`.
+change it. 94 calls set `pipefail`.
 
 ### Q2. Early exit
 
@@ -189,24 +197,26 @@ reason to drop `head`.
 
 ### Q3. Which invocations are ours?
 
-Counted in the transcripts (`research/slice-forms-scan.py`), all piped or unpiped uses:
+Counted in the transcripts (`research/slice-forms-scan.py`, the `-- forms (Q3)` lines), all
+piped or unpiped uses:
 
 | Form | Count | Ours? |
 |---|---|---|
-| `\| head -N` | 31,326 | head (dropped) |
-| `\| tail -N` | 15,006 | **yes** |
-| `\| head` (no args, 10 lines) | 13,542 | head (dropped) |
-| `tail -N FILE` / `tail FILE` (no pipe) | 3,618 | no, real |
-| `head … FILE` (no pipe) | 1,815 | no, real |
-| `-c` (head and tail, all) | 708 | no, real |
+| `\| head -N` | 30,855 | head (dropped) |
+| `\| tail -N` | 14,821 | **yes** |
+| `\| head` (no args, 10 lines) | 13,333 | head (dropped) |
+| `tail … FILE` (no pipe) | 3,543 | no, real |
+| `head … FILE` (no pipe) | 1,781 | no, real |
+| `-c` (head and tail, all) | 700 | no, real |
 | `\| tail -n N` | 210 | **yes** |
 | `\| head -n N` | 49 | head (dropped) |
-| `-n +N` / `+N` | 63 | no, real |
+| `-n +N` / `+N` | 62 | no, real |
 | `\| tail` (no args) | 33 | **yes** |
-| `-f`, `-q`, `-v`, `-z`, file after a pipe, other | 223 | no, real |
+| `-f`, `-q`, `-v`, `-z`, file after a pipe, no-pipe `-N` on a redirect, other | 338 | no, real |
 
-The pipe forms with `-N`, `-n N`, or no args are 60,166 of 66,714 uses (90%). The tail share is
-15,249. The rule "stdin is not a terminal, no file operand, only `-n N`, `-N`, or nothing" is
+The rows sum to the script's `total head/tail uses`, 65,725. The pipe forms with `-N`, `-n N`,
+or no args are 59,301 of them (90%), which is the script's `piped numeric slices` counter.
+The tail share is 15,064. The rule "stdin is not a terminal, no file operand, only `-n N`, `-N`, or nothing" is
 easy to check in `sh` before anything else runs.
 
 ### Q4. How does it find the real binary?
@@ -227,8 +237,11 @@ easy to check in `sh` before anything else runs.
 - Name: `mktemp tail-<UTC yyyymmddThhmmss>-<pid>-XXXXXX.log`. The pid and random suffix keep
   concurrent walks in many worktrees from colliding, so no per-walk folder is needed.
 - Written only when lines were cut. Otherwise the file is removed before the shim exits. In
-  the transcripts 26,601 of 38,798 piped `-N` slices returned at least N lines, so expect a
-  few hundred small files a day. Tail cuts alone are a fraction of that.
+  the transcripts 11,694 of the 15,064 piped numeric `tail` slices had a tool result of at
+  least N lines (`tail piped numeric cut (lines >= N)` / `tail piped numeric slices`; 43,436
+  of 59,301 for head and tail together). A line count counts a trailing newline as the end
+  of the last line. The tool result holds all of the call's output, not only the slice, so
+  this is an upper bound. Expect at most about 150 small files a day.
 - Cap: stop writing at 64 MiB and say so in the note.
 - Deletion: files older than 24 h are removed by the shim at most once an hour (a stamp-file
   mtime check, then `find -mmin +1440 -delete` in the background). `/tmp` is tmpfs here
@@ -292,29 +305,37 @@ return await app.RunAsync(args);
 then the same upstream command re-run within the next 4 Bash calls, with no
 Edit/Write/MultiEdit and no mutating bash (`sed -i`, `git commit`, `--fix`, …) in between.
 
-- Loose count: 885 re-runs (687 of cheap commands such as `git`, `grep`, `ls`; 198 of
-  expensive ones). Of these, 136 re-runs took at least 30 s (15,328 s in total). A hand check
-  of 30 of them found about a third were real "re-run to see what was cut". The rest were
-  `git status` repeats or chains where another command took the time.
-- Strict count (an expensive upstream such as `dev build/test/deps`, `dotnet build/test/run`,
-  or `ganda repo audit`, and the next command starts with that exact upstream): **106 cases in
-  80 days, 92 of them in November.** 88 followed a `tail`, 18 a `head`. The first run's
-  duration, which approximates the cost of re-running it, adds up to **5,107 s (85 min)**:
+A cut is a piped `-N`, `-n N`, or no-argument slice whose tool result has at least N lines.
+
+- Loose count (the `-- loose` block): 880 re-runs (`cheap loose rerun` 684, commands such as
+  `git`, `grep`, `ls`; `exp loose rerun` 196). Of these, 136 re-runs took at least 30 s
+  (15,328 s in total). A hand check of 30 of them, on the first run of the scan, found about a
+  third were real "re-run to see what was cut". The rest were `git status` repeats or chains
+  where another command took the time.
+- Strict count (the `-- strict` block): the upstream matches one of the table rows below, and
+  one statement of the next command (split on `&&`, `;`, and newlines) starts with that exact
+  upstream. **169 cases in 79 days, 148 of them in November.** 139 followed a `tail`, 30 a
+  `head`. The first run's duration, which approximates the cost of re-running it, adds up to
+  **7,169 s (119 min)**:
 
 | Upstream | Cases | Seconds |
 |---|---|---|
-| `ganda repo audit` | 34 | 576 |
-| `dev test` | 15 | 2,044 |
-| `dev build` | 15 | 900 |
-| `dotnet test/run` of a test project | 11 | 864 |
-| `dev deps` | 5 | 410 |
-| `dotnet build/publish` | 8 | 240 |
-| other | 18 | 73 |
+| `ganda repo audit` (or `dev audit`) | 39 | 730 |
+| `dev test` | 18 | 2,286 |
+| `dev build` | 26 | 1,224 |
+| `dotnet test/run` | 35 | 1,375 |
+| `dev deps` | 14 | 760 |
+| `dotnet build/publish` | 18 | 592 |
+| other `bin/dev` verbs or `run-tests` | 19 | 202 |
 
-- In November that is about 2.9 minutes of re-run time a day across all sessions, plus the
-  tokens of the second output. The worst single case was 434 s
+- The strict check is a text match. A spot check of 12 strict rows (`--rows`) found 11 re-runs
+  of the same command with a different filter or slice. One followed a file edit made through a
+  python heredoc, which the mutation filter does not see.
+- In November that is 6,436 s, about 4 minutes of re-run time a day across all sessions, plus
+  the tokens of the second output. The worst single case was 434 s
   (`./bin/dev test 2>&1 | tail -25`, then re-run with a grep).
-- Not measurable: 3,294 expensive slices were cut and **not** re-run. Some of those agents
+- Not measurable: 3,037 slices of a strict upstream were cut and **not** re-run
+  (`strict-upstream cut, not rerun`). Some of those agents
   went on without the hidden part. A saved file helps there as well, but the transcripts
   cannot show how often it mattered.
 
@@ -324,28 +345,35 @@ It pays only because the smaller version is cheap and low risk. It would not jus
 ### Q9. What already covers this?
 
 - **timewarp-ganda 683** (done, landed 2026-11-27): `ganda repo audit` prints a short summary
-  plus `Report saved: …`, and `--last` reprints it. That removes the audit row above (34 cases,
-  576 s) and the measured task-681 case. Five audit re-runs still happened 2026-11-24..26,
+  plus `Report saved: …`, and `--last` reprints it. That removes the audit row above (39 cases,
+  730 s) and the measured task-681 case. Seven audit re-runs still happened 2026-11-24..26,
   before it landed.
 - **Claude Code's own save:** output over about 30 KB is replaced with `Output too large
   (NN KB). Full output saved to: …`, seen about 1,000 times in the transcripts. It only acts
   on what reaches the harness. `| tail -40` cuts the stream before Claude Code sees it, so this
   never covers the re-run cases.
 - **What is left:** `dev test`, `dev build`, `dev deps`, and `dotnet test/run` piped through
-  `tail`: 72 strict cases, 75 min. A 683-style summary-and-saved-log in the dev CLI would
+  `tail` or `head`: 93 strict cases, 5,645 s (94 min). A 683-style summary-and-saved-log in the dev CLI would
   cover the biggest rows too, but that is a per-tool fix. The tail shim covers every command
   at once, including repos without a dev CLI.
 
 ### How to validate
 
 Smoke: from this folder, run
-`python3 -I research/slice-forms-scan.py "$CLAUDE_CONFIG_DIR/projects"` and
-`python3 -I research/rerun-after-cut-scan.py "$CLAUDE_CONFIG_DIR/projects"`. Then run
-`PATH=<dir holding research/proto-tail.sh as tail>:$PATH bash -c 'x=$(seq 100 | tail -1); echo "[$x]"'`.
+`python3 -I research/slice-forms-scan.py "$CLAUDE_CONFIG_DIR/projects" --until 2026-11-27` and
+`python3 -I research/rerun-after-cut-scan.py "$CLAUDE_CONFIG_DIR/projects" --until 2026-11-27`.
+Neither writes a file unless `--rows FILE` is passed. Then symlink `research/proto-tail.sh`
+as `tail` into an empty folder `D`, set `TMPDIR` to another empty folder, and run
+`PATH=D:$PATH bash -c 'x=$(seq 100 | tail -1); echo "[$x]"'` and
+`PATH=D:$PATH bash -c 'seq 3 | tail -5'`.
 
-Expect: the form counts are close to the Q3 table and the strict re-run total is close to 106
-(newer transcripts only add rows). The prototype prints `[100]` on stdout and one
-`tail: showed last 1 of 100 lines; full output: …` line on stderr.
+Expect: `slice-forms-scan.py` prints `65725 total head/tail uses`, `59301 piped numeric
+slices`, the Q3 rows, and the Q1 counters as written above. `rerun-after-cut-scan.py` prints
+`169 total 7169` in the `-- strict` block, `139 after tail`, `30 after head`, the Q8 rows, and
+`880 loose rerun`. These hold while the transcripts for that window are on disk. The first
+prototype run prints `[100]` on stdout, one `tail: showed last 1 of 100 lines; full output: …`
+line on stderr, and leaves one `stream.*` file. The second prints `1 2 3`, no note, and leaves
+no new file.
 
 ### Gates
 
@@ -377,6 +405,30 @@ Gate results:
 - `ganda repo audit`: first run exit 1 (the two failures above). Then `--fix` plus the baseline
   entries. The final run is recorded under `## Session`.
 
+Fix pass for review round 1 (M1–M6). It changes only this task folder: the two scan scripts,
+the prototype, `research/readme.md`, and the numbers above. No C# changed, so no test file
+covers it.
+
+- M1: `proto-tail.sh` now removes its `stream.*` file when nothing was cut. Re-checked the Q1
+  commands with the prototype symlinked as `tail` and an empty `TMPDIR`.
+- M2: both scripts count lines with `str.splitlines`, so a trailing newline ends the last line.
+- M3: `rerun-after-cut-scan.py` encodes the strict predicate and prints the Q8 table, the
+  tail/head split, and the month split. `slice-forms-scan.py` prints the Q1 counters.
+- M4: the Q5 denominator is the `piped numeric slices` counter from the same run as Q3.
+- M5: the Q3 rows sum to the stated total.
+- M6: the oracle-log count is the `find` count, 522.
+- Both scans take `--until 2026-11-27`, and the scripts write no file unless `--rows` is given.
+
+Fix-pass gate results:
+
+- `./bin/dev build`: exit 0, 0 warnings, 0 errors.
+- Test files: none added or edited, and no production code changed.
+- `python3 -I research/slice-forms-scan.py "$CLAUDE_CONFIG_DIR/projects" --until 2026-11-27`:
+  exit 0, numbers as in Q1, Q3, and Q5.
+- `python3 -I research/rerun-after-cut-scan.py "$CLAUDE_CONFIG_DIR/projects" --until 2026-11-27`:
+  exit 0, numbers as in Q8 and Q9.
+- `ganda repo audit`: recorded under `## Session`.
+
 ## Session
 
 - Created: f616d67d-0c1e-4d2d-afe5-e4a3068beb00 (2026-11-19), from a timewarp-ganda session
@@ -386,6 +438,20 @@ Gate results:
 - 2026-11-27: final `ganda repo audit` after the audit fixes: exit 0, 43 passed, 0 failed,
   0 warnings.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 16672e49-ce38-4da3-942e-119c5e4ec6c4, max-turns 500, Done — 2026-11-27T10:33:25Z
+- Reviewer: general (cursor, vendor grok, model grok-4.7), session 0c6c085c-dbed-434b-85c1-7c18bacafc0b, effort 2, roster general, turn cap uncapped (review budget 120), round 1 open — 2026-11-27
+- Review oracle: review by reviewer-cursor (cursor, vendor xai, model grok-4.7-high), session not reported, max-turns uncapped (no --max-turns flag; bound 120), artifacts general.md, merged.md — 2026-11-27T10:44:50Z
+- 2026-11-27: implement-fix-2 (review round 1, M1–M6): fixed the prototype and both scans,
+  re-ran them with `--until 2026-11-27`, replaced the Q1, Q3, Q5, Q8, and Q9 numbers.
+  `./bin/dev build` exit 0. Final `ganda repo audit`: exit 0, 10 passed, 0 failed, 1 skipped
+  (it reused the recorded pass for the unchanged tree and re-ran the checks that read kanban/).
+
+## Learnings
+
+The restatement adds "No product code changes." The task asks for the recommendation in `## Results` and says not to build the head and tail commands. The branch also updates `Directory.Packages.props` and `.timewarp/line-cap-baseline.json` so audit passes, and Results records those edits under Gates. The nine questions in the restatement match the task. The Amuru / ganda / flow split answers the task's request to confirm or correct the assumed split.
+
+## Review
+
+- Round 1: Blocked — open M1, M2, M3, M4, M5, M6
 
 ## Notes
 
