@@ -45,7 +45,8 @@ public sealed record TailOptions
   public TimeSpan FollowInterval { get; init; } = TimeSpan.FromSeconds(1);
 
   /// <summary>
-  /// Gets a value indicating that a non-seekable stdin last-N-lines read is saved to a file.
+  /// Gets a value indicating that a non-seekable stdin last-N-lines read is copied to a file.
+  /// A failure to create or write that file still returns the slice.
   /// </summary>
   public bool SaveStream { get; init; } = true;
 

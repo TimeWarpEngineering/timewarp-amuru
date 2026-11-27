@@ -163,6 +163,20 @@ public class Parse_Given_
     await Task.CompletedTask;
   }
 
+  public static async Task OverflowingDecimal_Should_Saturate()
+  {
+    AssertBytes(["-c", "18446744073709551616"], long.MaxValue, false);
+    AssertLines(["-n", "99999999999999999999999"], long.MaxValue, false);
+    await Task.CompletedTask;
+  }
+
+  public static async Task OverflowingBlockSuffix_Should_Saturate()
+  {
+    AssertBytes(["-c", "18014398509481984b"], long.MaxValue, false);
+    AssertBytes(["-c", "36028797018963968b"], long.MaxValue, false);
+    await Task.CompletedTask;
+  }
+
   public static async Task Quiet_Should_SuppressHeaders()
   {
     AssertHeaders(["-q"], Text.TailHeaders.Never);

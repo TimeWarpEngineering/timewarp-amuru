@@ -5,8 +5,10 @@
 #region Design
 // The slice is bytes. A trailing partial line counts as a line. Newline and NUL are
 // the only delimiters; CR is just a byte.
-// A seekable stream is read from the end for a last-N request so a large file is not
-// loaded whole. A pipe is read once from the start and only the kept window is stored.
+// A seekable stream is sliced over [Position, Length). A last-N request seeks from
+// the end of that range so a large file is not loaded whole. A pipe is read once
+// from the start and only the kept window is stored.
+// A pipe window that does not fit in memory spills to a 0600 file removed when the read ends.
 // A saturated count (long.MaxValue) is the whole stream: a suffix such as 999Y overflows
 // to that, and tail then prints every byte.
 #endregion
@@ -56,12 +58,14 @@ internal static class TailSlice
     long skip = count == 0 ? 0 : count - 1;
     if (input.CanSeek)
     {
-      if (skip >= input.Length)
+      long start = input.Position;
+      long length = input.Length;
+      if (start >= length || skip >= length - start)
       {
         return;
       }
 
-      input.Position = skip;
+      input.Position = start + skip;
       input.CopyTo(output);
       return;
     }
@@ -144,8 +148,14 @@ internal static class TailSlice
 
     if (input.CanSeek)
     {
+      long start = input.Position;
       long length = input.Length;
-      input.Position = Math.Max(0, length - count);
+      if (start >= length)
+      {
+        return;
+      }
+
+      input.Position = Math.Max(start, length - count);
       input.CopyTo(output);
       return;
     }
@@ -234,7 +244,8 @@ internal static class TailSlice
     }
 
     long length = input.Length;
-    if (length == 0)
+    long start = input.Position;
+    if (length <= start)
     {
       return;
     }
@@ -243,9 +254,9 @@ internal static class TailSlice
     long position = length;
     bool skipTerminator = ReadByteAt(input, length - 1) == delimiter;
     long found = 0;
-    while (position > 0)
+    while (position > start)
     {
-      int size = (int)Math.Min(block.Length, position);
+      int size = (int)Math.Min(block.Length, position - start);
       position -= size;
       input.Position = position;
       ReadExactly(input, block, size);
@@ -272,7 +283,7 @@ internal static class TailSlice
       }
     }
 
-    input.Position = 0;
+    input.Position = start;
     input.CopyTo(output);
   }
 
@@ -412,12 +423,22 @@ internal static class TailSlice
     string path = Path.Combine(Path.GetTempPath(), "amuru-tail-spill-" + Guid.NewGuid().ToString("N"));
     try
     {
-      using (FileStream spill = new(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+      FileStreamOptions options = new()
       {
-        input.CopyTo(spill);
-        spill.Position = 0;
-        copy(spill);
+        Mode = FileMode.CreateNew,
+        Access = FileAccess.ReadWrite,
+        Share = FileShare.None,
+        Options = FileOptions.DeleteOnClose
+      };
+      if (!OperatingSystem.IsWindows())
+      {
+        options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
       }
+
+      using FileStream spill = new(path, options);
+      input.CopyTo(spill);
+      spill.Position = 0;
+      copy(spill);
     }
     finally
     {
@@ -425,7 +446,7 @@ internal static class TailSlice
       {
         File.Delete(path);
       }
-      catch (IOException)
+      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
       {
       }
     }

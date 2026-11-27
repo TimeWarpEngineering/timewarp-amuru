@@ -22,6 +22,69 @@ public class Tail_Given_
   [ModuleInitializer]
   internal static void Register() => RegisterTests<Tail_Given_>();
 
+  public static async Task SeekableOffset_Should_SliceFromTheCurrentPosition()
+  {
+    byte[] payload = "aaaa\nbbbb\ncccc\n"u8.ToArray();
+    using MemoryStream input = new(payload);
+    Text.TailOptions lines = new()
+    {
+      Measure = Text.TailMeasure.LastLines(10),
+      SaveStream = false
+    };
+    input.Position = 5;
+    Text.TailOutput lastLines = Text.Commands.Tail(lines, [], input, CancellationToken.None);
+    lastLines.ExitCode.ShouldBe(0);
+    lastLines.StdoutText.ShouldBe("bbbb\ncccc\n");
+
+    input.Position = 5;
+    Text.TailOutput oneLine = Text.Commands.Tail(
+      lines with { Measure = Text.TailMeasure.LastLines(1) },
+      [],
+      input,
+      CancellationToken.None);
+    oneLine.StdoutText.ShouldBe("cccc\n");
+
+    input.Position = 5;
+    Text.TailOutput lastBytes = Text.Commands.Tail(
+      lines with { Measure = Text.TailMeasure.LastBytes(100) },
+      [],
+      input,
+      CancellationToken.None);
+    lastBytes.StdoutText.ShouldBe("bbbb\ncccc\n");
+
+    input.Position = 5;
+    Text.TailOutput fromByte = Text.Commands.Tail(
+      lines with { Measure = Text.TailMeasure.FromByte(2) },
+      [],
+      input,
+      CancellationToken.None);
+    fromByte.StdoutText.ShouldBe("bbb\ncccc\n");
+
+    input.Position = 5;
+    Text.TailOutput fromLine = Text.Commands.Tail(
+      lines with { Measure = Text.TailMeasure.FromLine(2) },
+      [],
+      input,
+      CancellationToken.None);
+    fromLine.StdoutText.ShouldBe("cccc\n");
+    await Task.CompletedTask;
+  }
+
+  public static async Task LargeByteCountOnAPipe_Should_KeepTheTail()
+  {
+    byte[] data = new byte[64];
+    for (int index = 0; index < data.Length; index++)
+    {
+      data[index] = (byte)index;
+    }
+
+    using PipeStream pipe = new(data);
+    Text.TailOutput result = Text.Commands.Tail(["-c", "8388609"], pipe, CancellationToken.None);
+    result.ExitCode.ShouldBe(0);
+    result.Stdout.ToArray().ShouldBe(data);
+    await Task.CompletedTask;
+  }
+
   public static async Task LastLines_Should_KeepTheTailOfAFile()
   {
     string directory = NewDirectory();
@@ -358,6 +421,54 @@ public class Tail_Given_
       }
 
       Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  private sealed class PipeStream : Stream
+  {
+    private readonly MemoryStream Inner;
+
+    public PipeStream(byte[] data)
+    {
+      Inner = new MemoryStream(data);
+    }
+
+    public override bool CanRead => true;
+
+    public override bool CanSeek => false;
+
+    public override bool CanWrite => false;
+
+    public override long Length => throw new NotSupportedException();
+
+    public override long Position
+    {
+      get => throw new NotSupportedException();
+      set => throw new NotSupportedException();
+    }
+
+    public override void Flush()
+    {
+    }
+
+    public override int Read(byte[] buffer, int offset, int count) => Inner.Read(buffer, offset, count);
+
+    public override int Read(Span<byte> buffer) => Inner.Read(buffer);
+
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+    public override void SetLength(long value) => throw new NotSupportedException();
+
+    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+    protected override void Dispose(bool disposing)
+    {
+      if (disposing)
+      {
+        Inner.Dispose();
+      }
+
+      base.Dispose(disposing);
     }
   }
 

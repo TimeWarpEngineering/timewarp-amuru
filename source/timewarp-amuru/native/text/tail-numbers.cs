@@ -6,7 +6,8 @@
 // The suffix table matches GNU tail and uutils: b is 512, a bare K/M/G is 1024^n,
 // KB/MB is 1000^n, and KiB/MiB is 1024^n. The unit letter may be either case.
 // iB requires a lowercase i and an uppercase B. Overflow saturates, which is what
-// uutils does for a count such as 999Y.
+// uutils does for a count such as 999Y. A decimal that does not fit in ulong, and a
+// b suffix whose product does not fit, saturate the same way.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -44,10 +45,7 @@ internal static class TailNumbers
       digits++;
     }
 
-    if (!ulong.TryParse(text.AsSpan(index, digits - index), NumberStyles.None, CultureInfo.InvariantCulture, out ulong magnitude))
-    {
-      return false;
-    }
+    ulong magnitude = ParseMagnitude(text.AsSpan(index, digits - index));
 
     if (!TryApplySuffix(magnitude, text[digits..], out ulong scaled))
     {
@@ -68,7 +66,12 @@ internal static class TailNumbers
 
     if (suffix == "b")
     {
-      return TryMultiply(magnitude, 512, out scaled);
+      if (!TryMultiply(magnitude, 512, out scaled))
+      {
+        scaled = ulong.MaxValue;
+      }
+
+      return true;
     }
 
     int exponent = suffix[0] switch
@@ -112,6 +115,23 @@ internal static class TailNumbers
 
     scaled = value;
     return true;
+  }
+
+  private static ulong ParseMagnitude(ReadOnlySpan<char> digits)
+  {
+    ulong magnitude = 0;
+    foreach (char digit in digits)
+    {
+      ulong next = (ulong)(digit - '0');
+      if (magnitude > (ulong.MaxValue - next) / 10)
+      {
+        return ulong.MaxValue;
+      }
+
+      magnitude = (magnitude * 10) + next;
+    }
+
+    return magnitude;
   }
 
   private static bool TryMultiply(ulong left, ulong right, out ulong product)

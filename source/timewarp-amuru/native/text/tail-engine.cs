@@ -8,8 +8,11 @@
 // between headers is written before every header after the first.
 // The save runs only for a non-seekable stdin last-N-lines read. Seekable stdin is a
 // redirect of a file that already exists, so it is sliced from the end and not copied.
-// Follow polls regular files. A pipe is read until it closes. -F is not implemented,
-// so a replaced path is not reopened.
+// The save is best effort. A failure to create the store or to write the copy leaves
+// stdout and the exit code alone, and a partial file is removed.
+// Follow polls regular files. When headers are on and the next bytes come from a
+// different file, that file's header is written first. A pipe is read until it closes.
+// -F is not implemented, so a replaced path is not reopened.
 #endregion
 
 namespace TimeWarp.Amuru.Native.Text;
@@ -124,7 +127,7 @@ internal static class TailEngine
         return new TailRunResult(state.Failed ? 1 : 0, state.SavedPath);
       }
 
-      Poll(followed, standardOutput, standardError, options.FollowInterval, cancellationToken);
+      Poll(followed, standardOutput, standardError, state, options.FollowInterval, cancellationToken);
       return new TailRunResult(state.Failed ? 1 : 0, state.SavedPath);
     }
     finally
@@ -162,11 +165,19 @@ internal static class TailEngine
     Stream source = standardInput;
     try
     {
-      if (save)
+      if (save
+        && TailStore.TryCreate(options, out FileStream? created, out string? createdPath)
+        && created is not null
+        && createdPath is not null)
       {
-        saved = TailStore.Create(options, out path);
+        saved = created;
+        path = createdPath;
         capture = new TailCaptureStream(standardInput, saved, options.SaveLimit);
         source = capture;
+      }
+      else
+      {
+        save = false;
       }
 
       WriteHeader(standardOutput, StandardInputName, state);
@@ -176,7 +187,11 @@ internal static class TailEngine
         return;
       }
 
-      saved.Flush();
+      if (capture.Failed || !TryFlush(saved))
+      {
+        return;
+      }
+
       bool cut = seen > options.Measure.Count;
       if (!cut && !capture.Capped)
       {
@@ -207,7 +222,7 @@ internal static class TailEngine
         {
           File.Delete(path);
         }
-        catch (IOException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
         }
       }
@@ -269,6 +284,7 @@ internal static class TailEngine
     List<FollowedFile> followed,
     Stream standardOutput,
     Stream standardError,
+    RunState state,
     TimeSpan interval,
     CancellationToken cancellationToken)
   {
@@ -283,12 +299,14 @@ internal static class TailEngine
           {
             WriteText(standardError, $"tail: {file.Path}: file truncated\n");
             file.Stream.Position = 0;
+            WriteFollowHeader(standardOutput, file.Path, state);
             CopyAmount(file.Stream, standardOutput, length);
             file.Position = file.Stream.Position;
           }
           else if (length > file.Position)
           {
             file.Stream.Position = file.Position;
+            WriteFollowHeader(standardOutput, file.Path, state);
             CopyAmount(file.Stream, standardOutput, length - file.Position);
             file.Position = file.Stream.Position;
           }
@@ -332,6 +350,29 @@ internal static class TailEngine
     return cancellationToken.WaitHandle.WaitOne(interval);
   }
 
+  private static void WriteFollowHeader(Stream output, string name, RunState state)
+  {
+    if (!state.Headers || state.LastName == name)
+    {
+      return;
+    }
+
+    WriteHeader(output, name, state);
+  }
+
+  private static bool TryFlush(FileStream stream)
+  {
+    try
+    {
+      stream.Flush();
+      return true;
+    }
+    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+    {
+      return false;
+    }
+  }
+
   private static void WriteHeader(Stream output, string name, RunState state)
   {
     if (!state.Headers)
@@ -345,6 +386,7 @@ internal static class TailEngine
     }
 
     state.Started = true;
+    state.LastName = name;
     WriteText(output, $"==> {name} <==\n");
   }
 
@@ -399,6 +441,8 @@ internal static class TailEngine
     public bool Headers { get; }
 
     public bool Started { get; set; }
+
+    public string? LastName { get; set; }
 
     public bool Failed { get; set; }
 

@@ -57,7 +57,7 @@ An unknown option is an error that lists the supported forms. `-F`, `--follow=na
 
 ### Slice
 
-The slice is bytes. A final line with no newline counts as a line. Binary input is copied unchanged. For a last-N request on a seekable file, Tail seeks from the end and does not read the file whole. A from-start request reads forward and does not buffer the skipped prefix.
+The slice is bytes. A final line with no newline counts as a line. Binary input is copied unchanged. A seekable stream is sliced from its current position through its end. For a last-N request, Tail seeks from the end of that range and does not read the range whole. A from-start request reads forward from the current position and does not buffer the skipped prefix.
 
 Several operands print headers of the form `==> name <==`. A blank line separates a header from the previous operand. Stdin is named `standard input`. `-q` suppresses headers. `-v` prints them even for one operand. With no flag, headers appear only when there is more than one operand.
 
@@ -67,7 +67,7 @@ A missing file writes `tail: cannot open '<path>' for reading: No such file or d
 
 ### Saved stdin
 
-When stdin cannot be seeked (a pipe), the request is the last N lines, `SaveStream` is on, and follow is off, Tail copies the pipe into `<temp>/tw-agent-streams/<user>/` while it builds the slice. The file name carries a UTC stamp, the process id, and a random suffix. On Unix the directory is mode `0700` and the file is mode `0600`.
+When stdin cannot be seeked (a pipe), the request is the last N lines, `SaveStream` is on, and follow is off, Tail copies the pipe into `<temp>/tw-agent-streams/<user>/` while it builds the slice. The file name carries a UTC stamp, the process id, and a random suffix. On Unix, when this process creates the shared parent `<temp>/tw-agent-streams`, that directory is mode `01777` so each user can create a folder under it. The per-user folder is mode `0700` and the file is mode `0600`. Creating the folder, setting those modes, writing the cleanup stamp, and writing the copy are best effort. When one of them fails, Tail still prints the slice, deletes a partial copy, and writes no note.
 
 If lines were dropped, stderr gains one line:
 
@@ -79,4 +79,4 @@ stdout stays the slice alone, so a capture of stdout does not include the note. 
 
 ### Follow
 
-`-f` prints the initial slice, then polls each regular file until the cancellation token fires. Bytes appended after the slice are written. When a file shrinks, stderr gets `tail: <path>: file truncated` and the new contents are written from the start. The poll interval is `FollowInterval` (one second unless the caller changes it). The command line cannot set it. A pipe is read until it closes and is not polled. Follow of a file requires a cancellation token. Rotation (`-F`), `--pid`, and `-s` are rejected by the parser.
+`-f` prints the initial slice, then polls each regular file until the cancellation token fires. Bytes appended after the slice are written. When headers are on and those bytes come from a different file than the previous output, Tail writes that file's header first. When a file shrinks, stderr gets `tail: <path>: file truncated` and the new contents are written from the start. The poll interval is `FollowInterval` (one second unless the caller changes it). The command line cannot set it. A pipe is read until it closes and is not polled. Follow of a file requires a cancellation token. Rotation (`-F`), `--pid`, and `-s` are rejected by the parser.

@@ -5,6 +5,8 @@
 #region Design
 // The slice still sees every byte. The file stops at the limit so a huge pipe cannot
 // fill the disk, and Capped tells the caller to say so in the stderr note.
+// A write that fails sets Failed and later bytes are not copied. The caller drops
+// the partial file and still finishes the slice.
 // The caller owns both streams. They sit on a nested value so this stream does not
 // dispose them when it is disposed.
 #endregion
@@ -40,6 +42,8 @@ internal sealed class TailCaptureStream : Stream
   }
 
   public bool Capped { get; private set; }
+
+  public bool Failed { get; private set; }
 
   public override bool CanRead => true;
 
@@ -84,7 +88,7 @@ internal sealed class TailCaptureStream : Stream
 
   private void Capture(ReadOnlySpan<byte> data)
   {
-    if (Capped)
+    if (Capped || Failed)
     {
       return;
     }
@@ -97,7 +101,16 @@ internal sealed class TailCaptureStream : Stream
     }
 
     int take = (int)Math.Min(data.Length, room);
-    BorrowedStreams.Copy.Write(data[..take]);
+    try
+    {
+      BorrowedStreams.Copy.Write(data[..take]);
+    }
+    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+    {
+      Failed = true;
+      return;
+    }
+
     Written += take;
     if (take < data.Length)
     {

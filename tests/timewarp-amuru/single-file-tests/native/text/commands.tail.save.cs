@@ -8,6 +8,7 @@
 // Pipe cases use a non-seekable stream so the save runs. StreamDirectory keeps those
 // files out of the real per-user folder. The default-folder case touches .cleanup-stamp
 // first so the hourly sweep does not delete anyone else's files.
+// An unwritable store still prints the slice and exits 0.
 #endregion
 
 #if !JARIBU_MULTI
@@ -71,6 +72,66 @@ public class Save_Given_
     }
     finally
     {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task UnwritableStore_Should_StillPrintTheSlice()
+  {
+    string directory = NewDirectory();
+    try
+    {
+      string blocker = Path.Combine(directory, "not-a-directory");
+      await File.WriteAllBytesAsync(blocker, "x"u8.ToArray());
+      string store = Path.Combine(blocker, "streams");
+      using PipeStream pipe = new(Lines(20));
+      Text.TailOptions options = Options(store, Text.TailMeasure.LastLines(1));
+      Text.TailOutput result = Text.Commands.Tail(options, [], pipe, CancellationToken.None);
+
+      result.ExitCode.ShouldBe(0);
+      result.StdoutText.ShouldBe("20\n");
+      result.StderrText.ShouldBeEmpty();
+      result.SavedPath.ShouldBeNull();
+    }
+    finally
+    {
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task DeniedStore_Should_StillPrintTheSlice()
+  {
+    if (OperatingSystem.IsWindows())
+    {
+      return;
+    }
+
+    string directory = NewDirectory();
+    try
+    {
+      File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+      string store = Path.Combine(directory, "streams");
+      try
+      {
+        Directory.CreateDirectory(store);
+        return;
+      }
+      catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+      {
+      }
+
+      using PipeStream pipe = new(Lines(20));
+      Text.TailOptions options = Options(store, Text.TailMeasure.LastLines(1));
+      Text.TailOutput result = Text.Commands.Tail(options, [], pipe, CancellationToken.None);
+
+      result.ExitCode.ShouldBe(0);
+      result.StdoutText.ShouldBe("20\n");
+      result.StderrText.ShouldBeEmpty();
+      result.SavedPath.ShouldBeNull();
+    }
+    finally
+    {
+      File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
       Directory.Delete(directory, recursive: true);
     }
   }

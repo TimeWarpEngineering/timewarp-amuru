@@ -8,6 +8,7 @@
 // Direct writes while it polls, so the test can watch the streams. Commands buffers
 // until the call returns, which hides the follow. A file follow without a cancellation
 // token fails instead of blocking.
+// With headers on, a change of file prints that file's header before the new bytes.
 #endregion
 
 #if !JARIBU_MULTI
@@ -76,6 +77,50 @@ public class Follow_Given_
         stdout,
         stderr,
         "truncation");
+    }
+    finally
+    {
+      await cancel.CancelAsync();
+      if (running is not null)
+      {
+        Text.TailRunResult result = await running.WaitAsync(TimeSpan.FromSeconds(3));
+        result.ExitCode.ShouldBe(0);
+      }
+
+      Directory.Delete(directory, recursive: true);
+    }
+  }
+
+  public static async Task FollowSeveralFiles_Should_PrintAHeaderWhenTheSourceChanges()
+  {
+    string directory = NewDirectory();
+    using CancellationTokenSource cancel = new();
+    using CapturedOutput stdout = new();
+    using CapturedOutput stderr = new();
+    Task<Text.TailRunResult>? running = null;
+    try
+    {
+      string first = await WriteAsync(directory, "a.txt", "a\n");
+      string second = await WriteAsync(directory, "b.txt", "b\n");
+      Text.TailOptions options = new()
+      {
+        Measure = Text.TailMeasure.LastLines(10),
+        Follow = true,
+        FollowInterval = TimeSpan.FromMilliseconds(20),
+        SaveStream = false
+      };
+      running = Task.Run(() =>
+        Text.Direct.Tail(options, [first, second], Stream.Null, stdout, stderr, cancel.Token));
+
+      string initial = $"==> {first} <==\na\n\n==> {second} <==\nb\n";
+      await WaitFor(() => TextOf(stdout) == initial, stdout, stderr, "initial slices");
+      await File.AppendAllTextAsync(first, "a2\n");
+      string afterFirst = initial + $"\n==> {first} <==\na2\n";
+      await WaitFor(() => TextOf(stdout) == afterFirst, stdout, stderr, "header for the first file");
+      await File.AppendAllTextAsync(second, "b2\n");
+      string afterSecond = afterFirst + $"\n==> {second} <==\nb2\n";
+      await WaitFor(() => TextOf(stdout) == afterSecond, stdout, stderr, "header for the second file");
+      TextOf(stderr).ShouldBeEmpty();
     }
     finally
     {

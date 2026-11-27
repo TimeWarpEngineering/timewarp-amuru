@@ -6,7 +6,9 @@
 
 #region Design
 // Byte comparison goes through CliWrap pipes. CommandOutput drops a trailing newline.
-// Skipped: live -f on a file (it blocks), --pid, -s, -F, --help, and --version.
+// Stdin cases also run on a non-seekable stream with the save off, so the pipe
+// slice is compared too. Skipped: live -f on a file (it blocks), --pid, -s, -F,
+// --help, and --version.
 // Those are either rejected on purpose or handled outside this library.
 // Bare +0 is skipped on this host: uutils 0.10.0 prints nothing for +0 and the whole
 // file for -n +0. Tail follows -n +0, which is the whole file.
@@ -262,6 +264,20 @@ public class Compare_Given_
     {
       ours.Stderr.ToArray().ShouldBe(expectedErr.ToArray(), label);
     }
+
+    if (stdin is null)
+    {
+      return;
+    }
+
+    using PipeStream pipe = new(stdin);
+    Text.TailParseResult parsed = Text.TailParser.Parse(arguments);
+    Text.TailOutput piped = parsed.Success
+      ? Text.Commands.Tail(parsed.Options with { SaveStream = false }, parsed.Operands, pipe, CancellationToken.None)
+      : Text.Commands.Tail(arguments, pipe, CancellationToken.None);
+    string pipeLabel = label + " (pipe)";
+    piped.ExitCode.ShouldBe(system.ExitCode, pipeLabel);
+    piped.Stdout.ToArray().ShouldBe(expectedOut.ToArray(), pipeLabel);
   }
 
   private static byte[] SampleLines(int count)
@@ -288,6 +304,54 @@ public class Compare_Given_
     string path = Path.Combine(directory, name);
     await File.WriteAllTextAsync(path, content);
     return path;
+  }
+
+  private sealed class PipeStream : Stream
+  {
+    private readonly MemoryStream Inner;
+
+    public PipeStream(byte[] data)
+    {
+      Inner = new MemoryStream(data);
+    }
+
+    public override bool CanRead => true;
+
+    public override bool CanSeek => false;
+
+    public override bool CanWrite => false;
+
+    public override long Length => throw new NotSupportedException();
+
+    public override long Position
+    {
+      get => throw new NotSupportedException();
+      set => throw new NotSupportedException();
+    }
+
+    public override void Flush()
+    {
+    }
+
+    public override int Read(byte[] buffer, int offset, int count) => Inner.Read(buffer, offset, count);
+
+    public override int Read(Span<byte> buffer) => Inner.Read(buffer);
+
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+    public override void SetLength(long value) => throw new NotSupportedException();
+
+    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+    protected override void Dispose(bool disposing)
+    {
+      if (disposing)
+      {
+        Inner.Dispose();
+      }
+
+      base.Dispose(disposing);
+    }
   }
 }
 }
