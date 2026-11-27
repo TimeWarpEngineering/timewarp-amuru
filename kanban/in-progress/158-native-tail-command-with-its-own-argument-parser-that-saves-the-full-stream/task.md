@@ -150,6 +150,7 @@ Expect: `FullStore_Should_StillPrintTheSliceAndRemoveTheFile` passes. On a full 
 - `./bin/dev build` — passed, 0 warnings, 0 errors
 - `dotnet run --file tests/timewarp-amuru/single-file-tests/native/text/commands.tail.save.full-store.cs` — passed, 1 test
 - `ganda repo audit` — passed, 43 passed, 0 failed, 0 warnings
+- The product commit's post-commit `ganda repo attest` failed with `Text file busy` on `bin/dev`. This note commits so the hook runs again.
 
 Each test file above is a standalone Jaribu runfile (`#if !JARIBU_MULTI`). This fix pass edited only `commands.tail.save.full-store.cs`. It did not re-run `commands.tail.save.cs`, `tail-parser.parse.cs`, `commands.tail.cs`, `commands.tail.follow.cs`, or `commands.tail.compare.cs`. A PATH that shadows `unshare` with a script that exits 1 prints the namespace skip and passes. A PATH with no `unshare` prints the missing-binary skip and passes.
 
