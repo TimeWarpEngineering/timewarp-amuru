@@ -377,3 +377,112 @@ TimeWarp.Amuru.JsonRpcException.JsonRpcException(TimeWarp.Amuru.JsonRpcError! er
 TimeWarp.Amuru.JsonRpcException.JsonRpcException(string! message) -> void
 TimeWarp.Amuru.JsonRpcException.JsonRpcException(string! message, System.Exception! innerException) -> void
 TimeWarp.Amuru.ShellBuilder.AsJsonRpcClient() -> TimeWarp.Amuru.JsonRpcClientBuilder!
+const TimeWarp.Amuru.Native.Text.TailOptions.DefaultSaveLimit = 67108864 -> long
+override TimeWarp.Amuru.Native.Text.TailMeasure.GetHashCode() -> int
+override TimeWarp.Amuru.Native.Text.TailOptions.Equals(object? obj) -> bool
+override TimeWarp.Amuru.Native.Text.TailOptions.GetHashCode() -> int
+override TimeWarp.Amuru.Native.Text.TailOptions.ToString() -> string!
+override TimeWarp.Amuru.Native.Text.TailParseResult.Equals(object? obj) -> bool
+override TimeWarp.Amuru.Native.Text.TailParseResult.GetHashCode() -> int
+override TimeWarp.Amuru.Native.Text.TailParseResult.ToString() -> string!
+override TimeWarp.Amuru.Native.Text.TailRunResult.GetHashCode() -> int
+static TimeWarp.Amuru.Native.Aliases.Bash.Tail(params string![]! arguments) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.Tail(TimeWarp.Amuru.Native.Text.TailOptions! options, params string![]! paths) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Aliases.Bash.TailDirect(TimeWarp.Amuru.Native.Text.TailOptions! options, System.Collections.Generic.IReadOnlyList<string!>! paths, System.IO.Stream! standardInput, System.IO.Stream! standardOutput, System.IO.Stream! standardError, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> TimeWarp.Amuru.Native.Text.TailRunResult
+static TimeWarp.Amuru.Native.Text.Commands.Tail(System.Collections.Generic.IReadOnlyList<string!>! arguments) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Text.Commands.Tail(System.Collections.Generic.IReadOnlyList<string!>! arguments, System.IO.Stream? standardInput, System.Threading.CancellationToken cancellationToken) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Text.Commands.Tail(TimeWarp.Amuru.Native.Text.TailOptions! options, System.Collections.Generic.IReadOnlyList<string!>! paths) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Text.Commands.Tail(TimeWarp.Amuru.Native.Text.TailOptions! options, System.Collections.Generic.IReadOnlyList<string!>! paths, System.IO.Stream? standardInput, System.Threading.CancellationToken cancellationToken) -> TimeWarp.Amuru.Native.Text.TailOutput!
+static TimeWarp.Amuru.Native.Text.Direct.Tail(TimeWarp.Amuru.Native.Text.TailOptions! options, System.Collections.Generic.IReadOnlyList<string!>! paths, System.IO.Stream! standardInput, System.IO.Stream! standardOutput, System.IO.Stream! standardError, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> TimeWarp.Amuru.Native.Text.TailRunResult
+static TimeWarp.Amuru.Native.Text.TailMeasure.FromByte(long offset) -> TimeWarp.Amuru.Native.Text.TailMeasure
+static TimeWarp.Amuru.Native.Text.TailMeasure.FromLine(long line) -> TimeWarp.Amuru.Native.Text.TailMeasure
+static TimeWarp.Amuru.Native.Text.TailMeasure.LastBytes(long count) -> TimeWarp.Amuru.Native.Text.TailMeasure
+static TimeWarp.Amuru.Native.Text.TailMeasure.LastLines(long count) -> TimeWarp.Amuru.Native.Text.TailMeasure
+static TimeWarp.Amuru.Native.Text.TailMeasure.operator !=(TimeWarp.Amuru.Native.Text.TailMeasure left, TimeWarp.Amuru.Native.Text.TailMeasure right) -> bool
+static TimeWarp.Amuru.Native.Text.TailMeasure.operator ==(TimeWarp.Amuru.Native.Text.TailMeasure left, TimeWarp.Amuru.Native.Text.TailMeasure right) -> bool
+static TimeWarp.Amuru.Native.Text.TailOptions.operator !=(TimeWarp.Amuru.Native.Text.TailOptions? left, TimeWarp.Amuru.Native.Text.TailOptions? right) -> bool
+static TimeWarp.Amuru.Native.Text.TailOptions.operator ==(TimeWarp.Amuru.Native.Text.TailOptions? left, TimeWarp.Amuru.Native.Text.TailOptions? right) -> bool
+static TimeWarp.Amuru.Native.Text.TailParser.Parse(System.Collections.Generic.IReadOnlyList<string!>! arguments) -> TimeWarp.Amuru.Native.Text.TailParseResult!
+static TimeWarp.Amuru.Native.Text.TailParseResult.operator !=(TimeWarp.Amuru.Native.Text.TailParseResult? left, TimeWarp.Amuru.Native.Text.TailParseResult? right) -> bool
+static TimeWarp.Amuru.Native.Text.TailParseResult.operator ==(TimeWarp.Amuru.Native.Text.TailParseResult? left, TimeWarp.Amuru.Native.Text.TailParseResult? right) -> bool
+static TimeWarp.Amuru.Native.Text.TailRunResult.operator !=(TimeWarp.Amuru.Native.Text.TailRunResult left, TimeWarp.Amuru.Native.Text.TailRunResult right) -> bool
+static TimeWarp.Amuru.Native.Text.TailRunResult.operator ==(TimeWarp.Amuru.Native.Text.TailRunResult left, TimeWarp.Amuru.Native.Text.TailRunResult right) -> bool
+TimeWarp.Amuru.Native.Text.TailHeaders
+TimeWarp.Amuru.Native.Text.TailHeaders.Always = 2 -> TimeWarp.Amuru.Native.Text.TailHeaders
+TimeWarp.Amuru.Native.Text.TailHeaders.Auto = 0 -> TimeWarp.Amuru.Native.Text.TailHeaders
+TimeWarp.Amuru.Native.Text.TailHeaders.Never = 1 -> TimeWarp.Amuru.Native.Text.TailHeaders
+TimeWarp.Amuru.Native.Text.TailMeasure
+TimeWarp.Amuru.Native.Text.TailMeasure.Count.get -> long
+TimeWarp.Amuru.Native.Text.TailMeasure.Count.init -> void
+TimeWarp.Amuru.Native.Text.TailMeasure.Deconstruct(out TimeWarp.Amuru.Native.Text.TailUnit Unit, out long Count, out bool FromStart) -> void
+TimeWarp.Amuru.Native.Text.TailMeasure.Equals(TimeWarp.Amuru.Native.Text.TailMeasure other) -> bool
+TimeWarp.Amuru.Native.Text.TailMeasure.FromStart.get -> bool
+TimeWarp.Amuru.Native.Text.TailMeasure.FromStart.init -> void
+TimeWarp.Amuru.Native.Text.TailMeasure.TailMeasure() -> void
+TimeWarp.Amuru.Native.Text.TailMeasure.TailMeasure(TimeWarp.Amuru.Native.Text.TailUnit Unit, long Count, bool FromStart) -> void
+TimeWarp.Amuru.Native.Text.TailMeasure.Unit.get -> TimeWarp.Amuru.Native.Text.TailUnit
+TimeWarp.Amuru.Native.Text.TailMeasure.Unit.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions
+TimeWarp.Amuru.Native.Text.TailOptions.<Clone>$() -> TimeWarp.Amuru.Native.Text.TailOptions!
+TimeWarp.Amuru.Native.Text.TailOptions.Equals(TimeWarp.Amuru.Native.Text.TailOptions? other) -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.Follow.get -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.Follow.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.FollowInterval.get -> System.TimeSpan
+TimeWarp.Amuru.Native.Text.TailOptions.FollowInterval.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.Headers.get -> TimeWarp.Amuru.Native.Text.TailHeaders
+TimeWarp.Amuru.Native.Text.TailOptions.Headers.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.Help.get -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.Help.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.Measure.get -> TimeWarp.Amuru.Native.Text.TailMeasure
+TimeWarp.Amuru.Native.Text.TailOptions.Measure.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.SaveLimit.get -> long
+TimeWarp.Amuru.Native.Text.TailOptions.SaveLimit.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.SaveStream.get -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.SaveStream.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.StreamDirectory.get -> string?
+TimeWarp.Amuru.Native.Text.TailOptions.StreamDirectory.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.TailOptions() -> void
+TimeWarp.Amuru.Native.Text.TailOptions.Version.get -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.Version.init -> void
+TimeWarp.Amuru.Native.Text.TailOptions.ZeroTerminated.get -> bool
+TimeWarp.Amuru.Native.Text.TailOptions.ZeroTerminated.init -> void
+TimeWarp.Amuru.Native.Text.TailOutput
+TimeWarp.Amuru.Native.Text.TailOutput.ExitCode.get -> int
+TimeWarp.Amuru.Native.Text.TailOutput.HelpRequested.get -> bool
+TimeWarp.Amuru.Native.Text.TailOutput.SavedPath.get -> string?
+TimeWarp.Amuru.Native.Text.TailOutput.Stderr.get -> System.ReadOnlyMemory<byte>
+TimeWarp.Amuru.Native.Text.TailOutput.StderrText.get -> string!
+TimeWarp.Amuru.Native.Text.TailOutput.Stdout.get -> System.ReadOnlyMemory<byte>
+TimeWarp.Amuru.Native.Text.TailOutput.StdoutText.get -> string!
+TimeWarp.Amuru.Native.Text.TailOutput.Success.get -> bool
+TimeWarp.Amuru.Native.Text.TailOutput.TailOutput(System.ReadOnlyMemory<byte> stdout, System.ReadOnlyMemory<byte> stderr, int exitCode, string? savedPath, bool helpRequested, bool versionRequested) -> void
+TimeWarp.Amuru.Native.Text.TailOutput.VersionRequested.get -> bool
+TimeWarp.Amuru.Native.Text.TailParser
+TimeWarp.Amuru.Native.Text.TailParseResult
+TimeWarp.Amuru.Native.Text.TailParseResult.<Clone>$() -> TimeWarp.Amuru.Native.Text.TailParseResult!
+TimeWarp.Amuru.Native.Text.TailParseResult.Deconstruct(out TimeWarp.Amuru.Native.Text.TailOptions! Options, out System.Collections.Generic.IReadOnlyList<string!>! Operands, out string? Error) -> void
+TimeWarp.Amuru.Native.Text.TailParseResult.Equals(TimeWarp.Amuru.Native.Text.TailParseResult? other) -> bool
+TimeWarp.Amuru.Native.Text.TailParseResult.Error.get -> string?
+TimeWarp.Amuru.Native.Text.TailParseResult.Error.init -> void
+TimeWarp.Amuru.Native.Text.TailParseResult.Operands.get -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.Native.Text.TailParseResult.Operands.init -> void
+TimeWarp.Amuru.Native.Text.TailParseResult.Options.get -> TimeWarp.Amuru.Native.Text.TailOptions!
+TimeWarp.Amuru.Native.Text.TailParseResult.Options.init -> void
+TimeWarp.Amuru.Native.Text.TailParseResult.Success.get -> bool
+TimeWarp.Amuru.Native.Text.TailParseResult.TailParseResult(TimeWarp.Amuru.Native.Text.TailOptions! Options, System.Collections.Generic.IReadOnlyList<string!>! Operands, string? Error) -> void
+TimeWarp.Amuru.Native.Text.TailRunResult
+TimeWarp.Amuru.Native.Text.TailRunResult.Deconstruct(out int ExitCode, out string? SavedPath) -> void
+TimeWarp.Amuru.Native.Text.TailRunResult.Equals(TimeWarp.Amuru.Native.Text.TailRunResult other) -> bool
+TimeWarp.Amuru.Native.Text.TailRunResult.ExitCode.get -> int
+TimeWarp.Amuru.Native.Text.TailRunResult.ExitCode.init -> void
+TimeWarp.Amuru.Native.Text.TailRunResult.SavedPath.get -> string?
+TimeWarp.Amuru.Native.Text.TailRunResult.SavedPath.init -> void
+TimeWarp.Amuru.Native.Text.TailRunResult.TailRunResult() -> void
+TimeWarp.Amuru.Native.Text.TailRunResult.TailRunResult(int ExitCode, string? SavedPath) -> void
+TimeWarp.Amuru.Native.Text.TailUnit
+TimeWarp.Amuru.Native.Text.TailUnit.Bytes = 1 -> TimeWarp.Amuru.Native.Text.TailUnit
+TimeWarp.Amuru.Native.Text.TailUnit.Lines = 0 -> TimeWarp.Amuru.Native.Text.TailUnit
+~override TimeWarp.Amuru.Native.Text.TailMeasure.Equals(object obj) -> bool
+~override TimeWarp.Amuru.Native.Text.TailMeasure.ToString() -> string
+~override TimeWarp.Amuru.Native.Text.TailRunResult.Equals(object obj) -> bool
+~override TimeWarp.Amuru.Native.Text.TailRunResult.ToString() -> string
