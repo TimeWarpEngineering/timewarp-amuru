@@ -50,7 +50,20 @@ Gates:
 - `./bin/dev check-version` — source `3.0.0-beta.11`, latest NuGet `3.0.0-beta.10`, "Version in source is new — safe to release."
 - `ganda repo audit` — pass, 42 passed, 0 failed, 1 warning: `vscode-window-icon` (pre-existing advisory). Exit 0.
 
+### Review disposition
+
+- Rounds: 1. Roster: general (budget effort 3, axis general).
+- Final counts: bug 0, suggestion 0, nit 0 (0 open, 0 fixed, 0 wontfix).
+- Disposition: **clean**. No findings. The PublicAPI promotion was checked as a pure line-for-line move (109 + 321 lines).
+- Paths: `review/review-framework.md`, `review/round-1/general.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
 ## Session
 
 - Minted by ganda task wave run 20261126T021837Z-0cb631
 - Implement oracle: implemented by implementer-cursor (cursor, vendor xai, model grok-4.7-high), session not reported, max-turns uncapped (no --max-turns flag; bound 500), Done — 2026-11-28T14:42:19Z
+- Review oracle: claude (model claude-opus-5-5), round 1, general reviewer, turn cap 200, disposition clean — 2026-11-28
+- Review oracle: review by reviewer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 0ab432fe-1c2c-4309-9ba8-8c1a5d70ed08, max-turns 200, artifacts general.md, merged.md, disposition.md — 2026-11-28T14:43:46Z
+
+## Review
+
+- Round 1: Done
