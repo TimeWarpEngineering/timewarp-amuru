@@ -1621,3 +1621,324 @@ virtual TimeWarp.Amuru.WorktreeEntry.EqualityContract.get -> System.Type!
 virtual TimeWarp.Amuru.WorktreeEntry.Equals(TimeWarp.Amuru.WorktreeEntry? other) -> bool
 virtual TimeWarp.Amuru.WorktreeEntry.PrintMembers(System.Text.StringBuilder! builder) -> bool
 TimeWarp.Amuru.NuGetPackageService.NuGetPackageService(System.Net.Http.HttpMessageHandler! handler) -> void
+const TimeWarp.Amuru.Gh.ActivitySourceName = "TimeWarp.Amuru.Gh" -> string!
+override TimeWarp.Amuru.GhActor.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GhActor.GetHashCode() -> int
+override TimeWarp.Amuru.GhActor.ToString() -> string!
+override TimeWarp.Amuru.GhPullRequest.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GhPullRequest.GetHashCode() -> int
+override TimeWarp.Amuru.GhPullRequest.ToString() -> string!
+override TimeWarp.Amuru.GhWorkflowRun.Equals(object? obj) -> bool
+override TimeWarp.Amuru.GhWorkflowRun.GetHashCode() -> int
+override TimeWarp.Amuru.GhWorkflowRun.ToString() -> string!
+static TimeWarp.Amuru.DotNet.Format() -> TimeWarp.Amuru.DotNetFormatBuilder!
+static TimeWarp.Amuru.DotNet.Format(string! projectOrSolution) -> TimeWarp.Amuru.DotNetFormatBuilder!
+static TimeWarp.Amuru.DotNet.MsBuild() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+static TimeWarp.Amuru.DotNet.MsBuild(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+static TimeWarp.Amuru.Gh.Api(string! endpoint) -> TimeWarp.Amuru.GhApiBuilder!
+static TimeWarp.Amuru.Gh.Auth() -> TimeWarp.Amuru.GhAuthCommand!
+static TimeWarp.Amuru.Gh.Issue() -> TimeWarp.Amuru.GhIssueCommand!
+static TimeWarp.Amuru.Gh.Pr() -> TimeWarp.Amuru.GhPrCommand!
+static TimeWarp.Amuru.Gh.Release() -> TimeWarp.Amuru.GhReleaseCommand!
+static TimeWarp.Amuru.Gh.Run() -> TimeWarp.Amuru.GhRunCommand!
+static TimeWarp.Amuru.GhActor.operator !=(TimeWarp.Amuru.GhActor? left, TimeWarp.Amuru.GhActor? right) -> bool
+static TimeWarp.Amuru.GhActor.operator ==(TimeWarp.Amuru.GhActor? left, TimeWarp.Amuru.GhActor? right) -> bool
+static TimeWarp.Amuru.GhPullRequest.JsonFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static TimeWarp.Amuru.GhPullRequest.operator !=(TimeWarp.Amuru.GhPullRequest? left, TimeWarp.Amuru.GhPullRequest? right) -> bool
+static TimeWarp.Amuru.GhPullRequest.operator ==(TimeWarp.Amuru.GhPullRequest? left, TimeWarp.Amuru.GhPullRequest? right) -> bool
+static TimeWarp.Amuru.GhWorkflowRun.JsonFields.get -> System.Collections.Generic.IReadOnlyList<string!>!
+static TimeWarp.Amuru.GhWorkflowRun.operator !=(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
+static TimeWarp.Amuru.GhWorkflowRun.operator ==(TimeWarp.Amuru.GhWorkflowRun? left, TimeWarp.Amuru.GhWorkflowRun? right) -> bool
+TimeWarp.Amuru.DotNetBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.DotNetBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetBuildBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetBuildBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder
+TimeWarp.Amuru.DotNetFormatBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetFormatBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.DotNetFormatBuilder() -> void
+TimeWarp.Amuru.DotNetFormatBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetFormatBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetFormatBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetFormatBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithExclude(string! path) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithProject(string! projectOrSolution) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithSeverity(string! severity) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithVerifyNoChanges() -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetFormatBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetFormatBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder
+TimeWarp.Amuru.DotNetMsBuildBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetMsBuildBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.DotNetMsBuildBuilder() -> void
+TimeWarp.Amuru.DotNetMsBuildBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithBinaryLog() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithBinaryLog(string! path) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithEnvironmentVariable(string! key, string? value) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetItem(string! itemType) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetProperty(string! name) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithGetTargetResult(string! target) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithNodeReuse(bool reuse) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithProject(string! project) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithProperty(string! name, string! value) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithRestore() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithTarget(string! target) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithWorkingDirectory(string! directory) -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetMsBuildBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetMsBuildBuilder!
+TimeWarp.Amuru.DotNetNuGetBuilder.Verify(string! packagePath) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.DotNetNuGetVerifyBuilder(string! packagePath, TimeWarp.Amuru.CommandOptions! options) -> void
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.SelectAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<string!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.TtyPassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithAll() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithCertificateFingerprint(string! fingerprint) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithConfigFile(string! configFile) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithNoValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithVerbosity(string! verbosity) -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetNuGetVerifyBuilder.WithZeroExitCodeValidation() -> TimeWarp.Amuru.DotNetNuGetVerifyBuilder!
+TimeWarp.Amuru.DotNetPackBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetPackBuilder!
+TimeWarp.Amuru.DotNetPublishBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetPublishBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoCache() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithNoLogo() -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithStandardInput(string! input) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetRunBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetRunBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithArguments(params string![]? arguments) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithArtifactsPath(string! artifactsPath) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTimeout(System.TimeSpan timeout) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.DotNetTestBuilder.WithTimeoutGracePeriod(System.TimeSpan gracePeriod) -> TimeWarp.Amuru.DotNetTestBuilder!
+TimeWarp.Amuru.Gh
+TimeWarp.Amuru.GhActor
+TimeWarp.Amuru.GhActor.<Clone>$() -> TimeWarp.Amuru.GhActor!
+TimeWarp.Amuru.GhActor.Equals(TimeWarp.Amuru.GhActor? other) -> bool
+TimeWarp.Amuru.GhActor.GhActor() -> void
+TimeWarp.Amuru.GhActor.Login.get -> string?
+TimeWarp.Amuru.GhActor.Login.init -> void
+TimeWarp.Amuru.GhActor.Name.get -> string?
+TimeWarp.Amuru.GhActor.Name.init -> void
+TimeWarp.Amuru.GhApiBuilder
+TimeWarp.Amuru.GhApiBuilder.WithField(string! key, string! value) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithHeader(string! header) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithHostname(string! hostname) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithInclude() -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithInput(string! path) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithJq(string! expression) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithMethod(string! method) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithPaginate() -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithRawField(string! key, string! value) -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithSilent() -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhApiBuilder.WithSlurp() -> TimeWarp.Amuru.GhApiBuilder!
+TimeWarp.Amuru.GhAuthCommand
+TimeWarp.Amuru.GhAuthCommand.Status() -> TimeWarp.Amuru.GhAuthStatusBuilder!
+TimeWarp.Amuru.GhAuthCommand.Token() -> TimeWarp.Amuru.GhAuthTokenBuilder!
+TimeWarp.Amuru.GhAuthStatus
+TimeWarp.Amuru.GhAuthStatus.Host.get -> string?
+TimeWarp.Amuru.GhAuthStatus.Login.get -> string?
+TimeWarp.Amuru.GhAuthStatus.Output.get -> TimeWarp.Amuru.CommandOutput!
+TimeWarp.Amuru.GhAuthStatus.SignedIn.get -> bool
+TimeWarp.Amuru.GhAuthStatusBuilder
+TimeWarp.Amuru.GhAuthStatusBuilder.GetStatusAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GhAuthStatus!>!
+TimeWarp.Amuru.GhAuthStatusBuilder.WithActive() -> TimeWarp.Amuru.GhAuthStatusBuilder!
+TimeWarp.Amuru.GhAuthStatusBuilder.WithHostname(string! hostname) -> TimeWarp.Amuru.GhAuthStatusBuilder!
+TimeWarp.Amuru.GhAuthTokenBuilder
+TimeWarp.Amuru.GhAuthTokenBuilder.WithHostname(string! hostname) -> TimeWarp.Amuru.GhAuthTokenBuilder!
+TimeWarp.Amuru.GhAuthTokenBuilder.WithUser(string! user) -> TimeWarp.Amuru.GhAuthTokenBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.Build() -> TimeWarp.Amuru.CommandResult!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.CaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.Command.get -> string!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.PassthroughAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.RunAndCaptureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.CommandOutput!>!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.RunAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<int>!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.ToArguments() -> System.Collections.Generic.IReadOnlyList<string!>!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithArgument(string! argument) -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithArguments(params string![]! arguments) -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithEnvironmentVariable(string! key, string? value) -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithNoValidation() -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithTimeout(System.TimeSpan timeout) -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithWorkingDirectory(string! directory) -> TBuilder!
+TimeWarp.Amuru.GhCommandBuilder<TBuilder>.WithZeroExitCodeValidation() -> TBuilder!
+TimeWarp.Amuru.GhIssueCommand
+TimeWarp.Amuru.GhIssueCommand.Create() -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCommand.List() -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder
+TimeWarp.Amuru.GhIssueCreateBuilder.WithAssignee(string! assignee) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder.WithBody(string! body) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder.WithBodyFile(string! path) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder.WithLabel(string! label) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder.WithMilestone(string! milestone) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueCreateBuilder.WithTitle(string! title) -> TimeWarp.Amuru.GhIssueCreateBuilder!
+TimeWarp.Amuru.GhIssueListBuilder
+TimeWarp.Amuru.GhIssueListBuilder.WithAssignee(string! assignee) -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhIssueListBuilder.WithAuthor(string! author) -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhIssueListBuilder.WithLabel(string! label) -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhIssueListBuilder.WithSearch(string! query) -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhIssueListBuilder.WithState(string! state) -> TimeWarp.Amuru.GhIssueListBuilder!
+TimeWarp.Amuru.GhJsonCommandBuilder<TBuilder>
+TimeWarp.Amuru.GhJsonCommandBuilder<TBuilder>.WithJq(string! expression) -> TBuilder!
+TimeWarp.Amuru.GhJsonCommandBuilder<TBuilder>.WithJson(params string![]! fields) -> TBuilder!
+TimeWarp.Amuru.GhListCommandBuilder<TBuilder>
+TimeWarp.Amuru.GhListCommandBuilder<TBuilder>.WithLimit(int limit) -> TBuilder!
+TimeWarp.Amuru.GhPrChecksBuilder
+TimeWarp.Amuru.GhPrChecksBuilder.WithFailFast() -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrChecksBuilder.WithInterval(int seconds) -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrChecksBuilder.WithRequired() -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrChecksBuilder.WithWatch() -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrCommand
+TimeWarp.Amuru.GhPrCommand.Checks() -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrCommand.Checks(string! selector) -> TimeWarp.Amuru.GhPrChecksBuilder!
+TimeWarp.Amuru.GhPrCommand.Create() -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCommand.Merge() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrCommand.Merge(string! selector) -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrCommand.View() -> TimeWarp.Amuru.GhPrViewBuilder!
+TimeWarp.Amuru.GhPrCommand.View(string! selector) -> TimeWarp.Amuru.GhPrViewBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder
+TimeWarp.Amuru.GhPrCreateBuilder.WithAssignee(string! assignee) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithBase(string! branch) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithBody(string! body) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithBodyFile(string! path) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithDraft() -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithFill() -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithHead(string! branch) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithLabel(string! label) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithReviewer(string! reviewer) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrCreateBuilder.WithTitle(string! title) -> TimeWarp.Amuru.GhPrCreateBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder
+TimeWarp.Amuru.GhPrMergeBuilder.WithAdmin() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithAuto() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithBody(string! body) -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithDeleteBranch() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithMatchHeadCommit(string! sha) -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithMergeCommit() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithRebase() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithSquash() -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrMergeBuilder.WithSubject(string! subject) -> TimeWarp.Amuru.GhPrMergeBuilder!
+TimeWarp.Amuru.GhPrViewBuilder
+TimeWarp.Amuru.GhPrViewBuilder.ViewPullRequestAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GhPullRequestViewResult!>!
+TimeWarp.Amuru.GhPrViewBuilder.WithComments() -> TimeWarp.Amuru.GhPrViewBuilder!
+TimeWarp.Amuru.GhPullRequest
+TimeWarp.Amuru.GhPullRequest.<Clone>$() -> TimeWarp.Amuru.GhPullRequest!
+TimeWarp.Amuru.GhPullRequest.Author.get -> TimeWarp.Amuru.GhActor?
+TimeWarp.Amuru.GhPullRequest.Author.init -> void
+TimeWarp.Amuru.GhPullRequest.BaseRefName.get -> string?
+TimeWarp.Amuru.GhPullRequest.BaseRefName.init -> void
+TimeWarp.Amuru.GhPullRequest.CreatedAt.get -> System.DateTimeOffset
+TimeWarp.Amuru.GhPullRequest.CreatedAt.init -> void
+TimeWarp.Amuru.GhPullRequest.Equals(TimeWarp.Amuru.GhPullRequest? other) -> bool
+TimeWarp.Amuru.GhPullRequest.GhPullRequest() -> void
+TimeWarp.Amuru.GhPullRequest.HeadRefName.get -> string?
+TimeWarp.Amuru.GhPullRequest.HeadRefName.init -> void
+TimeWarp.Amuru.GhPullRequest.HeadRefOid.get -> string?
+TimeWarp.Amuru.GhPullRequest.HeadRefOid.init -> void
+TimeWarp.Amuru.GhPullRequest.IsDraft.get -> bool
+TimeWarp.Amuru.GhPullRequest.IsDraft.init -> void
+TimeWarp.Amuru.GhPullRequest.Mergeable.get -> string?
+TimeWarp.Amuru.GhPullRequest.Mergeable.init -> void
+TimeWarp.Amuru.GhPullRequest.MergedAt.get -> System.DateTimeOffset?
+TimeWarp.Amuru.GhPullRequest.MergedAt.init -> void
+TimeWarp.Amuru.GhPullRequest.MergeStateStatus.get -> string?
+TimeWarp.Amuru.GhPullRequest.MergeStateStatus.init -> void
+TimeWarp.Amuru.GhPullRequest.Number.get -> int
+TimeWarp.Amuru.GhPullRequest.Number.init -> void
+TimeWarp.Amuru.GhPullRequest.ReviewDecision.get -> string?
+TimeWarp.Amuru.GhPullRequest.ReviewDecision.init -> void
+TimeWarp.Amuru.GhPullRequest.State.get -> string?
+TimeWarp.Amuru.GhPullRequest.State.init -> void
+TimeWarp.Amuru.GhPullRequest.Title.get -> string?
+TimeWarp.Amuru.GhPullRequest.Title.init -> void
+TimeWarp.Amuru.GhPullRequest.Url.get -> System.Uri?
+TimeWarp.Amuru.GhPullRequest.Url.init -> void
+TimeWarp.Amuru.GhPullRequestViewResult
+TimeWarp.Amuru.GhPullRequestViewResult.Output.get -> TimeWarp.Amuru.CommandOutput!
+TimeWarp.Amuru.GhPullRequestViewResult.PullRequest.get -> TimeWarp.Amuru.GhPullRequest?
+TimeWarp.Amuru.GhPullRequestViewResult.Success.get -> bool
+TimeWarp.Amuru.GhReleaseCommand
+TimeWarp.Amuru.GhReleaseCommand.Create(string! tag) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCommand.List() -> TimeWarp.Amuru.GhReleaseListBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithAsset(string! path) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithDraft() -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithGenerateNotes() -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithLatest(bool latest) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithNotes(string! notes) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithNotesFile(string! path) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithPrerelease() -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithTarget(string! target) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithTitle(string! title) -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseCreateBuilder.WithVerifyTag() -> TimeWarp.Amuru.GhReleaseCreateBuilder!
+TimeWarp.Amuru.GhReleaseListBuilder
+TimeWarp.Amuru.GhReleaseListBuilder.WithExcludeDrafts() -> TimeWarp.Amuru.GhReleaseListBuilder!
+TimeWarp.Amuru.GhReleaseListBuilder.WithExcludePreReleases() -> TimeWarp.Amuru.GhReleaseListBuilder!
+TimeWarp.Amuru.GhRepoCommandBuilder<TBuilder>
+TimeWarp.Amuru.GhRepoCommandBuilder<TBuilder>.WithRepo(string! repository) -> TBuilder!
+TimeWarp.Amuru.GhRunCommand
+TimeWarp.Amuru.GhRunCommand.Download() -> TimeWarp.Amuru.GhRunDownloadBuilder!
+TimeWarp.Amuru.GhRunCommand.Download(string! runId) -> TimeWarp.Amuru.GhRunDownloadBuilder!
+TimeWarp.Amuru.GhRunCommand.List() -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunDownloadBuilder
+TimeWarp.Amuru.GhRunDownloadBuilder.WithDirectory(string! directory) -> TimeWarp.Amuru.GhRunDownloadBuilder!
+TimeWarp.Amuru.GhRunDownloadBuilder.WithName(string! name) -> TimeWarp.Amuru.GhRunDownloadBuilder!
+TimeWarp.Amuru.GhRunDownloadBuilder.WithPattern(string! pattern) -> TimeWarp.Amuru.GhRunDownloadBuilder!
+TimeWarp.Amuru.GhRunListBuilder
+TimeWarp.Amuru.GhRunListBuilder.ListRunsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<TimeWarp.Amuru.GhRunListResult!>!
+TimeWarp.Amuru.GhRunListBuilder.WithBranch(string! branch) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListBuilder.WithCommit(string! sha) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListBuilder.WithEvent(string! eventName) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListBuilder.WithStatus(string! status) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListBuilder.WithUser(string! user) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListBuilder.WithWorkflow(string! workflow) -> TimeWarp.Amuru.GhRunListBuilder!
+TimeWarp.Amuru.GhRunListResult
+TimeWarp.Amuru.GhRunListResult.Output.get -> TimeWarp.Amuru.CommandOutput!
+TimeWarp.Amuru.GhRunListResult.Runs.get -> System.Collections.Generic.IReadOnlyList<TimeWarp.Amuru.GhWorkflowRun!>!
+TimeWarp.Amuru.GhRunListResult.Success.get -> bool
+TimeWarp.Amuru.GhWorkflowRun
+TimeWarp.Amuru.GhWorkflowRun.<Clone>$() -> TimeWarp.Amuru.GhWorkflowRun!
+TimeWarp.Amuru.GhWorkflowRun.Attempt.get -> int
+TimeWarp.Amuru.GhWorkflowRun.Attempt.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Conclusion.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.Conclusion.init -> void
+TimeWarp.Amuru.GhWorkflowRun.CreatedAt.get -> System.DateTimeOffset
+TimeWarp.Amuru.GhWorkflowRun.CreatedAt.init -> void
+TimeWarp.Amuru.GhWorkflowRun.DatabaseId.get -> long
+TimeWarp.Amuru.GhWorkflowRun.DatabaseId.init -> void
+TimeWarp.Amuru.GhWorkflowRun.DisplayTitle.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.DisplayTitle.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Equals(TimeWarp.Amuru.GhWorkflowRun? other) -> bool
+TimeWarp.Amuru.GhWorkflowRun.Event.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.Event.init -> void
+TimeWarp.Amuru.GhWorkflowRun.GhWorkflowRun() -> void
+TimeWarp.Amuru.GhWorkflowRun.HeadBranch.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.HeadBranch.init -> void
+TimeWarp.Amuru.GhWorkflowRun.HeadSha.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.HeadSha.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Name.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.Name.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Number.get -> int
+TimeWarp.Amuru.GhWorkflowRun.Number.init -> void
+TimeWarp.Amuru.GhWorkflowRun.StartedAt.get -> System.DateTimeOffset
+TimeWarp.Amuru.GhWorkflowRun.StartedAt.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Status.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.Status.init -> void
+TimeWarp.Amuru.GhWorkflowRun.UpdatedAt.get -> System.DateTimeOffset
+TimeWarp.Amuru.GhWorkflowRun.UpdatedAt.init -> void
+TimeWarp.Amuru.GhWorkflowRun.Url.get -> System.Uri?
+TimeWarp.Amuru.GhWorkflowRun.Url.init -> void
+TimeWarp.Amuru.GhWorkflowRun.WorkflowDatabaseId.get -> long
+TimeWarp.Amuru.GhWorkflowRun.WorkflowDatabaseId.init -> void
+TimeWarp.Amuru.GhWorkflowRun.WorkflowName.get -> string?
+TimeWarp.Amuru.GhWorkflowRun.WorkflowName.init -> void

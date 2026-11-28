@@ -15,7 +15,7 @@
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="TimeWarp.Build.Tasks" Version="2.0.1-beta.1" />
     <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.18" />
-    <PackageVersion Include="TimeWarp.Ramani" Version="1.0.0-beta.25" />
+    <PackageVersion Include="TimeWarp.Ramani" Version="1.0.0-beta.26" />
     <PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.18" />
     <PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.18" />
     <PackageVersion Include="TimeWarp.Terminal" Version="2.0.0-beta.2" />
